@@ -1,0 +1,159 @@
+####################################### e-2-nomy video #14: https://www.youtube.com/watch?v=hnJyn2XyB68&feature=youtu.be  ###########
+
+substitutions:
+  updates: 5s
+  name: air_control
+
+esphome:
+  name: ${name}
+  
+esp32:
+  board: esp32dev
+  framework:
+    #type: arduino
+    #version: latest #2.0.0
+    type: arduino
+    version: 2.0.3
+    platform_version: 4.4.0  
+ 
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+
+# Enable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+switch:
+  - platform: restart
+    name: restart_${name}
+
+font:
+- file: 'dejavusans.ttf'
+  id: font1
+  size: 8
+
+uart:
+  rx_pin: GPIO16
+  tx_pin: GPIO17
+  baud_rate: 9600
+  id: ubus1
+
+i2c:
+- sda: GPIO25
+  scl: GPIO26
+  id: i2c_bus1
+  
+- sda: GPIO5
+  scl: GPIO4
+  id: i2c_bus2
+  
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    reset_pin: GPIO0
+    address: 0x3C
+    update_interval: ${updates} 
+    i2c_id: i2c_bus2
+    id: air_control_oled
+    lambda: |-
+       it.printf(0, 05, id(font1), "eCO2: %.1f %%, TVOC: %.1f %%", id(air_control_eCO2).state, id(air_control_TVOC).state);
+       it.printf(0, 30, id(font1), "Temp: %.1f °C, H: %.1f %%, P: %.1f hPa", id(air_control_temperature).state, id(air_control_humidite).state, id(air_control_pression).state);
+       it.printf(0, 55, id(font1), "2.5um: %.1f ppm, 10um: %.1f ppm", id(air_control_2_5um_concentration).state, id(air_control_10_0um_concentration).state);
+       
+sensor:
+
+- platform: ccs811
+  i2c_id: i2c_bus1
+  eco2:
+      name: ${name}_eCO2
+      id: ${name}_eCO2
+      filters:
+      - lambda: if (x < 65000) { return x;} else {return 0.0;}
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+  tvoc:
+      name: ${name}_TVOC
+      id: ${name}_TVOC
+      filters:
+      - lambda: if (x < 65000) { return x;} else {return 0.0;}
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+          
+  address: 0x5A  
+  update_interval: ${updates} 
+  temperature: ${name}_temperature
+  humidity: ${name}_humidite
+  baseline: 0x1483
+  
+- platform: bme280
+  i2c_id: i2c_bus1
+  temperature:
+    name: ${name}_temperature
+    oversampling: 16x
+    id: ${name}_temperature
+  pressure:
+    name: ${name}_pression
+    id: ${name}_pression
+  humidity:
+    name: ${name}_humidite
+    id: ${name}_humidite
+  address: 0x76
+  update_interval: ${updates}   
+  
+  
+- platform: sds011
+  pm_2_5:
+    name: ${name}_2_5µm_concentration
+    id: ${name}_2_5um_concentration
+  pm_10_0:
+    name: ${name}_10_0µm_concentration
+    id: ${name}_10_0um_concentration
+  update_interval: 1min
+  uart_id: ubus1
+  
+- platform: wifi_signal
+  name: WiFi puissance_${name}
+  update_interval:  ${updates} 
+    
+#- platform: uptime
+#  name: "air_control_uptime"
+#  update_interval: 15s
+  
+- platform: uptime
+  id: uptime_sec  
+  
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+    
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else {
+        return { (String(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s    
+  
