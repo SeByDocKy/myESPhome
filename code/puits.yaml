@@ -1,0 +1,560 @@
+####################################### e-2-nomy video #49: https://www.youtube.com/watch?v=zVII6VimuIM  ###########
+
+
+substitutions:
+  updates: 10s
+  duration: 15s
+  name: puits
+  external_components_source: github://syssi/esphome-total-count@main
+
+esphome:
+  name: puits
+  
+esp32:
+  board: esp32dev
+#  framework:
+#    type: esp-idf
+#    type: arduino
+#    version: 2.0.4
+#    platform_version: 4.4.0   
+   
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+  
+external_components:
+  - source: ${external_components_source}
+    refresh: 0s  
+
+# Enable logging
+
+logger:
+  #baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+globals:
+  - id: ${name}_veille_global
+    type: float
+    restore_value: yes
+    
+  - id: ${name}_pompe_veille_global
+    type: float
+    restore_value: yes
+time:
+
+  - platform: homeassistant
+    id: homeassistant_time  
+    
+    on_time:
+      - seconds: 59
+        minutes: 59
+        hours: 23
+        then:                
+          - globals.set: # Set global to current position
+                id: puits_veille_global
+                value: !lambda return ( id(${name}_veille_global) =  float( id(daily_well).state) );      
+                            
+          - globals.set: # Set global to current position
+                id: puits_pompe_veille_global
+                value: !lambda return ( id(${name}_pompe_veille_global) =  float( id(${name}_pompe_puissance_du_jour).state) );     
+              
+          - lambda: |-
+              id(${name}_total_count).reset_counter();
+      
+############### UART for PZEM ##########  
+              
+uart: 
+  - id: uart0
+    tx_pin: GPIO19 
+    rx_pin: GPIO18
+    baud_rate: 9600
+    stop_bits: 2   #1 for ESP8266
+    
+modbus:
+   id: modbus0
+   uart_id: uart0    
+    
+################ I3C bus ##############    
+              
+i2c:
+- sda: GPIO21
+  scl: GPIO22
+  id: i2c_bus1
+
+#### Total count #####
+
+total_count:
+  - id: ${name}_total_count
+    binary_sensor_id: ${name}_pompe_declenchement
+    restore: true
+    min_save_interval: 300s
+    initial_value: 0
+    step: 1
+
+###### PCF pcf8574 ####
+  
+pcf8574:
+  - id: ${name}_hub
+    address: 0x20
+    pcf8575: True    
+      
+########### One Wire bus #################
+
+dallas:
+  - pin: GPIO15
+    update_interval: 10s
+
+########### Switches #################
+
+number:
+
+  ######### Seuils sécurité ########
+
+  - platform: template
+    name: ${name}_pompe_seuil_securite_bas_number
+    id: ${name}_pompe_seuil_securite_bas_number
+    optimistic: true
+    unit_of_measurement: 'A'
+    icon: mdi:current-dc
+    min_value: -80
+    max_value: 0
+    step: 1
+    initial_value: -35
+    restore_value: true
+    mode: 'slider'
+    
+  - platform: template
+    name: ${name}_pompe_seuil_securite_haut_number
+    id: ${name}_pompe_seuil_securite_haut_number
+    optimistic: true
+    unit_of_measurement: 'A'
+    icon: mdi:current-dc
+    min_value: -80
+    max_value: 0
+    step: 1
+    initial_value: -15
+    restore_value: true
+    mode: 'slider'  
+    
+  ##### Electrovanne vide sanitaure ####  
+    
+  - platform: template
+    name: ${name}_electrovanne_vide_sanitaire_number  
+    id: ${name}_electrovanne_vide_sanitaire_number
+    optimistic: true
+    unit_of_measurement: '%'
+    icon: mdi:valve
+    min_value: 0
+    max_value: 100
+    step: 1
+    mode: 'slider'
+    restore_value: true
+    on_value:
+       then:
+          - if: 
+              condition:
+                -  lambda: |-
+                    return id(${name}_electrovanne_vide_sanitaire_number).state != 0;
+              then:            
+                - cover.control:
+                   id: ${name}_electrovanne_vide_sanitaire
+                   position: !lambda |-
+                    return id(${name}_electrovanne_vide_sanitaire_number).state/100.0;
+              else:
+                - cover.close: ${name}_electrovanne_vide_sanitaire    
+ 
+switch:
+
+  - platform: restart
+    name: restart_${name}
+    
+  - platform: template
+    name: ${name}_relay_securite_automatic_control
+    id: ${name}_relay_securite_automatic_control
+    optimistic: true
+    restore_state: true
+
+  - platform: gpio
+    id: ${name}_relay_securite
+    name: ${name}_relay_securite
+    pin:
+      pcf8574: ${name}_hub
+      # Use pin number 1
+      number: 0
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_relay_fermeture_electrovanne_vide_sanitaire
+    name: ${name}_relay_fermeture_electrovanne_vide_sanitaire
+    interlock: ${name}_relay_ouverture_electrovanne_vide_sanitaire
+    pin:
+      pcf8574: ${name}_hub
+      # Use pin number 1
+      number: 1
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_relay_ouverture_electrovanne_vide_sanitaire
+    name: ${name}_relay_ouverture_electrovanne_vide_sanitaire
+    interlock: ${name}_relay_fermeture_electrovanne_vide_sanitaire
+    pin:
+      pcf8574: ${name}_hub
+      # Use pin number 1
+      number: 2
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+      
+########### Sensors #################      
+ 
+sensor:
+
+#  - platform: duty_cycle
+#    pin: D0
+#    name: puits_ratio_utilisation_pompe
+#    update_interval: 15min
+
+  - platform: homeassistant
+    entity_id: sensor.pvbrain_jkbms_current  
+    id: pvbrain_jkbms_current
+    on_value:
+       ########### Activation Sécurité ############
+      - if:
+         condition:
+           and:
+#             - lambda: |-
+#                return ( id(puits_pompe_seuil_securite_bas).has_state() );
+             - lambda: |-
+                 return (    ( float(id(pvbrain_jkbms_current).state) < float(id(${name}_pompe_seuil_securite_bas_number).state) )  );
+             - switch.is_off: ${name}_relay_securite
+             - switch.is_on: ${name}_relay_securite_automatic_control
+             - binary_sensor.is_off: ${name}_pompe_declenchement
+             - binary_sensor.is_on: ${name}_pvbrain_axpert_switch_on
+         then:
+           - switch.turn_on: ${name}_relay_securite
+      
+      ########### DésActivation Sécurité ############
+           
+      - if:
+         condition:
+           and:
+#             - lambda: |-
+#                return ( id(puits_pompe_seuil_securite_haut).has_state() );
+             - lambda: |-
+                 return (    ( float(id(pvbrain_jkbms_current).state) > float(id(${name}_pompe_seuil_securite_haut_number).state) )  );
+             - switch.is_on: ${name}_relay_securite
+             - switch.is_on: ${name}_relay_securite_automatic_control
+             - binary_sensor.is_off: ${name}_pompe_declenchement
+             - binary_sensor.is_on: ${name}_pvbrain_axpert_switch_on
+         then:
+           - switch.turn_off: ${name}_relay_securite       
+    
+  
+   #################### PZEM pompe du puits ##############
+ 
+  - platform: pzemac
+    address: 1
+    current:
+      name: ${name}_pompe_courant
+      accuracy_decimals: 2
+    voltage:
+      name: ${name}_pompe_tension
+      accuracy_decimals: 2
+    power:
+      name: ${name}_pompe_puissance
+      unit_of_measurement: W
+      accuracy_decimals: 2
+      id: ${name}_pompe_puissance
+    frequency:
+      name: ${name}_pompe_frequence
+      unit_of_measurement: Hz
+      accuracy_decimals: 2
+    power_factor:
+      name: ${name}_pompe_facteur_puissance
+      accuracy_decimals: 2
+      id: puits_pompe_facteur_puissance
+    energy:
+      name: ${name}_pompe_energy
+      unit_of_measurement: Wh
+      accuracy_decimals: 1
+      id: ${name}_pompe_energy
+    update_interval: ${updates}
+    modbus_id: modbus0
+    id: ${name}_pompe_grid
+    
+  - platform: template
+    name: ${name}_pompe_puissance_cumulee
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    update_interval: ${updates}
+    icon: mdi:power
+    lambda: return (( (id(${name}_pompe_energy).state)/1000.0));
+    
+  - platform: total_daily_energy
+    name: ${name}_pompe_du_jour
+    power_id: ${name}_pompe_puissance 
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    id: ${name}_pompe_puissance_du_jour
+    method: trapezoid
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+    restore: true
+    
+  - platform: template
+    name: ${name}_pompe_veille
+    id: template_${name}_pompe_veille
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    icon: mdi:power
+    update_interval: ${updates}
+    lambda: |-
+      return ( id(template_${name}_pompe_veille).state = id(${name}_pompe_veille_global) );
+    
+  - platform: template
+    name: ${name}_pompe_puissance_apparente
+    id: ${name}_pompe_puissance_apparente
+    unit_of_measurement: "VA"
+    accuracy_decimals: 2
+    update_interval: ${updates}
+    icon: mdi:power
+    lambda: return ( (id(${name}_pompe_puissance).state/id(${name}_pompe_facteur_puissance).state));
+  
+  - platform: template
+    name: ${name}_pompe_puissance_reactive
+    id: ${name}_pompe_puissance_reactive
+    unit_of_measurement: "VAr"
+    accuracy_decimals: 2
+    update_interval: ${updates}
+    icon: mdi:power
+    lambda: return (  id(${name}_pompe_puissance_apparente).state*sin(acos( id(${name}_pompe_facteur_puissance).state ))  ); 
+
+  - platform: total_count
+    total_count_id: ${name}_total_count
+    total_count:
+      name: ${name}_pompe_nombre_declenchement  
+
+ ################### BME 280 ##################
+ 
+  - platform: bme280
+    i2c_id: i2c_bus1
+    temperature:
+      name: ${name}_temperature_vs
+      oversampling: 16x
+      id: temperature_vs
+    pressure:
+      name: ${name}_pression_vs
+      id: pression_vs
+      unit_of_measurement: "bar"
+      accuracy_decimals: 3
+      filters:
+      - lambda: return x / 1000.0;
+    humidity:
+      name: ${name}_humidite_vs
+      id: humidite_vs
+    address: 0x76
+    update_interval: ${updates}  
+
+################### Pression atmospherique form Darksky ##################
+
+#  - platform: homeassistant
+#    name: "reference_pression"
+#    entity_id: sensor.darksy_pressure
+#    id: reference_pression
+
+
+################### Pression brute au fond du puits ##################
+
+
+  - platform: adc
+    pin: GPIO36
+    name: ${name}_pression_fond
+    update_interval: 10s
+    attenuation: 11db #auto #11db
+    raw: true
+    unit_of_measurement: "bar"
+    accuracy_decimals: 3
+    icon: mdi:gauge
+    id: pression_${name}
+    filters:
+    - sliding_window_moving_average:
+        window_size: 9
+        send_every: 1
+    #- lambda: return ((((1*x)/5.0) + 0.04 )/0.4);    
+    - lambda: return ((( ( ( 3.895/4095 )*x)/5.0) + 0.04 )/0.4);
+
+################### Pression surpresseur ##################
+    
+  - platform: adc
+    pin: GPIO39
+    name: ${name}_pression_surpresseur
+    id: ${name}_pression_surpresseur
+    update_interval: ${updates}
+    attenuation: 11db
+    #raw: true
+    unit_of_measurement: "bar"
+    icon: mdi:gauge
+    accuracy_decimals: 3
+    filters:
+    - sliding_window_moving_average:
+        window_size: 7
+        send_every: 1
+    #- lambda: return (((( 3.895/4095 )*x)/5.0 - 0.1)*1.333333*10);
+    - lambda: return ((x/5.0 - 0.1)*1.333333*10);
+    on_value:
+       then:
+          - if: 
+             condition:
+              - lambda: |-
+                  return ( id(${name}_pression_surpresseur).state > 4.0 );
+             then:
+               - switch.turn_off: ${name}_relay_securite_automatic_control
+               - switch.turn_on: ${name}_relay_securite
+               - homeassistant.service:
+                  service: notify.mobile_app_redmi_note_6_pro
+                  data:
+                    message: 'Alerte pression ballon trop haute !!!!'
+          
+################### Sonde temperature au fond du puits ##################
+
+  - platform: dallas
+    address: 0x3B8318507361FF28
+    name: ${name}_temperature_fond
+    unit_of_measurement: "°C"
+    resolution: 12
+    accuracy_decimals: 2
+          
+################### Calcul volume restant eau du puits & consommation ##################
+
+  - platform: template
+    name: ${name}_volume_eau
+    id: template_volume_${name}
+    unit_of_measurement: "L"
+    device_class: 'volume'
+    accuracy_decimals: 2
+    update_interval: 10s
+    icon: mdi:water
+    filters:
+    - sliding_window_moving_average:
+        window_size: 9
+        send_every: 1
+   
+    lambda: return ( (id(pression_${name}).state - ( (id(pression_vs).state)/(pow( (1.0 - (0.0065*14/288.15)) , 5.255)) + 0.10 ) )*7238.2294 );     #108m - 14m = 94 
+    
+    
+    # 94.5 comes from my current altitude in order to correct pressure given for sea level
+    # 0.1 <=> 1m between the sensor and the water pump
+    #https://fr.wikipedia.org/wiki/Variation_de_la_pression_atmosph%C3%A9rique_avec_l%27altitude
+    
+    # My well is cylindric with a diameter of D=0.96m. My sensor is located 1m below the pump. So if I want to compute the remaining water for the pump I need substracte 0.1 on measured pressure
+    # then h= (measured pressured - (1 + 0.1))*10 where we remove the 0 meter air pressure + 1m of difference between the sensor and the pump. Then we multiply *10 to have a meter value
+    # Volume of water (L) = h*pi*R²*1000 = delta_p*10*pi*R²*1000= delta_p*pi*(D/2)²1000*10=h*3.14116*(0.96/2)² *1000*10=delta_p*7230.7233 for my particular case
+    
+                                                                  
+  - platform: pulse_counter
+    id: water_flow_meter_${name}
+    pin: GPIO2
+    name: ${name}_water_flow_meter    
+    update_interval: 1s
+    icon: mdi:water
+    filters:
+    - lambda: return (x / 5.48);
+    unit_of_measurement: "l"     
+    
+
+  - platform: total_daily_energy
+    name: ${name}_consommation_eau_du_jour
+    power_id: water_flow_meter_${name}
+    unit_of_measurement: "L"
+    device_class: 'volume'
+    accuracy_decimals: 2
+    id: daily_well
+    restore: true
+    
+  - platform: template
+    name: ${name}_consommation_eau_veille
+    id: template_${name}_veille
+    unit_of_measurement: "L"
+    device_class: 'volume'
+    accuracy_decimals: 2
+    icon: mdi:water
+    update_interval: ${updates}
+    lambda: |-
+      return (id(template_${name}_veille).state = id(${name}_veille_global));
+
+  - platform: wifi_signal
+    name: "WiFi puissance_puits"
+    update_interval: ${updates}
+    
+  - platform: uptime
+    id: uptime_sec
+    
+      
+cover:
+
+##### Electrovanne 1 ####
+
+- platform: time_based
+  name: ${name}_electrovanne_vide_sanitaire
+  id: ${name}_electrovanne_vide_sanitaire
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_relay_ouverture_electrovanne_vide_sanitaire
+  open_duration: ${duration}
+  close_action:
+    - switch.turn_on: ${name}_relay_fermeture_electrovanne_vide_sanitaire
+  close_duration: ${duration}
+  stop_action:
+    - switch.turn_off: ${name}_relay_ouverture_electrovanne_vide_sanitaire
+    - switch.turn_off: ${name}_relay_fermeture_electrovanne_vide_sanitaire
+
+    
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+    
+  - platform: analog_threshold
+    name: ${name}_pompe_declenchement
+    id: ${name}_pompe_declenchement
+    sensor_id: ${name}_pompe_puissance
+    threshold:
+      upper: 1000
+      lower : 100
+      
+  - platform: homeassistant
+    entity_id: binary_sensor.pvbrain_axpert_switch_on  
+    id: puits_pvbrain_axpert_switch_on    
+      
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else {
+        return { (String(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s    
