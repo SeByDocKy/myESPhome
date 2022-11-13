@@ -78,7 +78,7 @@ modbus:
    id: modbus0
    uart_id: uart0    
     
-################ I3C bus ##############    
+################ I2C bus ##############    
               
 i2c:
 - sda: GPIO21
