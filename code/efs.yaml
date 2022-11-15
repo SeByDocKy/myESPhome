@@ -1,0 +1,241 @@
+######################################################## e-2-nomy #25: https://www.youtube.com/watch?v=o_D95vliSd4&t=7s  #####################################
+###### github: https://github.com/SeByDocKy/ESPhome/tree/main/code ####
+
+
+substitutions:
+  updates: 10s
+  name: efs
+  room: cuisine
+  
+esphome:
+  name: ${name}
+ 
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: 2.0.3
+    platform_version: 4.4.0  
+
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+globals:
+  - id: ${name}_veille_global
+    type: float
+    restore_value: yes
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time  
+    
+    on_time:
+      - seconds: 59
+        minutes: 59
+        hours: 23
+        then:  
+          - globals.set:
+                id: efs_veille_global
+                value: !lambda return ( id(${name}_veille_global) =  float( id(daily_${name}).state) );           
+
+i2c:
+- sda: GPIO21
+  scl: GPIO22
+  id: i2c_bus1                
+              
+switch:
+  - platform: restart
+    name: restart_${name}
+    
+sensor: 
+   
+  - platform: adc
+    id: sensor_resistance
+    pin: GPIO032
+    update_interval: 10s
+    attenuation: 11db
+    
+  - platform: resistance
+    sensor: sensor_resistance
+    configuration: UPSTREAM
+    resistor: 10.0kOhm
+    accuracy_decimals: 2
+    name: ${name}_resistance
+    id: ${name}_resistance
+    icon: mdi:resistor
+
+  #- platform: ntc
+  #  sensor: sensor_resistance
+  #  calibration:
+  #      - 200720000Ohm -> 6.0°C
+  #      - 5709400Ohm -> 22.0°C  
+  #      - 2876600Ohm -> 37.0°C
+  #  name: temperature_efs  
+  #  unit_of_measurement: "°C"
+  #  filters:
+  #  - sliding_window_moving_average:
+  #      window_size: 7
+  #      send_every: 1
+  #  icon: "mdi:thermometer"
+  #  accuracy_decimals: 2
+    
+    
+  - platform: template
+    name: ${name}_temperature
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer"
+    accuracy_decimals: 2  
+    update_interval: ${updates}
+    filters:
+    - sliding_window_moving_average:
+        window_size: 7
+        send_every: 1
+    lambda: |-
+      float A = -0.0023372161946098318;
+      float B = 0.0006789562966514373;
+      float C = -1.3022483012452408e-06;
+      float LR = log(id(efs_resistance).state);
+      return  (1.0/(A + B*LR + C*LR*LR*LR) - 273.15);
+      
+  - platform: bme280
+    i2c_id: i2c_bus1
+    temperature:
+      name: temperature_${room}
+      oversampling: 16x
+      id: temperature_${room}
+    pressure:
+      name: pression_${room}
+      id: pression_${room}
+      unit_of_measurement: "bar"
+      accuracy_decimals: 3
+      filters:
+      - lambda: return x / 1000.0;
+    humidity:
+      name: humidite_${room}
+      id: humidite_${room}
+    address: 0x76
+    update_interval: ${updates}      
+
+
+  - platform: adc
+    pin: GPIO34
+    name: ${name}_pression_amont
+    id: ${name}_pression_amont
+    update_interval: ${updates}
+    unit_of_measurement: "bar"
+    icon: mdi:gauge
+    accuracy_decimals: 3
+    attenuation: 11db
+    filters:
+    - sliding_window_moving_average:
+        window_size: 7
+        send_every: 1
+    - lambda: return ((x/5.0 - 0.1)*1.333333*10); #((x - 0.1)*1.333333*(10/6.4)); #2   # ((x/5.0 - 0.1)*1.333333*10)
+
+
+  - platform: adc
+    pin: GPIO35
+    name: ${name}_pression_aval
+    id: ${name}_pression_aval
+    update_interval: ${updates}
+    unit_of_measurement: "bar"
+    icon: mdi:gauge
+    accuracy_decimals: 3
+    attenuation: 11db
+    filters:
+    - sliding_window_moving_average:
+        window_size: 7
+        send_every: 1
+    - lambda: return ((x/5.0 - 0.1)*1.333333*10); #((x - 0.1)*1.333333*(10/7.5));  #4
+    
+  - platform: pulse_counter
+    id: water_flow_meter_${name}
+    pin: GPIO15
+    name: water_flow_meter_${name}    
+    update_interval: 1s
+    icon: mdi:water
+    filters:
+     - lambda: return (x / 5.48);
+    unit_of_measurement: "L"
+    device_class: 'water'
+    total:
+      unit_of_measurement: 'L'
+      name: efs_cumulee
+      filters:
+        - multiply: 0.1824
+    
+  - platform: total_daily_energy
+    name: ${name}_du_jour
+    power_id: water_flow_meter_${name}  
+    unit_of_measurement: "L"
+    accuracy_decimals: 2
+    id: daily_efs
+    restore: true
+    device_class: 'water'
+    
+  - platform: template
+    name: ${name}_veille
+    id: template_efs_veille
+    unit_of_measurement: "L"
+    accuracy_decimals: 2
+    device_class: 'water'
+    icon: mdi:water
+    update_interval: ${updates}
+    lambda: |-
+      return (id(template_${name}_veille).state = id(${name}_veille_global));
+    
+  - platform: wifi_signal
+    name: WiFi puissance_${name}
+    update_interval: ${updates}
+  
+  - platform: uptime
+    id: uptime_sec  
+    
+    
+binary_sensor:
+  - platform: status
+    name: ${name}_status 
+    
+  - platform: template
+    name: ${name}_filtre
+    lambda: |-
+      if (abs(id(${name}_pression_aval).state - id(${name}_pression_amont).state) < 0.8) {
+        // Changement de filtre
+        return true;
+      } else {
+        // filtre ok
+        return false;
+      }      
+    
+    
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else {
+        return { (String(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s     
