@@ -8,6 +8,7 @@ substitutions:
   tx_pin_uart: GPIO17
   rx_pin_uart: GPIO16
   modbus_adress: '1'
+  baudrate: '9600'
  
 esphome:
   name: ${name}
@@ -94,7 +95,7 @@ uart:
   id: uart0
   tx_pin: ${tx_pin_uart}
   rx_pin: ${rx_pin_uart}
-  baud_rate: 9600
+  baud_rate: ${baudrate}
   stop_bits: 1
   # debug:
     # direction: BOTH  
@@ -130,7 +131,7 @@ sensor:
     address: 0x000A
     register_type: holding
     value_type: U_WORD
-    accuracy_decimals: 1
+    accuracy_decimals: 0
     unit_of_measurement: "V"
     skip_updates: 1 
     icon: mdi:sine-wave
@@ -144,10 +145,10 @@ sensor:
     register_type: holding
     value_type: U_WORD
     skip_updates: 1 
-    accuracy_decimals: 1
+    accuracy_decimals: 0
     icon: mdi:current-dc
     unit_of_measurement: "A"
-    bitmask: 0xFF #(Bits 7-0)
+    bitmask: 0x00FF #(Bits 7-0)
 
   - platform: modbus_controller
     modbus_controller_id: srne
@@ -157,7 +158,7 @@ sensor:
     register_type: holding
     value_type: U_WORD
     skip_updates: 1 
-    accuracy_decimals: 1
+    accuracy_decimals: 0
     icon: mdi:current-dc
     unit_of_measurement: "A"
     bitmask: 0xFF00 #(Bits 15-8)  
@@ -261,7 +262,21 @@ sensor:
     update_interval: 2s
     lambda: |-
       return id(charging_current).state*id(battery_voltage).state;
-    
+
+  - platform: template
+    id: pv_battery_ratio
+    name: ${name}_pv_battery_ratio
+    accuracy_decimals: 1
+    unit_of_measurement: "%"
+    icon: mdi:percent
+    update_interval: 2s
+    lambda: |-
+      if (id(solar_panel_power).state != 0.0) {
+        return (id(charging_power).state/id(solar_panel_power).state)*100.0;    
+      }
+      else{
+        return 0;
+      }
   - platform: total_daily_energy
     name: ${name}_charging_power_total_du_jour
     power_id: charging_power 
