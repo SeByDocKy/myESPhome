@@ -1,0 +1,273 @@
+####################################### e-2-nomy video #16 & 17: https://www.youtube.com/watch?v=1qMPK9LsWVw  ###########
+###############################################################  https://www.youtube.com/watch?v=J2yG0CH2fS0  ###########
+
+substitutions:
+  name: station_meteo
+
+esphome:
+  name: ${name}
+
+  includes:
+    - veml6070_custom_sensor.h
+    - tx23_custom_sensor.h
+  libraries:
+    - "https://github.com/adafruit/Adafruit_VEML6070"
+    - "https://github.com/egzumer/Arduino-LaCrosse-TX23-Library"
+    #- SPI
+    
+  platformio_options:
+    lib_ldf_mode: chain
+
+esp32:
+  board: esp32dev
+#  framework:
+#    type: arduino
+#    version: 2.0.3
+#    platform_version: 4.4.0   
+    
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+  
+# Enable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+
+globals:
+  - id: ${name}_veille_global
+    type: float
+    restore_value: yes
+
+time:
+
+  - platform: homeassistant
+    id: homeassistant_time  
+    
+    on_time:
+      - seconds: 59
+        minutes: 59
+        hours: 23
+        then:  
+          - globals.set: # Set global to current position
+                id: ${name}_veille_global
+                value: !lambda return ( id(${name}_veille_global) =  float( id(daily_rain).state) );
+                
+i2c:
+  sda: GPIO22
+  scl: GPIO21
+
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+    
+switch:
+  - platform: restart
+    name: restart_${name}
+    
+  - platform: gpio
+    pin: GPIO12
+    inverted: yes
+    id: reset_GPIO02  
+
+sensor:
+
+  - platform: pulse_counter
+    pin:
+      number: GPIO12
+      inverted: True
+      mode: INPUT_PULLUP    
+    unit_of_measurement: 'mm'
+    update_interval: 2s
+    accuracy_decimals: 3
+    name: ${name}_compteur_pluviometre
+    id: rain_meter
+    filters:
+      - multiply:  25 #0.0250 #0.367    #90/2.25ml om 90 est la valeur pour chaque bascule ave 2s et 2.25ml est le volume de chaque réservoir
+
+  - platform: total_daily_energy
+    name: ${name}_pluie_du_jour
+    power_id: rain_meter  
+    unit_of_measurement: "mm"
+    accuracy_decimals: 3
+    id: daily_rain
+    icon: mdi:water
+    restore: true
+    
+  #- platform: pulse_counter
+  #  pin:
+  #    number: GPIO12
+  #    inverted: True
+  #    mode: INPUT_PULLUP
+  #  update_interval: 60s
+  #  accuracy_decimals: 0
+  #  name: 'control_exterieur_compteur_pluviometre'
+  #  id: rain_meter 
+    
+  #- platform: integration
+  #  name: "control_exterieur_pluie_du_jour"
+  #  id: daily_rain
+  #  sensor: rain_meter
+  #  time_unit: min
+  #  unit_of_measurement: 'mm'
+  #  accuracy_decimals: 4
+  #  filters:
+  #    - multiply: 0.3125  
+    
+  - platform: template
+    name: ${name}_pluie_veille
+    id: template_yesteday_rain
+    unit_of_measurement: "mm"
+    accuracy_decimals: 3
+    icon: mdi:water
+    update_interval: 10s
+    lambda: |-
+      return (id(template_yesteday_rain).state = id(${name}_veille_global));
+    
+  - platform: bme280
+    temperature:
+      name: ${name}_temperature
+      oversampling: 16x
+      id: ${name}_temperature
+    pressure:
+      name: ${name}_pression
+      id: ${name}_pression
+    humidity:
+      name: ${name}_humidite
+      id: ${name}_humidite
+    address: 0x76
+    update_interval: 5s
+
+  #- platform: tx20
+  #  wind_speed:
+  #    name: "station_meteo_vitesse_vent"
+  #    unit_of_measurement: "m/s"
+  #    icon: "mdi:weather-windy"
+  #    accuracy_decimals: 1
+  #  wind_direction_degrees:
+  #    name: "station_meteo_direction_vent"
+  #  pin:
+  #    number: GPIO2
+  #    #mode: INPUT_PULLUP
+  #  id: tx20_id
+
+  - platform: custom
+    id: tx23_id
+    lambda: |-
+      auto TX23 = new TX23CustomSensor();
+      App.register_component(TX23);
+      return {TX23->speed_sensor, TX23->direction_sensor};
+
+    sensors:
+    - name: ${name}_vitesse_vent
+      unit_of_measurement: "m/s"
+      accuracy_decimals: 1
+      icon: "mdi:weather-windy"
+    
+    - name: ${name}_direction_vent
+      unit_of_measurement: "°"
+      icon: "mdi:compass-outline"
+      id: ${name}_direction_vent
+   
+      
+  - platform: bh1750
+    name: ${name}_luminosite
+    address: 0x23
+    update_interval: 5s
+ #   measurement_duration: 31
+    filters:
+#    - lambda: if (x < 54612.5) return x;
+    - sliding_window_moving_average:
+        window_size: 9
+        send_every: 1
+    
+  - platform: pulse_counter
+    pin: GPIO36
+    name: ${name}_compteur_geiger
+    update_interval: 15s    
+  
+  - platform: custom
+    lambda: |-
+      auto veml6070 = new VEML6070CustomSensor();
+      App.register_component(veml6070);
+      return {veml6070};
+    sensors:
+      name: ${name}_UV
+      unit_of_measurement: "mW/m²"
+      accuracy_decimals: 2
+      filters:
+      - delta: 10
+      - multiply: 0.03
+      - filter_out: 65535
+      - lambda: |-
+          if (x > 600) {
+            return 0;
+          } else {
+            return x;
+          }
+  - platform: uptime
+    id: uptime_sec
+    
+  - platform: wifi_signal
+    name: WiFi puissance_${name}
+    update_interval: 10s  
+    
+#  - platform: template
+#    name: station_meteo_uptime
+#    lambda: |-
+#      int seconds = (id(uptime_sec).state);
+#      int days = seconds / (24 * 3600);
+#      seconds = seconds % (24 * 3600); 
+#      int hours = seconds / 3600;
+#      seconds = seconds % 3600;
+#      int minutes = seconds /  60;
+#      seconds = seconds % 60;
+#      return { (String(days) + "d " + String(hours) + "h " + String(minutes) + "m "+ String(seconds) + "s").c_str() };
+#    icon: mdi:clock-start
+#    update_interval: 113s  
+
+
+
+text_sensor:
+  - platform: template
+    name: ${name}_uptime_total # Temps total depuis le démarrage de la carte
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600);
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds / 60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else {
+        return { (String(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s
+
+
+#text_sensor:
+#  -platform: template
+#   name: "station_meteo_fleche_vent"
+#   lambda: |-
+#     static const char *dirTable[] = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"};
+#     return {dirTable[id(tx23_id).state};
+
+#text_sensor:
+#  - platform: template
+#    name: "station_meteo_fleche_vent"
+#    lambda: |-
+#      return {id(tx23_id).get_wind_cardinal_direction()};
+#    update_interval: 2s
+
