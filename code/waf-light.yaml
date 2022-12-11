@@ -1,0 +1,390 @@
+######################  e-2-nomy YT video : https://www.youtube.com/watch?v=pkF1sAsyM_Q   ################
+
+
+substitutions:
+  updates: 10s
+  name: waf-light
+  prefix: waf
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: 2.0.5
+    platform_version: 5.2.0
+    
+# Enable logging
+logger:
+  #level: very_verbose
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "9fbfbad15e79373fe07395f7fa3585c1"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Waf-Light Fallback Hotspot"
+    password: "SeByDocKy"
+
+captive_portal:
+
+
+number:
+
+  ######### Seuils sécurité ########
+
+  - platform: template
+    name: ${prefix}_intensite_seuil_haut_number
+    id: ${prefix}_intensite_seuil_haut_number
+    optimistic: true
+    unit_of_measurement: 'A'
+    icon: mdi:current-dc
+    min_value: -20
+    max_value: 10
+    step:  1
+    initial_value: -1
+    restore_value: true
+    mode: 'slider'
+    
+  - platform: template
+    name: ${prefix}_intensite_seuil_moyen_number
+    id: ${prefix}_intensite_seuil_moyen_number
+    optimistic: true
+    unit_of_measurement: 'A'
+    icon: mdi:current-dc
+    min_value: -40
+    max_value: -10
+    step: 1
+    initial_value: -25
+    restore_value: true
+    mode: 'slider'  
+
+  - platform: template
+    name: ${prefix}_intensite_seuil_bas_number
+    id: ${prefix}_intensite_seuil_bas_number
+    optimistic: true
+    unit_of_measurement: 'A'
+    icon: mdi:current-dc
+    min_value: -120
+    max_value: -30
+    step: 1
+    initial_value: -50
+    restore_value: true
+    mode: 'slider'
+    
+    
+  - platform: template
+    name: ${prefix}_capacite_seuil_haut_number
+    id: ${prefix}_capacite_seuil_haut_number
+    optimistic: true
+    unit_of_measurement: '%'
+    icon: mdi:battery-high
+    min_value: 30
+    max_value: 100
+    step:  1
+    initial_value: 50
+    restore_value: true
+    mode: 'slider'
+    
+  - platform: template
+    name: ${prefix}_capacite_seuil_moyen_number
+    id: ${prefix}_capacite_seuil_moyen_number
+    optimistic: true
+    unit_of_measurement: '%'
+    icon: mdi:battery-medium
+    min_value: 20
+    max_value: 50
+    step: 1
+    initial_value: 30
+    restore_value: true
+    mode: 'slider'  
+
+  - platform: template
+    name: ${prefix}_capacite_seuil_bas_number
+    id: ${prefix}_capacite_seuil_bas_number
+    optimistic: true
+    unit_of_measurement: '%'
+    icon: mdi:battery-low
+    min_value: 5
+    max_value: 40
+    step: 1
+    initial_value: 20
+    restore_value: true
+    mode: 'slider'
+    
+  - platform: template
+    name: ${prefix}_brigthness_number
+    id: ${prefix}_brigthness_number
+    optimistic: true
+    unit_of_measurement: '%'
+    icon: mdi:lightbulb-on-outline
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 30
+    restore_value: true
+    mode: 'slider'
+
+time:
+  platform: sntp
+  id: my_time
+    
+i2c:
+  sda: GPIO22  
+  scl: GPIO21  
+  scan: True
+  frequency: 50kHz
+  id: bus_i2c
+  
+bme680_bsec:
+  address: 0x77
+  temperature_offset: 0
+  iaq_mode: static
+  sample_rate: ulp
+  state_save_interval: 6h
+
+  
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: GPIO23
+    num_leds: 60
+    rgb_order: GRB #BRG
+    name: ${prefix}_Light
+    id: ${prefix}_light
+    
+switch:
+  - platform: restart
+    name: restart_${prefix}_light    
+  
+binary_sensor:
+  - platform: status
+    name: ${prefix}_light_status
+    
+  - platform: homeassistant
+    id: pvbrain_axpert_switch_on
+    entity_id: binary_sensor.pvbrain_axpert_switch_on    
+  
+sensor:
+
+  - platform: wifi_signal
+    name: WiFi_puissance_${prefix}_light
+    update_interval: 10s
+    
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: homeassistant
+    id: pvbrain_jkbms_current
+    entity_id: sensor.pvbrain_jkbms_current
+ 
+  - platform: homeassistant
+    id: pvbrain_jkbms_total_voltage
+    entity_id: sensor.pvbrain_jkbms_total_voltage    
+    
+  - platform: homeassistant
+    id: pvbrain_jkbms_capacity_remaining
+    entity_id: sensor.pvbrain_jkbms_capacity_remaining
+    
+  - platform: homeassistant
+    entity_id: input_number.${prefix}_scheduller
+    id: ${prefix}_scheduller
+        
+  - platform: bme680_bsec
+    temperature:
+      name: ${prefix}_temperature
+      sample_rate: lp
+      filters:
+        - median
+    pressure:
+      name: ${prefix}_pressure
+      sample_rate: lp
+      filters:
+        - median
+    humidity:
+      name: ${prefix}_Humidity
+      sample_rate: lp
+      filters:
+        - median
+    iaq:
+      name: ${prefix}_IAQ
+      filters:
+        - median
+    co2_equivalent:
+      name: ${prefix}_CO2_equivalent
+      filters:
+        - median
+    breath_voc_equivalent:
+      name: ${prefix}_breath_VOC_equivalent
+      filters:
+        - median
+      
+text_sensor:
+  - platform: bme680_bsec
+    iaq_accuracy:
+      name: ${prefix}_IAQ_accuracy
+      
+  - platform: template
+    name: ${prefix}_light_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+      } else {
+        return { (String(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s     
+    
+    
+    
+interval:
+  - interval: 1s    
+    then:
+    
+    ######## Si onduleur en bypass/chargeur => on éteint ######
+    - if:
+         condition:
+           and:
+             - light.is_on: ${prefix}_light
+             - binary_sensor.is_off: pvbrain_axpert_switch_on
+         then:
+           -  light.turn_off: 
+                id: ${prefix}_light
+                
+    ######## Si onduleur allumé & led on & intensité > -1, le solaire charge => on éteint ######            
+
+    - if:
+         condition:
+           and:
+             - light.is_on: ${prefix}_light
+             - binary_sensor.is_on: pvbrain_axpert_switch_on
+             - lambda: |-
+                 return ((  float(id(pvbrain_jkbms_current).state)  > float( id(${prefix}_intensite_seuil_haut_number).state) ));
+             - lambda: |-
+                return (  int( id(${prefix}_scheduller).state ) == 1 );     
+         then:
+           -  light.turn_off: 
+                id: ${prefix}_light  
+              
+    ######## Si onduleur allumé & led on & intensité > -25A => on allume en vert ######            
+
+    - if:
+         condition:
+           and:
+             #- light.is_on: waf_light
+             - binary_sensor.is_on: pvbrain_axpert_switch_on
+             - lambda: |-
+                 return ((  float(id(pvbrain_jkbms_current).state)  > float(id(${prefix}_intensite_seuil_moyen_number).state) ));
+             - lambda: |-
+                 return ((  float(id(pvbrain_jkbms_current).state)  < float(id(${prefix}_intensite_seuil_haut_number).state) ));
+             - lambda: |-
+                return (  int( id(${prefix}_scheduller).state ) == 1 );     
+         then:
+           -  light.turn_on: 
+                id: ${prefix}_light  
+                brightness: !lambda |-
+                  return (float(id(${prefix}_brigthness_number).state)/100.0);
+                red: 0%
+                blue: 0%
+                green: 100%
+                flash_length: !lambda |-
+                  if (float(id(pvbrain_jkbms_capacity_remaining).state) > float(id(${prefix}_capacite_seuil_haut_number).state)) 
+                  {
+                    return 1000;
+                  } 
+                  else if ((float(id(pvbrain_jkbms_capacity_remaining).state) >  float(id(${prefix}_capacite_seuil_moyen_number).state)) & (float(id(pvbrain_jkbms_capacity_remaining).state) <=  float(id(waf_capacite_seuil_haut_number).state)) )
+                  {
+                    return 500;
+                  }
+                  else if ((float(id(pvbrain_jkbms_capacity_remaining).state) >  float(id(${prefix}_capacite_seuil_bas_number).state)) & (float(id(pvbrain_jkbms_capacity_remaining).state) <=  float(id(waf_capacite_seuil_moyen_number).state)) )
+                  {
+                    return 250;
+                  }   
+
+                
+    ######## Si onduleur allumé & led on & intensité >= -50A &  < -20 => on allume en orange ######            
+
+    - if:
+         condition:
+           and:
+             #- light.is_on: waf_light
+             - binary_sensor.is_on: pvbrain_axpert_switch_on
+             - lambda: |-
+                 return ((  float(id(pvbrain_jkbms_current).state)  >= float(id(${prefix}_intensite_seuil_bas_number).state) ));
+             - lambda: |-
+                 return ((  float(id(pvbrain_jkbms_current).state)  <  float(id(${prefix}_intensite_seuil_moyen_number).state) ));
+             - lambda: |-
+                return (  int( id(${prefix}_scheduller).state ) == 1 );       
+         then:
+           -  light.turn_on: 
+                id: ${prefix}_light  
+                brightness: !lambda |-
+                  return (float(id(${prefix}_brigthness_number).state)/100.0);
+                red: 100%
+                blue: 0%
+                green: 50%
+                flash_length: !lambda |-
+                  if (float(id(pvbrain_jkbms_capacity_remaining).state) > float(id(${prefix}_capacite_seuil_haut_number).state)) 
+                  {
+                    return 1000;
+                  } 
+                  else if ((float(id(pvbrain_jkbms_capacity_remaining).state) >  float(id(${prefix}_capacite_seuil_moyen_number).state)) & (float(id(pvbrain_jkbms_capacity_remaining).state) <=  float(id(${prefix}_capacite_seuil_haut_number).state)) )
+                  {
+                    return 500;
+                  }
+                  else if ((float(id(pvbrain_jkbms_capacity_remaining).state) >  float(id(${prefix}_capacite_seuil_bas_number).state)) & (float(id(pvbrain_jkbms_capacity_remaining).state) <=  float(id(${prefix}_capacite_seuil_moyen_number).state)) )
+                  {
+                    return 250;
+                  }                
+    
+    ######## Si onduleur allumé & led on & intensité < -50 => on allume en rouge ######            
+    - if:
+         condition:
+           and:
+             #- light.is_on: waf_light
+             - binary_sensor.is_on: pvbrain_axpert_switch_on
+             - lambda: |-
+                 return ((  float(id(pvbrain_jkbms_current).state)  < float(id(${prefix}_intensite_seuil_bas_number).state) ));
+             - lambda: |-
+                return (  int( id(${prefix}_scheduller).state ) == 1 );        
+         then:
+           -  light.turn_on: 
+                id: ${prefix}_light  
+                brightness: !lambda |-
+                  return (float(id(${prefix}_brigthness_number).state)/100.0);
+                red: 100%
+                blue: 0%
+                green: 00%
+                flash_length: !lambda |-
+                  if (float(id(pvbrain_jkbms_capacity_remaining).state) > float(id(${prefix}_capacite_seuil_haut_number).state)) 
+                  {
+                    return 1000;
+                  } 
+                  else if ((float(id(pvbrain_jkbms_capacity_remaining).state) >  float(id(${prefix}_capacite_seuil_moyen_number).state)) & (float(id(pvbrain_jkbms_capacity_remaining).state) <=  float(id(${prefix}_capacite_seuil_haut_number).state)) )
+                  {
+                    return 500;
+                  }
+                  else if ((float(id(pvbrain_jkbms_capacity_remaining).state) >  float(id(${prefix}_capacite_seuil_bas_number).state)) & (float(id(pvbrain_jkbms_capacity_remaining).state) <=  float(id(${prefix}_capacite_seuil_moyen_number).state)) )
+                  {
+                    return 250;
+                  }              
