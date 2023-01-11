@@ -1,0 +1,916 @@
+substitutions:
+  name: tracker_1axe
+
+esphome:
+  name: ${name}
+  includes:
+      - BMM150_custom_sensor.h
+  #platformio_options:
+    # build_flags: 
+      # - -DCONFIG_ARDUINO_LOOP_STACK_SIZE=32768 #16384 #8192 #16384 # #  
+    # platform_packages:
+      # - framework-arduinoespressif32 @ https://github.com/espressif/arduino-esp32.git#2.0.2
+    # platform:
+      # - https://github.com/platformio/platform-espressif32.git#feature/arduino-upstream       
+esp32:
+  board: esp32dev
+  framework:
+    #type: esp-idf
+    type: arduino
+    version: 2.0.6 #2.0.5
+    platform_version: 5.3.0 #4.4.0
+    
+    
+    
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Tracker 1Axe Fallback Hotspot"
+    password: "sebydocky"
+
+captive_portal:
+
+# Enable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+
+sun:
+  latitude: !secret esphome_lat
+  longitude: !secret esphome_long 
+  
+time:
+  - platform:  homeassistant #sntp #homeassistant    #sntp
+    timezone:  Europe/Paris #UTC+0  #Africa/Abidjan #Africa/Algiers #Europe/Paris  #Africa/Algiers
+    id: homeassistant_time  
+    
+globals:
+  - id: ${name}_timer
+    type: int
+    initial_value: '0'
+    
+  - id: ${name}_regulation_choice_idx #idx of the template select
+    type: int
+    restore_value: True
+    initial_value: '0'  
+
+i2c:
+  sda: GPIO21  #GPIO21  should works better
+  scl: GPIO22  #GPIO22
+  scan: True
+  id: bus_i2c
+  
+spi:
+  miso_pin: GPIO16
+  clk_pin: GPIO17
+  id: bus_spi
+  
+select:
+  - platform: template
+    name: ${name}_regulation_choice_select
+    id: ${name}_regulation_choice_select
+    optimistic: true
+    options:
+      - '0 - pas de régulation'
+      - '1 - via compas magnétique'
+      - '2 - via panneaux solaires'
+      - '3 - via capteurs de luminosité'
+      - '4 - via sonde de température'
+    initial_option: '0 - pas de régulation'
+    restore_value: true
+    icon: mdi:format-list-bulleted
+    on_value:
+      then:
+        - lambda: !lambda |-
+           id(${name}_regulation_choice_idx) = i;
+#           auto options = id(tracker_1axe_regulation_choice_select).traits.get_options();
+#           id(tracker_1axe_regulation_choice_idx) = std::distance(options.begin(), std::find(options.begin(), options.end(), x ));  
+  
+
+number:
+
+  ######### Seuils sécurité ########
+
+  - platform: template
+    name: ${name}_declinaison_number
+    id: ${name}_declinaison_number
+    optimistic: true
+    unit_of_measurement: '°'
+    icon: mdi:angle-acute
+    min_value: -20
+    max_value: 20
+    step:  0.2
+    initial_value: 1
+    restore_value: true
+    mode: 'slider'
+    
+  - platform: template
+    name: ${name}_temperature_consigne_number
+    id: ${name}_temperature_consigne_number
+    optimistic: true
+    unit_of_measurement: '°C'
+    icon: mdi:thermometer
+    min_value: 0
+    max_value: 300
+    step: 10
+    initial_value: 100
+    restore_value: true
+    mode: 'slider'
+    
+  - platform: template
+    name: ${name}_duree_cuisson_number
+    id: ${name}_duree_cuisson_number
+    optimistic: true
+    unit_of_measurement: 'min'
+    icon: mdi:timer-sand
+    min_value: 0
+    max_value: 240
+    step: 10
+    initial_value: 45
+    restore_value: true
+    mode: 'slider'    
+  
+ads1115:
+  - address: 0x48  
+    continuous_mode: False
+
+output:
+  - platform: gpio
+    pin:
+      number: GPIO2
+      inverted: True
+    id: gpio_02
+    
+light:
+  - platform: binary   
+    output: gpio_02
+    name: ${name}_led_status
+    id: ${name}_led_status
+    
+switch:
+  - platform: restart
+    name: restart_${name}
+
+  - platform: gpio
+    pin: GPIO26
+    interlock: &interlock [tracker_1axe_relay_left_motor, tracker_1axe_relay_right_motor]
+    inverted: False
+    id: ${name}_relay_left_motor
+    name: ${name}_relay_left_motor
+    
+  - platform: gpio
+    pin: GPIO25
+    interlock: *interlock
+    inverted: False
+    id: ${name}_relay_right_motor
+    name: ${name}_relay_right_motor
+    
+sensor:    
+  - platform: wifi_signal
+    name: WiFi puissance_${name}
+    update_interval: 10s
+    
+  - platform: uptime
+    id: uptime_sec  
+  
+    ############# Récupération de données depuis HA ##################
+  
+#  - platform: homeassistant
+#    name: "declinaison"
+#    entity_id: input_number.tracker_1axe_declinaison
+#    id: tracker_1axe_declinaison
+    
+#  - platform: homeassistant
+#    name: "tracker_1axe_regulation"
+#    entity_id: sensor.tracker_1axe_choice_regulation
+#    id: tracker_1axe_regulation
+  
+#  - platform: homeassistant
+#    name: "temperature_consigne"
+#    entity_id: input_number.tracker_1axe_temperature_consigne
+#    id: tracker_1axe_temperature_consigne
+    
+#  - platform: homeassistant
+#    name: "duree_cuisson"
+#    entity_id: input_number.tracker_1axe_duree_cuisson
+#    id: tracker_1axe_duree_cuisson    
+    
+    ################### Sonde de température ###############
+    
+#  - platform: max31855
+#    name: ${name}_temperature
+#    id:  ${name}_temperature
+#    cs_pin: GPIO18
+#    unit_of_measurement: "°C"
+#    icon: "mdi:thermometer"
+#    update_interval: 5s  
+    
+  - platform: adc
+    id: ${name}_adc
+    name: ${name}_adc
+    pin: GPIO33
+    attenuation: 0db #2.5db #11db  #11db
+    update_interval: 5s
+##    filters:
+##      - multiply: 0.26 #(1/3.9)
+
+  - platform: resistance
+    sensor: ${name}_adc
+    configuration: UPSTREAM
+    resistor: 10kOhm
+    accuracy_decimals: 2
+    name: ${name}_resistance
+    id: ${name}_resistance
+    icon: mdi:resistor
+    filters:
+    - lambda: |-
+        if (x < 0.0) {return 0;}
+    - sliding_window_moving_average:
+        window_size: 3
+        send_every: 1
+    
+  - platform: template
+    name: ${name}_temperature
+    id:  ${name}_temperature
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer"
+    accuracy_decimals: 1  
+    update_interval: 0.5s
+    lambda: |-
+      float A = 0.0012401529993307744;
+      float B = 0.00017121668556581266;
+      float C = -1.812694367031967e-08;
+      float LR = log(id(${name}_resistance).state);
+      return  (1.0/(A + B*LR + C*LR*LR*LR) - 273.15);  
+      
+
+  - platform: template
+    id: ${name}_duree_seconde_temperature_consigne
+    name: ${name}_duree_seconde_temperature_consigne
+    update_interval: 10s
+    lambda: |-
+      if (int(id(${name}_timer)) != 0 ) {
+        auto current_time = id(homeassistant_time).now();
+        return int(current_time.timestamp - id(${name}_timer));
+      }
+      else {
+        return 0;
+      }  
+      
+  - platform: template
+    id: ${name}_temperature_difference
+    name: ${name}_temperature_difference
+    update_interval: 0.5s
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer
+    lambda: return ( float((id(${name}_temperature_consigne_number).state) - float(id(${name}_temperature).state)));
+    
+    
+    ################### Capteur soleil  ##################
+    
+  - platform: sun
+    name: ${name}_elevation_soleil
+    type: elevation
+    update_interval: 5s
+
+  
+  - platform: sun
+    name: ${name}_azimuth_soleil
+    id: ${name}_azimuth_soleil
+    type: azimuth
+    update_interval: 5s  
+    
+    ################### Capteurs de luminosité ###############
+    
+  - platform: bh1750
+    name: ${name}_luminosite_gauche
+    id: ${name}_luminosite_gauche
+    address: 0x23
+    update_interval: 3s
+#    measurement_duration: 31
+    i2c_id: bus_i2c
+    filters:
+    #- lambda: if (x < 54612.5) return x;
+    - sliding_window_moving_average:
+        window_size: 5
+        send_every: 1
+        
+  - platform: bh1750
+    name: ${name}_luminosite_droite
+    id: ${name}_luminosite_droite
+    address: 0x5C
+    update_interval: 3s
+#    measurement_duration: 31
+    i2c_id: bus_i2c
+    filters:
+    #- lambda: if (x < 54612.5) return x;
+    - sliding_window_moving_average:
+        window_size: 5
+        send_every: 1      
+        
+  - platform: template
+    name: ${name}_luminosite_diff
+    id: ${name}_luminosite_diff
+    unit_of_measurement: "lx"
+    accuracy_decimals: 1
+    update_interval: 0.5s
+    icon: mdi:weather-sunny
+    lambda: return ( (id(${name}_luminosite_gauche).state) - (id(${name}_luminosite_droite).state) );         
+      
+        
+    ################### Mesure des tensions des panneaux ###############    
+        
+  - platform: ads1115
+    multiplexer: 'A0_GND'
+    gain: 6.144
+    name: ${name}_Vleft
+    id: ${name}_Vleft
+    update_interval: 3s
+    filters:
+    - lambda: return x*(6.52/2.386);   #1.7  (6.70/3.843)
+    
+  - platform: ads1115
+    multiplexer: 'A1_GND'
+    gain: 6.144 # 4.096
+    name: ${name}_Vright
+    id: ${name}_Vright
+    update_interval: 3s
+    filters:
+    - lambda: return x*(6.57/3.081);   # (-5.91/0.569) (6.57/3.081)      8.34  6.60/0.726  (6.77/3.207)
+    
+  - platform: template
+    name: ${name}_Vtotal
+    id: ${name}_Vtotal
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    update_interval: 0.5s
+    icon: mdi:sine-wave
+    lambda: return ( (id(${name}_Vleft).state) + (id(${name}_Vright).state) );     #108m - 14m = 94   
+    
+    
+  - platform: template
+    name: ${name}_Vdiff
+    id: ${name}_Vdiff
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    update_interval: 0.5s
+    icon: mdi:sine-wave
+    lambda: return ( (id(${name}_Vleft).state) - (id(${name}_Vright).state) );  
+        
+    ################### Capteur magnétique ###############    
+        
+  - platform: custom
+    id: bmm150_id
+    lambda: |-
+      auto BMM150 = new BMM150CustomSensor();
+      App.register_component(BMM150);
+      return { BMM150->heading_sensor};
+
+    sensors:
+    - name: ${name}_azimuth_plateau
+      id: ${name}_azimuth_plateau
+      unit_of_measurement: "°"
+      accuracy_decimals: 1
+      icon: "mdi:compass-outline"
+      filters:
+       - lambda: return (x + float(id(${name}_declinaison_number).state) );
+       - sliding_window_moving_average:
+           window_size: 25 #15
+           send_every: 1      
+           
+           
+  - platform: template
+    name: ${name}_azimuth_diff
+    id: ${name}_azimuth_diff
+    unit_of_measurement: "°"
+    accuracy_decimals: 2
+    update_interval: 0.5s
+    icon: mdi:angle-obtuse
+    lambda: return ( (id(${name}_azimuth_plateau).state ) - (id(${name}_azimuth_soleil).state) );
+
+
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+    
+#  - platform: gpio
+#    id: ${name}_adc_pin
+#    pin: 
+#      number: GPIO33
+#      inverted: True
+    
+
+text_sensor:
+  - platform: template
+    name: ${name}_uptime_total # Temps total depuis le démarrage de la carte
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 30s   #113s
+    
+  - platform: template
+    name: ${name}_temps_cuisson
+    lambda: |-
+      int seconds = (id(${name}_duree_seconde_temperature_consigne).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      return { (String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s").c_str() };
+    icon: mdi:clock-start
+    update_interval: 30s  
+    on_value:
+      - if:
+          condition: ### arret cuissson ###
+             -  lambda: |-
+                 return (   int( id(${name}_duree_seconde_temperature_consigne).state )  > int( id(${name}_duree_cuisson_number).state*60 )  );
+          then:
+#            - lambda: |-
+#                id(id(tracker_1axe_regulation).state).publish_state(false);
+            - globals.set:
+                id: ${name}_timer
+                value: !lambda |- 
+                  return 0;
+            - switch.turn_on: ${name}_relay_right_motor
+            - delay: 5s
+            - switch.turn_off: ${name}_relay_right_motor
+            - homeassistant.service:
+                service: notify.mobile_app_redmi_note_6_pro
+                data:
+                  message: 'Cuisson finie !!!!'
+#                  vibrationPattern: '100, 1000, 100, 1000, 100'
+#                  ledColor: red
+#                  sticky: 'true'
+#                  ttl: 0
+#                  priority: high
+#                  title: 'Cuisson solaire !!! '
+#                  channel: alarm_stream
+  
+  
+###############################" Boucle principale de régulation ################################"    
+    
+interval:
+  - interval: 6s    
+    then:
+    
+    ######## Réinitialise chronomètre cuisson ######
+    - if:
+         condition:
+           and:
+             - lambda: |-
+                return ( int(id(${name}_regulation_choice_idx) )  != int(4) );
+         then:
+           - globals.set: 
+                id: ${name}_timer
+                value: !lambda |- 
+                  return 0;
+                  
+    ######## Démarre chronomètre ######       
+    
+    - if:
+         condition:
+           and:
+             - lambda: |-
+                return ( int( id(${name}_regulation_choice_idx) )  == int(4) );
+             - lambda: |-
+                return ( int(id(${name}_timer) )  == int(0) );    
+             - lambda: |-
+                 return ( ( float(id(${name}_temperature).state) > float(id(${name}_temperature_consigne_number).state) )  );
+         then:
+           - globals.set: 
+                id: tracker_1axe_timer
+                value: !lambda |- 
+                  auto current_time = id(homeassistant_time).now();
+                  return current_time.timestamp;             
+
+     ########################## Compas magnétique ###########################
+    
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_azimuth_diff).state)  < float(-4.0)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(1) ));       
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 1.5s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_azimuth_diff).state)  < float(-2.0) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(1) ));       
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.7s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+        
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_azimuth_diff).state)  < float(-1.0)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(1) ));
+        then:
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_azimuth_diff).state)  > float(4.0)  ));
+                 
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(1) ));       
+                 
+         then:
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 1.5s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_azimuth_diff).state)  > float(2.0) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(1) ));       
+                 
+         then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.7s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_azimuth_diff).state)  > float(1.0)));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(1) ));       
+                 
+         then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+          
+         ########################## panneaux solaire ###########################
+    
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_Vdiff).state)  < float(-0.06)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(2) ));       
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 1.5s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_Vdiff).state)  < float(-0.03) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(2) ));       
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.6s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_Vdiff).state)  < float(-0.01)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(2) ));
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_Vdiff).state)  > float(0.06)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(2) ));       
+                 
+         then:
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 1.5s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_Vdiff).state)  > float(0.03) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(2) ));       
+                 
+         then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.6s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_Vdiff).state)  > float(0.01)));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(2) ));       
+                 
+         then:  
+          - light.turn_on:
+                id: tracker_1axe_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+         ########################## capteurs luminosité ###########################
+    
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_luminosite_diff).state)  < float(-5000)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(3) ));       
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 1.2s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_luminosite_diff).state)  < float(-2000) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(3) ));       
+        then: 
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.6s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_luminosite_diff).state)  < float(-1000)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(3) ));
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_luminosite_diff).state)  > float(5000)  ));
+                 
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(3) ));       
+                 
+         then:
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 1.2s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_luminosite_diff).state)  > float(2000) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(3) ));       
+                 
+         then: 
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.6s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_luminosite_diff).state)  > float(1000)));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(3) ));       
+                 
+         then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_right_motor  
+          - light.turn_off:
+                id: ${name}_led_status
+          
+          
+       ########################## Température ###########################
+    
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_temperature_difference).state)  < float(-5)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(4) ));       
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 1.2s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_temperature_difference).state)  < float(-2) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(4) ));       
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.6s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+        condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_temperature_difference).state)  < float(-1)  ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(4) ));
+        then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_left_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_left_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_temperature_difference).state)  > float(5)  ));
+                 
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(4) ));       
+                 
+         then:
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 1.2s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_temperature_difference).state)  > float(2) ));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(4) ));       
+                 
+         then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.6s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
+    - if:
+         condition:
+          and:
+          -  lambda: |-
+                 return ((  float(id(${name}_temperature_difference).state)  > float(1)));
+          -  lambda: |-
+                 return ((  int(id(${name}_regulation_choice_idx)) == int(4) ));       
+                 
+         then:  
+          - light.turn_on:
+                id: ${name}_led_status         
+          - switch.turn_on: ${name}_relay_right_motor
+          - delay: 0.3s
+          - switch.turn_off: ${name}_relay_right_motor
+          - light.turn_off:
+                id: ${name}_led_status
+          
