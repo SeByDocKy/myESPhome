@@ -1,19 +1,46 @@
-esphome:
+substitutions:
   name: pvbrain
-  platformio_options:
-    build_flags: 
-      - -DCONFIG_ARDUINO_LOOP_STACK_SIZE=32768 #16384 #8192 #16384 # #  
-    platform_packages:
-      - framework-arduinoespressif32 @ https://github.com/espressif/arduino-esp32.git#2.0.2
-    platform:
-      - https://github.com/platformio/platform-espressif32.git#feature/arduino-upstream  
-      
+  ats: inverseur
+  bms: jkbms
+  inverter: axpert
+
+  tx_pin_bms: GPIO01
+  rx_pin_bms: GPIO03
+  baud_rate_bms: '115200'
+
+  tx_pin_inverter: GPIO16   
+  rx_pin_inverter: GPIO17
+  baud_rate_inverter: '2400'
+
+  tx_pin_pzem: GPIO19 
+  rx_pin_pzem: GPIO18
+  pzem_address_grid: '1'
+  pzem_address_solar: '2'
+  pzem_update: 5s
+  baud_rate_pzem: '9600'
+  
+  i2c_sda: GPIO21  
+  i2c_scl: GPIO22
+  i2c_update: 5s
+  template_update: 2s
+  text_update: 5s
+
+esphome:
+  name: ${name}
+  #platformio_options:
+    # build_flags: 
+      # - -DCONFIG_ARDUINO_LOOP_STACK_SIZE=32768 #16384 #8192 #16384 # #  
+    # platform_packages:
+      # - framework-arduinoespressif32 @ https://github.com/espressif/arduino-esp32.git#2.0.2
+    # platform:
+      # - https://github.com/platformio/platform-espressif32.git#feature/arduino-upstream       
 esp32:
   board: esp32dev
   framework:
     #type: esp-idf
     type: arduino
-#    version: 2.0.5
+    version: 2.0.6 #2.0.5
+    platform_version: 5.3.0 #4.4.0
     
 external_components:
   - source: github://syssi/esphome-jk-bms@main
@@ -22,12 +49,12 @@ external_components:
     refresh: 0s  
   # - source: my_components
     # components: [pipsolar]
-    #refresh: 0s
+    # refresh: 0s
     
 # Enable logging
 
 logger:
-#   baud_rate: 0
+   baud_rate: 0
 
 # Enable Home Assistant API
 api:
@@ -56,38 +83,39 @@ wifi:
 #captive_portal:
 
 globals:
-  - id: pvbrain_grid_veille_global
+  - id: ${name}_grid_veille_global
     type: float
     restore_value: yes
     
-  - id: pvbrain_solar_veille_global
+  - id: ${name}_solar_veille_global
     type: float
     restore_value: yes
   
-  - id: pvbrain_axpert_PV_power_total_veille_global
+  - id: ${name}_${inverter}_PV_power_total_veille_global
     type: float
     restore_value: yes
     
-  - id: pvbrain_axpert_ac_output_active_power_veille_global
+  - id: ${name}_${inverter}_ac_output_active_power_veille_global
     type: float
     restore_value: yes
-    
-  - id: pvbrain_jkbms_battery_charging_power_veille_global
-    type: float
-    restore_value: yes
-    
-  - id: pvbrain_jkbms_battery_discharging_power_veille_global
-    type: float
-    restore_value: yes
-    
-  - id: pvbrain_axpert_battery_charging_power_veille_global
+
+  - id: ${name}_${inverter}_battery_charging_power_veille_global
     type: float
     restore_value: yes
  
-  - id: pvbrain_axpert_battery_discharging_power_veille_global
+  - id: ${name}_${inverter}_battery_discharging_power_veille_global
     type: float
     restore_value: yes
-     
+    
+  - id: ${name}_${bms}_battery_charging_power_veille_global
+    type: float
+    restore_value: yes
+    
+  - id: ${name}_${bms}_battery_discharging_power_veille_global
+    type: float
+    restore_value: yes
+    
+      
 time:
   platform: sntp
   id: my_time
@@ -97,71 +125,70 @@ time:
       minutes: 59
       hours: 23
       then:  
-
         - globals.set:
-                id: pvbrain_grid_veille_global
-                value: !lambda return ( id(pvbrain_grid_veille_global) =  float( id(pvbrain_grid_puissance_du_jour).state) );         
+                id: ${name}_grid_veille_global
+                value: !lambda return ( id(${name}_grid_veille_global) =  float( id(${name}_grid_puissance_du_jour).state) );         
                 
         - globals.set:
-                id: pvbrain_solar_veille_global
-                value: !lambda return ( id(pvbrain_solar_veille_global) =  float( id(pvbrain_solar_puissance_du_jour).state) );        
+                id: ${name}_solar_veille_global
+                value: !lambda return ( id(${name}_solar_veille_global) =  float( id(${name}_solar_puissance_du_jour).state) );        
          
         - globals.set:
-                id: pvbrain_axpert_PV_power_total_veille_global
-                value: !lambda return ( id(pvbrain_axpert_PV_power_total_veille_global) =  float( id(pvbrain_axpert_PV_power_total_du_jour).state) );                    
+                id: ${name}_${inverter}_PV_power_total_veille_global
+                value: !lambda return ( id(${name}_${inverter}_PV_power_total_veille_global) =  float( id(${name}_${inverter}_PV_power_total_du_jour).state) );                    
   
         - globals.set:
-                id: pvbrain_axpert_ac_output_active_power_veille_global
-                value: !lambda return ( id(pvbrain_axpert_ac_output_active_power_veille_global) =  float( id(pvbrain_axpert_ac_output_active_power_total_du_jour).state) );
-                 
-        - globals.set:
-                id: pvbrain_jkbms_battery_charging_power_veille_global
-                value: !lambda return ( id(pvbrain_jkbms_battery_charging_power_veille_global) =  float( id(pvbrain_jkbms_battery_charging_power_total_du_jour).state) ); 
-                
-        - globals.set:
-                id: pvbrain_jkbms_battery_discharging_power_veille_global
-                value: !lambda return ( id(pvbrain_jkbms_battery_discharging_power_veille_global) =  float( id(pvbrain_jkbms_battery_discharging_power_total_du_jour).state) ); 
-                
-        - globals.set:
-                id: pvbrain_jkbms_battery_charging_power_veille_global
-                value: !lambda return ( id(pvbrain_axpert_battery_charging_power_veille_global) =  float( id(pvbrain_axpert_battery_charging_power_total_du_jour).state) ); 
-                
-        - globals.set:
-                id: pvbrain_jkbms_battery_discharging_power_veille_global
-                value: !lambda return ( id(pvbrain_axpert_battery_discharging_power_veille_global) =  float( id(pvbrain_axpert_battery_discharging_power_total_du_jour).state) ); 
+                id: ${name}_${inverter}_ac_output_active_power_veille_global
+                value: !lambda return ( id(${name}_${inverter}_ac_output_active_power_veille_global) =  float( id(${name}_${inverter}_ac_output_active_power_total_du_jour).state) );
 
+        - globals.set:
+                id: ${name}_${inverter}_battery_charging_power_veille_global
+                value: !lambda return ( id(${name}_${inverter}_battery_charging_power_veille_global) =  float( id(${name}_${inverter}_battery_charging_power_total_du_jour).state) ); 
+                
+        - globals.set:
+                id: ${name}_${inverter}_battery_discharging_power_veille_global
+                value: !lambda return ( id(${name}_${inverter}_battery_discharging_power_veille_global) =  float( id(${name}_${inverter}_battery_discharging_power_total_du_jour).state) ); 
+
+        - globals.set:
+                id: ${name}_${bms}_battery_charging_power_veille_global
+                value: !lambda return ( id(${name}_${bms}_battery_charging_power_veille_global) =  float( id(${name}_${bms}_battery_charging_power_total_du_jour).state) ); 
+                
+        - globals.set:
+                id: ${name}_${bms}_battery_discharging_power_veille_global
+                value: !lambda return ( id(${name}_${bms}_battery_discharging_power_veille_global) =  float( id(${name}_${bms}_battery_discharging_power_total_du_jour).state) ); 
+                
                 ####################### UART #######################
 
 uart: 
 
  ######### UART for the JKBMS ###### 
   - id: uart0
-    tx_pin: GPIO01
-    rx_pin: GPIO03
-    baud_rate: 115200
+    tx_pin: ${tx_pin_bms}
+    rx_pin: ${rx_pin_bms}
+    baud_rate: ${baud_rate_bms}
     rx_buffer_size: 384
 
  ######### UART for PIPsolar ######
   - id: uart1
-    tx_pin: GPIO16   
-    rx_pin: GPIO17
-    baud_rate: 2400
+    tx_pin: ${tx_pin_inverter}   
+    rx_pin: ${rx_pin_inverter}
+    baud_rate: ${baud_rate_inverter}
  
  ######### UART for the PZEMs ###### 
   - id: uart2
-    tx_pin: GPIO19 
-    rx_pin: GPIO18
-    baud_rate: 9600
+    tx_pin: ${tx_pin_pzem} 
+    rx_pin: ${rx_pin_pzem}
+    baud_rate: ${baud_rate_pzem}
     stop_bits: 2 
- 
+
 ######################### DEVICES UART/MODBUS based ################### 
 
 jk_modbus:
-   id: modbus1
-   uart_id: uart0
+  - id: modbus1
+    uart_id: uart0
 jk_bms:
-  id: bms0
-  jk_modbus_id: modbus1
+  - id: bms1
+    jk_modbus_id: modbus1
 
 pipsolar:
   - uart_id: uart1
@@ -175,14 +202,14 @@ modbus:
 ########################### I2C bus  ##################
 
 i2c:
-  sda: GPIO21  
-  scl: GPIO22  
+  sda: ${i2c_sda}  
+  scl: ${i2c_scl}  
   scan: True
   frequency: 50kHz
   id: bus_i2c
 
 pcf8574:
-  - id: 'pvbrain_hub'
+  - id: ${name}_hub
     address: 0x20
     pcf8575: True  
     
@@ -194,40 +221,47 @@ output:
   - platform: pipsolar
     pipsolar_id: pip8048 
     battery_bulk_voltage:
-      id: pvbrain_axpert_battery_bulk_voltage_set
+      id: ${name}_${inverter}_battery_bulk_voltage_set
       possible_values: [52.0,52.1,52.2,52.3,52.4,52.5,52.6,52.7,52.8,52.9,53.0,53.1,53.2,53.3,53.4,53.5,53.6,53.7,53.8,53.9,54.0,54.1,54.2,54.3,54.4,54.5,54.6,54.7,54.8,54.9,55.0,55.1,55.2,55.3,55.4,55.5,55.6,55.7,55.8,55.9,56.0,56.1,56.2,56.3,56.4,56.5,56.6,56.7,56.8,56.9,57.0,57.1,57.2,57.3,57.4,57.5,57.6,57.7,57.8,57.9,58.0,58.1,58.2,58.3,58.4,58.5,58.6,58.7,58.8,58.9]
   
   - platform: pipsolar
     pipsolar_id: pip8048 
     battery_float_voltage:
-      id: pvbrain_axpert_battery_float_voltage_set
+      id: ${name}_${inverter}_battery_float_voltage_set
       possible_values: [52.0,52.1,52.2,52.3,52.4,52.5,52.6,52.7,52.8,52.9,53.0,53.1,53.2,53.3,53.4,53.5,53.6,53.7,53.8,53.9,54.0,54.1,54.2,54.3,54.4,54.5,54.6,54.7,54.8,54.9,55.0,55.1,55.2,55.3,55.4,55.5,55.6,55.7,55.8,55.9,56.0,56.1,56.2,56.3,56.4,56.5,56.6,56.7,56.8,56.9,57.0,57.1,57.2,57.3,57.4,57.5,57.6,57.7,57.8,57.9,58.0,58.1,58.2,58.3,58.4,58.5,58.6,58.7,58.8,58.9]
   
-  - platform: pipsolar
-    pipsolar_id: pip8048 
-    current_max_charging_current:
-      id: pvbrain_axpert_current_max_charging_current_set
-      possible_values: [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80]
+  # - platform: pipsolar
+  #   pipsolar_id: pip8048 
+  #   current_max_charging_current:
+  #     id: ${name}_${inverter}_current_max_charging_current_set
+  #     possible_values: [10,20,30,40,50,60,70,80,90,100,110,120]
+
+  # - platform: pipsolar
+  #   pipsolar_id: pip8048 
+  #   current_max_ac_charging_current:
+  #     id: ${name}_${inverter}_current_max_ac_charging_current_set
+  #     possible_values: [2,10,20,30,40,50,60,70,80,90,100,110,120]    
       
   - platform: pipsolar
     pipsolar_id: pip8048 
     battery_under_voltage:
-      id: pvbrain_axpert_battery_under_voltage_set
+      id: ${name}_${inverter}_battery_under_voltage_set
       possible_values: [40.0,40.1,40.2,40.3,40.4,40.5,40.6,40.7,40.8,40.9,41.0,41.1,41.2,41.3,41.4,41.5,41.6,41.7,41.8,41.9,42.0,42.1,42.2,42.3,42.4,42.5,42.6,42.7,42.8,42.9,43.0,43.1,43.2,43.3,43.4,43.5,43.6,43.7,43.8,43.9,44.0,44.1,44.2,44.3,44.4,44.5,44.6,44.7,44.8,44.9,45.0,45.1,45.2,45.3,45.4,45.5,45.6,45.7,45.8,45.9,46.0,46.1,46.2,46.3,46.4,46.5,46.6,46.7,46.8,46.9,47.0,47.1,47.2,47.3,47.4,47.5,47.6,47.7,47.8,47.9]
   
   - platform: pipsolar
     pipsolar_id: pip8048 
     battery_recharge_voltage:
-      id: pvbrain_axpert_battery_recharge_voltage_set
-      possible_values: [52.0,52.1,52.2,52.3,52.4,52.5,52.6,52.7,52.8,52.9,53.0,53.1,53.2,53.3,53.4,53.5,53.6,53.7,53.8,53.9,54.0,54.1,54.2,54.3,54.4,54.5,54.6,54.7,54.8,54.9,55.0,55.1,55.2,55.3,55.4,55.5,55.6,55.7,55.8,55.9,56.0,56.1,56.2,56.3,56.4,56.5,56.6,56.7,56.8,56.9,57.0,57.1,57.2,57.3,57.4,57.5,57.6,57.7,57.8,57.9,58.0,58.1,58.2,58.3,58.4,58.5,58.6,58.7,58.8,58.9]      
+      id: ${name}_${inverter}_battery_recharge_voltage_set
+      possible_values: [44.0,45.0,46.0,47.0,48.0,49.0,49.0,50.0,51.0]
+    
   
 number:
 
   ######### Seuils Axpert ########
 
   - platform: template
-    name: pvbrain_axpert_battery_bulk_voltage_number
-    id: pvbrain_axpert_battery_bulk_voltage_number
+    name: ${name}_${inverter}_battery_bulk_voltage_number
+    id: ${name}_${inverter}_battery_bulk_voltage_number
     optimistic: true
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
@@ -240,12 +274,12 @@ number:
     on_value:
       then:
         - output.pipsolar.set_level:
-            id: pvbrain_axpert_battery_bulk_voltage_set
-            value: !lambda return (float(id(pvbrain_axpert_battery_bulk_voltage_number).state));
+            id: ${name}_${inverter}_battery_bulk_voltage_set
+            value: !lambda return (float(id(${name}_${inverter}_battery_bulk_voltage_number).state));
 
   - platform: template
-    name: pvbrain_axpert_battery_float_voltage_number
-    id: pvbrain_axpert_battery_float_voltage_number
+    name: ${name}_${inverter}_battery_float_voltage_number
+    id: ${name}_${inverter}_battery_float_voltage_number
     optimistic: true
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
@@ -258,68 +292,86 @@ number:
     on_value:
       then:
         - output.pipsolar.set_level:
-            id: pvbrain_axpert_battery_float_voltage_set
-            value: !lambda return (float(id(pvbrain_axpert_battery_float_voltage_number).state));
+            id: ${name}_${inverter}_battery_float_voltage_set
+            value: !lambda return (float(id(${name}_${inverter}_battery_float_voltage_number).state));
 
-  - platform: template
-    name: pvbrain_axpert_current_max_charging_current_number
-    id: pvbrain_axpert_current_max_charging_current_number
-    optimistic: true
-    unit_of_measurement: 'A'
-    icon: mdi:current-dc
-    min_value: 00
-    max_value: 80
-    step:  10
-    initial_value: 10
-    restore_value: true
-    mode: 'slider'
-    on_value:
-      then:
-        - output.pipsolar.set_level:
-            id: pvbrain_axpert_current_max_charging_current_set
-            value: !lambda return (id(pvbrain_axpert_current_max_charging_current_number).state);            
+  # - platform: template
+  #   name: ${name}_${inverter}_current_max_charging_current_number
+  #   id: ${name}_${inverter}_current_max_charging_current_number
+  #   optimistic: true
+  #   unit_of_measurement: 'A'
+  #   icon: mdi:current-dc
+  #   min_value: 10
+  #   max_value: 120
+  #   step:  10
+  #   initial_value: 10
+  #   restore_value: true
+  #   mode: 'slider'
+  #   on_value:
+  #     then:
+  #       - output.pipsolar.set_level:
+  #           id: ${name}_${inverter}_current_max_charging_current_set
+  #           value: !lambda return (id(${name}_${inverter}_current_max_charging_current_number).state);
+            
+  # - platform: template
+  #   name: ${name}_${inverter}_current_max_ac_charging_current_number
+  #   id: ${name}_${inverter}_current_max_ac_charging_current_number
+  #   optimistic: true
+  #   unit_of_measurement: 'A'
+  #   icon: mdi:current-dc
+  #   min_value: 2
+  #   max_value: 120
+  #   step:  1
+  #   initial_value: 2
+  #   restore_value: true
+  #   mode: 'slider'
+  #   on_value:
+  #     then:
+  #       - output.pipsolar.set_level:
+  #           id: ${name}_${inverter}_current_max_ac_charging_current_set
+  #           value: !lambda return (id(${name}_${inverter}_current_max_ac_charging_current_number).state);                    
             
   - platform: template
-    name: pvbrain_axpert_battery_under_voltage_number
-    id: pvbrain_axpert_battery_under_voltage_number
+    name: ${name}_${inverter}_battery_under_voltage_number
+    id: ${name}_${inverter}_battery_under_voltage_number
     optimistic: true
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
-    min_value: 40
-    max_value: 48
+    min_value: 40.0
+    max_value: 48.0
     step:  0.1
-    initial_value: 44
+    initial_value: 44.0
     restore_value: true
     mode: 'slider'
     on_value:
       then:
         - output.pipsolar.set_level:
-            id: pvbrain_axpert_battery_under_voltage_set
-            value: !lambda return (id(pvbrain_axpert_battery_under_voltage_number).state);
+            id: ${name}_${inverter}_battery_under_voltage_set
+            value: !lambda return (id(${name}_${inverter}_battery_under_voltage_number).state);
 
   - platform: template
-    name: pvbrain_axpert_battery_recharge_voltage_number
-    id: pvbrain_axpert_battery_recharge_voltage_number
+    name: ${name}_${inverter}_battery_recharge_voltage_number
+    id: ${name}_${inverter}_battery_recharge_voltage_number
     optimistic: true
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
-    min_value: 52
-    max_value: 58.9
-    step:  0.1
-    initial_value: 52
+    min_value: 44.0
+    max_value: 51.0
+    step:  1.0
+    initial_value: 48.0
     restore_value: true
     mode: 'slider'
     on_value:
       then:
         - output.pipsolar.set_level:
-            id: pvbrain_axpert_battery_recharge_voltage_set
-            value: !lambda return (id(pvbrain_axpert_battery_recharge_voltage_number).state);            
-
+            id: ${name}_${inverter}_battery_recharge_voltage_set
+            value: !lambda return (id(${name}_${inverter}_battery_recharge_voltage_number).state);
+                 
   ######### Seuils Automatic Switch Transfert ########            
             
   - platform: template
-    name: pvbrain_inverseur_tension_bascule_solar_to_grid_number
-    id: pvbrain_inverseur_tension_bascule_solar_to_grid_number
+    name: ${name}_${ats}_tension_bascule_solar_to_grid_number
+    id: ${name}_${ats}_tension_bascule_solar_to_grid_number
     optimistic: true
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
@@ -331,8 +383,8 @@ number:
     mode: 'slider'
 
   - platform: template
-    name: pvbrain_inverseur_tension_bascule_grid_to_solar_number
-    id: pvbrain_inverseur_tension_bascule_grid_to_solar_number
+    name: ${name}_${ats}_tension_bascule_grid_to_solar_number
+    id: ${name}_${ats}_tension_bascule_grid_to_solar_number
     optimistic: true
     unit_of_measurement: 'V'
     icon: mdi:sine-wave
@@ -346,20 +398,20 @@ number:
 binary_sensor:
          
   - platform: status
-    name: "pvbrain_status"
+    name: ${name}_status
     
   - platform: gpio
     pin: GPIO13
-    name: pvbrain_grid_230V
-    id: pvbrain_grid_230V
+    name: ${name}_grid_230V
+    id: ${name}_grid_230V
     filters:
       - invert:
       - delayed_off: 100ms   
     
   - platform: gpio
     pin: GPIO14
-    name: pvbrain_pv_230V
-    id: pvbrain_pv_230V
+    name: ${name}_solar_230V
+    id: ${name}_solar_230V
     filters:
       - invert:
       - delayed_off: 100ms
@@ -369,43 +421,43 @@ binary_sensor:
     # add_sbu_priority_version:
       # name: "pvbrain_axpert_add_sbu_priority_version"
     configuration_status:
-      name: "pvbrain_axpert_configuration_status"
+      name: ${name}_${inverter}_configuration_status
 #    scc_firmware_version:
 #      name: "${name} scc_firmware_version"
     load_status:
-      name: "pvbrain_axpert_load_status"
+      name: ${name}_${inverter}_load_status
     # battery_voltage_to_steady_while_charging:
       # name: "pvbrain_axpert_battery_voltage_to_steady_while_charging"
     charging_status:
-      name: "pvbrain_axpert_charging_status"
+      name: ${name}_${inverter}_charging_status
     scc_charging_status:
-      name: "pvbrain_axpert_scc_charging_status"
+      name: ${name}_${inverter}_scc_charging_status
     ac_charging_status:
-      name: "pvbrain_axpert_ac_charging_status"
+      name: ${name}_${inverter}_ac_charging_status
     # charging_to_floating_mode:
       # name: "pvbrain_axpert_charging_to_floating_mode"
     switch_on:
-      name: "pvbrain_axpert_switch_on"
-      id: pvbrain_axpert_switch_on               
+      name: ${name}_${inverter}_switch_on
+      id: ${name}_${inverter}_switch_on               
     power_saving:
-      name: "pvbrain_axpert_power_saving"
+      name: ${name}_${inverter}_power_saving
        
   - platform: jk_bms
     charging:
-      name: "pvbrain_jkbms charging"
+      name: ${name}_${bms}_charging
     discharging:
-      name: "pvbrain_jkbms discharging"
+      name: ${name}_${bms}_discharging
     balancing:
-      name: "pvbrain_jkbms balancing"
+      name: ${name}_${bms}_balancing
 #    dedicated_charger:
 #      name: "pvbrain_jkbms dedicated charger"
       
       
   - platform: template
-    name: "pvbrain_axpert_grid_input_on"
-    id: pvbrain_axpert_grid_input_on
+    name: ${name}_${inverter}_grid_input_on
+    id: ${name}_${inverter}_grid_input_on
     lambda: |-
-      if (id(pvbrain_axpert_grid_voltage).state > 0) {
+      if (id(${name}_${inverter}_grid_voltage).state > 0) {
         // Grid is connected
         return true;
       } else {
@@ -415,50 +467,50 @@ binary_sensor:
       
 button:
   - platform: template
-    name: "pvbrain_grid_reset_energy"
+    name: ${name}_grid_reset_energy
     on_press:
       then:
-        - pzemac.reset_energy: pvbrain_pzem_grid
+        - pzemac.reset_energy: ${name}_pzem_grid
         
   - platform: template
-    name: "pvbrain_solar_reset_energy"
+    name: ${name}_solar_reset_energy
     on_press:
       then:
-        - pzemac.reset_energy: pvbrain_pzem_solar
+        - pzemac.reset_energy: ${name}_pzem_solar
         
   - platform: template
-    name: pvbrain_from_solar_to_grid
-    id: pvbrain_from_solar_to_grid
-    icon: "mdi:transmission-tower-import"
+    name: ${name}_from_solar_to_grid
+    id: ${name}_from_solar_to_grid
+    icon: mdi:transmission-tower-import
     on_press:    
        then:
-        - switch.turn_off: pvbrain_ats_automatic_control
+        - switch.turn_off: ${name}_ats_automatic_control
         - script.execute: script_from_solar_to_grid
  
   - platform: template
-    name: pvbrain_from_grid_to_solar
-    id: pvbrain_from_grid_to_solar
-    icon: "mdi:solar-panel"
+    name: ${name}_from_grid_to_solar
+    id: ${name}_from_grid_to_solar
+    icon: mdi:solar-panel
     on_press:
        then:
-         - switch.turn_off: pvbrain_ats_automatic_control
+         - switch.turn_off: ${name}_ats_automatic_control
          - script.execute: script_from_grid_to_solar
  
 switch:
 
   - platform: restart
-    name: "restart_pvbrain"
+    name: restart_${name}
     
   - platform: template
-    name: pvbrain_ats_automatic_control
-    id: pvbrain_ats_automatic_control
+    name: ${name}_ats_automatic_control
+    id: ${name}_ats_automatic_control
     optimistic: true    
     
   - platform: gpio
-    id: pvbrain_relay_axpert
-    name: pvbrain_relay_axpert
+    id: ${name}_relay_${inverter}
+    name: ${name}_relay_${inverter}
     pin:
-      pcf8574: pvbrain_hub
+      pcf8574: ${name}_hub
       # Use pin number 1
       number: 4
       # One of INPUT or OUTPUT
@@ -466,10 +518,10 @@ switch:
       inverted: true    
       
   - platform: gpio
-    id: pvbrain_relay_12vto48V
-    name: pvbrain_relay_12vto48V
+    id: ${name}_relay_12vto48V
+    name: ${name}_relay_12vto48V
     pin:
-      pcf8574: pvbrain_hub
+      pcf8574: ${name}_hub
       # Use pin number 0
       number: 5
       # One of INPUT or OUTPUT
@@ -477,10 +529,10 @@ switch:
       inverted: True    
 
   - platform: gpio
-    id: pvbrain_relay_inversor_solar_input
-    name: pvbrain_relay_inversor_solar_input
+    id: ${name}_relay_${ats}_solar_input
+    name: ${name}_relay_${ats}_solar_input
     pin:
-      pcf8574: pvbrain_hub
+      pcf8574: ${name}_hub
       # Use pin number 0
       number: 6
       # One of INPUT or OUTPUT
@@ -488,36 +540,34 @@ switch:
       inverted: True
              
   - platform: gpio
-    id: pvbrain_relay_inversor_grid_input
-    name: pvbrain_relay_inversor_grid_input
+    id: ${name}_relay_${ats}_grid_input
+    name: ${name}_relay_${ats}_grid_input
     pin:
-      pcf8574: pvbrain_hub
+      pcf8574: ${name}_hub
       # Use pin number 0
       number: 7
       # One of INPUT or OUTPUT
       mode: OUTPUT
       inverted: True 
       
-                    
   - platform: pipsolar
     pipsolar_id: pip8048
     output_source_priority_utility:
-      name: "pvbrain_axpert_output_source_priority_utility"
+      name: ${name}_${inverter}_output_source_priority_utility
     output_source_priority_solar:
-      name: "pvbrain_axpert_output_source_priority_solar"
+      name: ${name}_${inverter}_output_source_priority_solar
     output_source_priority_battery:
-      name: "pvbrain_axpert_output_source_priority_battery"
+      name: ${name}_${inverter}_output_source_priority_battery
     input_voltage_range:
-      name: "pvbrain_axpert_input_voltage_range"
+      name: ${name}_${inverter}_input_voltage_range
     # pv_ok_condition_for_parallel:
-      # name: "pvbrain_axpert_pv_ok_condition_for_parallel"
+      # name: ${name}_${inverter}_pv_ok_condition_for_parallel
     # pv_power_balance:
-      # name: "pvbrain_axpert_pv_power_balance"  
-      
+      # name: ${name}_${inverter}_pv_power_balance
       
 sensor:    
   - platform: wifi_signal
-    name: "WiFi puissance_pvbrain"
+    name: WiFi puissance_${name}
     update_interval: 10s
     
   - platform: uptime
@@ -526,49 +576,49 @@ sensor:
     ############# PZEM1 GRID ENEDIS ##################
     
   - platform: pzemac
-    address: 1
+    address: ${pzem_address_grid}
     current:
-      name: "pvbrain_grid_courant"
+      name: ${name}_grid_courant
       accuracy_decimals: 2
     voltage:
-      name: "pvbrain_grid_tension"
+      name: ${name}_grid_tension
       accuracy_decimals: 2
     power:
-      name: "pvbrain_grid_puissance"
+      name: ${name}_grid_puissance
       unit_of_measurement: W
       accuracy_decimals: 1
-      id: pvbrain_grid_puissance
+      id: ${name}_grid_puissance
     frequency:
-      name: "pvbrain_grid_frequence"
+      name: ${name}_grid_frequence
       unit_of_measurement: Hz
       accuracy_decimals: 2
     power_factor:
-      name: "pvbrain_grid_facteur_puissance"
+      name: ${name}_grid_facteur_puissance
       accuracy_decimals: 2
-      id: pvbrain_grid_facteur_puissance
+      id: ${name}_grid_facteur_puissance
     energy:
-      name: "pvbrain_grid_energy"
+      name: ${name}_grid_energy
       unit_of_measurement: Wh
       accuracy_decimals: 1
-      id: pvbrain_grid_energy
-    update_interval: 5s
+      id: ${name}_grid_energy
+    update_interval: ${pzem_update}
     modbus_id: modbus2
-    id: pvbrain_pzem_grid
+    id: ${name}_pzem_grid
     
   - platform: template
-    name: "pvbrain_grid_puissance_cumulee"
+    name: ${name}_grid_puissance_cumulee
     unit_of_measurement: "kWh"
     accuracy_decimals: 1
-    update_interval: 5s
+    update_interval: ${template_update}
     icon: mdi:power
-    lambda: return (( (id(pvbrain_grid_energy).state)/1000.0));
+    lambda: return (( (id(${name}_grid_energy).state)/1000.0));
     
   - platform: total_daily_energy
-    name: "pvbrain_grid_du_jour"
-    power_id: pvbrain_grid_puissance 
+    name: ${name}_grid_du_jour
+    power_id: ${name}_grid_puissance 
     unit_of_measurement: "kWh"
-    accuracy_decimals: 1
-    id: pvbrain_grid_puissance_du_jour
+    accuracy_decimals: 2
+    id: ${name}_grid_puissance_du_jour
     method: trapezoid
     filters:
         # Multiplication factor from W to kW is 0.001
@@ -576,85 +626,85 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: "pvbrain_grid_veille"
-    id: template_pvbrain_grid_veille
+    name: ${name}_grid_veille
+    id: template_${name}_grid_veille
     unit_of_measurement: "kWh"
-    accuracy_decimals: 1
+    accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return (id(template_pvbrain_grid_veille).state = id(pvbrain_grid_veille_global));
+      return (id(template_${name}_grid_veille).state = id(${name}_grid_veille_global));
     
   - platform: template
-    name: "pvbrain_grid_puissance_apparente"
-    id: pvbrain_grid_puissance_apparente
+    name: ${name}_grid_puissance_apparente
+    id: ${name}_grid_puissance_apparente
     unit_of_measurement: "VA"
     accuracy_decimals: 1
-    update_interval: 5s
+    update_interval: ${template_update}
     icon: mdi:power
     lambda: |-
-      if (float(id(pvbrain_grid_facteur_puissance).state) != 0.0){
-        return ( (id(pvbrain_grid_puissance).state/id(pvbrain_grid_facteur_puissance).state));
+      if (float(id(${name}_grid_facteur_puissance).state) != 0.0){
+        return ( (id(${name}_grid_puissance).state/id(${name}_grid_facteur_puissance).state));
       }
       else{
-        return id(pvbrain_grid_puissance).state;
+        return id(${name}_grid_puissance).state;
       }
     
   - platform: template
-    name: "pvbrain_grid_puissance_reactive"
-    id: pvbrain_grid_puissance_reactive
+    name: ${name}_grid_puissance_reactive
+    id: ${name}_grid_puissance_reactive
     unit_of_measurement: "VAr"
     accuracy_decimals: 1
-    update_interval: 5s
+    update_interval: ${template_update}
     icon: mdi:power
-    lambda: return (  id(pvbrain_grid_puissance_apparente).state*sin(acos( id(pvbrain_grid_facteur_puissance).state ))  );
+    lambda: return (  id(${name}_grid_puissance_apparente).state*sin(acos( id(${name}_grid_facteur_puissance).state ))  );
     
   ########### PZEM2 SOLAR PV ##################  
     
   - platform: pzemac
-    address: 2
+    address: ${pzem_address_solar}
     current:
-      name: "pvbrain_solar_courant"
+      name: ${name}_solar_courant
       accuracy_decimals: 2
     voltage:
-      name: "pvbrain_solar_tension"
+      name: ${name}_solar_tension
       accuracy_decimals: 2
     power:
-      name: "pvbrain_solar_puissance"
+      name: ${name}_solar_puissance
       unit_of_measurement: W
       accuracy_decimals: 1
-      id: pvbrain_solar_puissance
+      id: ${name}_solar_puissance
     frequency:
-      name: "pvbrain_solar_frequence"
+      name: ${name}_solar_frequence
       unit_of_measurement: Hz
       accuracy_decimals: 2
     power_factor:
-      name: "pvbrain_solar_facteur_puissance"
+      name: ${name}_solar_facteur_puissance
       accuracy_decimals: 2
-      id: pvbrain_solar_facteur_puissance
+      id: ${name}_solar_facteur_puissance
     energy:
-      name: "pvbrain_solar_energy"
+      name: ${name}_solar_energy
       unit_of_measurement: Wh
       accuracy_decimals: 1
-      id: pvbrain_solar_energy
-    update_interval: 5s
+      id: ${name}_solar_energy
+    update_interval: ${pzem_update}
     modbus_id: modbus2
-    id: pvbrain_pzem_solar
+    id: ${name}_pzem_solar
     
   - platform: template
-    name: "pvbrain_solar_puissance_cumulee"
+    name: ${name}_solar_puissance_cumulee
     unit_of_measurement: "kWh"
     accuracy_decimals: 1
-    update_interval: 5s
+    update_interval: ${template_update}
     icon: mdi:power
-    lambda: return (( (id(pvbrain_solar_energy).state)/1000.0));
+    lambda: return (( (id(${name}_solar_energy).state)/1000.0));
     
   - platform: total_daily_energy
-    name: "pvbrain_solar_du_jour"
-    power_id: pvbrain_solar_puissance 
+    name: ${name}_solar_du_jour
+    power_id: ${name}_solar_puissance 
     unit_of_measurement: "kWh"
-    accuracy_decimals: 1
-    id: pvbrain_solar_puissance_du_jour
+    accuracy_decimals: 2
+    id: ${name}_solar_puissance_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -662,74 +712,74 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: pvbrain_solar_veille
-    id: template_pvbrain_solar_veille
+    name: ${name}_solar_veille
+    id: template_${name}_solar_veille
     unit_of_measurement: "kWh"
-    accuracy_decimals: 1
+    accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return (id(template_pvbrain_solar_veille).state = id(pvbrain_solar_veille_global));
+      return (id(template_${name}_solar_veille).state = id(${name}_solar_veille_global));
     
   - platform: template
-    name: "pvbrain_solar_puissance_apparente"
-    id: pvbrain_solar_puissance_apparente
+    name: ${name}_solar_puissance_apparente
+    id: ${name}_solar_puissance_apparente
     unit_of_measurement: "VA"
     accuracy_decimals: 1
-    update_interval: 5s
+    update_interval: ${template_update}
     icon: mdi:power
     lambda: |-
-      if (float(id(pvbrain_solar_facteur_puissance).state) != 0.0){
-        return ( (id(pvbrain_solar_puissance).state/id(pvbrain_solar_facteur_puissance).state));
+      if (float(id(${name}_solar_facteur_puissance).state) != 0.0){
+        return ( (id(${name}_solar_puissance).state/id(${name}_solar_facteur_puissance).state));
       }
       else{
-        return id(pvbrain_solar_puissance).state;
+        return id(${name}_solar_puissance).state;
       }
   - platform: template
-    name: "pvbrain_solar_puissance_reactive"
-    id: pvbrain_solar_puissance_reactive
+    name: ${name}_solar_puissance_reactive
+    id: ${name}_solar_puissance_reactive
     unit_of_measurement: "VAr"
     accuracy_decimals: 1
-    update_interval: 5s
+    update_interval: ${template_update}
     icon: mdi:power
-    lambda: return (  id(pvbrain_solar_puissance_apparente).state*sin(acos( id(pvbrain_solar_facteur_puissance).state ))  );  
+    lambda: return (  id(${name}_solar_puissance_apparente).state*sin(acos( id(${name}_solar_facteur_puissance).state ))  );  
     
   ############# BME 280  ##################  
     
   - platform: bme280 #bme280
     temperature:
-      name: "pvbrain_temperature_sdb_bas"
+      name: ${name}_temperature_sdb_bas
       accuracy_decimals: 1
       oversampling: 16x
-      id: pvbrain_temperature_sdb_bas
+      id: ${name}_temperature_sdb_bas
     pressure:
-      name: "pvbrain_pression_sdb_bas"
+      name: ${name}_pression_sdb_bas
       accuracy_decimals: 1
-      id: pvbrain_pression_sdb_bas
+      id: ${name}_pression_sdb_bas
     humidity:
-      name: "pvbrain_humidite_sdb_bas"
+      name: ${name}_humidite_sdb_bas
       accuracy_decimals: 1
-      id: pvbrain_humidite_sdb_bas
+      id: ${name}_humidite_sdb_bas
     address: 0x76
-    update_interval: 5s
+    update_interval: ${i2c_update}
     
    # ######### ADS1115 ########### 
     
   # - platform: ads1115
     # multiplexer: 'A0_A1'
     # gain: 4.096 #6.144
-    # name: "pvbrain_PV1_voltage"
-    # id: pvbrain_PV1_voltage
-    # update_interval: 5s
+    # name: ${name}_PV1_voltage
+    # id: ${name}_PV1_voltage
+    # update_interval: ${i2c_update}
     # filters:
     # - lambda: return x*(500/4.096);
     
   # - platform: ads1115
     # multiplexer: 'A2_A3'
     # gain: 4.096 #6.144
-    # name: "pvbrain_PV2_voltage"
-    # id: pvbrain_PV2_voltage
-    # update_interval: 5s
+    # name: ${name}_PV2_voltage
+    # id: ${name}_PV2_voltage
+    # update_interval: ${i2c_update}
     # filters:
     # - lambda: return x*(500/4.096);  
     
@@ -737,142 +787,142 @@ sensor:
   - platform: pipsolar
     pipsolar_id: pip8048
     # grid_rating_voltage:
-      # id: pvbrain_axpert_grid_rating_voltage
-      # name: pvbrain_axpert_grid_rating_voltage
+      # id: ${name}_${inverter}_grid_rating_voltage
+      # name: ${name}_${inverter}_grid_rating_voltage
     # grid_rating_current:
-      # id: pvbrain_axpert_grid_rating_current
-      # name: pvbrain_axpert_grid_rating_current
+      # id: ${name}_${inverter}_grid_rating_current
+      # name: ${name}_${inverter}_grid_rating_current
     ac_output_rating_voltage:
-      id: pvbrain_axpert_ac_output_rating_voltage
-      name: pvbrain_axpert_ac_output_rating_voltage
+      id: ${name}_${inverter}_ac_output_rating_voltage
+      name: ${name}_${inverter}_ac_output_rating_voltage
     ac_output_rating_frequency:
-      id: pvbrain_axpert_ac_output_rating_frequency
-      name: pvbrain_axpert_ac_output_rating_frequency
+      id: ${name}_${inverter}_ac_output_rating_frequency
+      name: ${name}_${inverter}_ac_output_rating_frequency
     ac_output_rating_current:
-      id: pvbrain_axpert_ac_output_rating_current
-      name: pvbrain_axpert_ac_output_rating_current  
+      id: ${name}_${inverter}_ac_output_rating_current
+      name: ${name}_${inverter}_ac_output_rating_current  
     ac_output_rating_apparent_power:
-      id: pvbrain_axpert_ac_output_rating_apparent_power
-      name: pvbrain_axpert_ac_output_rating_apparent_power
+      id: ${name}_${inverter}_ac_output_rating_apparent_power
+      name: ${name}_${inverter}_ac_output_rating_apparent_power
     ac_output_rating_active_power:
-      id: pvbrain_axpert_ac_output_rating_active_power
-      name: pvbrain_axpert_ac_output_rating_active_power
+      id: ${name}_${inverter}_ac_output_rating_active_power
+      name: ${name}_${inverter}_ac_output_rating_active_power
     battery_rating_voltage:
-      id: pvbrain_axpert_battery_rating_voltage
-      name: pvbrain_axpert_battery_rating_voltage
+      id: ${name}_${inverter}_battery_rating_voltage
+      name: ${name}_${inverter}_battery_rating_voltage
     battery_recharge_voltage:
-      id: pvbrain_axpert_battery_recharge_voltage
-      name: pvbrain_axpert_battery_recharge_voltage
+      id: ${name}_${inverter}_battery_recharge_voltage
+      name: ${name}_${inverter}_battery_recharge_voltage
     battery_under_voltage:
-      id: pvbrain_axpert_battery_under_voltage
-      name: pvbrain_axpert_battery_under_voltage
+      id: ${name}_${inverter}_battery_under_voltage
+      name: ${name}_${inverter}_battery_under_voltage
     battery_bulk_voltage:
-      id: pvbrain_axpert_battery_bulk_voltage
-      name: pvbrain_axpert_battery_bulk_voltage
+      id: ${name}_${inverter}_battery_bulk_voltage
+      name: ${name}_${inverter}_battery_bulk_voltage
     battery_float_voltage:
-      id: pvbrain_axpert_battery_float_voltage
-      name: pvbrain_axpert_battery_float_voltage
+      id: ${name}_${inverter}_battery_float_voltage
+      name: ${name}_${inverter}_battery_float_voltage
     battery_type:
-      id: pvbrain_axpert_battery_type
-      name: pvbrain_axpert_battery_type
+      id: ${name}_${inverter}_battery_type
+      name: ${name}_${inverter}_battery_type
     battery_redischarge_voltage:
-      id: pvbrain_axpert_battery_redischarge_voltage
-      name: pvbrain_axpert_battery_redischarge_voltage
+      id: ${name}_${inverter}_battery_redischarge_voltage
+      name: ${name}_${inverter}_battery_redischarge_voltage
     current_max_ac_charging_current:
-      id: pvbrain_axpert_current_max_ac_charging_current
-      name: pvbrain_axpert_current_max_ac_charging_current
+      id: ${name}_${inverter}_current_max_ac_charging_current
+      name: ${name}_${inverter}_current_max_ac_charging_current
     current_max_charging_current:
-      id: pvbrain_axpert_current_max_charging_current
-      name: pvbrain_axpert_current_max_charging_current
+      id: ${name}_${inverter}_current_max_charging_current
+      name: ${name}_${inverter}_current_max_charging_current
     output_source_priority:
-      id: pvbrain_axpert_output_source_priority
-      name: pvbrain_axpert_output_source_priority
+      id: ${name}_${inverter}_output_source_priority
+      name: ${name}_${inverter}_output_source_priority
     output_mode:
-      id: pvbrain_axpert_output_mode
-      name: pvbrain_axpert_output_mode
+      id: ${name}_${inverter}_output_mode
+      name: ${name}_${inverter}_output_mode
     output_load_percent:
-      id: pvbrain_axpert_output_load_percent
-      name: pvbrain_axpert_output_load_percent
+      id: ${name}_${inverter}_output_load_percent
+      name: ${name}_${inverter}_output_load_percent
     charger_source_priority:
-      id: pvbrain_axpert_charger_source_priority
-      name: pvbrain_axpert_charger_source_priority
+      id: ${name}_${inverter}_charger_source_priority
+      name: ${name}_${inverter}_charger_source_priority
     grid_voltage:
-      id: pvbrain_axpert_grid_voltage
-      name: pvbrain_axpert_grid_voltage
+      id: ${name}_${inverter}_grid_voltage
+      name: ${name}_${inverter}_grid_voltage
     grid_frequency:
-      id: pvbrain_axpert_grid_frequency
-      name: pvbrain_axpert_grid_frequency  
+      id: ${name}_${inverter}_grid_frequency
+      name: ${name}_${inverter}_grid_frequency  
     ac_output_voltage:
-      id: pvbrain_axpert_ac_output_voltage
-      name: pvbrain_axpert_ac_output_voltage
+      id: ${name}_${inverter}_ac_output_voltage
+      name: ${name}_${inverter}_ac_output_voltage
     ac_output_frequency:
-      id: pvbrain_axpert_ac_output_frequency
-      name: pvbrain_axpert_ac_output_frequency
+      id: ${name}_${inverter}_ac_output_frequency
+      name: ${name}_${inverter}_ac_output_frequency
     # ac_output_apparent_power:
-      # id: pvbrain_axpert_ac_output_apparent_power
-      # name: pvbrain_axpert_ac_output_apparent_power
+      # id: ${name}_${inverter}_ac_output_apparent_power
+      # name: ${name}_${inverter}_ac_output_apparent_power
     ac_output_active_power:
-      id: pvbrain_axpert_ac_output_active_power
-      name: pvbrain_axpert_ac_output_active_power
+      id: ${name}_${inverter}_ac_output_active_power
+      name: ${name}_${inverter}_ac_output_active_power
     bus_voltage:
-      id: pvbrain_axpert_bus_voltage
-      name: pvbrain_axpert_bus_voltage
+      id: ${name}_${inverter}_bus_voltage
+      name: ${name}_${inverter}_bus_voltage
     battery_voltage:
-      id: pvbrain_axpert_battery_voltage
-      name: pvbrain_axpert_battery_voltage      
+      id: ${name}_${inverter}_battery_voltage
+      name: ${name}_${inverter}_battery_voltage      
     battery_charging_current:
-      id: pvbrain_axpert_battery_charging_current
-      name: pvbrain_axpert_battery_charging_current
+      id: ${name}_${inverter}_battery_charging_current
+      name: ${name}_${inverter}_battery_charging_current
     battery_capacity_percent:
-      id: pvbrain_axpert_battery_capacity_percent
-      name: pvbrain_axpert_battery_capacity_percent
+      id: ${name}_${inverter}_battery_capacity_percent
+      name: ${name}_${inverter}_battery_capacity_percent
     battery_voltage_scc:
-      id: pvbrain_axpert_battery_voltage_scc
-      name: pvbrain_axpert_battery_voltage_scc
+      id: ${name}_${inverter}_battery_voltage_scc
+      name: ${name}_${inverter}_battery_voltage_scc
     battery_discharge_current:
-      id: pvbrain_axpert_battery_discharge_current
-      name: pvbrain_axpert_battery_discharge_current
+      id: ${name}_${inverter}_battery_discharge_current
+      name: ${name}_${inverter}_battery_discharge_current
     battery_voltage_offset_for_fans_on:
-      id: pvbrain_axpert_battery_voltage_offset_for_fans_on
-      name: pvbrain_axpert_battery_voltage_offset_for_fans_on
+      id: ${name}_${inverter}_battery_voltage_offset_for_fans_on
+      name: ${name}_${inverter}_battery_voltage_offset_for_fans_on
     inverter_heat_sink_temperature:
-      id: pvbrain_axpert_inverter_heat_sink_temperature
-      name: pvbrain_axpert_inverter_heat_sink_temperature
+      id: ${name}_${inverter}_inverter_heat_sink_temperature
+      name: ${name}_${inverter}_inverter_heat_sink_temperature
 #    add_sbu_priority_version:
-#      id: pvbrain_axpert_add_sbu_priority_version
-#      name: pvbrain_axpert_add_sbu_priority_version
+#      id: ${name}_${inverter}_add_sbu_priority_version
+#      name: ${name}_${inverter}_add_sbu_priority_version
 #    eeprom_version:
-#      id: pvbrain_axpert_eeprom_version
-#      name: pvbrain_axpert_eeprom_version
+#      id: ${name}_${inverter}_eeprom_version
+#      name: ${name}_${inverter}_eeprom_version
 #    scc_firmware_version:
-#      id: pvbrain_axpert_scc_firmware_version
-#      name: pvbrain_axpert_scc_firmware_version
+#      id: ${name}_${inverter}_scc_firmware_version
+#      name: ${name}_${inverter}_scc_firmware_version
     pv1_input_current:
-      id: pvbrain_axpert_pv1_input_current
-      name: pvbrain_axpert_pv1_input_current    
+      id: ${name}_${inverter}_pv1_input_current
+      name: ${name}_${inverter}_pv1_input_current    
     pv1_input_voltage:
-      id: pvbrain_axpert_pv1_input_voltage
-      name: pvbrain_axpert_pv1_input_voltage
+      id: ${name}_${inverter}_pv1_input_voltage
+      name: ${name}_${inverter}_pv1_input_voltage
     pv1_charging_power:
-      id: pvbrain_axpert_pv1_charging_power
-      name: pvbrain_axpert_pv1_charging_power
+      id: ${name}_${inverter}_pv1_charging_power
+      name: ${name}_${inverter}_pv1_charging_power
     pv2_input_current:
-      id: pvbrain_axpert_pv2_input_current
-      name: pvbrain_axpert_pv2_input_current  
+      id: ${name}_${inverter}_pv2_input_current
+      name: ${name}_${inverter}_pv2_input_current  
     pv2_input_voltage:
-      id: pvbrain_axpert_pv2_input_voltage
-      name: pvbrain_axpert_pv2_input_voltage  
+      id: ${name}_${inverter}_pv2_input_voltage
+      name: ${name}_${inverter}_pv2_input_voltage  
     pv2_charging_power:
-      id: pvbrain_axpert_pv2_charging_power
-      name: pvbrain_axpert_pv2_charging_power
+      id: ${name}_${inverter}_pv2_charging_power
+      name: ${name}_${inverter}_pv2_charging_power
 
       
   - platform: total_daily_energy
-    name: pvbrain_axpert_PV1_power_total_du_jour
-    power_id: pvbrain_axpert_pv1_charging_power 
+    name: ${name}_${inverter}_PV1_power_total_du_jour
+    power_id: ${name}_${inverter}_pv1_charging_power 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_axpert_PV1_power_total_du_jour
+    id: ${name}_${inverter}_PV1_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -880,11 +930,11 @@ sensor:
     icon: mdi:counter
     
   - platform: total_daily_energy
-    name: pvbrain_axpert_PV2_power_total_du_jour
-    power_id: pvbrain_axpert_pv2_charging_power 
+    name: ${name}_${inverter}_PV2_power_total_du_jour
+    power_id: ${name}_${inverter}_pv2_charging_power 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_axpert_PV2_power_total_du_jour
+    id: ${name}_${inverter}_PV2_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -892,20 +942,20 @@ sensor:
     icon: mdi:counter  
       
   - platform: template
-    name: "pvbrain_axpert_PV_power_total"
-    id: pvbrain_axpert_PV_power_total
+    name: ${name}_${inverter}_PV_power_total
+    id: ${name}_${inverter}_PV_power_total
     unit_of_measurement: "W"
     accuracy_decimals: 1
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:power  
-    lambda: return ( (id(pvbrain_axpert_pv1_charging_power).state) + (id(pvbrain_axpert_pv2_charging_power).state) );     
+    lambda: return ( (id(${name}_${inverter}_pv1_charging_power).state) + (id(${name}_${inverter}_pv2_charging_power).state) );     
     
   - platform: total_daily_energy
-    name: pvbrain_axpert_PV_power_total_du_jour
-    power_id: pvbrain_axpert_PV_power_total 
+    name: ${name}_${inverter}_PV_power_total_du_jour
+    power_id: ${name}_${inverter}_PV_power_total 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_axpert_PV_power_total_du_jour
+    id: ${name}_${inverter}_PV_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -913,22 +963,22 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: pvbrain_axpert_PV_power_total_veille
-    id: template_pvbrain_axpert_PV_power_total_veille
+    name: ${name}_${inverter}_PV_power_total_veille
+    id: template_${name}_${inverter}_PV_power_total_veille
     unit_of_measurement: "kwh"
     accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return ( id(template_pvbrain_axpert_PV_power_total_veille).state = id(pvbrain_axpert_PV_power_total_veille_global) );
+      return ( id(template_${name}_${inverter}_PV_power_total_veille).state = id(${name}_${inverter}_PV_power_total_veille_global) );
 
 
   - platform: total_daily_energy
-    name: pvbrain_axpert_ac_output_active_power_total_du_jour
-    power_id: pvbrain_axpert_ac_output_active_power 
+    name: ${name}_${inverter}_ac_output_active_power_total_du_jour
+    power_id: ${name}_${inverter}_ac_output_active_power 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_axpert_ac_output_active_power_total_du_jour
+    id: ${name}_${inverter}_ac_output_active_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -936,31 +986,30 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: pvbrain_axpert_ac_output_active_power_veille
-    id: template_pvbrain_axpert_ac_output_active_power_veille
+    name: ${name}_${inverter}_ac_output_active_power_veille
+    id: template_${name}_${inverter}_ac_output_active_power_veille
     unit_of_measurement: "kwh"
     accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return ( id(template_pvbrain_axpert_ac_output_active_power_veille).state = id(pvbrain_axpert_ac_output_active_power_veille_global) );
+      return ( id(template_${name}_${inverter}_ac_output_active_power_veille).state = id(${name}_${inverter}_ac_output_active_power_veille_global) );
     
- 
   - platform: template
-    name: "pvbrain_axpert_battery_charging_power"
-    id: pvbrain_axpert_battery_charging_power
+    name: ${name}_${inverter}_battery_charging_power
+    id: ${name}_${inverter}_battery_charging_power
     unit_of_measurement: "W"
     accuracy_decimals: 1
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:power  
-    lambda: return ( (id(pvbrain_axpert_battery_voltage).state) * (id(pvbrain_axpert_battery_charging_current).state) );   
+    lambda: return ( (id(${name}_${inverter}_battery_voltage).state) * (id(${name}_${inverter}_battery_charging_current).state) );   
 
   - platform: total_daily_energy
-    name: pvbrain_axpert_battery_charging_power_total_du_jour
-    power_id: pvbrain_axpert_battery_charging_power 
+    name: ${name}_${inverter}_battery_charging_power_total_du_jour
+    power_id: ${name}_${inverter}_battery_charging_power 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_axpert_battery_charging_power_total_du_jour
+    id: ${name}_${inverter}_battery_charging_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -968,31 +1017,30 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: pvbrain_axpert_battery_charging_power_veille
-    id: template_pvbrain_axpert_battery_charging_power_veille
+    name: ${name}_${inverter}_battery_charging_power_veille
+    id: template_${name}_${inverter}_battery_charging_power_veille
     unit_of_measurement: "kwh"
     accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return ( id(template_pvbrain_axpert_battery_charging_power_veille).state = id(pvbrain_axpert_battery_charging_power_veille_global) );    
+      return ( id(template_${name}_${inverter}_battery_charging_power_veille).state = id(${name}_${inverter}_battery_charging_power_veille_global) );    
        
-    
   - platform: template
-    name: "pvbrain_axpert_battery_discharging_power"
-    id: pvbrain_axpert_battery_discharging_power
+    name: ${name}_${inverter}_battery_discharging_power
+    id: ${name}_${inverter}_battery_discharging_power
     unit_of_measurement: "W"
     accuracy_decimals: 1
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:power  
-    lambda: return ( (id(pvbrain_axpert_battery_voltage).state) * (id(pvbrain_axpert_battery_discharge_current).state) );       
+    lambda: return ( (id(${name}_${inverter}_battery_voltage).state) * (id(${name}_${inverter}_battery_discharge_current).state) );       
 
   - platform: total_daily_energy
-    name: pvbrain_axpert_battery_discharging_power_total_du_jour
-    power_id: pvbrain_axpert_battery_discharging_power 
+    name: ${name}_${inverter}_battery_discharging_power_total_du_jour
+    power_id: ${name}_${inverter}_battery_discharging_power 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_axpert_battery_discharging_power_total_du_jour
+    id: ${name}_${inverter}_battery_discharging_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -1000,159 +1048,160 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: pvbrain_axpert_battery_discharging_power_veille
-    id: template_pvbrain_axpert_battery_discharging_power_veille
+    name: ${name}_${inverter}_battery_discharging_power_veille
+    id: template_${name}_${inverter}_battery_discharging_power_veille
     unit_of_measurement: "kwh"
     accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return ( id(template_pvbrain_axpert_battery_discharging_power_veille).state = id(pvbrain_axpert_battery_discharging_power_veille_global) );        
+      return ( id(template_${name}_${inverter}_battery_discharging_power_veille).state = id(${name}_${inverter}_battery_discharging_power_veille_global) );        
    
   ############# JKBMS ##################  
        
   - platform: jk_bms
+    jk_bms_id: bms1
     min_cell_voltage:
-      name: pvbrain_jkbms_min_cell_voltage
+      name: ${name}_${bms}_min_cell_voltage
     max_cell_voltage:
-      name: pvbrain_jkbms_max_cell_voltage
+      name: ${name}_${bms}_max_cell_voltage
     min_voltage_cell:
-      name: pvbrain_jkbms_min_voltage_cell
+      name: ${name}_${bms}_min_voltage_cell
     max_voltage_cell:
-      name: pvbrain_jkbms_max_voltage_cell  
+      name: ${name}_${bms}_max_voltage_cell  
     delta_cell_voltage:
-      name: "pvbrain_jkbms delta cell voltage"
+      name: ${name}_${bms}_delta_cell_voltage
     average_cell_voltage:
-      name: "pvbrain_jkbms_average_cell_voltage"  
+      name: ${name}_${bms}_average_cell_voltage 
     cell_voltage_1:
-      name: "pvbrain_jkbms cell voltage 1"
+      name: ${name}_${bms}_cell_voltage_1
     cell_voltage_2:
-      name: "pvbrain_jkbms cell voltage 2"
+      name: ${name}_${bms}_cell_voltage_2
     cell_voltage_3:
-      name: "pvbrain_jkbms cell voltage 3"
+      name: ${name}_${bms}_cell_voltage_3
     cell_voltage_4:
-      name: "pvbrain_jkbms cell voltage 4"
+      name: ${name}_${bms}_cell_voltage_4
     cell_voltage_5:
-      name: "pvbrain_jkbms cell voltage 5"
+      name: ${name}_${bms}_cell_voltage_5
     cell_voltage_6:
-      name: "pvbrain_jkbms cell voltage 6"
+      name: ${name}_${bms}_cell_voltage_6
     cell_voltage_7:
-      name: "pvbrain_jkbms cell voltage 7"
+      name: ${name}_${bms}_cell_voltage_7
     cell_voltage_8:
-      name: "pvbrain_jkbms cell voltage 8"
+      name: ${name}_${bms}_cell_voltage_8
     cell_voltage_9:
-      name: "pvbrain_jkbms cell voltage 9"
+      name: ${name}_${bms}_cell_voltage_9
     cell_voltage_10:
-      name: "pvbrain_jkbms cell voltage 10"
+      name: ${name}_${bms}_cell_voltage_10
     cell_voltage_11:
-      name: "pvbrain_jkbms cell voltage 11"
+      name: ${name}_${bms}_cell_voltage_11
     cell_voltage_12:
-      name: "pvbrain_jkbms cell voltage 12"
+      name: ${name}_${bms}_cell_voltage_12
     cell_voltage_13:
-      name: "pvbrain_jkbms cell voltage 13"
+      name: ${name}_${bms}_cell_voltage_13
     cell_voltage_14:
-      name: "pvbrain_jkbms cell voltage 14"
+      name: ${name}_${bms}_cell_voltage_14
     cell_voltage_15:
-      name: "pvbrain_jkbms cell voltage 15"
+      name: ${name}_${bms}_cell_voltage_15
     cell_voltage_16:
-      name: "pvbrain_jkbms cell voltage 16"
+      name: ${name}_${bms}_cell_voltage_16
     power_tube_temperature:
-      name: "pvbrain_jkbms power tube temperature"
+      name: ${name}_${bms}_power_tube_temperature
     temperature_sensor_1:
-      name: "pvbrain_jkbms temperature sensor 1"
+      name: ${name}_${bms}_temperature_sensor_1
     temperature_sensor_2:
-      name: "pvbrain_jkbms temperature sensor 2"  
+      name: ${name}_${bms}_temperature_sensor_2  
     total_voltage:
-      name: "pvbrain_jkbms total voltage"
-      id: pvbrain_jkbms_total_voltage
+      name: ${name}_${bms}_total_voltage
+      id: ${name}_${bms}_total_voltage
       on_value:
        - if:  ##### si tension batterie < seuil bas    ######
           condition:
             and:
-              - switch.is_on: pvbrain_ats_automatic_control
+              - switch.is_on: ${name}_ats_automatic_control
               - lambda: |-
-                 return ( ( float(id(pvbrain_jkbms_total_voltage).state) < float(id(pvbrain_inverseur_tension_bascule_solar_to_grid_number).state) )     );            
+                 return ( ( float(id(${name}_${bms}_total_voltage).state) < float(id(${name}_${ats}_tension_bascule_solar_to_grid_number).state) )     );            
           then:
             - script.execute: script_from_solar_to_grid
  
        - if:  ##### si tension batterie > seuil haut    ######
           condition:
             and: 
-              - switch.is_on: pvbrain_ats_automatic_control
+              - switch.is_on: ${name}_ats_automatic_control
               - lambda: |-
-                  return ( ( float(id(pvbrain_jkbms_total_voltage).state) > float(id(pvbrain_inverseur_tension_bascule_solar_to_grid_number).state) )     );            
+                  return ( ( float(id(${name}_${bms}_total_voltage).state) > float(id(${name}_${ats}_tension_bascule_solar_to_grid_number).state) )     );            
           then:
             - script.execute: script_from_grid_to_solar
         
     current:
-      name: "pvbrain_jkbms current"
-      id: pvbrain_jkbms_current
+      name: ${name}_${bms}_current
+      id: ${name}_${bms}_current
 #      filters:
 #        - multiply: -1
     capacity_remaining:
-      name: "pvbrain_jkbms capacity remaining"
-      id: pvbrain_jkbms_capacity_remaining
+      name: ${name}_${bms}_capacity_remaining
+      id: ${name}_${bms}_capacity_remaining
     charging_cycles:
-      name: "pvbrain_jkbms charging cycles"
+      name: ${name}_${bms}_charging_cycles
 #    total_charging_cycle_capacity:
-#      name: "pvbrain_jkbms total charging cycle capacity"  
+#      name: ${name}_${bms}_total_charging_cycle_capacity
     cell_voltage_overvoltage_protection:
-      name: pvbrain_jkbms_voltage_overvoltage_protection
+      name: ${name}_${bms}_voltage_overvoltage_protection
     cell_voltage_overvoltage_recovery:
-      name: pvbrain_jkbms_voltage_overvoltage_recovery
+      name: ${name}_${bms}_voltage_overvoltage_recovery
     # cell_voltage_overvoltage_delay:
-      # name: "pvbrain_jkbms voltage overvoltage delay"
+      # name: ${name}_${bms}_voltage_overvoltage_delay
     cell_voltage_undervoltage_protection:
-      name: pvbrain_jkbms_voltage_undervoltage_protection
+      name: ${name}_${bms}_voltage_undervoltage_protection
     cell_voltage_undervoltage_recovery:
-      name: pvbrain_jkbms_voltage_undervoltage_recovery"
+      name: ${name}_${bms}_voltage_undervoltage_recovery"
     # cell_voltage_undervoltage_delay:
-      # name: "pvbrain_jkbms voltage undervoltage delay"
+      # name: ${name}_${bms}_voltage_undervoltage_delay
     total_battery_capacity_setting:
-      name: pvbrain_jkbms_total_battery_capacity_setting
-      id: pvbrain_jkbms_total_battery_capacity_setting
+      name: ${name}_${bms}_total_battery_capacity_setting
+      id: ${name}_${bms}_total_battery_capacity_setting
     errors_bitmask:
-      name: pvbrain_jkbms_errors_bitmask
+      name: ${name}_${bms}_errors_bitmask
     # operation_mode_bitmask:
-      # name: pvbrain_jkbms_operation_mode_bitmask
+      # name: ${name}_${bms}_operation_mode_bitmask
     # battery_strings:
-      # name: pvbrain_jkbms_battery_strings
+      # name: ${name}_${bms}_battery_strings
   
   - platform: template
-    name: "pvbrain_jkbms_battery_charging_current"
-    id: pvbrain_jkbms_battery_charging_current
+    name: ${name}_${bms}_battery_charging_current
+    id: ${name}_${bms}_battery_charging_current
     unit_of_measurement: "A"
     accuracy_decimals: 1
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:current-dc 
     lambda: |-
-      if (float(id(pvbrain_jkbms_current).state)> 0){
-        return ( (id(pvbrain_jkbms_current).state) );   
+      if (float(id(${name}_${bms}_current).state)> 0){
+        return ( (id(${name}_${bms}_current).state) );   
       }
       else {
         return 0.0;
       }  
   
   - platform: template
-    name: "pvbrain_jkbms_battery_charging_power"
-    id: pvbrain_jkbms_battery_charging_power
+    name: ${name}_${bms}_battery_charging_power
+    id: ${name}_${bms}_battery_charging_power
     unit_of_measurement: "W"
     accuracy_decimals: 1
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:power  
     lambda: |-
-      if (float(id(pvbrain_jkbms_current).state)> 0){
-        return ( (id(pvbrain_jkbms_total_voltage).state) * (id(pvbrain_jkbms_current).state) );   
+      if (float(id(${name}_${bms}_current).state)> 0){
+        return ( (id(${name}_${bms}_total_voltage).state) * (id(${name}_${bms}_current).state) );   
       }
       else {
         return 0.0;
       }
   - platform: total_daily_energy
-    name: pvbrain_jkbms_battery_charging_power_total_du_jour
-    power_id: pvbrain_jkbms_battery_charging_power 
+    name: ${name}_${bms}_battery_charging_power_total_du_jour
+    power_id: ${name}_${bms}_battery_charging_power 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_jkbms_battery_charging_power_total_du_jour
+    id: ${name}_${bms}_battery_charging_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -1160,51 +1209,51 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: pvbrain_jkbms_battery_charging_power_veille
-    id: template_pvbrain_jkbms_battery_charging_power_veille
+    name: ${name}_${bms}_battery_charging_power_veille
+    id: template_${name}_${bms}_battery_charging_power_veille
     unit_of_measurement: "kwh"
     accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return ( id(template_pvbrain_jkbms_battery_charging_power_veille).state = id(pvbrain_jkbms_battery_charging_power_veille_global) );    
+      return ( id(template_${name}_${bms}_battery_charging_power_veille).state = id(${name}_${bms}_battery_charging_power_veille_global) );    
 
   - platform: template
-    name: "pvbrain_jkbms_battery_discharging_current"
-    id: pvbrain_jkbms_battery_discharging_current
+    name: ${name}_${bms}_battery_discharging_current
+    id: ${name}_${bms}_battery_discharging_current
     unit_of_measurement: "A"
     accuracy_decimals: 1
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:current-dc 
     lambda: |-
-      if (float(id(pvbrain_jkbms_current).state)< 0){
-        return ( (id(pvbrain_jkbms_current).state) );   
+      if (float(id(${name}_${bms}_current).state)< 0){
+        return ( (id(${name}_${bms}_current).state) );   
       }
       else {
         return 0.0;
       }    
     
   - platform: template
-    name: "pvbrain_jkbms_battery_discharging_power"
-    id: pvbrain_jkbms_battery_discharging_power
+    name: ${name}_${bms}_battery_discharging_power
+    id: ${name}_${bms}_battery_discharging_power
     unit_of_measurement: "W"
     accuracy_decimals: 1
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:power  
     lambda: |-
-      if (float(id(pvbrain_jkbms_current).state) < 0){
-        return ( -(id(pvbrain_jkbms_total_voltage).state) * (id(pvbrain_jkbms_current).state) );   
+      if (float(id(${name}_${bms}_current).state) < 0){
+        return ( -(id(${name}_${bms}_total_voltage).state) * (id(${name}_${bms}_current).state) );   
       }
       else {
         return 0.0;
       }
       
   - platform: total_daily_energy
-    name: pvbrain_jkbms_battery_discharging_power_total_du_jour
-    power_id: pvbrain_jkbms_battery_discharging_power 
+    name: ${name}_${bms}_battery_discharging_power_total_du_jour
+    power_id: ${name}_${bms}_battery_discharging_power 
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
-    id: pvbrain_jkbms_battery_discharging_power_total_du_jour
+    id: ${name}_${bms}_battery_discharging_power_total_du_jour
     method: trapezoid
     filters:
        # Multiplication factor from W to kW is 0.001
@@ -1212,30 +1261,30 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: pvbrain_jkbms_battery_discharging_power_veille
-    id: template_pvbrain_jkbms_battery_discharging_power_veille
+    name: ${name}_${bms}_battery_discharging_power_veille
+    id: template_${name}_${bms}_battery_discharging_power_veille
     unit_of_measurement: "kwh"
     accuracy_decimals: 2
     icon: mdi:power
-    update_interval: 10s
+    update_interval: ${template_update}
     lambda: |-
-      return ( id(template_pvbrain_jkbms_battery_discharging_power_veille).state = id(pvbrain_jkbms_battery_discharging_power_veille_global) );
+      return ( id(template_${name}_${bms}_battery_discharging_power_veille).state = id(${name}_${bms}_battery_discharging_power_veille_global) );
 
   - platform: template
-    name: pvbrain_jkbms_c_values
-    id: pvbrain_jkbms_c_values
+    name: ${name}_${bms}_c_values
+    id: ${name}_${bms}_c_values
     unit_of_measurement: "c"
     accuracy_decimals: 3
-    update_interval: 2s
+    update_interval: ${template_update}
     icon: mdi:current-dc
     lambda: |-
-        return ( fabs(float(id(pvbrain_jkbms_current).state)) / float(id(pvbrain_jkbms_total_battery_capacity_setting).state) );   
+        return ( fabs(float(id(${name}_${bms}_current).state)) / float(id(${name}_${bms}_total_battery_capacity_setting).state) );   
 
 #      if (id(pvbrain_jkbms_total_battery_capacity_setting).has_state()) {
 #      }
 text_sensor:
   - platform: template
-    name: pvbrain_uptime
+    name: ${name}_uptime
     lambda: |-
       int seconds = (id(uptime_sec).state);
       int days = seconds / (24 * 3600);
@@ -1245,70 +1294,71 @@ text_sensor:
       int minutes = seconds /  60;
       seconds = seconds % 60;
       if ( days ) {
-        return { (String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
       } else if ( hours ) {
-        return { (String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
       } else if ( minutes ) {
-        return { (String(minutes) +"m "+ String(seconds) +"s ").c_str() };
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
       } else {
-        return { (String(seconds) +"s ").c_str() };
+        return { (std::to_string(seconds) +"s ").c_str() };
       }
     icon: mdi:clock-start
     update_interval: 113s
     
   - platform: template
-    name: pvbrain_remaining_time
+    name: ${name}_remaining_time
     lambda: |-
-      if(id(pvbrain_jkbms_current).state<0) {
-        int seconds = int(id(pvbrain_jkbms_capacity_remaining).state*0.01*id(pvbrain_jkbms_total_battery_capacity_setting).state/(-id(pvbrain_jkbms_current).state)*(3600));
+      if(id(${name}_${bms}_current).state<0) {
+        int seconds = int(id(${name}_${bms}_capacity_remaining).state*0.01*id(${name}_${bms}_total_battery_capacity_setting).state/(-id(${name}_${bms}_current).state)*(3600));
         int days = seconds / (24 * 3600);
         seconds = seconds % (24 * 3600); 
         int hours = seconds / 3600;
         seconds = seconds % 3600;
         int minutes = seconds /  60;
         seconds = seconds % 60;
-        return { ("Discharging time to go: " + String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s").c_str() };
+        return { ("Discharging time to go: " + std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s").c_str() };
       }
-      else if(id(pvbrain_jkbms_current).state>0){
-        int seconds = int((1.0-float(id(pvbrain_jkbms_capacity_remaining).state)*0.01)*float(id(pvbrain_jkbms_total_battery_capacity_setting).state)/float(id(pvbrain_jkbms_current).state)*(3600));
+      else if(id(${name}_${bms}_current).state>0){
+        int seconds = int((1.0-float(id(${name}_${bms}_capacity_remaining).state)*0.01)*float(id(${name}_${bms}_total_battery_capacity_setting).state)/float(id(${name}_${bms}_current).state)*(3600));
         int days = seconds / (24 * 3600);
         seconds = seconds % (24 * 3600); 
         int hours = seconds / 3600;
         seconds = seconds % 3600;
         int minutes = seconds /  60;
         seconds = seconds % 60;
-        return { ("Charging time to go: " + String(days) +"d " + String(hours) +"h " + String(minutes) +"m "+ String(seconds) +"s").c_str() };
+        return { ("Charging time to go: " + std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s").c_str() };
       }
       else{
         return {""};
       }
     icon: mdi:clock-start
-    update_interval: 5s  
+    update_interval: ${text_update}  
     
   - platform: template
-    name: pvbrain_axpert_battery_type_text
-    id: pvbrain_axpert_battery_type_text 
+    name: ${name}_${inverter}_battery_type_text
+    id: ${name}_${inverter}_battery_type_text 
     lambda: |-
-      if (isnan(id(pvbrain_axpert_battery_type).state)) { 
+      if (isnan(id(${name}_${inverter}_battery_type).state)) { 
         return {"KO"};
       }
       else {
         static const char *battery_list[] = {"AGn", "FLd", "USE", "PYL", "EC", "SOL"};
-        return {battery_list[int(id(pvbrain_axpert_battery_type).state)]};
+        return {battery_list[int(id(${name}_${inverter}_battery_type).state)]};
       }
-    update_interval: 5s  
+    update_interval: ${text_update}
+ 
   - platform: template
-    name: pvbrain_axpert_output_source_priority_text
-    id: pvbrain_axpert_output_source_priority_text 
+    name: ${name}_${inverter}_output_source_priority_text
+    id: ${name}_${inverter}_output_source_priority_text 
     lambda: |-
-      if (isnan(id(pvbrain_axpert_output_source_priority).state)) { 
+      if (isnan(id(${name}_${inverter}_output_source_priority).state)) { 
         return {"KO"};
       }
       else {
         static const char *sources_list[] = {"USB", "SUB", "SBU"};
-        return {sources_list[int(id(pvbrain_axpert_output_source_priority).state)]};
+        return {sources_list[int(id(${name}_${inverter}_output_source_priority).state)]};
       }
-    update_interval: 5s  
+    update_interval: ${text_update}  
     
       
   # - platform: pipsolar
@@ -1325,20 +1375,21 @@ text_sensor:
     
     
   - platform: jk_bms
+    jk_bms_id: bms1
     errors:
-      name: "pvbrain_jkbms errors"
+      name: ${name}_${bms}_errors
     operation_mode:
-      name: "pvbrain_jkbms operation mode"
+      name: ${name}_${bms}_operation_mode
     # battery_type:
-      # name: "pvbrain_jkbms battery type"
+      # name: ${name}_${bms}_battery_type
     # password:
-      # name: "pvbrain_jkbms password"
+      # name: ${name}_${bms}_password
     # device_type:
-      # name: "pvbrain_jkbms device type"
+      # name: ${name}_${bms}_device_type
     # software_version:
-      # name: "pvbrain_jkbms software version"
+      # name: ${name}_${bms}_software_version
     # manufacturer:
-      # name: "pvbrain_jkbms manufacturer"  
+      # name: ${name}_${bms}_manufacturer  
       
       
 script:
@@ -1347,20 +1398,20 @@ script:
       - if:  ##### cas 1 (principal) on teste si AC_in:off, onduleur:on, ENEDIS:on => sequence solar to grid #### 
           condition:
             and:
-              - binary_sensor.is_off: pvbrain_axpert_grid_input_on
-              - binary_sensor.is_on: pvbrain_axpert_switch_on  
-              - binary_sensor.is_on: pvbrain_grid_230V
+              - binary_sensor.is_off: ${name}_${inverter}_grid_input_on
+              - binary_sensor.is_on: ${name}_${inverter}_switch_on  
+              - binary_sensor.is_on: ${name}_grid_230V
           then:
-            - switch.turn_on: pvbrain_relay_inversor_solar_input  ### switch to grid source
+            - switch.turn_on: ${name}_relay_${ats}_solar_input  ### switch to grid source
             - delay: 2s
-            - switch.turn_off: pvbrain_relay_axpert ### turn off solar inverter
+            - switch.turn_off: ${name}_relay_${inverter} ### turn off solar inverter
       # - if:  ##### cas 2 (rare) on teste si AC_in:on, onduleur:on => ####
           # condition:
             # and:
-              # - binary_sensor.is_on: pvbrain_axpert_grid_input_on
-              # - binary_sensor.is_on: pvbrain_axpert_switch_on  
+              # - binary_sensor.is_on: ${name}_${inverter}_grid_input_on
+              # - binary_sensor.is_on: ${name}_${inverter}_switch_on  
           # then:
-            # - switch.turn_off: pvbrain_relay_inversor_solar_input
+            # - switch.turn_off: ${name}_relay_${ats}_solar_input
             
   - id: script_from_grid_to_solar
     then:
@@ -1370,19 +1421,20 @@ script:
       - if:
           condition:
             and:
-              - binary_sensor.is_off: pvbrain_axpert_grid_input_on
-              - binary_sensor.is_off: pvbrain_axpert_switch_on  
- #             - binary_sensor.is_on: pvbrain_pv_230V
+              - binary_sensor.is_off: ${name}_${inverter}_grid_input_on
+              - binary_sensor.is_off: ${name}_${inverter}_switch_on  
+ #             - binary_sensor.is_on: ${name}_solar_230V
           then:
-            - switch.turn_on: pvbrain_relay_axpert  ### turn on solar inverter
+            - switch.turn_on: ${name}_relay_${inverter}  ### turn on solar inverter
             - delay: 13s
-            - switch.turn_off: pvbrain_relay_inversor_solar_input  ### switch to PV source        
+            - switch.turn_off: ${name}_relay_${ats}_solar_input  ### switch to PV source        
 select:
   - platform: pipsolar
     pipsolar_id: pip8048
     output_source_priority:
-      id: pvbrain_axpert_output_source_priority_select 
-      name: pvbrain_axpert_output_source_priority_select
+      id: ${name}_${inverter}_output_source_priority_select 
+      name: ${name}_${inverter}_output_source_priority_select
+      icon: mdi:numeric
       optionsmap:
         "Utility first": "POP00"
         "Solar only": "POP01"
@@ -1390,4 +1442,114 @@ select:
       statusmap:
         "0": "Utility first"
         "1": "Solar only"
-        "2": "Solar Battery Utility" 
+        "2": "Solar Battery Utility"
+  
+  # For HS: 00 for utility first, 01 for solar first, 02 for solar and utility, 03 for only solar charging
+  - platform: pipsolar
+    pipsolar_id: pip8048
+    charger_source_priority:
+      id: ${name}_${inverter}_charger_source_priority_select 
+      name: ${name}_${inverter}_charger_source_priority_select
+      icon: mdi:numeric
+      optionsmap:
+#        "Utility first": "PCP00"
+        "Solar first": "PCP01"
+        "Solar and utility": "PCP02"
+        "Solar charging only": "PCP03"
+      statusmap:
+ #       "0": "Utility first"
+        "1": "Solar first"
+        "2": "Solar and utility"
+        "3": "Solar charging only"
+
+  - platform: pipsolar
+    pipsolar_id: pip8048
+    current_max_ac_charging_current:
+      id: ${name}_${inverter}_current_max_ac_charging_current_select 
+      name: ${name}_${inverter}_current_max_ac_charging_current_select
+      icon: mdi:current-dc
+      optionsmap:
+        "2A": "MUCHGC0002"
+        "10A": "MUCHGC0010"
+        "20A": "MUCHGC0020"
+        "30A": "MUCHGC0030"
+        "40A": "MUCHGC0040"
+        "50A": "MUCHGC0050"
+        "60A": "MUCHGC0060"
+        "70A": "MUCHGC0070"
+        "80A": "MUCHGC0080"
+        "90A": "MUCHGC0090"
+        "100A": "MUCHGC0100"
+        "110A": "MUCHGC0110"
+        "120A": "MUCHGC0120"
+      statusmap:
+        "2": "2A"
+        "10": "10A"
+        "20": "20A"
+        "30": "30A"       
+        "40": "40A"
+        "50": "50A"
+        "60": "60A"
+        "70": "70A"
+        "80": "80A"
+        "90": "90A"
+        "100": "100A"
+        "110": "110A"
+        "120": "120A"
+
+  - platform: pipsolar
+    pipsolar_id: pip8048
+    current_max_charging_current:
+      id: ${name}_${inverter}_current_max_charging_current_select 
+      name: ${name}_${inverter}_current_max_charging_current_select
+      icon: mdi:current-dc
+      optionsmap:
+        "10A": "MCHGC010"
+        "20A": "MCHGC020"
+        "30A": "MCHGC030"
+        "40A": "MCHGC040"
+        "50A": "MCHGC050"
+        "60A": "MCHGC060"
+        "70A": "MCHGC070"
+        "80A": "MCHGC080"
+        "90A": "MCHGC090"
+        "100A": "MCHGC100"
+        "110A": "MCHGC110"
+        "120A": "MCHGC120"
+      statusmap:
+        "10": "10A"
+        "20": "20A"
+        "30": "30A"       
+        "40": "40A"
+        "50": "50A"
+        "60": "60A"
+        "70": "70A"
+        "80": "80A"
+        "90": "90A"
+        "100": "100A"
+        "110": "110A"
+        "120": "120A"      
+
+  - platform: pipsolar
+    pipsolar_id: pip8048
+    charging_discharging_control:
+      # See MAX_Communication_Protocol_20200526.pdf page 18
+      name: ${name}_${inverter}_charging discharging_control
+      optionsmap:
+        "Enabled charger;Enabled discharger": "PBATCD111"
+        "Enabled charger whith Grid (prog16);Disabled discharger and shut down unit": "PBATCD011"
+        "Enabled charger whith Grid (prog16);Disabled discharger standby unit": "PBATCD101"
+        "Disabled charger;Enabled discharger": "PBATCD110"
+        "Disabled charger;Disabled discharger;Disabled discharger and shut down unit": "PBATCD010"
+        "Disabled charger;Disabled discharger standby unit": "PBATCD100"
+        "N/A": "PBATCD001"
+        "Cleaned return to previous status": "PBATCD000"
+      statusmap:
+        "111": "Enabled charger;Enabled discharger"
+        "011": "Enabled charger whith Grid (prog16);Disabled discharger and shut down unit"
+        "101": "Enabled charger whith Grid (prog16);Disabled discharger standby unit"
+        "110": "Disabled charger;Enabled discharger"
+        "010": "Disabled charger;Disabled discharger;Disabled discharger and shut down unit"
+        "100": "Disabled charger;Disabled discharger standby unit"
+        "001": "N/A"
+        "000": "Cleaned return to previous status" 
