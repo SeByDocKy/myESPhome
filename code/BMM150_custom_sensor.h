@@ -768,7 +768,9 @@ class BMM150CustomSensor : public PollingComponent, public Sensor
   
   BMM150 bmm;
   
-  Sensor *heading_sensor = new Sensor();
+  Sensor *heading_sensor   = new Sensor();
+  Sensor *xyheading_sensor = new Sensor();
+  Sensor *zxheading_sensor = new Sensor();
   
   BMM150CustomSensor() : PollingComponent(180) {}   //170
   void setup() override 
@@ -780,14 +782,15 @@ class BMM150CustomSensor : public PollingComponent, public Sensor
   void update() override 
   {
     bmm150_mag_data value;
-    
 	bmm.read_mag_data();
 
     value.x = bmm.raw_mag_data.raw_datax;
     value.y = bmm.raw_mag_data.raw_datay;
     value.z = bmm.raw_mag_data.raw_dataz;
-
-    float heading = atan2(value.x, value.y);
+	
+	float xyHeading = atan2(value.x, value.y);
+    float zxHeading = atan2(value.z, value.x);
+    float heading   = xyHeading;
 
     if (heading < 0) {
         heading += 2 * PI;
@@ -795,10 +798,14 @@ class BMM150CustomSensor : public PollingComponent, public Sensor
     if (heading > 2 * PI) {
         heading -= 2 * PI;
     }
-    float headingDegrees = heading * 180 / M_PI;
+	float headingDegrees = heading * (180 / M_PI);
+    float xyHeadingDegrees = xyHeading * (180 / M_PI);
+    float zxHeadingDegrees = zxHeading * (180 / M_PI);
   	
 	heading_sensor->publish_state(headingDegrees);
-		
+	xyheading_sensor->publish_state(xyHeadingDegrees);
+	zxheading_sensor->publish_state(zxHeadingDegrees);
+
 	//delay(1000);
 
 	}
