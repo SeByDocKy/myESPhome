@@ -789,7 +789,7 @@ class BMM150CustomSensor : public PollingComponent, public Sensor
     value.z = bmm.raw_mag_data.raw_dataz;
 	
 	float xyHeading = atan2(value.x, value.y);
-    float zxHeading = atan2(value.z, value.x);
+	float zxHeading = atan2(value.z, value.x);
     float heading   = xyHeading;
 
     if (heading < 0) {
