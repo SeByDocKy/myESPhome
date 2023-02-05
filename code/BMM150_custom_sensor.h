@@ -799,8 +799,8 @@ class BMM150CustomSensor : public PollingComponent, public Sensor
         heading -= 2 * PI;
     }
 	float headingDegrees = heading * (180 / M_PI);
-    float xyHeadingDegrees = xyHeading * (180 / M_PI);
-    float zxHeadingDegrees = zxHeading * (180 / M_PI);
+	float xyHeadingDegrees = xyHeading * (180 / M_PI);
+	float zxHeadingDegrees = zxHeading * (180 / M_PI);
   	
 	heading_sensor->publish_state(headingDegrees);
 	xyheading_sensor->publish_state(xyHeadingDegrees);
