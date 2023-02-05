@@ -372,7 +372,7 @@ sensor:
     lambda: |-
       auto BMM150 = new BMM150CustomSensor();
       App.register_component(BMM150);
-      return { BMM150->heading_sensor};
+      return { BMM150->heading_sensor , BMM150->xyheading_sensor , BMM150->zxheading_sensor};
 
     sensors:
     - name: ${name}_azimuth_plateau
@@ -384,7 +384,19 @@ sensor:
        - lambda: return (x + float(id(${name}_declinaison_number).state) );
        - sliding_window_moving_average:
            window_size: 25 #15
-           send_every: 1      
+           send_every: 1
+           
+    - name: ${name}_xyHeadingDegrees_plateau
+      id: ${name}_xyHeadingDegrees_plateau
+      unit_of_measurement: "°"
+      accuracy_decimals: 1
+      icon: "mdi:compass-outline"
+
+    - name: ${name}_zxHeadingDegrees_plateau
+      id: ${name}_zxHeadingDegrees_plateau
+      unit_of_measurement: "°"
+      accuracy_decimals: 1
+      icon: "mdi:compass-outline"          
            
            
   - platform: template
