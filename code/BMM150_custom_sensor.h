@@ -790,7 +790,7 @@ class BMM150CustomSensor : public PollingComponent, public Sensor
 	
 	float xyHeading = atan2(value.x, value.y);
 	float zxHeading = atan2(value.z, value.x);
-    float heading   = xyHeading;
+	float heading   = xyHeading;
 
     if (heading < 0) {
         heading += 2 * PI;
