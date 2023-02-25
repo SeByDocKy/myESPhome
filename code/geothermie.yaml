@@ -1463,18 +1463,7 @@ interval:
     - if:
          condition:
            and:
-             -  lambda: |-
-                  return id(${name}_clapet1).position < ${ouverture_minimum}; 
-             -  lambda: |-
-                  return id(${name}_clapet2).position < ${ouverture_minimum};
-             -  lambda: |-
-                   return id(${name}_clapet3).position < ${ouverture_minimum};
-             -  lambda: |-
-                   return id(${name}_clapet4).position < ${ouverture_minimum};
-             -  lambda: |-
-                   return id(${name}_clapet5).position < ${ouverture_minimum};
-             -  lambda: |-
-                   return id(${name}_clapet6).position < ${ouverture_minimum};
+             - binary_sensor.is_off: ${name}_clapet_ouvert
              - fan.is_on: ${name}_fan
          then:
              - fan.turn_off: ${name}_fan        
