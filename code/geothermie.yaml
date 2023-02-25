@@ -1,0 +1,1481 @@
+substitutions:
+  updates: 10s
+  name: geothermie
+  ouverture_minimum: '0.25'
+  duree_electrovanne: 25s
+  duree_clapet: 15s
+  temperature_alarme: '60'
+  dallas_resolution: '10'
+  update_dallas: 10s
+  mobile: 'redmi_note_6_pro'
+
+esp32:
+  board: esp32dev
+  framework:
+    # type: esp-idf
+    type: arduino
+    version: 2.0.6
+    platform_version: 5.3.0   
+     
+esphome:
+  name: ${name}
+  
+  on_boot:
+    #priority: -100
+    then:
+#- cover.control:
+#          id: geothermie_vanne1
+#          position: 0%
+#      - cover.control:
+#          id: geothermie_vanne2
+#          position: 0%
+#      - cover.control:
+#          id: geothermie_vanne3
+#          position: 0%
+#      - cover.control:
+#          id: geothermie_vanne4
+#          position: 0%
+#      - cover.control:
+#          id: geothermie_vanne5
+#          position: 0%
+#      - cover.control:
+#          id: geothermie_vanne6
+#          position: 0%
+#      - cover.control:
+#          id: geothermie_vanne7
+#          position: 0%
+          
+      - cover.control:
+          id: geothermie_clapet1
+          position: 0% 
+      - cover.control:
+          id: geothermie_clapet2
+          position: 0%
+      - cover.control:
+          id: geothermie_clapet3
+          position: 0%
+      - cover.control:
+          id: geothermie_clapet4
+          position: 0%
+      - cover.control:
+          id: geothermie_clapet5
+          position: 0%
+      - cover.control:
+          id: geothermie_clapet6
+          position: 0%
+
+      # - cover.control:
+      #     id: geothermie_clapet7
+      #     position: 0%
+      # - cover.control:
+      #     id: geothermie_clapet8
+      #     position: 0%    
+          
+      - fan.turn_off: geothermie_fan
+          
+# Enable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+ota:
+ 
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Geothermie Fallback Hotspot"
+    password: "sebydocky"
+
+#captive_portal:
+
+globals:
+  - id: ${name}_veille_global
+    type: float
+    restore_value: yes
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time  
+    
+    on_time:
+      - seconds: 59
+        minutes: 59
+        hours: 23
+        then:                
+          - globals.set: # Set global to current position
+                id: ${name}_veille_global
+                value: !lambda return ( id(${name}_veille_global) =  float( id(daily_${name}).state) );          
+                     
+i2c:
+  sda: GPIO21  
+  scl: GPIO22 
+  scan: True
+  frequency: 50kHz
+  id: bus_i2c
+  
+dallas:
+  - pin: GPIO15
+    update_interval: ${updates}  
+  
+pcf8574:
+  - id: ${name}_hub1
+    address: 0x21
+    pcf8575: True     
+    
+  - id: ${name}_hub2
+    address: 0x20
+    pcf8575: True   
+    
+output:
+  - platform: gpio
+    pin:
+      number: GPIO2
+      inverted: True
+    id: gpio_02
+
+  #### AC dimmer for the fan ###
+
+  - platform: ac_dimmer
+    id: ${name}_ac_dimmer_fan
+    gate_pin: GPIO18
+    zero_cross_pin:
+      number: GPIO17
+      mode: INPUT
+      inverted: yes
+
+  # #### AC dimmer for the water pump ###
+   
+  # - platform: ac_dimmer
+  #   id: ${name}_ac_dimmer_pump
+  #   gate_pin: GPIO25
+  #   zero_cross_pin:
+  #     number: GPIO26  #GPIO17 shared with the first AC dimmer
+  #     mode: INPUT
+  #     inverted: yes   
+
+  # #### DC dimmer for the water pump ###
+
+  # - platform: ledc
+  #   id: ${name}_forward_dc_dimmer
+  #   pin: GPIO12
+
+  # - platform: ledc
+  #   id: ${name}_backward_dc_dimmer
+  #   pin: GPIO13  
+      
+fan:
+
+  ############ fan controlled by the first robodyn AC dimmer #########"
+
+  - platform: speed
+    output: ${name}_ac_dimmer_fan
+    id: ${name}_fan
+    name: ${name}_soufflerie
+    on_turn_on:    
+       then:
+          - if:
+              condition:
+                binary_sensor.is_on: ${name}_clapet_ouvert
+              then:
+                - fan.turn_on: ${name}_fan
+              else:
+                - fan.turn_off: ${name}_fan
+
+  #  ############ Water pump controlled by the second robodyn AC dimmer #########"
+  
+  # - platform: speed
+  #   output: ${name}_ac_dimmer_pump
+  #   id: ${name}_ac_circulateur
+  #   name: ${name}_ac_circulateur
+
+  #   ############ Water pump controlled by a H-bridge #########"
+
+  # - platform: hbridge
+  #   id: ${name}_dc_circulateur
+  #   name: ${name}_dc_circulateur
+  #   pin_a: ${name}_forward_dc_dimmer
+  #   pin_b: ${name}_backward_dc_dimmer
+  #   # enable_pin: motor_enable
+  #   decay_mode: slow   # slow decay mode (braking) or fast decay (coasting).
+              
+select:
+  - platform: template
+    name: ${name}_circuit_eau_select
+    id: ${name}_circuit_eau_select
+    optimistic: true
+    options:
+      - '0 - puits-combles'
+      - '1 - puits-panneaux-combles'
+      - '2 - panneaux-combles'
+    initial_option: '0 - puits-combles'
+    restore_value: true
+    on_value:
+      then:
+      - if:
+         condition:
+            and:
+             - lambda: |-
+                 return (i == 0);
+         then:
+           - switch.turn_off: ${name}_circulateur_dc
+           - cover.close: ${name}_vanne4
+           - cover.close: ${name}_vanne3
+          
+      - if:
+         condition:
+            and:
+             - lambda: |-
+                 return (i == 1);
+         then:
+           - switch.turn_off: ${name}_circulateur_dc
+           - cover.close: ${name}_vanne4
+           - cover.open: ${name}_vanne3
+           
+
+      - if:
+         condition:
+            and:
+             - lambda: |-
+                 return (i == 2);
+         then:
+           - switch.turn_off: ${name}_circulateur_dc
+           - cover.open: ${name}_vanne4
+           - cover.open: ${name}_vanne3
+                     
+number:
+  - platform: template
+    name: ${name}_alarm_max_temperature
+    id: ${name}_alarm_max_temperature
+    optimistic: true
+    initial_value: ${temperature_alarme}
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer
+    min_value: 0
+    max_value: 100
+    step: 5
+    mode: 'slider'
+
+  - platform: template
+    name: ${name}_fan_number
+    id: ${name}_fan_number
+    optimistic: true
+    initial_value: 0
+    unit_of_measurement: '%'
+    icon: mdi:fan
+    min_value: 0
+    max_value: 100
+    step: 1
+    mode: 'slider'
+    on_value:
+       then:
+          - if: 
+              condition:
+                -  lambda: |-
+                    return id(${name}_fan_number).state != 0;
+              then: 
+                 - if:
+                      condition:
+                        binary_sensor.is_on: ${name}_clapet_ouvert
+                      then:
+                        - fan.turn_on:
+                            id: ${name}_fan
+                            speed: !lambda |-
+                              return id(${name}_fan_number).state;
+                      else:
+                        - homeassistant.service:
+                            service: notify.mobile_app_${mobile}
+                            data:
+                              message: "Ouvrir un clapet !!!"
+                              # data:
+                              #   vibrationPattern: "100, 1000, 100, 1000, 100"
+                              #   channel: "Motion"
+                        - delay: 1s
+                        - number.set:
+                            id: ${name}_fan_number
+                            value: 0      
+              else:
+                - fan.turn_off: ${name}_fan   
+          - if:     ####### Test si l'état du dimmer est sur off alors que le slider > 0% <=> panne du dimmer  #####
+              condition:
+                - lambda: |-
+                    return id(${name}_fan_number).state > 0;
+                - binary_sensor.is_off: ${name}_fan_on
+              then:
+                - homeassistant.service:
+                    service: notify.mobile_app_redmi_${mobile}
+                    data:
+                      message: 'AC dimmer probablement en panne, ventilateur non fonctionnel !!!'
+                      # data: 
+                      #   vibrationPattern: '100, 1000, 100, 1000, 100'
+                      #   ledColor: 'red'
+                      #   sticky: 'true'
+                      #   ttl: '0'
+                      #   priority: 'high'
+                      #   channel: 'alarm_stream'  
+
+
+              #   - fan.turn_on:      ${name}_fan_on
+              #      id: ${name}_fan
+              #      speed: !lambda |-
+              #       return id(${name}_fan_number).state;
+              # else:
+              #   - fan.turn_off: ${name}_fan
+                # - number.set:
+                #     id: ${name}_fan_number
+                #     value: 0
+                
+                
+  # - platform: template
+  #   name: ${name}_vanne1_number
+  #   id: ${name}_vanne1_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_vanne1_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_vanne1
+  #                  position: !lambda |-
+  #                   return id(${name}_vanne1_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_vanne1
+                
+  # - platform: template
+  #   name: ${name}_vanne2_number
+  #   id: ${name}_vanne2_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_vanne2_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_vanne2
+  #                  position: !lambda |-
+  #                   return id(${name}_vanne2_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_vanne2
+
+  # - platform: template
+  #   name: ${name}_vanne3_number
+  #   id: ${name}_vanne3_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_vanne3_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_vanne2
+  #                  position: !lambda |-
+  #                   return id(${name}_vanne3_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_vanne3
+
+  # - platform: template
+  #   name: ${name}_vanne4_number
+  #   id: ${name}_vanne4_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_vanne4_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_vanne2
+  #                  position: !lambda |-
+  #                   return id(${name}_vanne4_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_vanne4                               
+                
+  # - platform: template
+  #   name: ${name}_clapet1_number
+  #   id: ${name}_clapet1_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_clapet1_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_clapet1
+  #                  position: !lambda |-
+  #                   return id(${name}_clapet1_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_clapet1
+                
+                
+  # - platform: template
+  #   name: ${name}_clapet2_number
+  #   id: ${name}_clapet2_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_clapet2_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_clapet2
+  #                  position: !lambda |-
+  #                   return id(${name}_clapet2_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_clapet2
+                
+  # - platform: template
+  #   name: ${name}_clapet3_number
+  #   id: ${name}_clapet3_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_clapet3_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_clapet3
+  #                  position: !lambda |-
+  #                   return id(${name}_clapet3_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_clapet3
+                
+  # - platform: template
+  #   name: ${name}_clapet4_number
+  #   id: ${name}_clapet4_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_clapet4_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_clapet4
+  #                  position: !lambda |-
+  #                   return id(${name}_clapet4_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_clapet4
+                
+  # - platform: template
+  #   name: ${name}_clapet5_number
+  #   id: ${name}_clapet5_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_clapet5_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_clapet5
+  #                  position: !lambda |-
+  #                   return id(${name}_clapet5_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_clapet5 
+                
+  # - platform: template
+  #   name: ${name}_clapet6_number
+  #   id: ${name}_clapet6_number
+  #   optimistic: true
+  #   initial_value: 0
+  #   unit_of_measurement: '%'
+  #   icon: mdi:valve
+  #   min_value: 0
+  #   max_value: 100
+  #   step: 1
+  #   mode: 'slider'
+  #   on_value:
+  #      then:
+  #         - if: 
+  #             condition:
+  #               -  lambda: |-
+  #                   return id(${name}_clapet6_number).state != 0;
+  #             then:            
+  #               - cover.control:
+  #                  id: ${name}_clapet6
+  #                  position: !lambda |-
+  #                   return id(${name}_clapet6_number).state/100.0;
+  #             else:
+  #               - cover.close: ${name}_clapet6              
+      
+light:
+  - platform: binary   
+    output: gpio_02
+    name: ${name}_led_status
+    id: ${name}_led_status
+    
+switch:
+  - platform: restart
+    name: restart_${name}
+ 
+    ##### Electrovanne 1 <=> remplissage circuit #####
+    
+  - platform: gpio
+    id: ${name}_hub2_ouverture_vanne1
+    name: ${name}_hub2_ouverture_vanne1
+    interlock: ${name}_hub2_fermeture_vanne1
+    pin:
+      pcf8574: ${name}_hub2
+      number: 7
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+
+  - platform: gpio
+    id: ${name}_hub2_fermeture_vanne1
+    name: ${name}_hub2_fermeture_vanne1
+    interlock: ${name}_hub2_ouverture_vanne1
+    pin:
+      pcf8574: ${name}_hub2
+      number: 6
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True      
+      
+    ##### Electrovanne 2 <=> vidange circuit #####
+    
+  - platform: gpio
+    id: ${name}_hub2_ouverture_vanne2
+    name: ${name}_hub2_ouverture_vanne2
+    interlock: ${name}_hub2_fermeture_vanne2
+    pin:
+      pcf8574: ${name}_hub2
+      number: 4
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub2_fermeture_vanne2
+    name: ${name}_hub2_fermeture_vanne2
+    interlock: ${name}_hub2_ouverture_vanne2
+    pin:
+      pcf8574: ${name}_hub2
+      number: 5
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+      ##### Electrovanne 3 <=> 3 voies montante #####
+    
+  - platform: gpio
+    id: ${name}_hub2_ouverture_vanne3
+    name: ${name}_hub2_ouverture_vanne3
+    interlock: ${name}_hub2_fermeture_vanne3
+    pin:
+      pcf8574: ${name}_hub2
+      # Use pin number 0
+      number: 3
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub2_fermeture_vanne3
+    name: ${name}_hub2_fermeture_vanne3
+    interlock: ${name}_hub2_ouverture_vanne3
+    pin:
+      pcf8574: ${name}_hub2
+      # Use pin number 1
+      number: 2
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+      ##### Electrovanne 4 <=> 3 voies descendante #####
+    
+  - platform: gpio
+    id: ${name}_hub2_ouverture_vanne4
+    name: ${name}_hub2_ouverture_vanne4
+    interlock: ${name}_hub2_fermeture_vanne4
+    pin:
+      pcf8574: ${name}_hub2
+      # Use pin number 0
+      number: 15
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub2_fermeture_vanne4
+    name: ${name}_hub2_fermeture_vanne4
+    interlock: ${name}_hub2_ouverture_vanne4
+    pin:
+      pcf8574: ${name}_hub2
+      # Use pin number 1
+      number: 14
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  #      ##### Electrovanne 5 #####
+    
+  # - platform: gpio
+  #   id: ${name}_hub2_ouverture_vanne5
+  #   name: ${name}_hub2_ouverture_vanne5
+  #   interlock: ${name}_hub2_fermeture_vanne5
+  #   pin:
+  #     pcf8574: ${name}_hub2
+  #     # Use pin number 0
+  #     number: 12
+  #     # One of INPUT or OUTPUT
+  #     mode: OUTPUT
+  #     inverted: True
+      
+  # - platform: gpio
+  #   id: ${name}_hub2_fermeture_vanne5
+  #   name: ${name}_hub2_fermeture_vanne5
+  #   interlock: ${name}_hub2_ouverture_vanne5
+  #   pin:
+  #     pcf8574: ${name}_hub2
+  #     # Use pin number 1
+  #     number: 13
+  #     # One of INPUT or OUTPUT
+  #     mode: OUTPUT
+  #     inverted: True             
+      
+         # ##### Electrovanne 6 #####
+    
+  # - platform: gpio
+    # id: ${name}_hub2_ouverture_vanne6
+    # interlock: ${name}_hub2_fermeture_vanne6
+    # pin:
+      # pcf8574: ${name}_hub2
+      # # Use pin number 0
+      # number: 10
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True
+      
+  # - platform: gpio
+    # id: ${name}_hub2_fermeture_vanne6
+    # interlock: ${name}_hub2_ouverture_vanne6
+    # pin:
+      # pcf8574: ${name}_hub2
+      # # Use pin number 1
+      # number: 11
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True
+      
+           # ##### Electrovanne 7 #####
+    
+  # - platform: gpio
+    # id: ${name}_hub2_ouverture_vanne7
+    # interlock: ${name}_hub2_fermeture_vanne7
+    # pin:
+      # pcf8574: ${name}_hub2
+      # # Use pin number 0
+      # number: 12
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True
+      
+  # - platform: gpio
+    # id: ${name}_hub2_fermeture_vanne7
+    # interlock: ${name}_hub2_ouverture_vanne7
+    # pin:
+      # pcf8574: ${name}_hub2
+      # # Use pin number 1
+      # number: 13
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True    
+    
+    
+       ##### Clapet 1 #####
+    
+  - platform: gpio
+    id: ${name}_hub1_ouverture_clapet1
+    name: ${name}_hub1_ouverture_clapet1
+    interlock: ${name}_hub1_fermeture_clapet1
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 0
+      number: 0
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub1_fermeture_clapet1
+    name: ${name}_hub1_fermeture_clapet1
+    interlock: ${name}_hub1_ouverture_clapet1
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 1
+      number: 1
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+  
+      ##### Clapet 2 #####
+      
+  - platform: gpio
+    id: ${name}_hub1_ouverture_clapet2
+    name: ${name}_hub1_ouverture_clapet2
+    interlock: ${name}_hub1_fermeture_clapet2
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 0
+      number: 3
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub1_fermeture_clapet2
+    name: ${name}_hub1_fermeture_clapet2
+    interlock: ${name}_hub1_ouverture_clapet2
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 1
+      number: 2
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True    
+      
+      ##### Clapet 3 #####
+      
+  - platform: gpio
+    id: ${name}_hub1_ouverture_clapet3
+    name: ${name}_hub1_ouverture_clapet3
+    interlock: ${name}_hub1_fermeture_clapet3
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 0
+      number: 4
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub1_fermeture_clapet3
+    name:  ${name}_hub1_fermeture_clapet3
+    interlock: ${name}_hub1_ouverture_clapet3
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 1
+      number: 5
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+  
+      ##### Clapet 4 #####
+      
+  - platform: gpio
+    id: ${name}_hub1_ouverture_clapet4
+    name: ${name}_hub1_ouverture_clapet4
+    interlock: ${name}_hub1_fermeture_clapet4
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 0
+      number: 7
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+          
+  - platform: gpio
+    id: ${name}_hub1_fermeture_clapet4
+    name: ${name}_hub1_fermeture_clapet4
+    interlock: ${name}_hub1_ouverture_clapet4
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 1
+      number: 6
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+  
+      ##### Clapet 5 #####
+      
+  - platform: gpio
+    id: ${name}_hub1_ouverture_clapet5
+    name: ${name}_hub1_ouverture_clapet5
+    interlock: ${name}_hub1_fermeture_clapet5
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 0
+      number: 8
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub1_fermeture_clapet5
+    name: ${name}_hub1_fermeture_clapet5
+    interlock: ${name}_hub1_ouverture_clapet5
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 1
+      number: 9
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+      ##### Clapet 6 #####
+      
+  - platform: gpio
+    id: ${name}_hub1_ouverture_clapet6
+    name: ${name}_hub1_ouverture_clapet6
+    interlock: ${name}_hub1_fermeture_clapet6
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 0
+      number: 10
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+      
+  - platform: gpio
+    id: ${name}_hub1_fermeture_clapet6
+    name: ${name}_hub1_fermeture_clapet6
+    interlock: ${name}_hub1_ouverture_clapet6
+    pin:
+      pcf8574: ${name}_hub1
+      # Use pin number 1
+      number: 11
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True
+
+        # ##### Clapet 7 #####
+      
+  # - platform: gpio
+    # id: geothermie_hub1_ouverture_clapet7
+    # interlock: geothermie_hub1_fermeture_clapet7
+    # pin:
+      # pcf8574: geothermie_hub1
+      # # Use pin number 0
+      # number: 12
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True
+      
+  # - platform: gpio
+    # id: geothermie_hub1_fermeture_clapet7
+    # interlock: geothermie_hub1_ouverture_clapet7
+    # pin:
+      # pcf8574: geothermie_hub1
+      # # Use pin number 1
+      # number: 13
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True
+      
+        # ##### Clapet 8 #####
+      
+  # - platform: gpio
+    # id: geothermie_hub1_ouverture_clapet8
+    # interlock: geothermie_hub1_fermeture_clapet8
+    # pin:
+      # pcf8574: geothermie_hub1
+      # # Use pin number 0
+      # number: 14
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True
+      
+  # - platform: gpio
+    # id: geothermie_hub1_fermeture_clapet8
+    # interlock: geothermie_hub1_ouverture_clapet8
+    # pin:
+      # pcf8574: geothermie_hub1
+      # # Use pin number 1
+      # number: 15
+      # # One of INPUT or OUTPUT
+      # mode: OUTPUT
+      # inverted: True    
+  
+    ##### Circulateur DC eau #####
+    
+  - platform: gpio
+    id: ${name}_circulateur_dc
+    name: ${name}_circulateur_dc
+    pin:
+      pcf8574: ${name}_hub2
+      # Use pin number 0
+      number: 1
+      # One of INPUT or OUTPUT
+      mode: OUTPUT
+      inverted: True       
+
+sensor:    
+  - platform: wifi_signal
+    name: WiFi puissance_${name}
+    update_interval: ${updates}
+    
+  - platform: uptime
+    id: uptime_sec
+    
+   ########## BME 280 ############
+    
+  - platform: bme280
+    temperature:
+      name: ${name}_temperature_combles
+      accuracy_decimals: 1
+      oversampling: 16x
+      id: ${name}_temperature_combles
+    pressure:
+      name: ${name}_pression_combles
+      accuracy_decimals: 1
+      id: ${name}_pression_combles
+    humidity:
+      name: ${name}_humidite_combles
+      accuracy_decimals: 1
+      id: ${name}_humidite_combles
+    address: 0x76
+    update_interval: ${updates}  
+   
+  ########## CCS811 ############ 
+   
+  - platform: ccs811
+    i2c_id: bus_i2c
+    eco2:
+      name: ${name}_eCO2_combles
+      id: ${name}_eCO2_combles
+      filters:
+      - lambda: if (x < 65000) { return x;} else {return 0.0;}
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+    tvoc:
+      name: ${name}_TVOC_combles
+      id: ${name}_TVOC_combles
+      filters:
+      - lambda: if (x < 65000) { return x;} else {return 0.0;}
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+          
+    address: 0x5A  
+    update_interval: ${updates}
+    temperature: ${name}_temperature_combles
+    humidity: ${name}_pression_combles
+    baseline: 0x1483
+    
+    ######## Débitmètre circuit d'eau ######
+    
+  - platform: pulse_counter
+    id: water_flow_meter_${name}
+    pin: GPIO14
+    name: ${name}_water_flow_meter    
+    update_interval: 1s
+    icon: mdi:water
+    filters:
+     - lambda: return (x / 5.48);
+    unit_of_measurement: "L/h"
+    
+  - platform: total_daily_energy
+    name: ${name}_du_jour
+    power_id: water_flow_meter_${name}  
+    unit_of_measurement: "L"
+    accuracy_decimals: 2
+    id: daily_${name}
+    
+  - platform: template
+    name: ${name}_veille
+    id: template_${name}_veille
+    unit_of_measurement: "L"
+    accuracy_decimals: 2
+    icon: mdi:water
+    update_interval: ${updates}
+    lambda: |-
+      return ( id(template_${name}_veille).state = id(${name}_veille_global) );
+    
+    ######## Temperatures eau & air ######
+    
+  - platform: dallas
+    address: 0x7601204FF2D2A228
+    name: ${name}_temperature_sortie_batterie_air
+    id: ${name}_temperature_sortie_batterie_air
+    unit_of_measurement: "°C"
+    resolution: ${dallas_resolution}
+    accuracy_decimals: 1
+    filters:
+      - filter_out: 85.0
+      - filter_out: NAN
+    on_value: 
+      then:
+          - if:
+              condition:
+                and:
+                  -  lambda: |-
+                       return id(${name}_temperature_sortie_batterie_air).state >= 80; 
+              then:
+                - fan.turn_off: ${name}_fan
+            
+  - platform: dallas
+    address: 0x6E00000C86E35828
+    name: ${name}_temperature_entree_batterie_eau
+    unit_of_measurement: "°C"
+    resolution: ${dallas_resolution}
+    accuracy_decimals: 1
+    filters:
+      - filter_out: 85.0
+      - filter_out: 128.0
+      - filter_out: NAN  
+    
+  - platform: dallas
+    address: 0x8B00000C85E2D528
+    name: ${name}_temperature_sortie_batterie_eau
+    unit_of_measurement: "°C"
+    resolution: ${dallas_resolution}
+    accuracy_decimals: 1
+    filters:
+      - filter_out: 85.0
+      - filter_out: 128.0
+      - filter_out: NAN
+
+  - platform: dallas
+    address: 0x6200000c856a2728
+    name: ${name}_temperature_entree_panneaux_solaires
+    id: ${name}_temperature_entree_panneaux_solaires
+    unit_of_measurement: "°C"
+    resolution: ${dallas_resolution}
+    accuracy_decimals: 1
+    filters:
+      - filter_out: 85.0
+      - filter_out: 128.0
+      - filter_out: NAN
+
+  - platform: dallas
+    address: 0xf000000c857ffc28
+    name: ${name}_temperature_sortie_panneaux_solaires
+    id: ${name}_temperature_sortie_panneaux_solaires
+    unit_of_measurement: "°C"
+    resolution: ${dallas_resolution}
+    accuracy_decimals: 1
+    filters:
+      - filter_out: 85.0
+      - filter_out: 128.0
+      - filter_out: NAN
+    
+    ######## Capteur de pression circuit d'eau ######
+    
+  - platform: adc
+    pin: GPIO33
+    name: ${name}_pression
+    update_interval: ${updates}
+    attenuation: 11db
+    unit_of_measurement: "bar"
+    accuracy_decimals: 2
+    icon: mdi:gauge
+    id: ${name}_pression
+    filters:
+    - sliding_window_moving_average:
+        window_size: 7
+        send_every: 1
+    - lambda: return ((x/5.0 - 0.1)*1.333333*10);  
+    
+    
+cover:
+
+##### Electrovanne 1 ####
+
+- platform: time_based
+  name: ${name}_vanne1
+  id: ${name}_vanne1
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub2_ouverture_vanne1
+  open_duration: ${duree_electrovanne}
+  close_action:
+    - switch.turn_on: ${name}_hub2_fermeture_vanne1
+  close_duration: ${duree_electrovanne}
+  stop_action:
+    - switch.turn_off: ${name}_hub2_ouverture_vanne1
+    - switch.turn_off: ${name}_hub2_fermeture_vanne1
+
+##### Electrovanne 2 ####
+    
+- platform: time_based
+  name: ${name}_vanne2
+  id: ${name}_vanne2
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub2_ouverture_vanne2
+  open_duration: ${duree_electrovanne}
+  close_action:
+    - switch.turn_on: ${name}_hub2_fermeture_vanne2
+  close_duration: ${duree_electrovanne}
+  stop_action:
+    - switch.turn_off: ${name}_hub2_ouverture_vanne2
+    - switch.turn_off: ${name}_hub2_fermeture_vanne2    
+
+##### Electrovanne 3 ####    
+    
+- platform: time_based
+  name: ${name}_vanne3
+  id: ${name}_vanne3
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub2_ouverture_vanne3
+  open_duration: ${duree_electrovanne}
+  close_action:
+    - switch.turn_on: ${name}_hub2_fermeture_vanne3
+  close_duration: ${duree_electrovanne}
+  stop_action:
+    - switch.turn_off: ${name}_hub2_ouverture_vanne3
+    - switch.turn_off: ${name}_hub2_fermeture_vanne3    
+
+##### Electrovanne 4 ####
+    
+- platform: time_based
+  name: ${name}_vanne4
+  id: ${name}_vanne4
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub2_ouverture_vanne4
+  open_duration: ${duree_electrovanne}
+  close_action:
+    - switch.turn_on: ${name}_hub2_fermeture_vanne4
+  close_duration: ${duree_electrovanne}
+  stop_action:
+    - switch.turn_off: ${name}_hub2_ouverture_vanne4
+    - switch.turn_off: ${name}_hub2_fermeture_vanne4
+
+# ##### Electrovanne 5 ####
+    
+# - platform: time_based
+#   name: ${name}_vanne5
+#   id: ${name}_vanne5
+#   assumed_state: false
+#   open_action:
+#     - switch.turn_on: ${name}_hub2_ouverture_vanne5
+#   open_duration: ${duree_electrovanne}
+#   close_action:
+#     - switch.turn_on: ${name}_hub2_fermeture_vanne5
+#   close_duration: ${duree_electrovanne}
+#   stop_action:
+#     - switch.turn_off: ${name}_hub2_ouverture_vanne5
+#     - switch.turn_off: ${name}_hub2_fermeture_vanne5  
+    
+# ##### Electrovanne 6 ####
+    
+# - platform: time_based
+  # name: ${name}_vanne6
+  # id: ${name}_vanne6
+  # assumed_state: false
+  # open_action:
+    # - switch.turn_on: ${name}_hub2_ouverture_vanne6
+  # open_duration: ${duree_electrovanne}
+  # close_action:
+    # - switch.turn_on: ${name}_hub2_fermeture_vanne6
+  # close_duration: ${duree_electrovanne}
+  # stop_action:
+    # - switch.turn_off: ${name}_hub2_ouverture_vanne6
+    # - switch.turn_off: ${name}_hub2_fermeture_vanne6
+    
+# ##### Electrovanne 7 ####
+    
+# - platform: time_based
+  # name: ${name}_vanne7
+  # id: ${name}_vanne7
+  # assumed_state: false
+  # open_action:
+    # - switch.turn_on: ${name}_hub2_ouverture_vanne7
+  # open_duration: ${duree_electrovanne}
+  # close_action:
+    # - switch.turn_on: ${name}_hub2_fermeture_vanne7
+  # close_duration: ${duree_electrovanne}
+  # stop_action:
+    # - switch.turn_off: ${name}_hub2_ouverture_vanne7
+    # - switch.turn_off: ${name}_hub2_fermeture_vanne7    
+    
+##### Clapet 1 ####
+
+- platform: time_based
+  name: ${name}_clapet1
+  id: ${name}_clapet1
+  assumed_state: false
+  #has_built_in_endstop: true
+  open_action:
+    - switch.turn_on: ${name}_hub1_ouverture_clapet1
+  open_duration: ${duree_clapet}
+  close_action:
+    - switch.turn_on: ${name}_hub1_fermeture_clapet1
+  close_duration: ${duree_clapet}
+  stop_action:
+    - switch.turn_off: ${name}_hub1_ouverture_clapet1
+    - switch.turn_off: ${name}_hub1_fermeture_clapet1
+    
+##### Clapet 2 ####
+
+- platform: time_based
+  name: ${name}_clapet2
+  id: ${name}_clapet2
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub1_ouverture_clapet2
+  open_duration: ${duree_clapet}
+  close_action:
+    - switch.turn_on: ${name}_hub1_fermeture_clapet2
+  close_duration: ${duree_clapet}
+  stop_action:
+    - switch.turn_off: ${name}_hub1_ouverture_clapet2
+    - switch.turn_off: ${name}_hub1_fermeture_clapet2    
+    
+##### Clapet 3 ####
+
+- platform: time_based
+  name: ${name}_clapet3
+  id: ${name}_clapet3
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub1_ouverture_clapet3
+  open_duration: ${duree_clapet}
+  close_action:
+    - switch.turn_on: ${name}_hub1_fermeture_clapet3
+  close_duration: ${duree_clapet}
+  stop_action:
+    - switch.turn_off: ${name}_hub1_ouverture_clapet3
+    - switch.turn_off: ${name}_hub1_fermeture_clapet3    
+    
+##### Clapet 4 ####
+
+- platform: time_based
+  name: ${name}_clapet4
+  id: ${name}_clapet4
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub1_ouverture_clapet4
+  open_duration: ${duree_clapet}
+  close_action:
+    - switch.turn_on: ${name}_hub1_fermeture_clapet4
+  close_duration: ${duree_clapet}
+  stop_action:
+    - switch.turn_off: ${name}_hub1_ouverture_clapet4
+    - switch.turn_off: ${name}_hub1_fermeture_clapet4    
+    
+##### Clapet 5 ####
+
+- platform: time_based
+  name: ${name}_clapet5
+  id: ${name}_clapet5
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub1_ouverture_clapet5
+  open_duration: ${duree_clapet}
+  close_action:
+    - switch.turn_on: ${name}_hub1_fermeture_clapet5
+  close_duration: ${duree_clapet}
+  stop_action:
+    - switch.turn_off: ${name}_hub1_ouverture_clapet5
+    - switch.turn_off: ${name}_hub1_fermeture_clapet5
+    
+##### Clapet 6 ####
+
+- platform: time_based
+  name: ${name}_clapet6
+  id: ${name}_clapet6
+  assumed_state: false
+  open_action:
+    - switch.turn_on: ${name}_hub1_ouverture_clapet6
+  open_duration: ${duree_clapet}
+  close_action:
+    - switch.turn_on: ${name}_hub1_fermeture_clapet6
+  close_duration: ${duree_clapet}
+  stop_action:
+    - switch.turn_off: ${name}_hub1_ouverture_clapet6
+    - switch.turn_off: ${name}_hub1_fermeture_clapet6
+    
+# ##### Clapet 7 ####
+
+# - platform: time_based
+  # name: ${name}_clapet7
+  # id: ${name}_clapet7
+  # assumed_state: false
+  # open_action:
+    # - switch.turn_on: ${name}_hub1_ouverture_clapet7
+  # open_duration: ${duree_clapet}
+  # close_action:
+    # - switch.turn_on: ${name}_hub1_fermeture_clapet7
+  # close_duration: ${duree_clapet}
+  # stop_action:
+    # - switch.turn_off: ${name}_hub1_ouverture_clapet7
+    # - switch.turn_off: ${name}_hub1_fermeture_clapet7  
+    
+# ##### Clapet 8 ####
+
+# - platform: time_based
+  # name: ${name}_clapet8
+  # id: ${name}_clapet8
+  # assumed_state: false
+  # open_action:
+    # - switch.turn_on: ${name}_hub1_ouverture_clapet8
+  # open_duration: ${duree_clapet}
+  # close_action:
+    # - switch.turn_on: ${name}_hub1_fermeture_clapet8
+  # close_duration: ${duree_clapet}
+  # stop_action:
+    # - switch.turn_off: ${name}_hub1_ouverture_clapet8
+    # - switch.turn_off: ${name}_hub1_fermeture_clapet8
+    
+    
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+    
+  - platform: template
+    name: ${name}_fan_on
+    id: ${name}_fan_on
+    lambda: |-
+      if (id(${name}_fan).state) {
+        // Fan is open.
+        return true;
+      } else {
+        // Fan is closed.
+        return false;
+      }  
+  - platform: template
+    name: ${name}_clapet_ouvert
+    id: ${name}_clapet_ouvert
+    lambda: |-
+      if ( (id(${name}_clapet1).position >= ${ouverture_minimum}) || (id(${name}_clapet2).position >= ${ouverture_minimum}) || (id(${name}_clapet3).position >= ${ouverture_minimum}) || (id(${name}_clapet4).position >= ${ouverture_minimum}) || (id(${name}_clapet5).position >= ${ouverture_minimum})  || (id(${name}_clapet6).position >= ${ouverture_minimum})) {
+        // At least one clapet is opened.
+        return true;
+      } else {
+        // None are opened.
+        return false;
+      }      
+
+  - platform: template
+    name: ${name}_temperature_alarm
+    lambda: |-
+      if ( (id(${name}_temperature_sortie_batterie_air).state >  id(${name}_alarm_max_temperature).state )) {
+        // temperature is too high !!!!!
+        return true;
+      } else {
+        return false;
+      }       
+    
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s    
+    
+    
+interval:
+  - interval: 1s    
+    then:
+    - if:
+         condition:
+           and:
+             -  lambda: |-
+                  return id(${name}_clapet1).position < ${ouverture_minimum}; 
+             -  lambda: |-
+                  return id(${name}_clapet2).position < ${ouverture_minimum};
+             -  lambda: |-
+                   return id(${name}_clapet3).position < ${ouverture_minimum};
+             -  lambda: |-
+                   return id(${name}_clapet4).position < ${ouverture_minimum};
+             -  lambda: |-
+                   return id(${name}_clapet5).position < ${ouverture_minimum};
+             -  lambda: |-
+                   return id(${name}_clapet6).position < ${ouverture_minimum};
+             - fan.is_on: ${name}_fan
+         then:
+             - fan.turn_off: ${name}_fan        
+    
