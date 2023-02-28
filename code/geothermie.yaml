@@ -5,6 +5,7 @@ substitutions:
   duree_electrovanne: 25s
   duree_clapet: 15s
   temperature_alarme: '60'
+  temperature_vidange: '-1'
   dallas_resolution: '10'
   update_dallas: 10s
   mobile: 'redmi_note_6_pro'
@@ -24,54 +25,54 @@ esphome:
     #priority: -100
     then:
 #- cover.control:
-#          id: geothermie_vanne1
+#          id: ${name}_vanne1
 #          position: 0%
 #      - cover.control:
-#          id: geothermie_vanne2
+#          id: ${name}_vanne2
 #          position: 0%
 #      - cover.control:
-#          id: geothermie_vanne3
+#          id: ${name}_vanne3
 #          position: 0%
 #      - cover.control:
-#          id: geothermie_vanne4
+#          id: ${name}_vanne4
 #          position: 0%
 #      - cover.control:
-#          id: geothermie_vanne5
+#          id: ${name}_vanne5
 #          position: 0%
 #      - cover.control:
-#          id: geothermie_vanne6
+#          id: ${name}_vanne6
 #          position: 0%
 #      - cover.control:
-#          id: geothermie_vanne7
+#          id: ${name}_vanne7
 #          position: 0%
           
       - cover.control:
-          id: geothermie_clapet1
+          id: ${name}_clapet1
           position: 0% 
       - cover.control:
-          id: geothermie_clapet2
+          id: ${name}_clapet2
           position: 0%
       - cover.control:
-          id: geothermie_clapet3
+          id: ${name}_clapet3
           position: 0%
       - cover.control:
-          id: geothermie_clapet4
+          id: ${name}_clapet4
           position: 0%
       - cover.control:
-          id: geothermie_clapet5
+          id: ${name}_clapet5
           position: 0%
       - cover.control:
-          id: geothermie_clapet6
+          id: ${name}_clapet6
           position: 0%
 
       # - cover.control:
-      #     id: geothermie_clapet7
+      #     id: ${name}_clapet7
       #     position: 0%
       # - cover.control:
-      #     id: geothermie_clapet8
+      #     id: ${name}_clapet8
       #     position: 0%    
           
-      - fan.turn_off: geothermie_fan
+      - fan.turn_off: ${name}_fan
           
 # Enable logging
 logger:
@@ -259,6 +260,18 @@ number:
     max_value: 100
     step: 5
     mode: 'slider'
+
+  - platform: template
+    name: ${name}_vidange_temperature
+    id: ${name}_vidange_temperature
+    optimistic: true
+    initial_value: ${temperature_vidange}
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer
+    min_value: -10
+    max_value: 2
+    step: 1
+    mode: 'slider'  
 
   - platform: template
     name: ${name}_fan_number
@@ -925,10 +938,10 @@ switch:
         # ##### Clapet 7 #####
       
   # - platform: gpio
-    # id: geothermie_hub1_ouverture_clapet7
-    # interlock: geothermie_hub1_fermeture_clapet7
+    # id: ${name}_hub1_ouverture_clapet7
+    # interlock: ${name}_hub1_fermeture_clapet7
     # pin:
-      # pcf8574: geothermie_hub1
+      # pcf8574: ${name}_hub1
       # # Use pin number 0
       # number: 12
       # # One of INPUT or OUTPUT
@@ -936,10 +949,10 @@ switch:
       # inverted: True
       
   # - platform: gpio
-    # id: geothermie_hub1_fermeture_clapet7
-    # interlock: geothermie_hub1_ouverture_clapet7
+    # id: ${name}_hub1_fermeture_clapet7
+    # interlock: ${name}_hub1_ouverture_clapet7
     # pin:
-      # pcf8574: geothermie_hub1
+      # pcf8574: ${name}_hub1
       # # Use pin number 1
       # number: 13
       # # One of INPUT or OUTPUT
@@ -949,10 +962,10 @@ switch:
         # ##### Clapet 8 #####
       
   # - platform: gpio
-    # id: geothermie_hub1_ouverture_clapet8
-    # interlock: geothermie_hub1_fermeture_clapet8
+    # id: ${name}_hub1_ouverture_clapet8
+    # interlock: ${name}_hub1_fermeture_clapet8
     # pin:
-      # pcf8574: geothermie_hub1
+      # pcf8574: ${name}_hub1
       # # Use pin number 0
       # number: 14
       # # One of INPUT or OUTPUT
@@ -960,10 +973,10 @@ switch:
       # inverted: True
       
   # - platform: gpio
-    # id: geothermie_hub1_fermeture_clapet8
-    # interlock: geothermie_hub1_ouverture_clapet8
+    # id: ${name}_hub1_fermeture_clapet8
+    # interlock: ${name}_hub1_ouverture_clapet8
     # pin:
-      # pcf8574: geothermie_hub1
+      # pcf8574: ${name}_hub1
       # # Use pin number 1
       # number: 15
       # # One of INPUT or OUTPUT
@@ -1077,6 +1090,7 @@ sensor:
     accuracy_decimals: 1
     filters:
       - filter_out: 85.0
+      - filter_out: 128.0
       - filter_out: NAN
     on_value: 
       then:
@@ -1084,7 +1098,7 @@ sensor:
               condition:
                 and:
                   -  lambda: |-
-                       return id(${name}_temperature_sortie_batterie_air).state >= 80; 
+                       return id(${name}_temperature_sortie_batterie_air).state >= id(${name}_alarm_max_temperature).state; 
               then:
                 - fan.turn_off: ${name}_fan
             
@@ -1121,6 +1135,23 @@ sensor:
       - filter_out: 85.0
       - filter_out: 128.0
       - filter_out: NAN
+    on_value: 
+      then:
+          - if:
+              condition:
+                and:
+                  -  lambda: |-
+                       return id(${name}_temperature_sortie_batterie_air).state <= id(${name}_vidange_temperature).state; 
+              then:
+                -  cover.control:
+                    id: ${name}_vanne2
+                    position: 30%
+                - delay: 3s
+                -  cover.control:
+                    id: ${name}_vanne2
+                    position: 0%
+                # -  cover.open: ${name}_vanne2
+                # -  cover.close: ${name}_vanne2
 
   - platform: dallas
     address: 0xf000000c857ffc28
