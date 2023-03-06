@@ -44,6 +44,18 @@ void SEN21231Component::dump_config() {
   }
   ESP_LOGI(TAG, "%s", this->is_failed() ? "FAILED" : "OK");
   LOG_UPDATE_INTERVAL(this);
+	
+
+  LOG_SENSOR("  ", "nfaces", this->nfaces_);
+  LOG_SENSOR("  ", "boxconf0", this->boxconf0_);
+  LOG_SENSOR("  ", "x0", this->x0_);
+  LOG_SENSOR("  ", "y0", this->y0_);
+  LOG_SENSOR("  ", "w0", this->w0_);
+  LOG_SENSOR("  ", "h0", this->h0_);
+  LOG_SENSOR("  ", "idconf0", this->idconf0_);
+  LOG_SENSOR("  ", "id0", this->id0_);
+  LOG_SENSOR("  ", "debug", this->debug_);
+	
 }
 
 void SEN21231Component::read_data_() {
