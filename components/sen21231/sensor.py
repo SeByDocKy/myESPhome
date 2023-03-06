@@ -139,8 +139,8 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_SEN21231_ISFACING0])
         cg.add(var.set_isfacing0_sensor(sens))
 	
-    if CONF_SEN21231_DEBUG in config:
-	cg.add(var.set_debug(conf[CONF_SEN21231_DEBUG]))
+#    if CONF_SEN21231_DEBUG in config:
+#	cg.add(var.set_debug(conf[CONF_SEN21231_DEBUG]))
 	
 	
 	
