@@ -8,7 +8,7 @@ static const char *const TAG = "sen21231";
 	
 void SEN21231Component::setup() {
   ESP_LOGD(TAG, "Setting up SEN23231...");
-  if (this->debug_='false'){
+  if (this->debug_=false){
     if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, 0x00)) {  
      this->mark_failed();
      return;
