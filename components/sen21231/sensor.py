@@ -33,10 +33,10 @@ SEN21231Component         = sen21231_ns.class_(
     "SEN21231Component", cg.PollingComponent, i2c.I2CDevice
 )
 
-#SEN21231_DEBUG_OPTIONS = {
-#    "false": 0,
-#    "true": 1,
-# }
+SEN21231_DEBUG_OPTIONS = {
+    "false": 0,
+    "true": 1,
+ }
 
 CONFIG_SCHEMA = (
     cv.Schema(
