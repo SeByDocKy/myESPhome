@@ -7,7 +7,8 @@ namespace sen21231 {
 static const char *const TAG = "sen21231";
 	
 void SEN21231Component::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
+   ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
+   ESP_LOGI(TAG , "debug %d" , this->debug_)
    if (this->debug_==false){
       uint8_t debug_reg_value = 0;
       if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, debug_reg_value)) {  
@@ -46,14 +47,14 @@ void SEN21231Component::dump_config() {
 	
   LOG_UPDATE_INTERVAL(this);
 	
-  ESP_LOGI("  ", "nfaces", this->nfaces_sensor_);	
-  ESP_LOGI("  ", "boxconf0", this->boxconf0_sensor_);
-  ESP_LOGI("  ", "x0", this->x0_sensor_);
-  ESP_LOGI("  ", "y0", this->y0_sensor_);
-  ESP_LOGI("  ", "w0", this->w0_sensor_);
-  ESP_LOGI("  ", "h0", this->h0_sensor_);
-  ESP_LOGI("  ", "idconf0", this->idconf0_sensor_);
-  ESP_LOGI("  ", "id0", this->id0_sensor_);
+  LOG_SENSOR("  ", "nfaces", this->nfaces_sensor_);	
+  LOG_SENSOR("  ", "boxconf0", this->boxconf0_sensor_);
+  LOG_SENSOR("  ", "x0", this->x0_sensor_);
+  LOG_SENSOR("  ", "y0", this->y0_sensor_);
+  LOG_SENSOR("  ", "w0", this->w0_sensor_);
+  LOG_SENSOR("  ", "h0", this->h0_sensor_);
+  LOG_SENSOR("  ", "idconf0", this->idconf0_sensor_);
+  LOG_SENSOR("  ", "id0", this->id0_sensor_);
 /*	
   LOG_SENSOR("  ", "debug", this->debug_);
 */	
