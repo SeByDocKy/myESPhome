@@ -36,7 +36,7 @@ SEN21231Component         = sen21231_ns.class_(
 #SEN21231_DEBUG_OPTIONS = {
 #    "false": 0,
 #    "true": 1,
-#}
+# }
 
 CONFIG_SCHEMA = (
     cv.Schema(
