@@ -76,6 +76,8 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   void set_y0_sensor(sensor::Sensor *y0_sensor) { y0_sensor_ = y0_sensor; }
   void set_w0_sensor(sensor::Sensor *w0_sensor) { w0_sensor_ = w0_sensor; }
   void set_h0_sensor(sensor::Sensor *h0_sensor) { h0_sensor_ = h0_sensor; }
+  void set_idconf0_sensor(sensor::Sensor *idconf0_sensor) { idconf0_sensor_ = idconf0_sensor; }
+  void set_id0_sensor(sensor::Sensor *id0_sensor) { id0_sensor_ = id0_sensor; }
   void set_isfacing0_sensor(sensor::Sensor *isfacing0_sensor) { isfacing0_sensor_ = isfacing0_sensor; }
    
  protected:
@@ -86,6 +88,8 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   sensor::Sensor *y0_sensor_{nullptr};
   sensor::Sensor *w0_sensor_{nullptr};
   sensor::Sensor *h0_sensor_{nullptr};
+  sensor::Sensor *idconf0_sensor_{nullptr};
+  sensor::Sensor *id0_sensor_{nullptr};
   sensor::Sensor *isfacing0_sensor_{nullptr};
   
 };
