@@ -5,7 +5,9 @@ namespace esphome {
 namespace sen21231 {
 
 static const char *const TAG = "sen21231";
-
+	
+void setup() override;
+	
 void SEN21231Component::update() { this->read_data_(); }
 
 float SEN21231Component::get_setup_priority() const { return setup_priority::DATA; }
