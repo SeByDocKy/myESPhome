@@ -46,8 +46,7 @@ void SEN21231Component::dump_config() {
 	
   LOG_UPDATE_INTERVAL(this);
 	
-  LOG_SENSOR("  ", "nfaces", this->nfaces_sensor_);
-/*	
+  LOG_SENSOR("  ", "nfaces", this->nfaces_sensor_);	
   LOG_SENSOR("  ", "boxconf0", this->boxconf0_sensor_);
   LOG_SENSOR("  ", "x0", this->x0_sensor_);
   LOG_SENSOR("  ", "y0", this->y0_sensor_);
@@ -55,6 +54,7 @@ void SEN21231Component::dump_config() {
   LOG_SENSOR("  ", "h0", this->h0_sensor_);
   LOG_SENSOR("  ", "idconf0", this->idconf0_sensor_);
   LOG_SENSOR("  ", "id0", this->id0_sensor_);
+/*	
   LOG_SENSOR("  ", "debug", this->debug_);
 */	
 }
