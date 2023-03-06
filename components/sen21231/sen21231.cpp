@@ -9,7 +9,7 @@ static const char *const TAG = "sen21231";
 void SEN21231Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
   if (this->debug_='false'){
-    this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, 0x00)
+    this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, 0x00);
     ESP_LOGCONFIG(TAG, "debug mode (green led) is turned off");		  
   }
   else{
