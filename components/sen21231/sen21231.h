@@ -97,7 +97,11 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   sensor::Sensor *id0_sensor_{nullptr};
   sensor::Sensor *isfacing0_sensor_{nullptr};
   
-  
+  enum ErrorCode {
+    NONE = 0,
+    COMMUNICATION_FAILED,
+    ID_REGISTERS,
+  } error_code_;
   
 };
 
