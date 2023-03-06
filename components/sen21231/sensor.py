@@ -85,9 +85,6 @@ CONFIG_SCHEMA = (
 				state_class=STATE_CLASS_MEASUREMENT,
 				icon=CONF_SEN21231_ICON_BOX,
             ),    
-#		        cv.Optional(CONF_SEN21231_DEBUG , default="true"): cv.enum(
-#                                    SEN21231_DEBUG_OPTIONS
-#	    ),	
 			cv.Optional(CONF_DEBUG, default=True): cv.boolean,	       
         }
     )
