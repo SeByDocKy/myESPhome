@@ -33,10 +33,10 @@ SEN21231Component         = sen21231_ns.class_(
     "SEN21231Component", cg.PollingComponent, i2c.I2CDevice
 )
 
-SEN21231_DEBUG_OPTIONS = {
-    "false": 0,
-    "true": 1,
-}
+#SEN21231_DEBUG_OPTIONS = {
+#    "false": 0,
+#    "true": 1,
+#}
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -87,9 +87,9 @@ CONFIG_SCHEMA = (
                                 accuracy_decimals=0,
 				state_class=STATE_CLASS_MEASUREMENT,
 				icon=CONF_SEN21231_ICON_BOX,
-            ),         
-		        cv.Optional(CONF_SEN21231_DEBUG , default="true"): cv.enum(
-                                    SEN21231_DEBUG_OPTIONS, upper=True
+            ),    
+#		        cv.Optional(CONF_SEN21231_DEBUG , default="true"): cv.enum(
+#                                    SEN21231_DEBUG_OPTIONS, upper=True
             ),
         }
     )
@@ -139,8 +139,8 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_SEN21231_ISFACING0])
         cg.add(var.set_isfacing0_sensor(sens))
 	
-    if CONF_SEN21231_DEBUG in config:
-	cg.add(var.set_debug(conf[CONF_SEN21231_DEBUG]))
+#    if CONF_SEN21231_DEBUG in config:
+#	cg.add(var.set_debug(conf[CONF_SEN21231_DEBUG]))
 	
 	
 	
