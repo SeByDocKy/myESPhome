@@ -4,6 +4,7 @@ from esphome.components import i2c, sensor
 from esphome.const import (
     CONF_ID,
 	CONF_ADDRESS,
+	CONF_DEBUG,
 	STATE_CLASS_MEASUREMENT,
 	ICON_MOTION_SENSOR,
 	ICON_RULER,
@@ -33,10 +34,6 @@ SEN21231Component         = sen21231_ns.class_(
     "SEN21231Component", cg.PollingComponent, i2c.I2CDevice
 )
 
-SEN21231_DEBUG_OPTIONS = {
-    "false": 0,
-    "true": 1,
- }
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -88,9 +85,10 @@ CONFIG_SCHEMA = (
 				state_class=STATE_CLASS_MEASUREMENT,
 				icon=CONF_SEN21231_ICON_BOX,
             ),    
-		        cv.Optional(CONF_SEN21231_DEBUG , default="true"): cv.enum(
-                                    SEN21231_DEBUG_OPTIONS
-            ),
+#		        cv.Optional(CONF_SEN21231_DEBUG , default="true"): cv.enum(
+#                                    SEN21231_DEBUG_OPTIONS
+#	    ),	
+			cv.Optional(CONF_DEBUG, default=True): cv.boolean,	       
         }
     )
     .extend(cv.polling_component_schema("60s"))
@@ -138,7 +136,7 @@ async def to_code(config):
     if CONF_SEN21231_ISFACING0 in config:
         sens = await sensor.new_sensor(config[CONF_SEN21231_ISFACING0])
         cg.add(var.set_isfacing0_sensor(sens))
-	
-    if CONF_SEN21231_DEBUG in config:
-	cg.add(var.set_debug(conf[SEN21231_DEBUG_OPTIONS]))
+    
+#    if CONF_DEBUG in config:
+#        cg.add(var.set_debug(conf[CONF_DEBUG]))
 	
