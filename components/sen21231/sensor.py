@@ -90,7 +90,7 @@ CONFIG_SCHEMA = (
             ),    
 #		        cv.Optional(CONF_SEN21231_DEBUG , default="true"): cv.enum(
 #                                    SEN21231_DEBUG_OPTIONS, upper=True
-            ),
+#            ),
         }
     )
     .extend(cv.polling_component_schema("60s"))
