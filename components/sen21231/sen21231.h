@@ -71,7 +71,7 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   float get_setup_priority() const override;
   
   void set_nfaces_sensor(sensor::Sensor *nfaces_sensor) { nfaces_sensor_ = nfaces_sensor; }
-  void set_boxconf0_sensor(sensor::Sensor *conf0_sensor) { boxconf0_sensor_ = boxconf0_sensor; }
+  void set_boxconf0_sensor(sensor::Sensor *boxconf0_sensor) { boxconf0_sensor_ = boxconf0_sensor; }
   void set_x0_sensor(sensor::Sensor *x0_sensor) { x0_sensor_ = x0_sensor; }
   void set_y0_sensor(sensor::Sensor *y0_sensor) { y0_sensor_ = y0_sensor; }
   void set_w0_sensor(sensor::Sensor *w0_sensor) { w0_sensor_ = w0_sensor; }
