@@ -32,7 +32,7 @@ void SEN21231Component::read_data_() {
   if (results.num_faces == 1) {
 	
 	if (this->conf0_sensor_ != nullptr) {
-	  this->conf0_sensor_->publish_state(int(results.faces[0].box_confidence) );
+	  this->conf0_sensor_->publish_state((results.faces[0].box_confidence) );
 	}
 	ESP_LOGD(TAG, "conf0: %d", results.faces[0].box_confidence);
 	
