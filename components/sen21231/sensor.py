@@ -138,5 +138,5 @@ async def to_code(config):
         cg.add(var.set_isfacing0_sensor(sens))
     
     if CONF_DEBUG in config:
-        cg.add(var.set_debug(conf[CONF_DEBUG]))
+        cg.add(var.set_debug(config[CONF_DEBUG]))
 	
