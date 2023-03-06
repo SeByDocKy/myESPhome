@@ -20,7 +20,15 @@ void SEN21231Component::setup() {
       }
   }
   else{
-   ESP_LOGD(TAG, "debug mode (green led) is turned on");	
+      uint8_t debug_reg_value = 1;
+      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, debug_reg_value)) {  
+	  this->error_code_ = COMMUNICATION_FAILED;
+          this->mark_failed();
+          return;    
+      }
+      else {
+      ESP_LOGD(TAG, "debug mode (green led) is turned on");
+      }
   }
 }
 	
