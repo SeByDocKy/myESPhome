@@ -31,10 +31,10 @@ void SEN21231Component::read_data_() {
   
   if (results.num_faces == 1) {
 	
-	if (this->conf0_sensor_ != nullptr) {
-	  this->conf0_sensor_->publish_state((results.faces[0].box_confidence) );
+	if (this->boxconf0_sensor_ != nullptr) {
+	  this->boxconf0_sensor_->publish_state((results.faces[0].box_confidence) );
 	}
-	ESP_LOGD(TAG, "conf0: %d", results.faces[0].box_confidence);
+	ESP_LOGD(TAG, "boxconf0: %d", results.faces[0].box_confidence);
 	
 	if (this->x0_sensor_ != nullptr) {
 	  this->x0_sensor_->publish_state(int(results.faces[0].box_left));
@@ -44,18 +44,24 @@ void SEN21231Component::read_data_() {
 	if (this->y0_sensor_ != nullptr) {
 	  this->y0_sensor_->publish_state(int(results.faces[0].box_top));
 	} 
-    ESP_LOGD(TAG, "y0: %d", results.faces[0].box_top);
+        ESP_LOGD(TAG, "y0: %d", results.faces[0].box_top);
 	
 	if (this->w0_sensor_ != nullptr) {
 	  this->w0_sensor_->publish_state(int(results.faces[0].box_right));
 	} 
-    ESP_LOGD(TAG, "w0: %d", results.faces[0].box_right);
+       ESP_LOGD(TAG, "w0: %d", results.faces[0].box_right);
     
 	if (this->h0_sensor_ != nullptr) {
 	  this->h0_sensor_->publish_state(int(results.faces[0].box_bottom));
 	}
-	ESP_LOGD(TAG, "height: %d", results.faces[0].box_bottom);	
-    
+	ESP_LOGD(TAG, "height: %d", results.faces[0].box_bottom);
+	if (this->idconf0_sensor_ != nullptr) {
+	  this->idconf0_sensor_->publish_state((results.faces[0].box_confidence) );
+	}  
+        if (this->id0_sensor_ != nullptr) {
+	  this->id0_sensor_->publish_state((results.faces[0].box_confidence) );
+	}
+	  
 	if (this->isfacing0_sensor_ != nullptr) {
 	  this->isfacing0_sensor_->publish_state(int(results.faces[0].is_facing));
 	}
