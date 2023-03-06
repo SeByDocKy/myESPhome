@@ -7,15 +7,17 @@ namespace sen21231 {
 static const char *const TAG = "sen21231";
 	
 void SEN21231Component::setup() {
-  ESP_LOGD(TAG, "Setting up SEN23231...");
-  if (this->debug_=false){
-    if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, 0x00)) {  
-     this->mark_failed();
-     return;
-    }
-    else {
-      ESP_LOGD(TAG, "debug mode (green led) is turned off");
-    }
+  ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
+   if (this->debug_=false){
+      uint8_t debug_reg_value = 0;
+      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, debug_reg_value)) {  
+	  this->error_code_ = COMMUNICATION_FAILED;
+          this->mark_failed();
+          return;    
+      }
+      else {
+         ESP_LOGD(TAG, "debug mode (green led) is turned off");
+      }
   }
   else{
    ESP_LOGD(TAG, "debug mode (green led) is turned on");	
