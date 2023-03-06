@@ -21,6 +21,7 @@ CONF_SEN21231_H0          = "h0"
 CONF_SEN21231_IDCONF0     = "idconf0"
 CONF_SEN21231_ID0         = "id0"
 CONF_SEN21231_ISFACING0   = "isfacing0"
+CONF_SEN21231_DEBUG       = "debug"
 CONF_SEN21231_ICON_BOX    = "mdi:face-man"
 CONF_SEN21231_ICON_PERCENT= "mdi:percent"
 CONF_SEN21231_ICON_TARGET = "mdi:target-variant"
@@ -31,6 +32,11 @@ sen21231_ns               = cg.esphome_ns.namespace("sen21231")
 SEN21231Component         = sen21231_ns.class_(
     "SEN21231Component", cg.PollingComponent, i2c.I2CDevice
 )
+
+SEN21231_DEBUG_OPTIONS = {
+    "false": 0,
+    "true": 1,
+}
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -81,6 +87,9 @@ CONFIG_SCHEMA = (
                                 accuracy_decimals=0,
 				state_class=STATE_CLASS_MEASUREMENT,
 				icon=CONF_SEN21231_ICON_BOX,
+            ),         
+		        cv.Optional(CONF_SEN21231_DEBUG , default="true"): cv.enum(
+                                    SEN21231_DEBUG_OPTIONS, upper=True
             ),
         }
     )
@@ -129,3 +138,9 @@ async def to_code(config):
     if CONF_SEN21231_ISFACING0 in config:
         sens = await sensor.new_sensor(config[CONF_SEN21231_ISFACING0])
         cg.add(var.set_isfacing0_sensor(sens))
+	
+    if CONF_SEN21231_DEBUG in config:
+	cg.add(var.set_debug(conf[CONF_SEN21231_DEBUG]))
+	
+	
+	
