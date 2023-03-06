@@ -6,7 +6,9 @@ namespace sen21231 {
 
 static const char *const TAG = "sen21231";
 	
-void setup() override;
+void ENS210Component::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
+}
 	
 void SEN21231Component::update() { this->read_data_(); }
 
