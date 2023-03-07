@@ -82,15 +82,14 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   void set_isfacing0_sensor(sensor::Sensor *isfacing0_sensor) { isfacing0_sensor_ = isfacing0_sensor; }
   
   void set_debug_register(uint8_t debug) { debug_ = debug; }
-  
-//  void write_debug_register(uint8_t debug_value);
+  void write_debug_register(uint8_t debug_value);
    
  protected:
   void read_data_();
-/*  
+  
   virtual uint8_t read_register(uint8_t reg) = 0;
   virtual void write_register(uint8_t reg, uint8_t bits, uint8_t start_position) = 0;
-*/
+
   
   bool debug_;
   sensor::Sensor *nfaces_sensor_{nullptr};
