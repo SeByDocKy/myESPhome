@@ -153,7 +153,9 @@ uint8_t SEN21231Component::read_register(uint8_t reg ) {
   uint8_t value;
 //  return value = this->read_byte(reg);
 // /*
-  if (this->read_bytes(reg , &value, 1) != i2c::ERROR_OK) {
+//  if (this->read_bytes(reg , &value, 1) != i2c::ERROR_OK) { 
+  if (read(&value, 1) != i2c::ERROR_OK) { 	  
+	  read(&value, 1) 
     ESP_LOGW(TAG, "Reading register failed!");
     return 0;
   }
