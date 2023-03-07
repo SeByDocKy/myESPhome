@@ -17,7 +17,8 @@ void SEN21231Component::setup() {
    this->write_labelnext_register(this->labelnext_);
    this->write_persistid_register(this->persistid_);
    this->write_eraseid_register(this->eraseid_);
- */    
+ */   
+   this->write_mode_register(this->mode_);	
    this->write_debug_register(this->debug_);	
   
 	
