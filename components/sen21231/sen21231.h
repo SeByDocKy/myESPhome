@@ -105,7 +105,7 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
  protected:
   void read_data_();
   
-  //virtual uint8_t read_register(uint8_t reg) = 0;
+  uint8_t read_register(uint8_t reg);
   void write_register(uint8_t reg, uint8_t bits, uint8_t start_position);
 
   uint8_t mode_, enableid_, singleshot_, labelnext_, persistid_, eraseid_, debug_;
