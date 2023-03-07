@@ -54,14 +54,14 @@ void SEN21231Component::write_enableid_register(uint8_t enableid_value) {
     return;
   this->write_register(PERSON_SENSOR_REG_ENABLE_ID, enableid_value, 0);
 }
-/*	
+	
 uint8_t SEN21231Component::read_enableid_register(void){
    uint8_t value;
    ESP_LOGV(TAG, "Reading enableid register ");	
    value = this->read_register(PERSON_SENSOR_REG_ENABLE_ID);
    return value;
 }
-*/
+
 	
 	
 void SEN21231Component::write_singleshot_register(uint8_t singleshot_value) {
@@ -70,14 +70,14 @@ void SEN21231Component::write_singleshot_register(uint8_t singleshot_value) {
     return;
   this->write_register(PERSON_SENSOR_REG_SINGLE_SHOT, singleshot_value, 0);
 }
-/*	
+	
 uint8_t SEN21231Component::read_singleshot_register(void){
    uint8_t value;
    ESP_LOGV(TAG, "Reading singleshot register ");	
    value = this->read_register(PERSON_SENSOR_REG_SINGLE_SHOT);
    return value;
 }
-*/
+
 	
 	
 void SEN21231Component::write_labelnext_register(uint8_t labelnext_value) {
@@ -86,14 +86,14 @@ void SEN21231Component::write_labelnext_register(uint8_t labelnext_value) {
     return;
   this->write_register(PERSON_SENSOR_REG_CALIBRATE_ID, labelnext_value, 0);
 }
-/*	
+	
 uint8_t SEN21231Component::read_labelnext_register(void){
    uint8_t value;
    ESP_LOGV(TAG, "Reading labelnext register ");	
    value = this->read_register(PERSON_SENSOR_REG_CALIBRATE_ID);
    return value;
 }
-*/
+
 	
 void SEN21231Component::write_persistid_register(uint8_t persistid_value) {
   ESP_LOGV(TAG, "Setting persistid register to %d", persistid_value);
@@ -101,14 +101,14 @@ void SEN21231Component::write_persistid_register(uint8_t persistid_value) {
     return;
   this->write_register(PERSON_SENSOR_REG_PERSIST_IDS, persistid_value, 0);
 }
-/*	
+	
 uint8_t SEN21231Component::read_persistid_register(void){
    uint8_t value;
    ESP_LOGV(TAG, "Reading persistid register ");	
    value = this->read_register(PERSON_SENSOR_REG_PERSIST_IDS);
    return value;
 }
-*/
+
 		
 void SEN21231Component::write_eraseid_register(uint8_t eraseid_value) {
   ESP_LOGV(TAG, "Setting eraseid register to %d", eraseid_value);
@@ -116,14 +116,14 @@ void SEN21231Component::write_eraseid_register(uint8_t eraseid_value) {
     return;
   this->write_register(PERSON_SENSOR_REG_ERASE_IDS, eraseid_value, 0);
 }
-/*	
+	
 uint8_t SEN21231Component::read_eraseid_register(void){
    uint8_t value;
    ESP_LOGV(TAG, "Reading eraseid register ");	
    value = this->read_register(PERSON_SENSOR_REG_ERASE_IDS);
    return value;
 }
-*/
+
 	
 void SEN21231Component::write_debug_register(uint8_t debug_value) {
   ESP_LOGV(TAG, "Setting debug register to %d", debug_value);
@@ -131,14 +131,14 @@ void SEN21231Component::write_debug_register(uint8_t debug_value) {
     return;
   this->write_register(PERSON_SENSOR_REG_DEBUG_MODE, debug_value, 0);
 }
-/*	
+	
 uint8_t SEN21231Component::read_debug_register(void){
    uint8_t value;
    ESP_LOGV(TAG, "Reading debug register ");	
    value = this->read_register(PERSON_SENSOR_REG_DEBUG_MODE);
    return value;
 }
-*/
+
 		
 void SEN21231Component::write_register(uint8_t reg, uint8_t bits, uint8_t start_pos) {
   uint8_t write_reg = bits;	
@@ -148,8 +148,7 @@ void SEN21231Component::write_register(uint8_t reg, uint8_t bits, uint8_t start_
     return;
   }
 }
-
-/*	
+	
 uint8_t SEN21231Component::read_register(uint8_t reg ) {
   uint8_t value;
   if (this->read_byte(reg , &value, 1) != i2c::ERROR_OK) {
@@ -158,7 +157,7 @@ uint8_t SEN21231Component::read_register(uint8_t reg ) {
   }
   return value;
 }
-*/
+
 
 	
 	
