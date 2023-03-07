@@ -176,16 +176,6 @@ void SEN21231Component::read_data_() {
 	}
 	ESP_LOGD(TAG, "is facing towards camera: %d", results.faces[0].is_facing);
   }
-/*  
-  else{
-	  this->conf0_sensor_->publish_state(-1);
-	  this->x0_sensor_->publish_state(-1);
-	  this->y0_sensor_->publish_state(-1);
-	  this->w0_sensor_->publish_state(-1);
-	  this->h0_sensor_->publish_state(-1);
-	  this->isfacing0_sensor_->publish_state(-1);
-  }
-*/  
 }
 
 }  // namespace sen21231
