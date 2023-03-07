@@ -77,7 +77,7 @@ void SEN21231Component::write_debug_register(uint8_t debug_value) {
 	
 void SEN21231Component::write_register(uint8_t reg, uint8_t bits, uint8_t start_pos) {
 	
-  uint8_t write_reg;	
+  uint8_t write_reg = bits;	
 /*	
  
   if (!this->read_byte(reg, &write_reg)) {
