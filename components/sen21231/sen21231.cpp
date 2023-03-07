@@ -8,7 +8,12 @@ static const char *const TAG = "sen21231";
 	
 void SEN21231Component::setup() {
    ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
-   ESP_LOGD(TAG , "debug %d" , this->debug_);
+//   ESP_LOGD(TAG , "debug %d" , this->debug_);
+   
+   this->write_debug_register(this->debug_);	
+	
+	
+/*	
    if (this->debug_ == 0){
       if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, this->debug_)) {  
 	  this->error_code_ = COMMUNICATION_FAILED;
@@ -28,12 +33,49 @@ void SEN21231Component::setup() {
       else {
       ESP_LOGD(TAG, "debug mode (green led) is turned on");
       }
+  */    
   }
 }
 	
 void SEN21231Component::update() { this->read_data_(); }
 
 float SEN21231Component::get_setup_priority() const { return setup_priority::DATA; }
+	
+void SEN21231Component::write_debug_register(uint8_t debug_value) {
+  ESP_LOGV(TAG, "Setting debug register to %d", debug_value);
+  if ((debug_value < 0) || (debug_value > 1))
+    return;
+  this->write_register(PERSON_SENSOR_REG_DEBUG_MODE, debug_value, 0);
+}	
+	
+void SEN21231Component::write_register(uint8_t reg, uint8_t bits, uint8_t start_pos) {
+  uint8_t write_reg;
+  if (!this->read_byte(reg, &write_reg)) {
+    this->mark_failed();
+    ESP_LOGW(TAG, "read_byte failed - increase log level for more details!");
+    return;
+  }
+
+  write_reg |= (bits << start_pos);
+
+  if (!this->write_byte(reg, write_reg)) {
+    ESP_LOGW(TAG, "write_byte failed - increase log level for more details!");
+    return;
+  }
+}
+	
+uint8_t SEN21231Component::read_register(uint8_t reg) {
+  uint8_t value;
+  if (write(&reg, 1) != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Writing register failed!");
+    return 0;
+  }
+  if (read(&value, 1) != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Reading register failed!");
+    return 0;
+  }
+  return value;
+}
 
 void SEN21231Component::dump_config() {
   ESP_LOGCONFIG(TAG, "SEN21231:");
