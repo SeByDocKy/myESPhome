@@ -8,40 +8,63 @@ static const char *const TAG = "sen21231";
 	
 void SEN21231Component::setup() {
    ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
-//   ESP_LOGD(TAG , "debug %d" , this->debug_);
    
+   this->write_mode_register(this->mode_);
+   this->write_enableid_register(this->enableid_);
+   this->write_singleshot_register(this->singleshot_);
+   this->write_labelnext_register(this->labelnext_);
+   this->write_persistid_register(this->persistid_);
+   this->write_eraseid_register(this->eraseid_);
    this->write_debug_register(this->debug_);	
 	
-	
-/*	
-   if (this->debug_ == 0){
-      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, this->debug_)) {  
-	  this->error_code_ = COMMUNICATION_FAILED;
-          this->mark_failed();
-          return;    
-      }
-      else {
-         ESP_LOGD(TAG, "debug mode (green led) is turned off");
-      }
-  }
-  else{
-      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, this->debug_)) {  
-	  this->error_code_ = COMMUNICATION_FAILED;
-          this->mark_failed();
-          return;    
-      }
-      else {
-      ESP_LOGD(TAG, "debug mode (green led) is turned on");
-      }
-    
-  }
-   */ 
 }
 	
 void SEN21231Component::update() { this->read_data_(); }
 
 float SEN21231Component::get_setup_priority() const { return setup_priority::DATA; }
 	
+void SEN21231Component::write_mode_register(uint8_t mode_value) {
+  ESP_LOGV(TAG, "Setting mode register to %d", mode_value);
+  if ((mode_value < 0) || (mode_value > 1))
+    return;
+  this->write_register(PERSON_SENSOR_REG_MODE, mode_value, 0);
+}
+	
+void SEN21231Component::write_enableid_register(uint8_t enableid_value) {
+  ESP_LOGV(TAG, "Setting enableid register to %d", enableid_value);
+  if ((enableid_value < 0) || (enableid_value > 1))
+    return;
+  this->write_register(PERSON_SENSOR_REG_ENABLE_ID, enableid_value, 0);
+}
+	
+void SEN21231Component::write_singleshot_register(uint8_t singleshot_value) {
+  ESP_LOGV(TAG, "Setting singleshot register to %d", singleshot_value);
+  if ((singleshot_value < 0) || (singleshot_value > 1))
+    return;
+  this->write_register(PERSON_SENSOR_REG_SINGLE_SHOT, singleshot_value, 0);
+}
+	
+void SEN21231Component::write_labelnext_register(uint8_t labelnext_value) {
+  ESP_LOGV(TAG, "Setting labelnext register to %d", labelnext_value);
+  if ((labelnext_value < 0) || (labelnext_value > 8))
+    return;
+  this->write_register(PERSON_SENSOR_REG_CALIBRATE_ID, labelnext_value, 0);
+}
+	
+void SEN21231Component::write_persistid_register(uint8_t persistid_value) {
+  ESP_LOGV(TAG, "Setting persistid register to %d", persistid_value);
+  if ((persistid_value < 0) || (persistid_value > 1))
+    return;
+  this->write_register(PERSON_SENSOR_REG_PERSIST_IDS, persistid_value, 0);
+}
+	
+void SEN21231Component::write_eraseid_register(uint8_t eraseid_value) {
+  ESP_LOGV(TAG, "Setting eraseid register to %d", eraseid_value);
+  if ((eraseid < 0) || (eraseid_value > 1))
+    return;
+  this->write_register(PERSON_SENSOR_REG_ERASE_IDS, eraseid_value, 0);
+}
+		
 void SEN21231Component::write_debug_register(uint8_t debug_value) {
   ESP_LOGV(TAG, "Setting debug register to %d", debug_value);
   if ((debug_value < 0) || (debug_value > 1))
