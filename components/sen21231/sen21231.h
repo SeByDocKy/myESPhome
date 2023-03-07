@@ -83,7 +83,7 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   
   void set_mode_register(uint8_t mode) { mode_ = mode; }
   void write_mode_register(uint8_t mode_value);
-  uint8_t read_mode_register(uint8_t mode_register);
+  uint8_t read_mode_register(void);
   
   void set_enableid_register(uint8_t enableid) { enableid_ = enableid; }
   void write_enableid_register(uint8_t enableid_value);
