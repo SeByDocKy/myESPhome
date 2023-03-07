@@ -22,6 +22,12 @@ CONF_SEN21231_H0          = "h0"
 CONF_SEN21231_IDCONF0     = "idconf0"
 CONF_SEN21231_ID0         = "id0"
 CONF_SEN21231_ISFACING0   = "isfacing0"
+CONF_SEN21231_MODE        = "mode"
+CONF_SEN21231_ENABLEID    = "enableid"
+CONF_SEN21231_SINGLESHOT  = "singleshot"
+CONF_SEN21231_LABELNEXT   = "labelnext"
+CONF_SEN21231_PERSISTID   = "persistid"
+CONF_SEN21231_ERASEID     = "enableid"
 CONF_SEN21231_DEBUG       = "debug"
 CONF_SEN21231_ICON_BOX    = "mdi:face-man"
 CONF_SEN21231_ICON_PERCENT= "mdi:percent"
@@ -85,7 +91,13 @@ CONFIG_SCHEMA = (
 				state_class=STATE_CLASS_MEASUREMENT,
 				icon=CONF_SEN21231_ICON_BOX,
             ),    
-			cv.Optional(CONF_DEBUG, default=1): cv.int_range(min=0, max=1),	       
+			cv.Optional(CONF_SEN21231_MODE, default=1): cv.int_range(min=0, max=1),
+		        cv.Optional(CONF_SEN21231_ENABLEID, default=0): cv.int_range(min=0, max=1),
+		        cv.Optional(CONF_SEN21231_SINGLESHOT, default=0): cv.int_range(min=0, max=1),
+		        cv.Optional(CONF_SEN21231_LABELNEXT, default=0): cv.int_range(min=0, max=1),
+		        cv.Optional(CONF_SEN21231_PERSISTID, default=1): cv.int_range(min=0, max=1),
+		        cv.Optional(CONF_SEN21231_ERASEID, default=0): cv.int_range(min=0, max=1),
+		        cv.Optional(CONF_SEN21231_DEBUG, default=1): cv.int_range(min=0, max=1),	       
         }
     )
     .extend(cv.polling_component_schema("60s"))
@@ -134,6 +146,24 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_SEN21231_ISFACING0])
         cg.add(var.set_isfacing0_sensor(sens))
     
-    if CONF_DEBUG in config:
-        cg.add(var.set_debug_register(config[CONF_DEBUG]))
+    if CONF_SEN21231_MODE in config:
+        cg.add(var.set_mode_register(config[CONF_SEN21231_MODE]))
+	
+    if CONF_SEN21231_ENABLEID in config:
+        cg.add(var.set_enableid_register(config[CONF_SEN21231_ENABLEID]))
+	
+    if CONF_SEN21231_SINGLESHOT in config:
+        cg.add(var.set_singleshot_register(config[CONF_SEN21231_SINGLESHOT]))
+	
+    if CONF_SEN21231_LABELNEXT in config:
+        cg.add(var.set_labelnext_register(config[CONF_SEN21231_LABELNEXT]))
+	
+    if CONF_SEN21231_PERSISTID in config:
+        cg.add(var.set_persistid_register(config[CONF_SEN21231_PERSISTID]))
+	
+    if CONF_SEN21231_ERASEID in config:
+        cg.add(var.set_eraseid_register(config[CONF_SEN21231_ERASEID]))	
+	
+    if CONF_SEN21231_DEBUG in config:
+        cg.add(var.set_debug_register(config[CONF_SEN21231_DEBUG]))
 	
