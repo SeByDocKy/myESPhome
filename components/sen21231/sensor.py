@@ -85,7 +85,7 @@ CONFIG_SCHEMA = (
 				state_class=STATE_CLASS_MEASUREMENT,
 				icon=CONF_SEN21231_ICON_BOX,
             ),    
-			cv.Optional(CONF_DEBUG, default=True): cv.boolean,	       
+			cv.Optional(CONF_DEBUG, default=1): cv.int_range(min=0, max=1),	       
         }
     )
     .extend(cv.polling_component_schema("60s"))
