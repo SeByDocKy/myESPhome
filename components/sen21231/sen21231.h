@@ -81,6 +81,24 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   void set_id0_sensor(sensor::Sensor *id0_sensor) { id0_sensor_ = id0_sensor; }
   void set_isfacing0_sensor(sensor::Sensor *isfacing0_sensor) { isfacing0_sensor_ = isfacing0_sensor; }
   
+  void set_mode_register(uint8_t mode) { mode_ = mode; }
+  
+  
+  void set_enableid_register(uint8_t enableid) { enableid_ = enableid; }
+  
+  
+  void set_singleshot_register(uint8_t singleshot) { singleshot_ = singleshot; }
+  
+  
+  void set_labelnext_register(uint8_t labelnext) { labelnext_ = labelnext; }
+  
+  
+  void set_persistid_register(uint8_t persistid) { persistid_ = persistid; }
+  
+  
+  void set_eraseid_register(uint8_t eraseid) { eraseid_ = eraseid; }
+  
+    
   void set_debug_register(uint8_t debug) { debug_ = debug; }
   void write_debug_register(uint8_t debug_value);
    
@@ -90,8 +108,8 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   //virtual uint8_t read_register(uint8_t reg) = 0;
   void write_register(uint8_t reg, uint8_t bits, uint8_t start_position);
 
+  uint8 mode_, enableid_, singleshot_, labelnext_, persistid_, eraseid_, debug_;
   
-  bool debug_;
   sensor::Sensor *nfaces_sensor_{nullptr};
   sensor::Sensor *boxconf0_sensor_{nullptr};
   sensor::Sensor *x0_sensor_{nullptr};
