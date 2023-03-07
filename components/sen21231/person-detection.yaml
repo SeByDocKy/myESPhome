@@ -1,0 +1,225 @@
+substitutions:
+  updates: 3s
+  name: person_detection
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: 2.0.6   #2.0.5
+    platform_version: 5.3.0 #5.2.0
+ 
+esphome:
+  name: ${name}    
+
+# external_components:
+#   - source: my_components
+#     components: [sen21231]
+#     refresh: 0s 
+
+external_components:
+  
+  - source: github://SeByDocKy/ESPhome/
+    components: [ sen21231 ]
+    refresh: 0s
+
+logger:
+  level: verbose
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+ota:
+ 
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Person Fallback Hotspot"
+    password: "sebydocky"   
+
+i2c:
+- sda: GPIO22
+  scl: GPIO21
+  id: i2c_bus
+  scan: true
+
+button:
+
+  - platform: template
+    name: ${name}_eraseid_register_button
+    id: ${name}_eraseid_register_button
+    on_press:
+      then:
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_eraseid_register(uint8_t( 1 ));
+
+        - delay: 0.1s
+
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_eraseid_register(uint8_t( 0 ));
+
+  - platform: template
+    name: ${name}_singleshot_register_button
+    id: ${name}_singleshot_register_button
+    on_press:
+      then:
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_singleshot_register(uint8_t( 1 ));
+
+        - delay: 0.1s
+
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_singleshot_register(uint8_t( 0 ));          
+
+number:
+
+  - platform: template
+    name: ${name}_mode_register_number
+    id: ${name}_mode_register_number
+    optimistic: true
+    icon: mdi:numeric
+    min_value: 0
+    max_value: 1
+    step:  1
+    initial_value: 1
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_mode_register(uint8_t( id(${name}_mode_register_number ).state ));
+            sen->set_mode_register(uint8_t( id(${name}_mode_register_number ).state ));
+
+  - platform: template
+    name: ${name}_enableid_register_number
+    id: ${name}_enableid_register_number
+    optimistic: true
+    icon: mdi:numeric
+    min_value: 0
+    max_value: 1
+    step:  1
+    initial_value: 0
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_enableid_register(uint8_t( id(${name}_enableid_register_number ).state ));
+
+
+  - platform: template
+    name: ${name}_labelnext_register_number
+    id: ${name}_labelnext_register_number
+    optimistic: true
+    icon: mdi:numeric
+    min_value: 0
+    max_value: 7
+    step:  1
+    initial_value: 0
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_labelnext_register(uint8_t( id(${name}_labelnext_register_number ).state ));
+
+  - platform: template
+    name: ${name}_persistid_register_number
+    id: ${name}_persistid_register_number
+    optimistic: true
+    icon: mdi:numeric
+    min_value: 0
+    max_value: 1
+    step:  1
+    initial_value: 0
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_persistid_register(uint8_t( id(${name}_persistid_register_number ).state ));                    
+
+
+
+  - platform: template
+    name: ${name}_debug_register_number
+    id: ${name}_debug_register_number
+    optimistic: true
+    icon: mdi:numeric
+    min_value: 0
+    max_value: 1
+    step:  1
+    initial_value: 1
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+        - lambda: |-
+            esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+            sen->write_debug_register(uint8_t( id(${name}_debug_register_number ).state ));
+            sen->set_debug_register(uint8_t( id(${name}_debug_register_number ).state ));
+
+switch:
+  - platform: restart
+    name: restart_${name}
+
+  # - platform: template
+  #   name: ${name}_debug_register
+  #   id: ${name}_debug_register
+  #   optimistic: true 
+  #   on_turn_on:
+  #     then:
+  #       - lambda: |-
+  #           esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+  #           sen->write_debug_register(uint8_t(1));
+  #   on_turn_off:
+  #     then:
+  #       - lambda: |-
+  #           esphome::sen21231::SEN21231Component *sen =  id(${name}_person);
+  #           sen->write_debug_register(uint8_t(0));        
+
+      
+sensor:
+  - platform: sen21231
+    id: ${name}_person
+    nfaces:
+      name: ${name}_nfaces
+
+    ###### First face detected #####  
+    
+    boxconf0:
+      name: ${name}_boxconf0
+    x0:
+      name: ${name}_x0 
+    y0:
+      name: ${name}_y0
+    w0:
+      name: ${name}_w0
+    h0:
+      name: ${name}_h0
+    idconf0:
+      name: ${name}_idconf0
+    id0:
+      name: ${name}_id0
+    mode: 1
+    enableid: 0
+    singleshot: 0
+    labelnext: 0
+    persistid: 1
+    eraseid: 0
+    debug: 0
+
+    update_interval: ${updates}
+    address: 0x62
