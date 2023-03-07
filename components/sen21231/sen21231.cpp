@@ -136,13 +136,14 @@ void SEN21231Component::dump_config() {
 void SEN21231Component::read_data_() {
   person_sensor_results_t results;
   this->read_bytes(PERSON_SENSOR_I2C_ADDRESS, (uint8_t *) &results, sizeof(results));
-  
-  if (this->nfaces_sensor_ != nullptr) {
+  if (this->mode_ == 1) {
+    if (this->nfaces_sensor_ != nullptr) {
 	  this->nfaces_sensor_->publish_state(results.num_faces);
+    }
+    ESP_LOGD(TAG, "%d faces detected", results.num_faces);
   }
-  ESP_LOGD(TAG, "%d faces detected", results.num_faces);
   
-  if (results.num_faces == 1) {
+  if ((results.num_faces == 1) && (this->mode_ == 1)) {
 	
 	if (this->boxconf0_sensor_ != nullptr) {
 	  this->boxconf0_sensor_->publish_state((results.faces[0].box_confidence) );
