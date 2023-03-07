@@ -87,26 +87,32 @@ class SEN21231Component : public PollingComponent, public i2c::I2CDevice {
   uint8_t read_mode_register(void);
   
   void set_enableid_register(uint8_t enableid) { enableid_ = enableid; }
+  uint8_t get_enableid_register(void) {return enableid_;}
   void write_enableid_register(uint8_t enableid_value);
   uint8_t read_enableid_register(void);
   
   void set_singleshot_register(uint8_t singleshot) { singleshot_ = singleshot; }
+  uint8_t get_singleshot_register(void) {return singleshot_;}
   void write_singleshot_register(uint8_t singleshot_value);
   uint8_t read_singleshot_register(void);
   
   void set_labelnext_register(uint8_t labelnext) { labelnext_ = labelnext; }
+  uint8_t get_labelnext_register(void) {return labelnext_;}
   void write_labelnext_register(uint8_t labelnext_value);
   uint8_t read_labelnext_register(void);
   
   void set_persistid_register(uint8_t persistid) { persistid_ = persistid; }
+  uint8_t get_persistid_register(void) {return persistid_;}
   void write_persistid_register(uint8_t persistid_value);
   uint8_t read_persistid_register(void);
   
   void set_eraseid_register(uint8_t eraseid) { eraseid_ = eraseid; }
+  uint8_t get_eraseid_register(void) {return eraseid_;}
   void write_eraseid_register(uint8_t eraseid_value);
   uint8_t read_eraseid_register(void);
   
   void set_debug_register(uint8_t debug) { debug_ = debug; }
+  uint8_t get_debug_register(void) {return debug_;}
   void write_debug_register(uint8_t debug_value);
   uint8_t read_debug_register(void);
    
