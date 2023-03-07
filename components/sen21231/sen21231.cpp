@@ -60,7 +60,7 @@ void SEN21231Component::write_persistid_register(uint8_t persistid_value) {
 	
 void SEN21231Component::write_eraseid_register(uint8_t eraseid_value) {
   ESP_LOGV(TAG, "Setting eraseid register to %d", eraseid_value);
-  if ((eraseid < 0) || (eraseid_value > 1))
+  if ((eraseid_value < 0) || (eraseid_value > 1))
     return;
   this->write_register(PERSON_SENSOR_REG_ERASE_IDS, eraseid_value, 0);
 }
