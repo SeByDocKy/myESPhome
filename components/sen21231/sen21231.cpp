@@ -33,8 +33,9 @@ void SEN21231Component::setup() {
       else {
       ESP_LOGD(TAG, "debug mode (green led) is turned on");
       }
-  */    
+    
   }
+   */ 
 }
 	
 void SEN21231Component::update() { this->read_data_(); }
@@ -63,7 +64,8 @@ void SEN21231Component::write_register(uint8_t reg, uint8_t bits, uint8_t start_
     return;
   }
 }
-	
+
+/*	
 uint8_t SEN21231Component::read_register(uint8_t reg) {
   uint8_t value;
   if (write(&reg, 1) != i2c::ERROR_OK) {
@@ -76,7 +78,7 @@ uint8_t SEN21231Component::read_register(uint8_t reg) {
   }
   return value;
 }
-
+*/
 void SEN21231Component::dump_config() {
   ESP_LOGCONFIG(TAG, "SEN21231:");
   LOG_I2C_DEVICE(this);
