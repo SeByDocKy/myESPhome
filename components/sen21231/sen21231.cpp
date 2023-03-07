@@ -9,9 +9,8 @@ static const char *const TAG = "sen21231";
 void SEN21231Component::setup() {
    ESP_LOGCONFIG(TAG, "Setting up SEN23231...");
    ESP_LOGD(TAG , "debug %d" , this->debug_);
-   if (this->debug_==false){
-      uint8_t debug_reg_value = 0;
-      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, debug_reg_value)) {  
+   if (this->debug_ == 0){
+      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, this->debug_)) {  
 	  this->error_code_ = COMMUNICATION_FAILED;
           this->mark_failed();
           return;    
@@ -21,8 +20,7 @@ void SEN21231Component::setup() {
       }
   }
   else{
-      uint8_t debug_reg_value = 1;
-      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, debug_reg_value)) {  
+      if (!this->write_byte(PERSON_SENSOR_REG_DEBUG_MODE, this->debug_)) {  
 	  this->error_code_ = COMMUNICATION_FAILED;
           this->mark_failed();
           return;    
