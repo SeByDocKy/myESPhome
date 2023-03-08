@@ -328,10 +328,13 @@ sensor:
       name: ${name}_id0
     isfacing0:
       name: ${name}_isfacing0
+
+    #### I²C setting registers initialization  #####
+
     mode: 1           #### 0 = Standby  / 1 = Continuous  (default)
     enableid: 1       #### 0 = disable id (default)  / 1 = enable if
     singleshot: 0     #### 0 = no single shot (default)  / 1 = single shot
-    labelnext: 0      ##### label id = {0,1,2,3,4,5,6,7}  (0 = default) ####
+    labelnext: 0      #### label id = {0,1,2,3,4,5,6,7}  (0 = default) ####
     persistid: 1      #### 0 = no persistent id after power off   / 1 = persistent id after power off (default)
     eraseid: 0        #### 0 = no eraseid (default)   / 1 = erase id
     debug: 0          #### 0 = no debug = no green light   / 1 = debug = green light activity with detection (default)
