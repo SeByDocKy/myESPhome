@@ -30,6 +30,7 @@ CONF_SEN21231_PERSISTID   = "persistid"
 CONF_SEN21231_ERASEID     = "eraseid"
 CONF_SEN21231_DEBUG       = "debug"
 CONF_SEN21231_ICON_BOX    = "mdi:face-man"
+CONF_SEN21231_ICON_PERSON = "mdi:account-alert"
 CONF_SEN21231_ICON_PERCENT= "mdi:percent"
 CONF_SEN21231_ICON_TARGET = "mdi:target-variant"
 CONF_SEN21231_ICON_NUMERIC = "mdi:numeric"
@@ -48,7 +49,7 @@ CONFIG_SCHEMA = (
             cv.GenerateID(): cv.declare_id(SEN21231Component),
 			 cv.Optional(CONF_ADDRESS): cv.i2c_address,
                          cv.Optional(CONF_SEN21231_NFACES): sensor.sensor_schema(
-                                icon=CONF_SEN21231_ICON_BOX,
+                                icon=CONF_SEN21231_ICON_PERSON,
                                 accuracy_decimals=0,
 			        state_class=STATE_CLASS_MEASUREMENT,
             ),
