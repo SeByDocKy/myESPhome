@@ -36,25 +36,25 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_PMWCS3_E25): sensor.sensor_schema(
                         icon=CONF_PMWCS3_ICON_EPSILON,
                         accuracy_decimals=2,
-						unit_of_measurement="dS/m"
+						unit_of_measurement="dS/m",
 			            state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_PMWCS3_EC): sensor.sensor_schema(
                         icon=CONF_PMWCS3_ICON_SIGMA,
 				        accuracy_decimals=2,
-						unit_of_measurement="mS/m"
+						unit_of_measurement="mS/m",
 				        state_class=STATE_CLASS_MEASUREMENT,
             ),
 			cv.Optional(CONF_PMWCS3_TEMPERATURE): sensor.sensor_schema(
 			            icon=CONF_PMWCS3_ICON_TEMPERATURE,
                         accuracy_decimals=2,
-						unit_of_measurement="°C"
+						unit_of_measurement="°C",
 				        state_class=STATE_CLASS_MEASUREMENT,
             ),
 			 cv.Optional(CONF_PMWCS3_VWC): sensor.sensor_schema(
 			             icon=CONF_PMWCS3_ICON_ALPHA,
                          accuracy_decimals=2,
-						 unit_of_measurement="cm3cm−3"
+						 unit_of_measurement="cm3cm−3",
 				         state_class=STATE_CLASS_MEASUREMENT,
             ),    
         }
