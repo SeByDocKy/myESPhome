@@ -203,43 +203,42 @@ void SEN21231Component::read_data_() {
 	
 	if (this->boxconf0_sensor_ != nullptr) {
 	  this->boxconf0_sensor_->publish_state((results.faces[0].box_confidence) );
+	  ESP_LOGD(TAG, "boxconf0: %d", results.faces[0].box_confidence);
 	}
-	ESP_LOGD(TAG, "boxconf0: %d", results.faces[0].box_confidence);
-	
 	if (this->x0_sensor_ != nullptr) {
 	  this->x0_sensor_->publish_state(int(results.faces[0].box_left));
+	  ESP_LOGD(TAG, "x0: %d", results.faces[0].box_left);
 	}
-	ESP_LOGD(TAG, "x0: %d", results.faces[0].box_left);
 	
 	if (this->y0_sensor_ != nullptr) {
 	  this->y0_sensor_->publish_state(int(results.faces[0].box_top));
+	  ESP_LOGD(TAG, "y0: %d", results.faces[0].box_top);	
 	} 
-        ESP_LOGD(TAG, "y0: %d", results.faces[0].box_top);
-	
+       
 	if (this->w0_sensor_ != nullptr) {
 	  this->w0_sensor_->publish_state(int(results.faces[0].box_right));
+	  ESP_LOGD(TAG, "w0: %d", results.faces[0].box_right);
 	} 
-        ESP_LOGD(TAG, "w0: %d", results.faces[0].box_right);
-    
+        
         if (this->h0_sensor_ != nullptr) {
 	  this->h0_sensor_->publish_state(int(results.faces[0].box_bottom));
+          ESP_LOGD(TAG, "height: %d", results.faces[0].box_bottom);
         }
-	ESP_LOGD(TAG, "height: %d", results.faces[0].box_bottom);
 	
         if (this->idconf0_sensor_ != nullptr) {
 	  this->idconf0_sensor_->publish_state((results.faces[0].id_confidence) );
+	  ESP_LOGD(TAG, "idconf0: %d", results.faces[0].id_confidence);
 	}
-	ESP_LOGD(TAG, "idconf0: %d", results.faces[0].id_confidence);
-        
+	  
 	if (this->id0_sensor_ != nullptr) {
 	  this->id0_sensor_->publish_state((results.faces[0].id) );
+	  ESP_LOGD(TAG, "id0: %d", results.faces[0].id);
 	}
-	ESP_LOGD(TAG, "id0: %d", results.faces[0].id);
 	
 	if (this->isfacing0_sensor_ != nullptr) {
 	  this->isfacing0_sensor_->publish_state(int(results.faces[0].is_facing));
+	  ESP_LOGD(TAG, "is facing towards camera: %d", results.faces[0].is_facing);
 	}
-	ESP_LOGD(TAG, "is facing towards camera: %d", results.faces[0].is_facing);
   }
 }
 
