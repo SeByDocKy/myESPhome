@@ -65,30 +65,37 @@ void PMWCS3Component::dump_config() {
 }
 
 void PMWCS3Component::read_data_() {
-  uint16_t results;
+  uint16_t results[4];
   float e25, ec, temperature, vwc;
-  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 1);
+// uint16_t results;	
+//  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 1);
+  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 4);
   if (this->e25_sensor_ != nullptr) {
-	  e25 = results/100.0;
+	  e25 = results[0]/100.0;
+	  //e25 = results/100.0;
 	  this->e25_sensor_->publish_state(e25);
 	  ESP_LOGD(TAG, "e25 = %f", e25);
   }
-  this->read_bytes_16(PMWCS3_REG_READ_EC, (uint16_t *) &results, 1);
+//  this->read_bytes_16(PMWCS3_REG_READ_EC, (uint16_t *) &results, 1);
   if (this->ec_sensor_ != nullptr) {
-	  ec = results/10.0;
+	  ec = results[1]/10.0;
+	  //ec = results/10.0;
 	  this->ec_sensor_->publish_state(ec);
 	  ESP_LOGD(TAG, "ec = %f", ec);
   }
   
-  this->read_bytes_16(PMWCS3_REG_READ_TEMP, (uint16_t *) &results, 1);
+//  this->read_bytes_16(PMWCS3_REG_READ_TEMP, (uint16_t *) &results, 1);
   if (this->temperature_sensor_ != nullptr) {
-	  temperature = results/100.0;
+	  temperature = results[2]/100.0;
+	  //temperature = results/100.0;
 	  this->temperature_sensor_->publish_state(temperature);
 	  ESP_LOGD(TAG, "temperature = %f", temperature);
   }
-  this->read_bytes_16(PMWCS3_REG_READ_VWC, (uint16_t *) &results, 1);
+
+//  this->read_bytes_16(PMWCS3_REG_READ_VWC, (uint16_t *) &results, 1);
   if (this->vwc_sensor_ != nullptr) {
-	  vwc = results/10.0;
+	  vwc = results[3]/10.0;
+	  //vwc = results/10.0;
 	  this->vwc_sensor_->publish_state(vwc);
 	  ESP_LOGD(TAG, "vwc = %f", vwc);
   }
