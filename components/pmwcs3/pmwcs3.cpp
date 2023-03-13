@@ -69,7 +69,7 @@ void PMWCS3Component::read_data_() {
   float e25, ec, temperature, vwc;
 // uint16_t results;	
 //  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 1);
-  this->read_bytes_16(PMWCS3_REG_GET_DATA, (uint16_t *) &results, 4);
+  this->read_bytes_16(PMWCS3_REG_READ_START, (uint16_t *) &results, 4);
   if (this->e25_sensor_ != nullptr) {
 	  e25 = results[0]/100.0;
 	  //e25 = results/100.0;
