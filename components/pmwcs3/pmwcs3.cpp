@@ -88,7 +88,7 @@ void PMWCS3Component::read_data_() {
 	  ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d", results[0] , results[1]);
   }
   
-  this->read_bytes_16(PMWCS3_REG_READ_EC, (uint8_t *) &results, 2);
+  this->read_bytes(PMWCS3_REG_READ_EC, (uint8_t *) &results, 2);
   if (this->ec_sensor_ != nullptr) {
 //	  ec = results[1]/10.0;
 	  //ec = results/10.0;
@@ -97,7 +97,7 @@ void PMWCS3Component::read_data_() {
 	  ESP_LOGD(TAG, "ec: data[0] = %d, data[1] = %d ", results[0] , results[1]);
   }
   
-  this->read_bytes_16(PMWCS3_REG_READ_TEMP, (uint8_t *) &results, 2);
+  this->read_bytes(PMWCS3_REG_READ_TEMP, (uint8_t *) &results, 2);
 	
   if (this->temperature_sensor_ != nullptr) {
 	 // temperature = results[2]/100.0;
