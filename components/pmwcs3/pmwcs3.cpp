@@ -79,7 +79,7 @@ void PMWCS3Component::read_data_() {
 	
 //  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 1);
 //  this->read_bytes_16(PMWCS3_I2C_ADDRESS, (uint16_t *) &results, 4);
-  this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &results, 8);
+  this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &results, 2);
   if (this->e25_sensor_ != nullptr) {
 //	  e25 = results[0]/100.0;
 	  //e25 = results/100.0;
