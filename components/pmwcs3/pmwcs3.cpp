@@ -68,12 +68,13 @@ void PMWCS3Component::read_data_() {
   uint16_t results[4];
   float e25, ec, temperature, vwc;
 // uint16_t results;	
+/*	
   if (!this->write_byte(PMWCS3_REG_READ_START, 0x01)) {
     ESP_LOGE(TAG, "Starting measurement failed!");
     this->status_set_warning();
     return;
   }	
-	
+*/	
 	
 	
 //  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 1);
