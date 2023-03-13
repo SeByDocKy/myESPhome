@@ -47,7 +47,7 @@ CONFIG_SCHEMA = (
             ),
 			cv.Optional(CONF_PMWCS3_TEMPERATURE): sensor.sensor_schema(
 			            icon=CONF_PMWCS3_ICON_TEMPERATURE,
-                        accuracy_decimals=1,
+                        accuracy_decimals=2,
 						unit_of_measurement="°C",
 				        state_class=STATE_CLASS_MEASUREMENT,
             ),
