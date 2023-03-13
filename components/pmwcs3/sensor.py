@@ -35,7 +35,7 @@ CONFIG_SCHEMA = (
 			cv.Optional(CONF_ADDRESS): cv.i2c_address,
             cv.Optional(CONF_PMWCS3_E25): sensor.sensor_schema(
                         icon=CONF_PMWCS3_ICON_EPSILON,
-                        accuracy_decimals=2,
+                        accuracy_decimals=1,
 						unit_of_measurement="dS/m",
 			            state_class=STATE_CLASS_MEASUREMENT,
             ),
@@ -47,7 +47,7 @@ CONFIG_SCHEMA = (
             ),
 			cv.Optional(CONF_PMWCS3_TEMPERATURE): sensor.sensor_schema(
 			            icon=CONF_PMWCS3_ICON_TEMPERATURE,
-                        accuracy_decimals=2,
+                        accuracy_decimals=1,
 						unit_of_measurement="°C",
 				        state_class=STATE_CLASS_MEASUREMENT,
             ),
