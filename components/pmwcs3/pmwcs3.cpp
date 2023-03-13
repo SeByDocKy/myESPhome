@@ -82,7 +82,7 @@ void PMWCS3Component::read_data_() {
  //  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 1);
 //  this->read_bytes_16(PMWCS3_I2C_ADDRESS, (uint16_t *) &results, 4);
   this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &data, 2);
-  int16_t result = encode_uint16(data[0], data[1]);
+  result = encode_uint16(data[0], data[1]);
    if (this->e25_sensor_ != nullptr) {
 //	  e25 = results[0]/100.0;
 	  //e25 = results/100.0;
@@ -93,7 +93,7 @@ void PMWCS3Component::read_data_() {
   }
   
   this->read_bytes(PMWCS3_REG_READ_EC, (uint8_t *) &data, 2);
-  int16_t result = encode_uint16(data[0], data[1]);
+  result = encode_uint16(data[0], data[1]);
   //this->read_bytes_16(PMWCS3_REG_READ_EC, (uint16_t *) &results, 1);	
   if (this->ec_sensor_ != nullptr) {
 //	  ec = results[1]/10.0;
@@ -105,7 +105,7 @@ void PMWCS3Component::read_data_() {
   }
   
   this->read_bytes(PMWCS3_REG_READ_TEMP, (uint8_t *) &data, 2);
-  int16_t result = encode_uint16(data[0], data[1]);	
+  result = encode_uint16(data[0], data[1]);	
 //  this->read_bytes_16(PMWCS3_REG_READ_TEMP, (uint16_t *) &results, 1);	
   if (this->temperature_sensor_ != nullptr) {
 	 // temperature = results[2]/100.0;
@@ -119,7 +119,7 @@ void PMWCS3Component::read_data_() {
 
   //this->read_bytes_16(PMWCS3_REG_READ_VWC, (uint16_t *) &results, 1);
   this->read_bytes(PMWCS3_REG_READ_VWC, (uint8_t *) &data, 2);
-  int16_t result = encode_uint16(data[0], data[1]);	
+  result = encode_uint16(data[0], data[1]);	
   if (this->vwc_sensor_ != nullptr) {
 //	  vwc = results[3]/10.0;
 	  //vwc = results/10.0;
