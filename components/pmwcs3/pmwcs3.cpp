@@ -79,13 +79,13 @@ void PMWCS3Component::read_data_() {
 	
 //  this->read_bytes_16(PMWCS3_REG_READ_E25, (uint16_t *) &results, 1);
 //  this->read_bytes_16(PMWCS3_I2C_ADDRESS, (uint16_t *) &results, 4);
-  this->read_bytes(PMWCS3_I2C_ADDRESS, (uint8_t *) &results, 8);
+  this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &results, 8);
   if (this->e25_sensor_ != nullptr) {
 //	  e25 = results[0]/100.0;
 	  //e25 = results/100.0;
 //	  this->e25_sensor_->publish_state(e25);
 //	  ESP_LOGD(TAG, "e25 = %f", e25);
-	  ESP_LOGD(TAG, "e25 data[0]=%d, data[1]=%d", results[0] , results[1]);
+	  ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d", results[0] , results[1]);
   }
   
 //  this->read_bytes_16(PMWCS3_REG_READ_EC, (uint16_t *) &results, 1);
@@ -94,18 +94,19 @@ void PMWCS3Component::read_data_() {
 	  //ec = results/10.0;
 //	  this->ec_sensor_->publish_state(ec);
 //	  ESP_LOGD(TAG, "ec = %f", ec);
-	  ESP_LOGD(TAG, "ec data[2] = %d, data[3] = %d ", results[2] , results[3]);
+	  ESP_LOGD(TAG, "ec: data[2] = %d, data[3] = %d ", results[2] , results[3]);
   }
   
 //  this->read_bytes_16(PMWCS3_REG_READ_TEMP, (uint16_t *) &results, 1);
-/*	
+	
   if (this->temperature_sensor_ != nullptr) {
-	  temperature = results[2]/100.0;
+	 // temperature = results[2]/100.0;
 	  //temperature = results/100.0;
-	  this->temperature_sensor_->publish_state(temperature);
-	  ESP_LOGD(TAG, "temperature = %f", temperature);
+	 // this->temperature_sensor_->publish_state(temperature);
+	 // ESP_LOGD(TAG, "temperature = %f", temperature);
+	  ESP_LOGD(TAG, "temp: data[4] = %d, data[5] = %d ", results[4] , results[5]);
   }
-*/
+
 //  this->read_bytes_16(PMWCS3_REG_READ_VWC, (uint16_t *) &results, 1);
 /*	
   
