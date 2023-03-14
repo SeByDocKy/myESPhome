@@ -74,8 +74,11 @@ void PMWCS3Component::read_data_() {
       return;
     }
     
-    result      = encode_uint16(data[1], data[0]);
-    e25         = result/100.0;
+	  
+//    result      = encode_uint16(data[1], data[0]);
+//    e25         = result/100.0;
+    e25         = ((data[0] << 8) + buffer[1])/100.0;
+
     this->e25_sensor_->publish_state(e25);
     ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d, result=%d", data[0] , data[1] , result);
 	  
