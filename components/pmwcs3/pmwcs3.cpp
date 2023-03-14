@@ -85,10 +85,11 @@ void PMWCS3Component::read_data_() {
 */	
 // /*	
 	
- /////// Super important !!!! first activate reading (if not, reutrn always the same values) ////
+ /////// Super important !!!! first activate reading PMWCS3_REG_READ_START (if not, reutrn always the same values) ////
 	
   if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
       this->status_set_warning();
+      ESP_LOGW(TAG, "couldn't start a new reading with  PMWCS3_REG_READ_START registers");
       return;
     }
   delay(100);	
@@ -105,19 +106,16 @@ void PMWCS3Component::read_data_() {
   }
   if (this->ec_sensor_ != nullptr) {
 	  ec = ((data[3] << 8) | data[2])/10.0;
-	  //ec = ((data[1] << 8) | data[0])/10.0;
 	  this->ec_sensor_->publish_state(ec);
 	  ESP_LOGD(TAG, "ec: data[2]=%d, data[3]=%d, result=%f", data[2] , data[3] , ec);
   }
   if (this->temperature_sensor_ != nullptr) {
 	  temperature = ((data[5] << 8) | data[4])/100.0;
-	  //temperature = ((data[1] << 8) | data[0])/100.0;
 	  this->temperature_sensor_->publish_state(temperature);
 	  ESP_LOGD(TAG, "temp: data[4]=%d, data[5]=%d, result=%f", data[4] , data[5] , temperature); 
   }
   if (this->vwc_sensor_ != nullptr) {
 	  vwc = ((data[7] << 8) | data[6])/10.0;
-	  //vwc = ((data[1] << 8) | data[0])/10.0;
 	  this->vwc_sensor_->publish_state(vwc);
 	  ESP_LOGD(TAG, "vwc: data[6]=%d, data[7]=%d, result=%f", data[6] , data[7] , vwc);
   }
