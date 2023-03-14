@@ -59,11 +59,46 @@ void PMWCS3Component::read_data_() {
   uint8_t data[8];
   uint16_t result;
   float e25, ec, temperature, vwc;
-  delay(300);	
-		
+//  delay(300);	
+	
+  if (this->e25_sensor_ != nullptr && this->ec_sensor__ != nullptr && this->temperature_sensor__ != nullptr && this->vwc_sensor__ != nullptr) {
+    
+    if (!this->write_bytes(PMWCS3_REG_GET_DATA, nullptr, 0)) {
+      this->status_set_warning();
+      return;
+    }
+    
+    if (!this->read_bytes_raw(data, 8)) {
+      this->status_set_warning();
+      return;
+    }
+    
+    result      = encode_uint16(data[1], data[0]);
+    e25         = result/100.0;
+    this->e25_sensor_->publish_state(e25);
+    ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d, result=%d", data[0] , data[1] , result);
+	  
+    result      = encode_uint16(data[3], data[2]);
+    ec          = result/10.0;
+    this->ec_sensor_->publish_state(ec);
+    ESP_LOGD(TAG, "ec: data[0]=%d, data[1]=%d, result=%d", data[2] , data[3] , result);
+	
+    result      = encode_uint16(data[5], data[4]);
+    temperature = result/100.0;
+    this->temperature_sensor_->publish_state(temperature);
+    ESP_LOGD(TAG, "temp: data[0]=%d, data[1]=%d, result=%d", data[4] , data[5] , result);
+	  
+    result      = encode_uint16(data[7], data[6]);
+    vwc         = result/10.0;
+    this->vwc_sensor_->publish_state(vwc);
+    ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7] , result);	  
+	  
+  }
+	
+/*		
 //  this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &data, 2); read_register
-//  if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
-  if (!this-read_register(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){	  
+  if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
+//  if (!this-read_register(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){	  
      ESP_LOGW(TAG, "Error reading  PMWCS3_REG_GET_DATA registers");
      this->mark_failed();
      return;	  
@@ -102,7 +137,7 @@ void PMWCS3Component::read_data_() {
 	  this->vwc_sensor_->publish_state(vwc);
 	  ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7],result);
   }
-  
+  */
 }
 
 }  // namespace pmwcs3
