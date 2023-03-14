@@ -34,11 +34,6 @@ static const uint8_t PMWCS3_REG_RES             = 0x0B;
 static const uint8_t PMWCS3_REG_RC              = 0x0C;
 static const uint8_t PMWCS3_REG_RT              = 0x0D;
 
-using pmwcs3_results_t = struct {
-  uint16_t reserved[4];  // Bytes 0-1.
-};
-
-
 class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
  public:
   void  setup() override;
@@ -51,7 +46,6 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
   void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
   void set_vwc_sensor(sensor::Sensor *vwc_sensor) { vwc_sensor_ = vwc_sensor; }
    
-     
  protected:
   void read_data_();
   
