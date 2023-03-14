@@ -59,6 +59,7 @@ void PMWCS3Component::read_data_() {
   uint8_t data[8];
   uint16_t result;
   float e25, ec, temperature, vwc;
+  delay(300);	
 		
 //  this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &data, 2);
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
@@ -66,7 +67,7 @@ void PMWCS3Component::read_data_() {
      this->mark_failed();
      return;	  
   }
-  delay(300);
+  
   result = encode_uint16(data[1], data[0]);
    if (this->e25_sensor_ != nullptr) {
 	  e25 = result/100.0;
