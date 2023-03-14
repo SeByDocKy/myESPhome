@@ -66,7 +66,7 @@ void PMWCS3Component::read_data_() {
      this->mark_failed();
      return;	  
   }
-//  delay(100);
+  delay(300);
   result = encode_uint16(data[1], data[0]);
    if (this->e25_sensor_ != nullptr) {
 	  e25 = result/100.0;
