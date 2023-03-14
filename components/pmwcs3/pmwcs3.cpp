@@ -67,6 +67,7 @@ void PMWCS3Component::read_data_() {
       this->status_set_warning();
       return;
     }
+    delay(100);
     
     if (!this->read_bytes_raw(data, 8)) {
       this->status_set_warning();
