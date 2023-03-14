@@ -56,7 +56,7 @@ void PMWCS3Component::dump_config() {
 }
 
 void PMWCS3Component::read_data_() {
-  uint8_t data[8];
+  uint8_t data[8]={0,0,0,0,0,0,0,0};
   uint16_t result;
   float e25, ec, temperature, vwc;
 //  delay(300);	
@@ -67,7 +67,7 @@ void PMWCS3Component::read_data_() {
       this->status_set_warning();
       return;
     }
-    delay(100);
+    delay(300);
     
     if (!this->read_bytes_raw(data, 8)) {
       this->status_set_warning();
