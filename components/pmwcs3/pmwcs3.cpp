@@ -56,7 +56,7 @@ void PMWCS3Component::dump_config() {
 }
 
 void PMWCS3Component::read_data_() {
-  uint8_t data[8]={0,0,0,0,0,0,0,0};
+  uint8_t data[2];
   float e25, ec, temperature, vwc;
 /*	
   if (this->e25_sensor_ != nullptr && this->ec_sensor_ != nullptr && this->temperature_sensor_ != nullptr && this->vwc_sensor_ != nullptr) {
@@ -109,7 +109,7 @@ void PMWCS3Component::read_data_() {
   }
   if (this->ec_sensor_ != nullptr) {
 	  //ec = ((data[3] << 8) | data[2])/10.0;
-	  ec = ((data[1] << 8) | data[1])/10.0;
+	  ec = ((data[1] << 8) | data[0])/10.0;
 	  this->ec_sensor_->publish_state(ec);
 	  ESP_LOGD(TAG, "ec: data[0]=%d, data[1]=%d, result=%d", data[2] , data[3] , ec);
   }
