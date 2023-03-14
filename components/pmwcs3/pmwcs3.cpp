@@ -61,7 +61,7 @@ void PMWCS3Component::read_data_() {
   float e25, ec, temperature, vwc;
 //  delay(300);	
 	
-  if (this->e25_sensor_ != nullptr && this->ec_sensor__ != nullptr && this->temperature_sensor__ != nullptr && this->vwc_sensor__ != nullptr) {
+  if (this->e25_sensor_ != nullptr && this->ec_sensor_ != nullptr && this->temperature_sensor_ != nullptr && this->vwc_sensor_ != nullptr) {
     
     if (!this->write_bytes(PMWCS3_REG_GET_DATA, nullptr, 0)) {
       this->status_set_warning();
