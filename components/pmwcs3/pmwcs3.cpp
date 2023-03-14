@@ -59,6 +59,7 @@ void PMWCS3Component::read_data_() {
   uint8_t data[8]={0,0,0,0,0,0,0,0};
   uint16_t result;
   float e25, ec, temperature, vwc;
+/*	
   if (this->e25_sensor_ != nullptr && this->ec_sensor_ != nullptr && this->temperature_sensor_ != nullptr && this->vwc_sensor_ != nullptr) {
     if (!this->write_bytes(PMWCS3_REG_GET_DATA, nullptr, 0)) {
       this->status_set_warning();
@@ -82,8 +83,8 @@ void PMWCS3Component::read_data_() {
     this->vwc_sensor_->publish_state(vwc);
     ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7] , vwc);	  
   }
-	
-/*		
+*/	
+// /*		
 //  this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &data, 2); read_register
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
      ESP_LOGW(TAG, "Error reading  PMWCS3_REG_GET_DATA registers");
@@ -121,7 +122,7 @@ void PMWCS3Component::read_data_() {
 	  this->vwc_sensor_->publish_state(vwc);
 	  ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7] , vwc);
   }
-  */
+ // */
 }
 
 }  // namespace pmwcs3
