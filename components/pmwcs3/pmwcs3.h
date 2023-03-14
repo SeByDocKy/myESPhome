@@ -45,6 +45,7 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
   void set_ec_sensor(sensor::Sensor *ec_sensor) { ec_sensor_ = ec_sensor; }
   void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
   void set_vwc_sensor(sensor::Sensor *vwc_sensor) { vwc_sensor_ = vwc_sensor; }
+  void set_cap_sensor(sensor::Sensor *cap_sensor) { cap_sensor_ = cap_sensor; }
    
  protected:
   void read_data_();
@@ -56,6 +57,8 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
   sensor::Sensor *ec_sensor_{nullptr};
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *vwc_sensor_{nullptr};
+ 
+  sensor::Sensor *cap_sensor_{nullptr};
    
   enum ErrorCode {
     NONE = 0,
