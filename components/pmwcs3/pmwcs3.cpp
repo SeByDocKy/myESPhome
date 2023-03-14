@@ -57,7 +57,7 @@ void PMWCS3Component::dump_config() {
 
 void PMWCS3Component::read_data_() {
   uint8_t data[8];
-  uint8_t reg[2];
+  uint8_t reg[1];
   uint16_t reg16;
   float e25, ec, temperature, vwc;
   
@@ -123,15 +123,17 @@ void PMWCS3Component::read_data_() {
 	  ESP_LOGD(TAG, "vwc: data[6]=%d, data[7]=%d, result=%f", data[6] , data[7] , vwc);
   }
 	
-  if (!this->read_bytes(PMWCS3_REG_CAP, (uint8_t *) &reg, 2)){
+  if (!this->read_bytes(PMWCS3_REG_CAP, (uint8_t *) &reg, 1)){
      ESP_LOGW(TAG, "Error reading  PMWCS3_REG_CAP register");
      this->mark_failed();
      return;	  
   }
   if (this->cap_sensor_ != nullptr) {
-	  reg16 = ((reg[1] << 8) | reg[0]);
+//	  reg16 = ((reg[1] << 8) | reg[0]);
+	  reg16 = reg[0];
 	  this->cap_sensor_->publish_state(reg16);
-	  ESP_LOGD(TAG, "reg cap: reg[0]=%d, reg[1]=%d, reg16=%d", reg[0] , reg[1] , reg16);
+//	  ESP_LOGD(TAG, "reg cap: reg[0]=%d, reg[1]=%d, reg16=%d", reg[0] , reg[1] , reg16);
+	  ESP_LOGD(TAG, "reg cap: reg[0]=%d, reg16=%d", reg[0] , reg16);
   }
 	
 }
