@@ -90,7 +90,16 @@ void PMWCS3Component::read_data_() {
      this->mark_failed();
      return;	  
   }
-*/	
+*/
+	
+PMWCS3_REG_READ_START	
+	
+  if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
+      this->status_set_warning();
+      return;
+    }
+  delay(300);	
+	
   if (!this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &data, 2)){
 	 ESP_LOGW(TAG, "Error reading  PMWCS3_REG_READ_E25 register");
          this->mark_failed();
