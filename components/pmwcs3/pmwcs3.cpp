@@ -61,8 +61,12 @@ void PMWCS3Component::read_data_() {
   float e25, ec, temperature, vwc;
 		
 //  this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &data, 2);
-  this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8);
-  delay(100);
+  if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
+     ESP_LOGW(TAG, "Error reading  PMWCS3_REG_GET_DATA registers");
+     this->mark_failed();
+     return;	  
+  }
+//  delay(100);
   result = encode_uint16(data[1], data[0]);
    if (this->e25_sensor_ != nullptr) {
 	  e25 = result/100.0;
