@@ -91,7 +91,7 @@ void PMWCS3Component::read_data_() {
       this->status_set_warning();
       return;
     }
-//  delay(300);	
+  delay(300);	
 	
 // /*
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
