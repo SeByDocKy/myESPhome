@@ -107,6 +107,7 @@ void PMWCS3Component::read_data_() {
          this->mark_failed();
          return;
   }
+  delay(100);
   if (this->ec_sensor_ != nullptr) {
 	  //ec = ((data[3] << 8) | data[2])/10.0;
 	  ec = ((data[1] << 8) | data[0])/10.0;
@@ -119,6 +120,7 @@ void PMWCS3Component::read_data_() {
         this->mark_failed();
         return;  
   }
+  delay(100);	
   if (this->temperature_sensor_ != nullptr) {
 	  //temperature = ((data[5] << 8) | data[4])/100.0;
 	  temperature = ((data[1] << 8) | data[0])/100.0;
@@ -131,6 +133,7 @@ void PMWCS3Component::read_data_() {
         this->mark_failed();
         return;  
   }
+  delay(100);
   if (this->vwc_sensor_ != nullptr) {
 	  //vwc = ((data[7] << 8) | data[6])/10.0;
 	  vwc = ((data[1] << 8) | data[0])/10.0;
