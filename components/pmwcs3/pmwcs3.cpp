@@ -59,86 +59,67 @@ void PMWCS3Component::read_data_() {
   uint8_t data[8]={0,0,0,0,0,0,0,0};
   uint16_t result;
   float e25, ec, temperature, vwc;
-//  delay(300);	
-	
   if (this->e25_sensor_ != nullptr && this->ec_sensor_ != nullptr && this->temperature_sensor_ != nullptr && this->vwc_sensor_ != nullptr) {
-    
     if (!this->write_bytes(PMWCS3_REG_GET_DATA, nullptr, 0)) {
       this->status_set_warning();
       return;
     }
-    delay(300);
-    
+  //  delay(300);
     if (!this->read_bytes_raw(data, 8)) {
       this->status_set_warning();
       return;
     }
-      
-//    result      = encode_uint16(data[1], data[0]);
-//    e25         = result/100.0;
     e25         = ((data[1] << 8) | data[0])/100.0;
-
     this->e25_sensor_->publish_state(e25);
     ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d, result=%f", data[0] , data[1] , e25);
-	  
-    result      = encode_uint16(data[3], data[2]);
-    ec          = result/10.0;
+    ec          =  ((data[3] << 8) | data[2])/10.0;
     this->ec_sensor_->publish_state(ec);
-    ESP_LOGD(TAG, "ec: data[0]=%d, data[1]=%d, result=%d", data[2] , data[3] , result);
-	
-    result      = encode_uint16(data[5], data[4]);
-    temperature = result/100.0;
+    ESP_LOGD(TAG, "ec: data[0]=%d, data[1]=%d, result=%d", data[2] , data[3] , ec);
+    temperature  = ((data[5] << 8) | data[4])/100.0;
     this->temperature_sensor_->publish_state(temperature);
-    ESP_LOGD(TAG, "temp: data[0]=%d, data[1]=%d, result=%d", data[4] , data[5] , result);
-	  
-    result      = encode_uint16(data[7], data[6]);
-    vwc         = result/10.0;
+    ESP_LOGD(TAG, "temp: data[0]=%d, data[1]=%d, result=%d", data[4] , data[5] , temperature);
+    vwc          =  ((data[7] << 8) | data[6])/10.0;
     this->vwc_sensor_->publish_state(vwc);
-    ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7] , result);	  
-	  
+    ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7] , vwc);	  
   }
 	
 /*		
 //  this->read_bytes(PMWCS3_REG_READ_E25, (uint8_t *) &data, 2); read_register
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
-//  if (!this-read_register(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){	  
      ESP_LOGW(TAG, "Error reading  PMWCS3_REG_GET_DATA registers");
      this->mark_failed();
      return;	  
   }
   
-  result = encode_uint16(data[1], data[0]);
    if (this->e25_sensor_ != nullptr) {
-	  e25 = result/100.0;
+	  e25 = ((data[1] << 8) | data[0])/100.0;
 	  this->e25_sensor_->publish_state(e25);
-	  ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d, result=%d", data[0] , data[1],result);
+	  ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d, result=%d", data[0] , data[1] , e25);
   }
   
 //  this->read_bytes(PMWCS3_REG_READ_EC, (uint8_t *) &data, 2);
 //  result = encode_uint16(data[1], data[0]);
-    result = encode_uint16(data[3], data[2]);	
   if (this->ec_sensor_ != nullptr) {
-	  ec = result/10.0;
+	  ec = ((data[3] << 8) | data[2])/10.0;
 	  this->ec_sensor_->publish_state(ec);
-	  ESP_LOGD(TAG, "ec: data[0]=%d, data[1]=%d, result=%d", data[2] , data[3],result);
+	  ESP_LOGD(TAG, "ec: data[0]=%d, data[1]=%d, result=%d", data[2] , data[3] , ec);
   }
   
   //this->read_bytes(PMWCS3_REG_READ_TEMP, (uint8_t *) &data, 2);
   //result = encode_uint16(data[1], data[0]);	
-  result = encode_uint16(data[5], data[4]);	
   if (this->temperature_sensor_ != nullptr) {
-	  temperature = result/100.0;
+	  temperature = ((data[5] << 8) | data[4])/100.0;
 	  this->temperature_sensor_->publish_state(temperature);
-	  ESP_LOGD(TAG, "temp: data[0]=%d, data[1]=%d, result=%d", data[4] , data[5],result); 
+	  ESP_LOGD(TAG, "temp: data[0]=%d, data[1]=%d, result=%d", data[4] , data[5] , temperature); 
   }
 	
   //this->read_bytes(PMWCS3_REG_READ_VWC, (uint8_t *) &data, 2);
   //result = encode_uint16(data[1], data[0]);
   result = encode_uint16(data[7], data[6]);	
   if (this->vwc_sensor_ != nullptr) {
-	  vwc = result/10.0;
+	  vwc = ((data[7] << 8) | data[6])/10.0;
 	  this->vwc_sensor_->publish_state(vwc);
-	  ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7],result);
+	  ESP_LOGD(TAG, "vwc: data[0]=%d, data[1]=%d, result=%d", data[6] , data[7] , vwc);
   }
   */
 }
