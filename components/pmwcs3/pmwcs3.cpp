@@ -91,9 +91,7 @@ void PMWCS3Component::read_data_() {
      return;	  
   }
 */
-	
-PMWCS3_REG_READ_START	
-	
+		
   if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
       this->status_set_warning();
       return;
