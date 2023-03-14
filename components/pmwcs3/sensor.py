@@ -3,8 +3,8 @@ import esphome.config_validation as cv
 from esphome.components import i2c, sensor
 from esphome.const import (
     CONF_ID,
-	CONF_ADDRESS,
-	STATE_CLASS_MEASUREMENT,
+    CONF_ADDRESS,
+    STATE_CLASS_MEASUREMENT,
 )
 
 CODEOWNERS                   = ["@sebydocky"]
@@ -14,6 +14,8 @@ CONF_PMWCS3_E25              = "e25"
 CONF_PMWCS3_EC               = "ec"
 CONF_PMWCS3_TEMPERATURE      = "temperature"
 CONF_PMWCS3_VWC              = "vwc"
+
+CONF_PMWCS3_CAP              = "capacity"
 
 CONF_PMWCS3_ICON_EPSILON     = "mdi:epsilon"
 CONF_PMWCS3_ICON_SIGMA       = "mdi:sigma-lower"
@@ -57,6 +59,12 @@ CONFIG_SCHEMA = (
 		         unit_of_measurement="cm3cm−3",
 		         state_class=STATE_CLASS_MEASUREMENT,
             ),    
+		         cv.Optional(CONF_PMWCS3_CAP): sensor.sensor_schema(
+			 icon=CONF_PMWCS3_ICON_ALPHA,
+                         accuracy_decimals=3,
+		         unit_of_measurement="cm3cm−3",
+		         state_class=STATE_CLASS_MEASUREMENT,
+            ), 
         }
     )
     .extend(cv.polling_component_schema("60s"))
@@ -84,4 +92,8 @@ async def to_code(config):
     if CONF_PMWCS3_VWC in config:
         sens = await sensor.new_sensor(config[CONF_PMWCS3_VWC])
         cg.add(var.set_vwc_sensor(sens))
+	
+    if CONF_PMWCS3_CAP in config:
+        sens = await sensor.new_sensor(config[CONF_PMWCS3_CAP])
+        cg.add(var.set_vwc_sensor(sens))	
 		
