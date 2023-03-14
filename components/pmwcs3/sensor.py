@@ -15,7 +15,6 @@ CONF_PMWCS3_EC               = "ec"
 CONF_PMWCS3_TEMPERATURE      = "temperature"
 CONF_PMWCS3_VWC              = "vwc"
 
-CONF_PMWCS3_CAP              = "capacity"
 
 CONF_PMWCS3_ICON_EPSILON     = "mdi:epsilon"
 CONF_PMWCS3_ICON_SIGMA       = "mdi:sigma-lower"
@@ -28,7 +27,6 @@ pmwcs3_ns                    = cg.esphome_ns.namespace("pmwcs3")
 PMWCS3Component              = pmwcs3_ns.class_(
     "PMWCS3Component", cg.PollingComponent, i2c.I2CDevice
 )
-
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -59,12 +57,7 @@ CONFIG_SCHEMA = (
 		         unit_of_measurement="cm3cm−3",
 		         state_class=STATE_CLASS_MEASUREMENT,
             ),    
-		         cv.Optional(CONF_PMWCS3_CAP): sensor.sensor_schema(
-			 icon=CONF_PMWCS3_ICON_ALPHA,
-                         accuracy_decimals=3,
-		         unit_of_measurement="cm3cm−3",
-		         state_class=STATE_CLASS_MEASUREMENT,
-            ), 
+		        
         }
     )
     .extend(cv.polling_component_schema("60s"))
@@ -93,7 +86,3 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_PMWCS3_VWC])
         cg.add(var.set_vwc_sensor(sens))
 	
-    if CONF_PMWCS3_CAP in config:
-        sens = await sensor.new_sensor(config[CONF_PMWCS3_CAP])
-        cg.add(var.set_vwc_sensor(sens))	
-		
