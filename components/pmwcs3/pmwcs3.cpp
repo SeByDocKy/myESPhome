@@ -9,7 +9,6 @@ static const char *const TAG = "pmwcs3";
 	
 void PMWCS3Component::setup() {
    ESP_LOGCONFIG(TAG, "Setting up PMWCS3...");
-   	
 }
 	
 void PMWCS3Component::update() { this->read_data_(); }
