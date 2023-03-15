@@ -7,7 +7,7 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
 )
 
-CODEOWNERS                   = ["@sebydocky"]
+CODEOWNERS                   = ["@SeByDocKy"]
 DEPENDENCIES                 = ["i2c"]
 
 CONF_PMWCS3_E25              = "e25"
@@ -21,9 +21,7 @@ CONF_PMWCS3_ICON_SIGMA       = "mdi:sigma-lower"
 CONF_PMWCS3_ICON_TEMPERATURE = "mdi:thermometer"
 CONF_PMWCS3_ICON_ALPHA       = "mdi:alpha-h-circle-outline"
 
-
 pmwcs3_ns                    = cg.esphome_ns.namespace("pmwcs3")
-
 PMWCS3Component              = pmwcs3_ns.class_(
     "PMWCS3Component", cg.PollingComponent, i2c.I2CDevice
 )
