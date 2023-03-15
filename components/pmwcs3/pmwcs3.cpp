@@ -35,7 +35,7 @@ void PMWCS3Component::read_data_() {
   uint8_t data[8];
   float e25, ec, temperature, vwc;
   	
- /////// Super important !!!! first activate reading PMWCS3_REG_READ_START (if not, reutrn always the same values) ////
+ /////// Super important !!!! first activate reading PMWCS3_REG_READ_START (if not, return always the same values) ////
 	
   if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
       this->status_set_warning();
