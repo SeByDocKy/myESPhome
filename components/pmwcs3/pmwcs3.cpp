@@ -8,15 +8,15 @@ namespace pmwcs3 {
 static const char *const TAG = "pmwcs3";
 	
 	
-void write_i2c_address_register(uint8_t address){
-  if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
+void PMWCS3Component::set_i2c_address(uint8_t newaddress){
+  if (!this->write_byte(PMWCS3_SET_I2C_ADDRESS,  newaddress)) {
       this->status_set_warning();
-      ESP_LOGW(TAG, "couldn't start a new reading with  PMWCS3_REG_READ_START registers");
+      ESP_LOGW(TAG, "couldn't write the new I2C address %d" , newaddress);
       return;
     }
-  delay(100);		
-	
+  delay(100);			
 }
+	
 void PMWCS3Component::setup() {
    ESP_LOGCONFIG(TAG, "Setting up PMWCS3...");
 }
@@ -49,7 +49,7 @@ void PMWCS3Component::read_data_() {
 	
   if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
       this->status_set_warning();
-      ESP_LOGW(TAG, "couldn't start a new reading with  PMWCS3_REG_READ_START registers");
+      ESP_LOGW(TAG, "couldn't start a new reading with PMWCS3_REG_READ_START register");
       return;
     }
   delay(100);	
