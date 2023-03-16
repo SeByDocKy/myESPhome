@@ -14,7 +14,29 @@ void PMWCS3Component::set_i2c_address(uint8_t newaddress){
       ESP_LOGW(TAG, "couldn't write the new I2C address %d" , newaddress);
       return;
     }
-  delay(100);			
+  delay(100);
+  ESP_LOGD(TAG, "new I2C address %d done" , newaddress);	
+}
+	
+void PMWCS3Component::set_air_calibration(void){
+  if (!this->write_bytes(PMWCS3_REG_CALIBRATE_AIR, nullptr, 0)) {
+      this->status_set_warning();
+      ESP_LOGW(TAG, "couldn't start air calibration");
+      return;
+    }
+  ESP_LOGD(TAG, "Start air calibration during the next 300s");	
+  delay(300000);
+  ESP_LOGD(TAG, "Start air calibration");	
+}
+void PMWCS3Component::set_water_calibration(void){
+  if (!this->write_bytes(PMWCS3_REG_CALIBRATE_WATER, nullptr, 0)) {
+      this->status_set_warning();
+      ESP_LOGW(TAG, "couldn't start water calibration");
+      return;
+    }
+  ESP_LOGD(TAG, "Start water calibration during the next 300s");	
+  delay(300000);
+  ESP_LOGD(TAG, "Start water calibration");	
 }
 	
 void PMWCS3Component::setup() {
