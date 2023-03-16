@@ -26,7 +26,7 @@ void PMWCS3Component::set_air_calibration(void){
     }
   ESP_LOGD(TAG, "Start air calibration during the next 300s");	
   delay(300000);
-  ESP_LOGD(TAG, "Stop air calibration");	
+  ESP_LOGD(TAG, "Air calibration finished");	
 }
 void PMWCS3Component::set_water_calibration(void){
   if (!this->write_bytes(PMWCS3_REG_CALIBRATE_WATER, nullptr, 0)) {
@@ -36,7 +36,7 @@ void PMWCS3Component::set_water_calibration(void){
     }
   ESP_LOGD(TAG, "Start water calibration during the next 300s");	
   delay(300000);
-  ESP_LOGD(TAG, "Stop water calibration");	
+  ESP_LOGD(TAG, "Water calibration finished");	
 }
 	
 void PMWCS3Component::setup() {
