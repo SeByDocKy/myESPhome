@@ -46,7 +46,7 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
   void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
   void set_vwc_sensor(sensor::Sensor *vwc_sensor) { vwc_sensor_ = vwc_sensor; }
  
-  void write_i2c_address_register(uint8_t address);
+  void set_i2c_address(uint8_t new_address);
    
  protected:
   void read_data_();
