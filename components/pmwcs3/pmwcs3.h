@@ -47,6 +47,8 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
   void set_vwc_sensor(sensor::Sensor *vwc_sensor) { vwc_sensor_ = vwc_sensor; }
  
   void set_i2c_address(uint8_t new_address);
+  void set_air_calibration(void);
+  void set_water_calibration(void);
    
  protected:
   void read_data_();
