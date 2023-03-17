@@ -247,7 +247,7 @@ float VEML6075Component::calc_uvindex(void){
 void VEML6075Component::update() {
   uint16_t visible_compensation , ir_compensation;
   uint16_t rawuva , rawuvb;
-  float uva , uvb , index;
+  float uva , uvb , uvindex;
   
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
