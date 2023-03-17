@@ -245,9 +245,9 @@ float VEML6075Component::calc_index(void){
     index = (uvia + uvib) / 2.0;
     if (this->hdenabled_ )
     {
-        index *= HD_SCALAR;
+        index *= VEML6075_HD_SCALAR;
     }
-    return _lastIndex;
+    return index;
 }	
 	
 void VEML6075Component::update() {
