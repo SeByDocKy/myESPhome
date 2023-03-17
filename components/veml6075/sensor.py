@@ -19,8 +19,8 @@ CONF_DEFAULT_POLLING_CONPONENT_SCHEMA  = "60s"
 CONF_VEML6075_UVA                      = "uva"
 CONF_VEML6075_UVB                      = "uvb"
 CONF_VEML6075_UVINDEX                  = "uvindex"
-CONF_VEML6075_UVCOMP1                  = "uvcomp1"
-CONF_VEML6075_UVCOMP2                  = "uvcomp2"
+CONF_VEML6075_VISIBLE_COMP             = "visible_comp"
+CONF_VEML6075_IR_COMP                  = "ir_comp"
 CONF_VEML6075_RAWUVA                   = "rawuva"
 CONF_VEML6075_RAWUVB                   = "rawuva"
 
@@ -79,14 +79,14 @@ CONFIG_SCHEMA = (
 		icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-	    cv.Optional(CONF_VEML6075_UVCOMP1): sensor.sensor_schema(
+	    cv.Optional(CONF_VEML6075_VISIBLE_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		#icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-	    cv.Optional(CONF_VEML6075_UVCOMP2): sensor.sensor_schema(
+	    cv.Optional(CONF_VEML6075_IR_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
@@ -135,13 +135,13 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_VEML6075_UVINDEX])
         cg.add(var.set_uvindex_sensor(sens))
 	
-    if CONF_VEML6075_UVCOMP1 in config:
+    if CONF_VEML6075_VISIBLE_COMP in config:
         sens = await sensor.new_sensor(config[CONF_VEML6075_UVCOMP1])
-        cg.add(var.set_uvcomp1_sensor(sens))
+        cg.add(var.set_visible_comp_sensor(sens))
 	
-    if CONF_VEML6075_UVCOMP2 in config:
+    if CONF_VEML6075_IR_COMP in config:
         sens = await sensor.new_sensor(config[CONF_VEML6075_UVCOMP2])
-        cg.add(var.set_uvcomp2_sensor(sens))
+        cg.add(var.set_ir_comp_sensor(sens))
 	
     if CONF_VEML6075_RAWUVA in config:
         sens = await sensor.new_sensor(config[CONF_VEML6075_RAWUVA])
