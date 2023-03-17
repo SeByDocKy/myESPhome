@@ -82,14 +82,14 @@ CONFIG_SCHEMA = (
                 icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-		    cv.Optional(CONF_VEML6075_VISIBLE_COMP): sensor.sensor_schema(
+            cv.Optional(CONF_VEML6075_VISIBLE_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
                 #icon=CONF_VEML6075_ICON_NUMERIC,
-            ),
-		    
-			cv.Optional(CONF_VEML6075_IR_COMP): sensor.sensor_schema(
+            ),	    
+            
+            cv.Optional(CONF_VEML6075_IR_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
@@ -161,11 +161,3 @@ async def to_code(config):
     
 #     if CONF_VEML6075_AUTO_FORCE in config:
 #         cg.add(var.set_autoforce(config[CONF_VEML6075_AUTO_FORCE]))
-
-	
-#     cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
-
-#     for key, funcName in TYPES.items():
-#         if key in config:
-#             sens = await sensor.new_sensor(config[key])
-#             cg.add(getattr(var, funcName)(sens))
