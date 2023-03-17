@@ -103,7 +103,7 @@ void VEML6075Component::shutdown(boolean stop){
   }
 }
  
-void VEML6075Component::forcedmode(VEML6075Component::veml6075_af_t af){
+void VEML6075Component::forcedmode(veml6075_af_t af){
   uint8_t conf;
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -120,7 +120,7 @@ void VEML6075Component::forcedmode(VEML6075Component::veml6075_af_t af){
   }
 }
   
-void VEML6075Component::integrationtime(VEML6075Component::veml6075_uv_it_t it){
+void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   uint8_t conf;
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -160,7 +160,7 @@ void VEML6075Component::integrationtime(VEML6075Component::veml6075_uv_it_t it){
     } 
 }
 
-void VEML6075Component::highdynamic(VEML6075Component::veml6075_hd_t hd){
+void VEML6075Component::highdynamic(veml6075_hd_t hd){
   uint8_t conf;
   
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
