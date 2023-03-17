@@ -188,6 +188,27 @@ void VEML6075Component::highdynamic(VEML6075Component::veml6075_hd_t hd){
   }
 }  
  
+uint16_t VEML6075Component::calc_uvcomp1(void)
+{
+    uint8_t data[2] = {0, 0};
+    if (!this->read_bytes(VEML6075_REG_UV_UVCOMP1, (uint8_t *) &data, 2)){
+       ESP_LOGW(TAG, "can't read  VEML6075_REG_UV_UVCOMP1 register");
+       this->mark_failed();
+       return;	  
+  }
+    return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
+}
+
+uint16_t VEML6075Component::calc_uvcomp2(void)
+{
+    uint8_t data[2] = {0, 0};
+    if (!this->read_bytes(VEML6075_REG_UV_UVCOMP2, (uint8_t *) &data, 2)){
+       ESP_LOGW(TAG, "can't read  VEML6075_REG_UV_UVCOMP2 register");
+       this->mark_failed();
+       return;	  
+  }
+    return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
+}
 
 void VEML6075Component::update() {
   uint8_t raw_data[4];
