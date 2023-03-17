@@ -107,6 +107,21 @@ void VEML6075Component::shutdown(boolean stop){
   
 }
  
+void VEML6075Component::forcedmode(uint8_t af){
+  
+  
+}
+  
+void VEML6075Component::integrationtime(uint8_t it){
+  
+  
+}
+
+void VEML6075Component::highdynamic(uint8_t hd){
+  
+  
+}  
+ 
 
 void VEML6075Component::update() {
   uint8_t raw_data[4];
