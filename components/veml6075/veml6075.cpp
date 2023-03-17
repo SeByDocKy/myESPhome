@@ -229,7 +229,7 @@ float VEML6075Component::calc_uva(void){
 }
 
 float VEML6075Component::calc_uvb(void){
-    return (float)this->rawuvv_sensor_ - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp_sensor_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp_sensor_) / VEML6075_UV_DELTA );	
+    return (float)this->rawuvb_sensor_ - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp_sensor_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp_sensor_) / VEML6075_UV_DELTA );	
 }	
 
 float VEML6075Component::calc_uvindex(void){
