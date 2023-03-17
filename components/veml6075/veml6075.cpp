@@ -20,13 +20,13 @@ void VEML6075Component::dump_config() {
   ESP_LOGCONFIG(TAG, "Dump data");
   LOG_I2C_DEVICE(this);
   LOG_UPDATE_INTERVAL(this);
-  LOG_SENSOR("  ", "uva", this->uva_);
-  LOG_SENSOR("  ", "uvb", this->uvb_);
-  LOG_SENSOR("  ", "uvindex", this->uvindex_);
-  LOG_SENSOR("  ", "uvcomp1", this->uvcomp1_);
-  LOG_SENSOR("  ", "uvcomp2", this->uvcomp2_);
-  LOG_SENSOR("  ", "rawuva", this->rawuva_);
-  LOG_SENSOR("  ", "rawuvb", this->rawuvb_);
+  LOG_SENSOR("  ", "uva", this->uva_sensor_);
+  LOG_SENSOR("  ", "uvb", this->uvb_sensor_);
+  LOG_SENSOR("  ", "uvindex", this->uvindex_sensor_);
+  LOG_SENSOR("  ", "visible compensation", this->visible_comp_sensor_);
+  LOG_SENSOR("  ", "ir compesensation", this->ir_comp_sensor_);
+  LOG_SENSOR("  ", "rawuva", this->rawuva_sensor_);
+  LOG_SENSOR("  ", "rawuvb", this->rawuvb_sensor_);
 }
 
 void VEML6075Component::setup() {
@@ -188,38 +188,57 @@ void VEML6075Component::highdynamic(VEML6075Component::veml6075_hd_t hd){
   }
 }  
  
-uint16_t VEML6075Component::calc_visible_comp(void)
-{
+uint16_t VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0, 0};
-    if (!this->read_bytes(VEML6075_REG_UV_UVCOMP1, (uint8_t *) &data, 2)){
-       ESP_LOGW(TAG, "can't read  VEML6075_REG_UV_UVCOMP1 register");
+    if (!this->read_bytes(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, 2)){
+       ESP_LOGW(TAG, "can't read VEML6075_REG_VISIBLE_COMP register");
        this->mark_failed();
        return;	  
   }
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
 }
 
-uint16_t VEML6075Component::calc_ir_comp(void)
-{
+uint16_t VEML6075Component::calc_ir_comp(void){
     uint8_t data[2] = {0, 0};
-    if (!this->read_bytes(VEML6075_REG_UV_UVCOMP2, (uint8_t *) &data, 2)){
-       ESP_LOGW(TAG, "can't read  VEML6075_REG_UV_UVCOMP2 register");
+    if (!this->read_bytes(VEML6075_REG_IR_COMP, (uint8_t *) &data, 2)){
+       ESP_LOGW(TAG, "can't read VEML6075_REG_IR_COMP register");
        this->mark_failed();
        return;	  
   }
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
+}
+	
+	
+uint16_t VEML6075Component::calc_rawuva(void){
+    uint8_t data[2] = {0, 0};
+
+    if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, 2)){
+       ESP_LOGW(TAG, "can't read VEML6075_REG_UVA  register");
+       this->mark_failed();
+       return;
+    return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);	    
+}
+	
+uint16_t VEML6075Component::calc_rawuvb(void){
+    uint8_t data[2] = {0, 0};
+
+    if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, 2)){
+       ESP_LOGW(TAG, "can't read VEML6075_REG_UVB  register");
+       this->mark_failed();
+       return;
+    return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);	    
 }
 
 void VEML6075Component::update() {
   uint16_t visible_compensation , ir_compensation;
   
-  visible_compensation  = :calc_visible_comp();
+  visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_ ->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }
   
-  ir_compensation       = :calc_ir_comp();
+  ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_ ->publish_state(ir_compensation);
 	  ESP_LOGD(TAG, "ir_compensation: %d" , ir_compensation);
