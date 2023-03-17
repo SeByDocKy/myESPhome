@@ -10,7 +10,7 @@
 namespace esphome {
 namespace veml6075 {
 
-// enums from https://github.com/adafruit/Adafruit_VEML6075/blob/master/Adafruit_VEML6075.h
+// enums from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library/tree/master/src
 
 static const uint8_t VEML6075_ADDR                = 0x10;
 static const uint8_t VEML6075_REG_CONF            = 0x00;
@@ -90,9 +90,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
     
 	
   void set_integration_time(VEML6075_INTEGRATION_TIME_OPTIONS it) { this->it_ = it; }
-  void set_uv_a(sensor::Sensor *uv_a) { this->uv_a_ = uv_a; }
-  void set_uv_b(sensor::Sensor *uv_b) { this->uv_b_ = uv_b; }
-  void set_uv_index(sensor::Sensor *uv_index) { this->uv_index_ = uv_index; }
+  void set_uva(sensor::Sensor *uva) { this->uva_ = uva; }
+  void set_uvb(sensor::Sensor *uvb) { this->uvb_ = uvb; }
+  void set_index(sensor::Sensor *index) { this->index_ = index; }
 
 /*  
   void setCoefficients(float UV_A_1, float UV_A_2, float UV_B_1,
@@ -101,7 +101,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
 										
 */   
  protected:
- 
+/* 
   typedef enum{
    REG_UV_CONF = 0x00,
    REG_UVA_DATA = 0x07,
@@ -112,18 +112,20 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   } veml6075_register_t;
   
   veml6075_address_t _deviceAddress;
+*/  
 
-  uint16_t rawUva(void);
-  uint16_t rawUvb(void);
+  uint16_t rawbva(void);
+  uint16_t rawbvb(void);
   float uva(void);
   float uvb(void);
   float index(void);
+	
   float a(void);
   float b(void);
   float i(void);
 
-  uint16_t uvComp1(void);
-  uint16_t uvComp2(void);
+  uint16_t uvcomp1(void);
+  uint16_t uvcomp2(void);
   uint16_t visibleCompensation(void);
   uint16_t irCompensation(void);
   
@@ -149,9 +151,13 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   veml6075_error_t deviceID(uint8_t *id);
   veml6075_error_t deviceAddress(uint8_t *address);
   
-  sensor::Sensor *uv_a_{nullptr};
-  sensor::Sensor *uv_b_{nullptr};
-  sensor::Sensor *uv_index_{nullptr};  
+  sensor::Sensor *uva_{nullptr};
+  sensor::Sensor *uvb_{nullptr};
+  sensor::Sensor *uvindex_{nullptr};  
+  sensor::Sensor *uvcomp1_{nullptr};
+  sensor::Sensor *uvcomp2_{nullptr};
+  sensor::Sensor *rawuva_{nullptr};
+  sensor::Sensor *rawuvb_{nullptr};
   
   veml6075_uv_it_t it_{IT_100MS};
   
