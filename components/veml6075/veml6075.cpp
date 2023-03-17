@@ -137,7 +137,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   }
   
   this->uva_responsivity_ = VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
-  this->uva_responsivity_ = VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
+  this->uvb_responsivity_ = VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
 
   switch (it){
     case IT_50MS:
