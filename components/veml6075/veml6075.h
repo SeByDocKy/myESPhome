@@ -10,39 +10,61 @@ namespace veml6075 {
 
 // enums from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library/tree/master/src
 
-static const uint8_t VEML6075_ADDR                = 0x10;
-static const uint8_t VEML6075_REG_CONF            = 0x00;
-static const uint8_t VEML6075_REG_UV_A            = 0x07;
-static const uint8_t VEML6075_REG_DARK            = 0x08;
-static const uint8_t VEML6075_REG_UV_B            = 0x09;
-static const uint8_t VEML6075_REG_UV_UVCOMP1      = 0x0A;
-static const uint8_t VEML6075_REG_UV_UVCOMP2      = 0x0B;
-static const uint8_t VEML6075_REG_ID              = 0x0C;
-static const uint8_t VEML6075_ID                  = 0x26;
+static const uint8_t VEML6075_ADDR                   = 0x10;
+static const uint8_t VEML6075_REG_CONF               = 0x00;
+static const uint8_t VEML6075_REG_UV_A               = 0x07;
+static const uint8_t VEML6075_REG_DARK               = 0x08;
+static const uint8_t VEML6075_REG_UV_B               = 0x09;
+static const uint8_t VEML6075_REG_UV_UVCOMP1         = 0x0A;
+static const uint8_t VEML6075_REG_UV_UVCOMP2         = 0x0B;
+static const uint8_t VEML6075_REG_ID                 = 0x0C;
+static const uint8_t VEML6075_ID                     = 0x26;
 	
-static const uint8_t VEML6075_SHUTDOWN_MASK       = 0x01;
-static const uint8_t VEML6075_SHUTDOWN_SHIFT      = 0;	
+static const uint8_t VEML6075_SHUTDOWN_MASK           = 0x01;
+static const uint8_t VEML6075_SHUTDOWN_SHIFT          = 0;	
 
-static const uint8_t VEML6075_AF_MASK             = 0x02;
-static const uint8_t VEML6075_AF_SHIFT            = 1;	
+static const uint8_t VEML6075_AF_MASK                 = 0x02;
+static const uint8_t VEML6075_AF_SHIFT                = 1;	
 
-static const uint8_t VEML6075_TRIG_MASK           = 0x04;
-static const uint8_t VEML6075_TRIG_SHIFT          = 2;	
+static const uint8_t VEML6075_TRIG_MASK               = 0x04;
+static const uint8_t VEML6075_TRIG_SHIFT              = 2;	
 	
-static const uint8_t VEML6075_HD_MASK             = 0x08;
-static const uint8_t VEML6075_HD_SHIFT            = 3;	
+static const uint8_t VEML6075_HD_MASK                 = 0x08;
+static const uint8_t VEML6075_HD_SHIFT                = 3;	
 
-static const uint8_t VEML6075_UV_IT_MASK          = 0x70;
-static const uint8_t VEML6075_UV_IT_SHIFT         = 4;		
+static const uint8_t VEML6075_UV_IT_MASK              = 0x70;
+static const uint8_t VEML6075_UV_IT_SHIFT             = 4;		
 
+static const float VEML6075_DEFAULT_UVA1_COEFF        = 2.22;
+static const float VEML6075_DEFAULT_UVA2_COEFF        = 1.33;
+static const float VEML6075_DEFAULT_UVB1_COEFF        = 2.95;
+static const float VEML6075_DEFAULT_UVB2_COEFF        = 1.74;
+static const float VEML6075_DEFAULT_UVA_RESP          = 0.001461;
+static const float VEML6075_DEFAULT_UVB_RESP          = 0.002591;
+	
+const float VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED = 0.001111;
+const float VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED = 0.00125;
+	
+const int VEML6075_NUM_INTEGRATION_TIMES              = 5;
 
-static const float VEML6075_DEFAULT_UVA1_COEFF  = 2.22;
-static const float VEML6075_DEFAULT_UVA2_COEFF  = 1.33;
-static const float VEML6075_DEFAULT_UVB1_COEFF  = 2.95;
-static const float VEML6075_DEFAULT_UVB2_COEFF  = 1.74;
-static const float VEML6075_DEFAULT_UVA_RESP    = 0.001461;
-static const float VEML6075_DEFAULT_UVB_RESP    = 0.002591;
-
+const float VEML6075_UVA_RESPONSIVITY[VEML6075_NUM_INTEGRATION_TIMES] =
+    {
+        VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED / 0.5016286645, // 50ms
+        VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED,                // 100ms
+        VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED / 2.039087948,  // 200ms
+        VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED / 3.781758958,  // 400ms
+        VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED / 7.371335505   // 800ms
+};
+	
+const float VEML6075_UVB_RESPONSIVITY[VEML6075_NUM_INTEGRATION_TIMES] =
+    {
+        VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED / 0.5016286645, // 50ms
+        VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED,                // 100ms
+        VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED / 2.039087948,  // 200ms
+        VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED / 3.781758958,  // 400ms
+        VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED / 7.371335505   // 800ms
+};
+	
 typedef enum
 {
     VEML6075_ADDRESS = 0x10,
@@ -118,9 +140,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
 	 
   void identifychip(void);
   void shutdown(boolean stop);
-  void forcedmode(uint8_t af);
-  void integrationtime(uint8_t af);
-  void highdynamic(uint8_t hd);
+  void forcedmode(veml6075_af_t af);
+  void integrationtime(veml6075_uv_it_t it);
+  void highdynamic(veml6075_hd_t hd);
 	
    
 protected:
@@ -137,10 +159,14 @@ protected:
   veml6075_af_t af_{AF_DISABLE};
   veml6075_hd_t hd_{DYNAMIC_NORMAL};
 	
-  float uva1 = VEML6075_DEFAULT_UVA1_COEFF, uva2 = VEML6075_DEFAULT_UVA2_COEFF;
-  float uvb1 = VEML6075_DEFAULT_UVB1_COEFF, uvb2 = VEML6075_DEFAULT_UVB1_COEFF;
-  float uva_resp = VEML6075_DEFAULT_UVA_RESP, uvb_resp = VEML6075_DEFAULT_UVB_RESP;
-  float uva_calc, uvb_calc;
+  float uva1_ = VEML6075_DEFAULT_UVA1_COEFF, uva2_ = VEML6075_DEFAULT_UVA2_COEFF;
+  float uvb1_ = VEML6075_DEFAULT_UVB1_COEFF, uvb2_ = VEML6075_DEFAULT_UVB1_COEFF;
+  float uva_resp_ = VEML6075_DEFAULT_UVA_RESP, uvb_resp_ = VEML6075_DEFAULT_UVB_RESP;
+  float uva_calc_, uvb_calc_;
+	
+  float uva_responsivity_, uvv_responsivity_;
+  uint16_t  integrationtime_;
+  bool hdenabled_;
 	
 /* 
   typedef enum{
