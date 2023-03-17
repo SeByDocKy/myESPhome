@@ -36,12 +36,12 @@ static const uint8_t VEML6075_UV_IT_MASK          = 0x70;
 static const uint8_t VEML6075_UV_IT_SHIFT         = 4;		
 
 
-static const float VEML6075_DEFAULT_UV_A_1_COEFF  = 2.22;
-static const float VEML6075_DEFAULT_UV_A_2_COEFF  = 1.33;
-static const float VEML6075_DEFAULT_UV_B_1_COEFF  = 2.95;
-static const float VEML6075_DEFAULT_UV_B_2_COEFF  = 1.74;
-static const float VEML6075_DEFAULT_UV_A_RESPONSE = 0.001461;
-static const float VEML6075_DEFAULT_UV_B_RESPONSE = 0.002591;
+static const float VEML6075_DEFAULT_UVA1_COEFF  = 2.22;
+static const float VEML6075_DEFAULT_UVA2_COEFF  = 1.33;
+static const float VEML6075_DEFAULT_UVB1_COEFF  = 2.95;
+static const float VEML6075_DEFAULT_UVB2_COEFF  = 1.74;
+static const float VEML6075_DEFAULT_UVA_RESP    = 0.001461;
+static const float VEML6075_DEFAULT_UVB_RESP    = 0.002591;
 
 typedef enum
 {
@@ -114,7 +114,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_dynamic(VEM6075_DYNAMIC_OPTIONS hd) { this->hd_ = hd; }
   void set_autoforce(VEM6075_AUTOFORCE_OPTIONS af) { this->af_ = af; }
 	
-  void setcoefficients(float UVA1, float UVA2, float UVB1, float UVB1, float UVA_RESP, float UVB_RESP);
+//   void setcoefficients(float UVA1, float UVA2, float UVB1, float UVB1, float UVA_RESP, float UVB_RESP);
 	 
   void identifychip(void);
   void shutdown(boolean stop);
@@ -137,7 +137,10 @@ protected:
   veml6075_af_t af_{AF_DISABLE};
   veml6075_hd_t hd_{DYNAMIC_NORMAL};
 	
-  float uva1, uva2, uvb1, uvb2, uva_resp, uvb_resp, uva_calc, uvb_calc;
+  float uva1 = VEML6075_DEFAULT_UVA1_COEFF, uva2 = VEML6075_DEFAULT_UVA2_COEFF;
+  float uvb1 = VEML6075_DEFAULT_UVB1_COEFF, uvb2 = VEML6075_DEFAULT_UVB1_COEFF;
+  float uva_resp = VEML6075_DEFAULT_UVA_RESP, uvb_resp = VEML6075_DEFAULT_UVB_RESP;
+  float uva_calc, uvb_calc;
 	
 /* 
   typedef enum{
