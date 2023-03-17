@@ -10,15 +10,15 @@ namespace veml6075 {
 
 // enums from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library/tree/master/src
 
-static const uint8_t VEML6075_ADDR                   = 0x10;
-static const uint8_t VEML6075_REG_CONF               = 0x00;
-static const uint8_t VEML6075_REG_UVA                = 0x07;
-static const uint8_t VEML6075_REG_DARK               = 0x08;
-static const uint8_t VEML6075_REG_UVB                = 0x09;
-static const uint8_t VEML6075_REG_VISIBLE_COMP       = 0x0A;
-static const uint8_t VEML6075_REG_IR_COMP            = 0x0B;
-static const uint8_t VEML6075_REG_ID                 = 0x0C;
-static const uint8_t VEML6075_ID                     = 0x26;
+static const uint8_t VEML6075_ADDR                    = 0x10;
+static const uint8_t VEML6075_REG_CONF                = 0x00;
+static const uint8_t VEML6075_REG_UVA                 = 0x07;
+static const uint8_t VEML6075_REG_DARK                = 0x08;
+static const uint8_t VEML6075_REG_UVB                 = 0x09;
+static const uint8_t VEML6075_REG_VISIBLE_COMP        = 0x0A;
+static const uint8_t VEML6075_REG_IR_COMP             = 0x0B;
+static const uint8_t VEML6075_REG_ID                  = 0x0C;
+static const uint8_t VEML6075_ID                      = 0x26;
 	
 static const uint8_t VEML6075_SHUTDOWN_MASK           = 0x01;
 static const uint8_t VEML6075_SHUTDOWN_SHIFT          = 0;	
