@@ -103,10 +103,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
 /*  
   void setCoefficients(float UV_A_1, float UV_A_2, float UV_B_1,
                                         float UV_B_1, float UV_A_response,
-                                        float UV_B_response);
-										
-*/   
- protected:
+                                        float UV_B_response);									
+*/    
+protected:
 	
   sensor::Sensor *uva_{nullptr};
   sensor::Sensor *uvb_{nullptr};
@@ -121,7 +120,6 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   veml6075_hd_t hd_{DYNAMIC_NORMAL};
 	
   float uva1, uva2, uvb1, uvb2, uva_resp, uvb_resp, uva_calc, uvb_calc;
-	
 	
 /* 
   typedef enum{
