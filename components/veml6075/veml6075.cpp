@@ -6,8 +6,6 @@ namespace esphome {
 namespace veml6075 {
 
 static const char *const TAG = "veml6075";
-static const uint8_t VEML6075_DEFAULT_I2C_ADRESS = 0x10;
-
 
 void VEML6075Component::setCoefficients(float UV_A_1, float UV_A_2, float UV_B_1,
                                         float UV_B_1, float UV_A_response,
