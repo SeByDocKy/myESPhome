@@ -237,7 +237,7 @@ float VEML6075Component::calc_uvb(void){
     return (float)this->rawuvb - ( ( VEML6075_DEFAULT_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp) / VEML6075_UV_DELTA );	
 }	
 
-float VEML6075Component::calc_index(void){
+float VEML6075Component::calc_uvindex(void){
      
     float index;
     float uvia = this->uva * (1.0 / VEML6075_UV_ALPHA) * this->uva_responsivity_;
@@ -253,7 +253,7 @@ float VEML6075Component::calc_index(void){
 void VEML6075Component::update() {
   uint16_t visible_compensation , ir_compensation;
   uint16_t rawuva , rawuvb;
-  float uva , uvb;
+  float uva , uvb , index;
   
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
@@ -289,6 +289,12 @@ void VEML6075Component::update() {
   if (this->uva_sensor_ != nullptr) {
 	  this->uvb_sensor_ ->publish_state(uvb);
 	  ESP_LOGD(TAG, "UVB: %f" , uvb);
+  }
+	
+  uvindex              = calc_uvindex();
+   if (this->uvindex_sensor_ != nullptr) {
+	  this->uvindex_sensor_ ->publish_state(uvindex);
+	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }
 	
 }
