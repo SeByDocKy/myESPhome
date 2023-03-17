@@ -61,14 +61,14 @@ void VEML6075Component::identifychip(void){
 //  uint8_t conf_register = 0;
   
   if (!this->read_byte(VEML6075_REG_ID, &chip_id)) {
-    #this->error_code_ = COMMUNICATION_FAILED;
+//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
     this->mark_failed();
     return;
   }
   if (chip_id != VEML6075_ID) {
     ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", chip_id , VEML6075_ID);
-    #this->error_code_ = WRONG_CHIP_ID;
+//     this->error_code_ = WRONG_CHIP_ID;
     this->mark_failed();
     return;
   }
@@ -88,7 +88,7 @@ void VEML6075Component::shutdown(boolean stop){
   uint8_t conf , sd = 0;
   
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
-    #this->error_code_ = COMMUNICATION_FAILED;
+//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
     this->mark_failed();
     return;
@@ -106,7 +106,7 @@ void VEML6075Component::shutdown(boolean stop){
 void VEML6075Component::forcedmode(VEML6075Component::veml6075_af_t af){
   uint8_t conf;
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
-    #this->error_code_ = COMMUNICATION_FAILED;
+//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in forcemode");
     this->mark_failed();
     return;
@@ -123,7 +123,7 @@ void VEML6075Component::forcedmode(VEML6075Component::veml6075_af_t af){
 void VEML6075Component::integrationtime(VEML6075Component::veml6075_uv_it_t it){
   uint8_t conf;
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
-    #this->error_code_ = COMMUNICATION_FAILED;
+//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in integration time");
     this->mark_failed();
     return;
@@ -164,7 +164,7 @@ void VEML6075Component::highdynamic(VEML6075Component::veml6075_hd_t hd){
   uint8_t conf;
   
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
-    #this->error_code_ = COMMUNICATION_FAILED;
+//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
     this->mark_failed();
     return;
@@ -203,8 +203,7 @@ uint16_t VEML6075Component::calc_ir_comp(void){
   }
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
 }
-	
-	
+		
 uint16_t VEML6075Component::calc_rawuva(void){
     uint8_t data[2] = {0, 0};
     if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, 2)){
