@@ -19,6 +19,22 @@ static const uint8_t VEML6075_REG_UV_UVCOMP1      = 0x0A;
 static const uint8_t VEML6075_REG_UV_UVCOMP2      = 0x0B;
 static const uint8_t VEML6075_REG_ID              = 0x0C;
 static const uint8_t VEML6075_ID                  = 0x26;
+	
+static const uint8_t VEML6075_SHUTDOWN_MASK       = 0x01;
+static const uint8_t VEML6075_SHUTDOWN_SHIFT      = 0;	
+
+static const uint8_t VEML6075_AF_MASK             = 0x02;
+static const uint8_t VEML6075_AF_SHIFT            = 1;	
+
+static const uint8_t VEML6075_TRIG_MASK           = 0x04;
+static const uint8_t VEML6075_TRIG_SHIFT          = 2;	
+	
+static const uint8_t VEML6075_HD_MASK             = 0x08;
+static const uint8_t VEML6075_HD_SHIFT            = 3;	
+
+static const uint8_t VEML6075_UV_IT_MASK          = 0x70;
+static const uint8_t VEML6075_UV_IT_SHIFT         = 4;		
+
 
 static const float VEML6075_DEFAULT_UV_A_1_COEFF  = 2.22;
 static const float VEML6075_DEFAULT_UV_A_2_COEFF  = 1.33;
