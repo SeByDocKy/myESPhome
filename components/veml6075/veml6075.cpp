@@ -7,17 +7,14 @@ namespace veml6075 {
 
 static const char *const TAG = "veml6075";
 
-void VEML6075Component::setcoefficients(float UVA1, float UVA2, float UVB1,
-                                        float UVB1, float UVA_RESP,
-                                        float UVB_RESP) 
-{
-   uva1     = UVA1;
-   uva2     = UVA2;
-   uvb1     = UVB1;
-   uvb2     = UVB2;
-   uva_resp = UVA_RESP;
-   uvb_resp = UVB_RESP;
-}
+// void VEML6075Component::setcoefficients(float UVA1, float UVA2, float UVB1, float UVB1, float UVA_RESP, float UVB_RESP) {
+//    uva1     = UVA1;
+//    uva2     = UVA2;
+//    uvb1     = UVB1;
+//    uvb2     = UVB2;
+//    uva_resp = UVA_RESP;
+//    uvb_resp = UVB_RESP;
+// }
 
 
 void VEML6075Component::dump_config() {
@@ -39,20 +36,35 @@ void VEML6075Component::setup() {
   uint8_t chip_id = 0;
   uint8_t conf_register = 0;
   
-  setCoefficients(VEML6075_DEFAULT_UV_A_1_COEFF, VEML6075_DEFAULT_UV_A_2_COEFF,
-                  VEML6075_DEFAULT_UV_B_1_COEFF, VEML6075_DEFAULT_UV_B_2_COEFF,
-                  VEML6075_DEFAULT_UV_A_RESPONSE, VEML6075_DEFAULT_UV_B_RESPONSE);
+//   setCoefficients(VEML6075_DEFAULT_UVA1_COEFF, VEML6075_DEFAULT_UVA2_COEFF,
+//                   VEML6075_DEFAULT_UVB1_COEFF, VEML6075_DEFAULT_UVB2_COEFF,
+//                   VEML6075_DEFAULT_UVA_RESP, VEML6075_DEFAULT_UVB_RESP);
 
-  // _commandRegister.reg = 0;
+  identifychip(); // check if it's a genuine chip
   
-  
-  // Mark as not failed before initializing. Some devices will turn off sensors to save on batteries
-  // and when they come back on, the COMPONENT_STATE_FAILED bit must be unset on the component.
-//  this->component_state_ &= ~COMPONENT_STATE_FAILED;
+  shutdown(true); // Shut down to change settings
 
+  // Set Force readings
+  forcedmode(this->af_);
+
+  // Set integration time
+  integrationtime(this->it_);
+
+  // Set high dynamic
+  highdynamic(this->hd_);
+
+  shutdown(false); // Turn on chip after setting set
+
+}
+
+void VEML6075Component::identifychip(void){
+  
+  uint8_t chip_id = 0;
+  uint8_t conf_register = 0;
+  
   if (!this->read_byte(VEML6075_REG_ID, &chip_id)) {
     #this->error_code_ = COMMUNICATION_FAILED;
-    ESP_LOGE(TAG, "Can't communicate with VEML6075");
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
     this->mark_failed();
     return;
   }
@@ -63,32 +75,17 @@ void VEML6075Component::setup() {
     return;
   }
   
+/*  
   if (!this->read_byte(VEML6075_REG_CONF, &conf_register)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
     this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
     return;
   }
+  */
   
-  // _commandRegister.reg = 0;
-  
-  shutdown(true); // Shut down to change settings
-
-  // Force readings
-  forcedmode(thiq->af_);
-
-  // Set integration time
-  integrationtime(thiq->it_);
-
-  // Set high dynamic
-  highdynamic(this->hd_);
-
-  shutdown(false); // Re-enable
-
- 
-
 }
-
+ 
 void VEML6075Component::shutdown(boolean stop){
   uint8_t conf=0 , sd = 0;
   
