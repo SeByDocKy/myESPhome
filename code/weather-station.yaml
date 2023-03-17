@@ -1,0 +1,493 @@
+substitutions:
+  
+  name: weather_station
+  tx_pin_uart0: GPIO17
+  rx_pin_uart0: GPIO16
+  modbus_adress: '1'
+  modbus_adress2: '2'
+  modbus_adress3: '3'
+  baudrate: '9600'
+  updates: 1s
+  
+  tx_pin_uart1: GPIO18
+  rx_pin_uart1: GPIO19
+  baudrate1: '9600'
+  
+
+esphome:
+  name: ${name}
+  
+  includes:
+#    - include/veml6075_custom_sensor.h
+#    - include/tx23_custom_sensor.h
+  libraries:
+#    - "https://github.com/adafruit/Adafruit_VEML6075"
+#    - "https://github.com/adafruit/Adafruit_BusIO"
+#    - "https://github.com/egzumer/Arduino-LaCrosse-TX23-Library"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+  
+# Enable logging
+logger:
+  #level: DEBUG
+  #level: verbose
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s
+
+ota:
+  password: "dc092ad97d8485b76da5d7412da86816"
+
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+  power_save_mode: high
+  output_power: 8.5db
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Pyr20 Fallback Hotspot"
+    password: "Bandit17"
+
+time:
+
+  - platform: homeassistant
+    id: homeassistant_time  
+    
+    on_time:
+
+      - seconds: 58
+        minutes: 59
+        hours: 23     
+
+        then:  
+        - globals.set:
+            id: ${name}_vitesse_vent_max_global
+            value: '0' 
+        
+        - globals.set:
+            id: ${name}_velocite_vent_max_global
+            value: '0' 
+  
+
+ 
+#          - sensor.template.publish:
+#              id: template_yesteday_rain
+#              state: !lambda return id(daily_rain).state;
+
+    
+
+globals:
+  - id: ${name}_vitesse_vent_max_global
+    type: float
+    restore_value: yes
+
+  - id: ${name}_velocite_vent_max_global
+    type: float
+    restore_value: yes
+
+
+
+uart:
+  - id: uart0
+    tx_pin: ${tx_pin_uart0}
+    rx_pin: ${rx_pin_uart0}
+    baud_rate: ${baudrate}
+    stop_bits: 1
+  # debug:
+    # direction: BOTH 
+  
+  - id: uart1
+    tx_pin: ${tx_pin_uart1}
+    rx_pin: ${rx_pin_uart1}
+    baud_rate: ${baudrate1}
+    
+    # debug:
+    # direction: BOTH 
+
+  
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  frequency: 50kHz
+  id: bus_i2c
+
+spi:
+  clk_pin: GPIO14
+  miso_pin: GPIO12
+  mosi_pin: GPIO13
+
+#as3935_i2c: 
+#  address: 0x03  
+as3935_spi:
+  cs_pin: GPIO15 
+ 
+  id: as3935_id 
+  irq_pin: GPIO32
+  indoor: True
+  noise_level: 7
+  lightning_threshold: 16
+  mask_disturber: false
+  div_ratio: 0
+  capacitance: 0
+  watchdog_threshold: 2
+  spike_rejection: 5  
+
+modbus:
+  #flow_control_pin: 23
+  uart_id: uart0
+  send_wait_time: 200ms
+  id: modbus_weather_station
+
+modbus_controller:
+  - id: ${name}
+    ## the Modbus device addr1
+    address: ${modbus_adress}
+    modbus_id: modbus_weather_station
+    command_throttle: 200ms
+    setup_priority: -10
+    update_interval: 5s
+
+  - id: ${name}_anemometre
+    ## the Modbus device addr2
+    address: ${modbus_adress2}
+    modbus_id: modbus_weather_station
+    command_throttle: 1000ms
+    setup_priority: -10
+    update_interval: ${updates}
+  
+  - id: ${name}_girouette
+    ## the Modbus device addr3
+    address: ${modbus_adress3}
+    modbus_id: modbus_weather_station
+    command_throttle: 1000ms
+    setup_priority: -10
+    update_interval: 5s
+
+
+
+binary_sensor:       
+  - platform: status
+    name: ${name}_status   
+
+  - platform: as3935
+    name: ${name}_Lightning Alert 
+
+switch:
+  - platform: restart
+    name: "${name}"
+    
+sensor:
+  - platform: uptime
+    id: uptime_sec
+############ pluviometre ###############
+#  - platform: pulse_counter
+#    pin:
+#      number: GPIO4
+#      inverted: True
+#      mode: INPUT_PULLUP    
+#    unit_of_measurement: 'mm'
+#    update_interval: 2s
+#    accuracy_decimals: 3
+#    name: '${name}_compteur_pluviometre'
+#    id: rain_meter
+#    filters:
+#      - multiply:  25 #0.0250 #0.367    #90/2.25ml om 90 est la valeur pour chaque bascule ave 2s et 2.25ml est le volume de chaque réservoir
+
+#  - platform: total_daily_energy
+#    name: "${name}_pluie_du_jour"
+#    power_id: rain_meter  
+#    unit_of_measurement: "mm"
+#    accuracy_decimals: 3
+#    id: daily_rain
+#    icon: mdi:water
+    
+#  - platform: template
+#    name: "${name}_pluie_veille"
+#    id: template_yesteday_rain
+#    unit_of_measurement: "mm"
+#    accuracy_decimals: 3
+#    icon: mdi:water
+#    update_interval: 10s
+
+
+########### BME280 ###################    
+    
+  - platform: bme280
+    temperature:
+      name: "${name}_temperature"
+      oversampling: 16x
+      id: ${name}_temperature
+    pressure:
+      name: "${name}_pression"
+      id: ${name}_pression
+    humidity:
+      name: "${name}_humidite"
+      id: ${name}_humidite
+    address: 0x76
+    update_interval: 5s
+  
+
+
+##########pyranomètre PRY20###########
+  - platform: modbus_controller
+    modbus_controller_id: ${name}
+    id: ${name}_solar_radiation
+    name: ${name}_solar_radiation
+    address: 0x0000
+    register_type: holding
+    value_type: U_WORD
+    accuracy_decimals: 0
+    icon: mdi:sun-wireless
+    skip_updates: 1
+    unit_of_measurement: "W/m²"
+
+######annemomètre###############
+  - platform: modbus_controller
+    modbus_controller_id: ${name}_anemometre
+    id: ${name}_retour_capteur
+    name: ${name}_retour_capteur
+    address: 0x0000
+    register_type: holding
+    value_type: U_WORD
+    accuracy_decimals: 0
+    skip_updates: 1
+    icon: mdi:cog-clockwise
+
+  - platform: template
+    name: "${name}_velocite_vent"
+    id: ${name}_velocite_vent
+    unit_of_measurement: "m/s"
+    accuracy_decimals: 2
+    update_interval: ${updates} 
+    icon: mdi:wind-power-outline
+    lambda: return ( (id(${name}_retour_capteur).state) / (10) );
+    on_value: 
+      then:
+          - if:
+              condition:
+                and:
+                  -  lambda: |-
+                       return id(${name}_velocite_vent).state >= id(${name}_velocite_vent_max_global); 
+              then:
+                - globals.set: 
+                     id: ${name}_velocite_vent_max_global
+                     value: !lambda return ( id(${name}_velocite_vent_max_global) =  float( id(${name}_velocite_vent).state) );    
+
+  - platform: template
+    name: "${name}_vitesse vent"
+    id: ${name}_vitesse_vent
+    unit_of_measurement: "KM/H"
+    accuracy_decimals: 2
+    update_interval: ${updates} 
+    icon: mdi:wind-power
+    lambda: return ( (id(${name}_velocite_vent).state) * (3.6) ); 
+    on_value: 
+      then:
+          - if:
+              condition:
+                and:
+                  -  lambda: |-
+                       return id(${name}_vitesse_vent).state >= id(${name}_vitesse_vent_max_global); 
+              then:
+                - globals.set: 
+                     id: ${name}_vitesse_vent_max_global
+                     value: !lambda return ( id(${name}_vitesse_vent_max_global) =  float( id(${name}_vitesse_vent).state) );    
+   
+  - platform: template
+    name: ${name}_vitesse_vent_max
+    id: template_${name}_vitesse_vent_max
+    unit_of_measurement: "KM/H"
+    accuracy_decimals: 2
+    icon: mdi:wind-turbine-alert
+    update_interval: ${updates}
+    lambda: |-
+      return (id(template_${name}_vitesse_vent_max).state = id(${name}_vitesse_vent_max_global));
+    
+  
+  - platform: template
+    name: ${name}_velocite_vent_max
+    id: template_${name}_velocite_vent_max
+    unit_of_measurement: "m/s"
+    accuracy_decimals: 2
+    icon: mdi:wind-turbine-alert
+    update_interval: ${updates}
+    lambda: |-
+      return (id(template_${name}_velocite_vent_max).state = id(${name}_velocite_vent_max_global));
+
+
+      
+######### girouette ################     
+
+  - platform: modbus_controller
+    modbus_controller_id:  ${name}_girouette
+    id: direction_cardinal
+    name: ${name}_direction_cardinal
+    address: 0x0000
+    register_type: holding
+    value_type: U_WORD
+    accuracy_decimals: 0
+    skip_updates: 1 
+    icon: mdi:angle-acute
+
+  - platform: modbus_controller
+    modbus_controller_id: ${name}_girouette 
+    id: direction_degres
+    name: ${name}_direction_en°
+    address: 0x0001
+    register_type: holding
+    value_type: U_WORD
+    accuracy_decimals: 0
+    unit_of_measurement: "°"
+    skip_updates: 1 
+    icon: mdi:compass-outline
+
+########## TX23 #######################
+#  - platform: custom
+#    id: tx23_id
+#    lambda: |-
+#      auto TX23 = new TX23CustomSensor();
+#      App.register_component(TX23);
+#      return {TX23->speed_sensor, TX23->direction_sensor};
+    #pin:
+     # number: GPIO5
+    
+#    sensors:
+#    - name: "station_meteo_vitesse_vent"
+#      unit_of_measurement: "m/s"
+#      accuracy_decimals: 1
+#      icon: "mdi:weather-windy"
+    
+#    - name: "station_meteo_direction_vent"
+#      unit_of_measurement: "°"
+#      icon: "mdi:compass-outline"
+
+################ BH1750 ###################
+  - platform: bh1750
+    name: "${name}_luminosite"
+    address: 0x23
+    update_interval: 5s
+
+############ GEIGER #######################
+#  - platform: pulse_counter
+#    pin: GPIO36
+#    name: "${name}_compteur_geiger"
+#    update_interval: 15s    
+
+########### VEML 6075 #####################
+#  - platform: custom
+#    lambda: |-
+#      auto veml6075 = new VEML6075CustomSensor();
+#      App.register_component(veml6075);
+#      return {veml6075->uva_sensor, veml6075->uvb_sensor};
+#    sensors:
+#    - name: "${name} UVA"
+#      id: ${name}_uva
+#      unit_of_measurement: "mW/cm²"
+#      accuracy_decimals: 0
+#    - name: "${name} UVB"
+#      id: ${name}_uvb
+#      unit_of_measurement: "mW/cm²"
+#      accuracy_decimals: 0
+
+###########  AS 3935 #########
+
+  - platform: as3935
+    lightning_energy:
+      name: ${name}_Lightning Energy
+    distance:
+      name: ${name}_Lightning Distance
+
+######### rainsensors  hydreon############
+
+  - platform: hydreon_rgxx
+    uart_id: uart1
+    model: "RG_15"
+    update_interval: 10s
+    acc:
+      name: "${name}_rain"
+      icon: mdi:water-alert
+    event_acc:
+      name: "${name}_rain event"
+      unit_of_measurement: "mm"
+      icon: mdi:water  
+      id: rain_meter     
+    total_acc:
+      name: "${name}_rain total"
+      icon: mdi:water-sync
+    r_int:
+      name: "${name}_rain intensity"
+      unit_of_measurement: "mm/h"
+      id: ${name}_rain_intensity
+
+
+
+number:
+  - platform: template
+    name: ${name}_spike_rejection_number
+    id: ${name}_spike_rejection_number
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 0
+    max_value: 11
+    step: 1
+    initial_value: 5
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            esphome::as3935::AS3935Component *as =  id(as3935_id);
+            as->write_spike_rejection(uint8_t(id(${name}_spike_rejection_number).state));
+
+  - platform: template
+    name: ${name}_noise_level_number
+    id: ${name}_noise_level_number
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 0
+    max_value: 7
+    step: 1
+    initial_value: 0
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            esphome::as3935::AS3935Component *as =  id(as3935_id);
+            as->write_noise_level(uint8_t(id(${name}_noise_level_number).state));
+  
+  - platform: template
+    name: ${name}_lightning_threshold_number
+    id: ${name}_lightning_threshold_number
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 1
+    max_value: 16
+    step: 1
+    initial_value: 1
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            esphome::as3935::AS3935Component *as =  id(as3935_id);
+            as->write_lightning_threshold(uint8_t(id(${name}_lightning_threshold_number).state));
+  
+  - platform: template
+    name: ${name}_watchdog_threshold_number
+    id: ${name}_watchdog_threshold_number
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 0
+    max_value: 15
+    step: 1
+    initial_value: 1
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            esphome::as3935::AS3935Component *as =  id(as3935_id);
+            as->write_watchdog_threshold(uint8_t(id(${name}_watchdog_threshold_number).state));
