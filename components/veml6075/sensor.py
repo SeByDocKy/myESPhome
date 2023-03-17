@@ -109,7 +109,7 @@ CONFIG_SCHEMA = (
 		
 	    cv.Optional(VEML6075_INTEGRATION_TIME_OPTIONS, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
 	    cv.Optional(VEML6075_DYNAMIC_OPTIONS, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
-	    cv.Optional(VEM6075_AUTOFORCE_OPTIONS, default="disable"): cv.enum(VEM6075_AUTOFORCE_OPTIONS),
+	    cv.Optional(VEML6075_AUTOFORCE_OPTIONS, default="disable"): cv.enum(VEML6075_AUTOFORCE_OPTIONS),
         }
     )
     .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA))
