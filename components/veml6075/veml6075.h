@@ -144,8 +144,8 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void integrationtime(veml6075_uv_it_t it);
   void highdynamic(veml6075_hd_t hd);
 	
-  uint16_t calc_uvcomp1(void);
-  uint16_t calc_uvcomp2(void);
+  uint16_t calc_visible_comp(void);
+  uint16_t calc_ir_comp(void);
    
 protected:
 	
