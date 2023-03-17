@@ -173,12 +173,12 @@ protected:
   veml6075_uv_it_t it_{IT_100MS};
   veml6075_af_t af_{AF_DISABLE};
   veml6075_hd_t hd_{DYNAMIC_NORMAL};
-	
+/*	
   float uva1_ = VEML6075_DEFAULT_UVA1_COEFF, uva2_ = VEML6075_DEFAULT_UVA2_COEFF;
   float uvb1_ = VEML6075_DEFAULT_UVB1_COEFF, uvb2_ = VEML6075_DEFAULT_UVB1_COEFF;
   float uva_resp_ = VEML6075_DEFAULT_UVA_RESP, uvb_resp_ = VEML6075_DEFAULT_UVB_RESP;
   float uva_calc_, uvb_calc_;
-	
+*/	
   float uva_responsivity_, uvv_responsivity_;
   uint16_t  integrationtime_;
   boolean hdenabled_;
