@@ -84,7 +84,7 @@ void VEML6075Component::identifychip(void){
   
 }
  
-void VEML6075Component::shutdown(boolean stop){
+void VEML6075Component::shutdown(bool stop){
   uint8_t conf , sd = 0;
   
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
