@@ -57,7 +57,6 @@ void VEML6075Component::setup() {
 }
 
 void VEML6075Component::identifychip(void){
-  
   uint8_t chip_id;
 //  uint8_t conf_register = 0;
   
@@ -106,7 +105,6 @@ void VEML6075Component::shutdown(boolean stop){
  
 void VEML6075Component::forcedmode(VEML6075Component::veml6075_af_t af){
   uint8_t conf;
-  
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
     #this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in forcemode");
@@ -123,9 +121,7 @@ void VEML6075Component::forcedmode(VEML6075Component::veml6075_af_t af){
 }
   
 void VEML6075Component::integrationtime(VEML6075Component::veml6075_uv_it_t it){
-  
   uint8_t conf;
-  
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
     #this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in integration time");
@@ -211,7 +207,6 @@ uint16_t VEML6075Component::calc_ir_comp(void){
 	
 uint16_t VEML6075Component::calc_rawuva(void){
     uint8_t data[2] = {0, 0};
-
     if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, 2)){
        ESP_LOGW(TAG, "can't read VEML6075_REG_UVA  register");
        this->mark_failed();
@@ -221,7 +216,6 @@ uint16_t VEML6075Component::calc_rawuva(void){
 	
 uint16_t VEML6075Component::calc_rawuvb(void){
     uint8_t data[2] = {0, 0};
-
     if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, 2)){
        ESP_LOGW(TAG, "can't read VEML6075_REG_UVB  register");
        this->mark_failed();
@@ -230,18 +224,17 @@ uint16_t VEML6075Component::calc_rawuvb(void){
 }
 	
 float VEML6075Component::calc_uva(void){
-    return (float)this->rawuva - ( ( VEML6075_DEFAULT_UVA1_COEFF * VEML6075_UV_ALPHA * this->visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * this->ir_comp) / VEML6075_UV_DELTA );
+    return (float)this->rawuva_ - ( ( VEML6075_DEFAULT_UVA1_COEFF * VEML6075_UV_ALPHA * this->visible_comp_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * this->ir_comp_) / VEML6075_UV_DELTA );
 }
 
 float VEML6075Component::calc_uvb(void){
-    return (float)this->rawuvb - ( ( VEML6075_DEFAULT_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp) / VEML6075_UV_DELTA );	
+    return (float)this->rawuvb_ - ( ( VEML6075_DEFAULT_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp_) / VEML6075_UV_DELTA );	
 }	
 
 float VEML6075Component::calc_uvindex(void){
-     
     float index;
-    float uvia = this->uva * (1.0 / VEML6075_UV_ALPHA) * this->uva_responsivity_;
-    float uvib = this->uvb * (1.0 / VEML6075_UV_BETA)  * this->uvb_responsivity_;
+    float uvia = this->uva_ * (1.0 / VEML6075_UV_ALPHA) * this->uva_responsivity_;
+    float uvib = this->uvb_ * (1.0 / VEML6075_UV_BETA)  * this->uvb_responsivity_;
     index = (uvia + uvib) / 2.0;
     if (this->hdenabled_ )
     {
@@ -296,7 +289,6 @@ void VEML6075Component::update() {
 	  this->uvindex_sensor_ ->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }
-	
 }
 
 float VEML6075Component::get_setup_priority() const { return setup_priority::DATA; }
