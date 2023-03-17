@@ -35,12 +35,19 @@ static const uint8_t VEML6075_HD_SHIFT                = 3;
 static const uint8_t VEML6075_UV_IT_MASK              = 0x70;
 static const uint8_t VEML6075_UV_IT_SHIFT             = 4;		
 
-static const float VEML6075_DEFAULT_UVA1_COEFF        = 2.22;
-static const float VEML6075_DEFAULT_UVA2_COEFF        = 1.33;
-static const float VEML6075_DEFAULT_UVB1_COEFF        = 2.95;
-static const float VEML6075_DEFAULT_UVB2_COEFF        = 1.74;
-static const float VEML6075_DEFAULT_UVA_RESP          = 0.001461;
-static const float VEML6075_DEFAULT_UVB_RESP          = 0.002591;
+static const float VEML6075_UVA1_COEFF                = 2.22;
+static const float VEML6075_UVA2_COEFF                = 1.33;
+static const float VEML6075_UVB1_COEFF                = 2.95;
+static const float VEML6075_UVB2_COEFF                = 1.74;
+static const float VEML6075_UVA_RESP                  = 0.001461;
+static const float VEML6075_UVB_RESP                  = 0.002591;
+	
+static const float VEML6075_HD_SCALAR                 = 2.0;
+
+static const float VEML6075_UV_ALPHA                  = 1.0;
+static const float VEML6075_UV_BETA                   = 1.0;
+static const float VEML6075_UV_GAMMA                  = 1.0;
+static const float VEML6075_UV_DELTA                  = 1.0;	
 	
 const float VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED = 0.001111;
 const float VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED = 0.00125;
