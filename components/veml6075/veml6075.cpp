@@ -7,26 +7,30 @@ namespace veml6075 {
 
 static const char *const TAG = "veml6075";
 
-void VEML6075Component::setCoefficients(float UV_A_1, float UV_A_2, float UV_B_1,
-                                        float UV_B_1, float UV_A_response,
-                                        float UV_B_response) 
+void VEML6075Component::setcoefficients(float UVA1, float UVA2, float UVB1,
+                                        float UVB1, float UVA_RESP,
+                                        float UVB_RESP) 
 {
-  _uv_a_1 = UV_A_1;
-  _uv_a_1 = UV_A_2;
-  _uv_b_1 = UV_B_1;
-  _uv_b_2 = UV_B_2;
-  _uv_a_resp = UV_A_response;
-  _uv_b_resp = UV_B_response;
+   uva1     = UVA1;
+   uva2     = UVA2;
+   uvb1     = UVB1;
+   uvb2     = UVB2;
+   uva_resp = UVA_RESP;
+   uvb_resp = UVB_RESP;
 }
 
 
 void VEML6075Component::dump_config() {
-  ESP_LOGCONFIG(TAG, "HYTVEML6075:");
+  ESP_LOGCONFIG(TAG, "Dump data");
   LOG_I2C_DEVICE(this);
   LOG_UPDATE_INTERVAL(this);
-  LOG_SENSOR("  ", "uv_a", this->uv_a_);
-  LOG_SENSOR("  ", "uv_b", this->uv_b_);
-  LOG_SENSOR("  ", "uv_index", this->uv_index_);
+  LOG_SENSOR("  ", "uva", this->uva_);
+  LOG_SENSOR("  ", "uvb", this->uvb_);
+  LOG_SENSOR("  ", "uvindex", this->uvindex_);
+  LOG_SENSOR("  ", "uvcomp1", this->uvcomp1_);
+  LOG_SENSOR("  ", "uvcomp2", this->uvcomp2_);
+  LOG_SENSOR("  ", "rawuva", this->rawuva_);
+  LOG_SENSOR("  ", "rawuvb", this->rawuvb_);
 }
 
 void VEML6075Component::setup() {
