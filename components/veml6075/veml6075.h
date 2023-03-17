@@ -168,7 +168,7 @@ protected:
 	
   float uva_responsivity_, uvv_responsivity_;
   uint16_t  integrationtime_;
-  bool hdenabled_;
+  boolean hdenabled_;
 	
 /* 
   typedef enum{
