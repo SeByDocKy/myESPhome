@@ -16,7 +16,7 @@ static const char *const TAG = "veml6075";
 //    uvb_resp = UVB_RESP;
 // }
 
-// float VEML6075Component::get_setup_priority() const { return setup_priority::DATA; } 
+float VEML6075Component::get_setup_priority() const { return setup_priority::DATA; } 
 	
 void VEML6075Component::dump_config() {
   ESP_LOGCONFIG(TAG, "Dump data");
