@@ -41,16 +41,16 @@ VEML6075_INTEGRATION_TIME_OPTIONS = {
     "800ms": VEML6075_INTEGRATION_TIME.IT_800MS,
 }
 
-VEM6075_DYNAMIC = veml6075_ns.enum("veml6075_hd_t")
-VEM6075_DYNAMIC_OPTIONS = {
-   "normal": VEM6075_DYNAMIC.DYNAMIC_NORMAL,
-   "high": VEM6075_DYNAMIC.DYNAMIC_HIGH,
+VEML6075_DYNAMIC = veml6075_ns.enum("veml6075_hd_t")
+VEML6075_DYNAMIC_OPTIONS = {
+   "normal": VEML6075_DYNAMIC.DYNAMIC_NORMAL,
+   "high": VEML6075_DYNAMIC.DYNAMIC_HIGH,
 }
 
-VEM6075_AUTOFORCE = veml6075_ns.enum("veml6075_af_t")
-VEM6075_AUTOFORCE_OPTIONS = {
-   "disable": VEM6075_AUTOFORCE.AF_DISABLE,
-   "enable": VEM6075_AUTOFORCE.AF_ENABLE,
+VEML6075_AUTOFORCE = veml6075_ns.enum("veml6075_af_t")
+VEML6075_AUTOFORCE_OPTIONS = {
+   "disable": VEML6075_AUTOFORCE.AF_DISABLE,
+   "enable": VEML6075_AUTOFORCE.AF_ENABLE,
 }
 
 CONFIG_SCHEMA = (
@@ -136,11 +136,11 @@ async def to_code(config):
         cg.add(var.set_uvindex_sensor(sens))
 	
     if CONF_VEML6075_VISIBLE_COMP in config:
-        sens = await sensor.new_sensor(config[CONF_VEML6075_UVCOMP1])
+        sens = await sensor.new_sensor(config[CONF_VEML6075_VISIBLE_COMP])
         cg.add(var.set_visible_comp_sensor(sens))
 	
     if CONF_VEML6075_IR_COMP in config:
-        sens = await sensor.new_sensor(config[CONF_VEML6075_UVCOMP2])
+        sens = await sensor.new_sensor(config[CONF_VEML6075_IR_COMP])
         cg.add(var.set_ir_comp_sensor(sens))
 	
     if CONF_VEML6075_RAWUVA in config:
