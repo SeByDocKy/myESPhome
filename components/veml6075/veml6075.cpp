@@ -188,7 +188,7 @@ void VEML6075Component::highdynamic(VEML6075Component::veml6075_hd_t hd){
   }
 }  
  
-uint16_t VEML6075Component::calc_uvcomp1(void)
+uint16_t VEML6075Component::calc_visible_comp(void)
 {
     uint8_t data[2] = {0, 0};
     if (!this->read_bytes(VEML6075_REG_UV_UVCOMP1, (uint8_t *) &data, 2)){
@@ -199,7 +199,7 @@ uint16_t VEML6075Component::calc_uvcomp1(void)
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
 }
 
-uint16_t VEML6075Component::calc_uvcomp2(void)
+uint16_t VEML6075Component::calc_ir_comp(void)
 {
     uint8_t data[2] = {0, 0};
     if (!this->read_bytes(VEML6075_REG_UV_UVCOMP2, (uint8_t *) &data, 2)){
@@ -211,36 +211,25 @@ uint16_t VEML6075Component::calc_uvcomp2(void)
 }
 
 void VEML6075Component::update() {
-  uint8_t raw_data[4];
-
-  if (this->write(&raw_data[0], 0) != i2c::ERROR_OK) {
-    this->status_set_warning();
-    ESP_LOGE(TAG, "Communication with VEML6075 failed! => Ask new values");
-    return;
+  uint16_t visible_compensation , ir_compensation;
+  
+  visible_compensation  = :calc_visible_comp();
+  if (this->visible_comp_sensor_ != nullptr) {
+	  this->visible_comp_sensor_ ->publish_state(visible_compensation);
+	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }
-  delay(50);  // NOLINT
-
-  if (this->read(raw_data, 4) != i2c::ERROR_OK) {
-    this->status_set_warning();
-    ESP_LOGE(TAG, "Communication with VEML6075 failed! => Read values");
-    return;
+  
+  ir_compensation       = :calc_ir_comp();
+  if (this->ir_comp_sensor_ != nullptr) {
+	  this->ir_comp_sensor_ ->publish_state(ir_compensation);
+	  ESP_LOGD(TAG, "ir_compensation: %d" , ir_compensation);
   }
-  uint16_t raw_temperature = ((raw_data[2] << 8) | raw_data[3]) >> 2;
-  uint16_t raw_humidity = ((raw_data[0] & 0x3F) << 8) | raw_data[1];
+  
+  
+  
+  
+  }
 
-  float temperature = ((float(raw_temperature)) * (165.0f / 16383.0f)) - 40.0f;
-  float humidity = (float(raw_humidity)) * (100.0f / 16383.0f);
-
-  ESP_LOGD(TAG, "Got UV_A=%.2f uW/cm² UV_B=%.2f uW/cm²  UV_INDEX = %.1f ", uv_a, uv_b , uv_index);
-
-  if (this->uv_a_ != nullptr)
-    this->uv_a_->publish_state(uv_a);
-  if (this->uv_b_ != nullptr)
-    this->uv_b_->publish_state(uv_b_);
-  if (this->uv_index_ != nullptr)
-    this->uv_index_->publish_state(uv_index_);
-  this->status_clear_warning();
-}
 float VEML6075Component::get_setup_priority() const { return setup_priority::DATA; }
 
 }  // namespace veml6075
