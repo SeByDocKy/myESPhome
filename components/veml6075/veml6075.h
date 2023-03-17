@@ -114,12 +114,14 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_dynamic(VEM6075_DYNAMIC_OPTIONS hd) { this->hd_ = hd; }
   void set_autoforce(VEM6075_AUTOFORCE_OPTIONS af) { this->af_ = af; }
 	
-  void setcoefficients(float UVA1, float UVA2, float UVB1,
-                                        float UVB1, float UVA_RESP,
-                                        float UVB_RESP);
+  void setcoefficients(float UVA1, float UVA2, float UVB1, float UVB1, float UVA_RESP, float UVB_RESP);
 	 
   void identifychip(void);
   void shutdown(boolean stop);
+  void forcedmode(uint8_t af);
+  void integrationtime(uint8_t af);
+  void highdynamic(uint8_t hd);
+	
    
 protected:
 	
