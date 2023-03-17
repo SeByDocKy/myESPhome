@@ -100,7 +100,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
 	
   void setcoefficients(float UVA1, float UVA2, float UVB1,
                                         float UVB1, float UVA_RESP,
-                                        float UVB_RESP) 
+                                        float UVB_RESP);
+	 
+  void shutdown(boolean action);
    
 protected:
 	
