@@ -27,9 +27,6 @@ CONF_VEML6075_DYNAMIC                  = "dynamic"
 CONF_VEML6075_INTEGRATION_TIME         = "integration_time"
 CONF_VEML6075_AUTO_FORCE               = "auto_force"
 
-
-
-
 CONF_VEML6075_ICON_UV                  = "mdi:sun-wireless"
 CONF_VEML6075_ICON_NUMERIC             = "mdi:numeric"
 
@@ -68,49 +65,49 @@ CONFIG_SCHEMA = (
                 unit_of_measurement=CONF_UNIT_UVA,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
-		icon=CONF_VEML6075_ICON_UV,
+                icon=CONF_VEML6075_ICON_UV,
             ),
 		
             cv.Optional(CONF_VEML6075_UVB): sensor.sensor_schema(
                 unit_of_measurement=CONF_UNIT_UVB,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
-		icon=CONF_VEML6075_ICON_UV,
+                icon=CONF_VEML6075_ICON_UV,
             ),
 		
-	    cv.Optional(CONF_VEML6075_UVINDEX): sensor.sensor_schema(
+            cv.Optional(CONF_VEML6075_UVINDEX): sensor.sensor_schema(
                 unit_of_measurement=CONF_UNIT_UVINDEX,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-		icon=CONF_VEML6075_ICON_NUMERIC,
+                icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-	    cv.Optional(CONF_VEML6075_VISIBLE_COMP): sensor.sensor_schema(
+		    cv.Optional(CONF_VEML6075_VISIBLE_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-		#icon=CONF_VEML6075_ICON_NUMERIC,
+                #icon=CONF_VEML6075_ICON_NUMERIC,
             ),
-		
-	    cv.Optional(CONF_VEML6075_IR_COMP): sensor.sensor_schema(
+		    
+			cv.Optional(CONF_VEML6075_IR_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-		#icon=CONF_VEML6075_ICON_NUMERIC,
+                #icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-	    cv.Optional(CONF_VEML6075_RAWUVA): sensor.sensor_schema(
+            cv.Optional(CONF_VEML6075_RAWUVA): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVA,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-		icon=CONF_VEML6075_ICON_UV,
+                icon=CONF_VEML6075_ICON_UV,
             ),
 		
-	    cv.Optional(CONF_VEML6075_RAWUVB): sensor.sensor_schema(
+            cv.Optional(CONF_VEML6075_RAWUVB): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVB,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-		icon=CONF_VEML6075_ICON_UV,
+                icon=CONF_VEML6075_ICON_UV,
             ),	
 # 	    cv.Optional(CONF_VEML6075_INTEGRATION_TIME, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
 # 	    cv.Optional(CONF_VEML6075_DYNAMIC, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
