@@ -97,7 +97,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_rawuvb(sensor::Sensor *rawuvb) { this->rawuvb_ = rawuvb; }
 	
   void set_integration_time(VEML6075_INTEGRATION_TIME_OPTIONS it) { this->it_ = it; }
-  void set_dynamic(VEM6075_DYNAMIC_OPTIONS dyna) { this->dyna_ = dyna; }
+  void set_dynamic(VEM6075_DYNAMIC_OPTIONS hd) { this->hd_ = hd; }
   void set_autoforce(VEM6075_AUTOFORCE_OPTIONS af) { this->af_ = af; }
 
 /*  
@@ -107,6 +107,22 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
 										
 */   
  protected:
+	
+  sensor::Sensor *uva_{nullptr};
+  sensor::Sensor *uvb_{nullptr};
+  sensor::Sensor *uvindex_{nullptr};  
+  sensor::Sensor *uvcomp1_{nullptr};
+  sensor::Sensor *uvcomp2_{nullptr};
+  sensor::Sensor *rawuva_{nullptr};
+  sensor::Sensor *rawuvb_{nullptr};
+  
+  veml6075_uv_it_t it_{IT_100MS};
+  veml6075_af_t af_{AF_DISABLE};
+  veml6075_hd_t hd_{DYNAMIC_NORMAL};
+	
+  float uva1, uva2, uvb1, uvb2, uva_resp, uvb_resp, uva_calc, uvb_calc;
+	
+	
 /* 
   typedef enum{
    REG_UV_CONF = 0x00,
@@ -120,6 +136,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   veml6075_address_t _deviceAddress;
 */  
 
+/*	
   uint16_t rawbva(void);
   uint16_t rawbvb(void);
   float uva(void);
@@ -134,9 +151,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   uint16_t uvcomp2(void);
   uint16_t visibleCompensation(void);
   uint16_t irCompensation(void);
+  */
   
-  
-  
+ /* 
   boolean isConnected(void);
   
   veml6075_error_t setIntegrationTime(veml6075_uv_it_t it);
@@ -156,17 +173,10 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
 
   veml6075_error_t deviceID(uint8_t *id);
   veml6075_error_t deviceAddress(uint8_t *address);
+  */
   
-  sensor::Sensor *uva_{nullptr};
-  sensor::Sensor *uvb_{nullptr};
-  sensor::Sensor *uvindex_{nullptr};  
-  sensor::Sensor *uvcomp1_{nullptr};
-  sensor::Sensor *uvcomp2_{nullptr};
-  sensor::Sensor *rawuva_{nullptr};
-  sensor::Sensor *rawuvb_{nullptr};
   
-  veml6075_uv_it_t it_{IT_100MS};
-  
+/*	
  private:
  
   
@@ -178,7 +188,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   float _uv_a_calc, _uv_b_calc; 
   
   veml6075_commandRegister _commandRegister;
-
+*/
 
  
 };
