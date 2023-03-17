@@ -29,7 +29,7 @@ CONF_VEML6075_ICON_NUMERIC             = "mdi:numeric"
 
 CONF_UNIT_UVA                          = "#/uW/cm²"
 CONF_UNIT_UVB                          = "#/uW/cm²"
-CONF_UNIT_UVINDEX                      = "#"
+CONF_UNIT_UVINDEX                      = "mW/m2"
 
 
 VEML6075_INTEGRATION_TIME = veml6075_ns.enum("veml6075_uv_it_t")
@@ -59,21 +59,21 @@ CONFIG_SCHEMA = (
             cv.GenerateID(): cv.declare_id(VEML6075Component),
 		
             cv.Optional(CONF_VEML6075_UVA): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UVA,
+                unit_of_measurement=CONF_UNIT_UVA,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),
 		
             cv.Optional(CONF_VEML6075_UVB): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UVB,
+                unit_of_measurement=CONF_UNIT_UVB,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),
 		
 	    cv.Optional(CONF_VEML6075_UVINDEX): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UVINDEX,
+                unit_of_measurement=CONF_UNIT_UVINDEX,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_NUMERIC,
@@ -81,28 +81,28 @@ CONFIG_SCHEMA = (
 		
 	    cv.Optional(CONF_VEML6075_VISIBLE_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
-                accuracy_decimals=2,
+                accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		#icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
 	    cv.Optional(CONF_VEML6075_IR_COMP): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
-                accuracy_decimals=2,
+                accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		#icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
 	    cv.Optional(CONF_VEML6075_RAWUVA): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UVA,
-                accuracy_decimals=2,
+                accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),
 		
 	    cv.Optional(CONF_VEML6075_RAWUVB): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UVB,
-                accuracy_decimals=2,
+                accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),	
