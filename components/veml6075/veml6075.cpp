@@ -43,7 +43,7 @@ void VEML6075Component::setup() {
                   VEML6075_DEFAULT_UV_B_1_COEFF, VEML6075_DEFAULT_UV_B_2_COEFF,
                   VEML6075_DEFAULT_UV_A_RESPONSE, VEML6075_DEFAULT_UV_B_RESPONSE);
 
-  _commandRegister.reg = 0;
+  // _commandRegister.reg = 0;
   
   
   // Mark as not failed before initializing. Some devices will turn off sensors to save on batteries
@@ -51,40 +51,65 @@ void VEML6075Component::setup() {
 //  this->component_state_ &= ~COMPONENT_STATE_FAILED;
 
   if (!this->read_byte(VEML6075_REG_ID, &chip_id)) {
-    this->error_code_ = COMMUNICATION_FAILED;
+    #this->error_code_ = COMMUNICATION_FAILED;
+    ESP_LOGE(TAG, "Can't communicate with VEML6075");
     this->mark_failed();
     return;
   }
   if (chip_id != VEML6075_ID) {
-    this->error_code_ = WRONG_CHIP_ID;
+    ESP_LOGE(TAG, "Wrong ID register, received %d, expecting %d", chip_id , VEML6075_I);
+    #this->error_code_ = WRONG_CHIP_ID;
     this->mark_failed();
     return;
   }
   
   if (!this->read_byte(VEML6075_REG_CONF, &conf_register)) {
+    ESP_LOGE(TAG, "Can't communicate with VEML6075");
     this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
     return;
   }
   
-  _commandRegister.reg = 0;
+  // _commandRegister.reg = 0;
   
   shutdown(true); // Shut down to change settings
 
   // Force readings
-  setForcedMode(forcedReads);
+  forcedmode(thiq->af_);
 
   // Set integration time
-  setIntegrationTime(itime);
+  integrationtime(thiq->it_);
 
   // Set high dynamic
-  setHighDynamic(highDynamic);
+  highdynamic(this->hd_);
 
   shutdown(false); // Re-enable
 
  
 
 }
+
+void VEML6075Component::shutdown(boolean stop){
+  uint8_t conf=0 , sd = 0;
+  
+  if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
+    #this->error_code_ = COMMUNICATION_FAILED;
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register");
+    this->mark_failed();
+    return;
+  }
+  if (stop == true){
+        sd = 1;
+   }
+   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
+   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+   if (!this->write_byte(VEML6075_REG_CONF, conf)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+     return;
+  }
+  
+}
+ 
 
 void VEML6075Component::update() {
   uint8_t raw_data[4];
