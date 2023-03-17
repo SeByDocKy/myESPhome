@@ -229,14 +229,27 @@ uint16_t VEML6075Component::calc_rawuvb(void){
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);	    
 }
 	
-float VEML6075Component::calc_uva(uint16_t rawuva , uint16_t visible_comp , uint16_t ir_comp){
-    return (float)rawuva - ( ( VEML6075_DEFAULT_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA );
+float VEML6075Component::calc_uva(void){
+    return (float)this->rawuva - ( ( VEML6075_DEFAULT_UVA1_COEFF * VEML6075_UV_ALPHA * this->visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * this->ir_comp) / VEML6075_UV_DELTA );
 }
 
-float VEML6075Component::calc_uvb(uint16_t rawuvb , uint16_t visible_comp , uint16_t ir_comp){
-    return (float)rawuvb - ( ( VEML6075_DEFAULT_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );	
+float VEML6075Component::calc_uvb(void){
+    return (float)this->rawuvb - ( ( VEML6075_DEFAULT_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp) / VEML6075_UV_DELTA );	
 }	
 
+float VEML6075Component::calc_index(void){
+     
+    float index;
+    float uvia = this->uva * (1.0 / VEML6075_UV_ALPHA) * this->uva_responsivity_;
+    float uvib = this->uvb * (1.0 / VEML6075_UV_BETA)  * this->uvb_responsivity_;
+    index = (uvia + uvib) / 2.0;
+    if (this->hdenabled_ )
+    {
+        index *= HD_SCALAR;
+    }
+    return _lastIndex;
+}	
+	
 void VEML6075Component::update() {
   uint16_t visible_compensation , ir_compensation;
   uint16_t rawuva , rawuvb;
@@ -256,25 +269,25 @@ void VEML6075Component::update() {
 	
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
-	  this->rawuva_sensor_  ->publish_state(rawuva);
+	  this->rawuva_sensor_ ->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
   }
 
   rawuvb                = calc_rawuvb();
   if (this->rawuvb_sensor_ != nullptr) {
-	  this->rawuvb_sensor_  ->publish_state(rawuvb);
+	  this->rawuvb_sensor_ ->publish_state(rawuvb);
 	  ESP_LOGD(TAG, "raw UVB: %d" , rawuvb);
   }
 	
-  uva                  = calc_uva(rawuva , visible_compensation , ir_compensation);
+  uva                  = calc_uva();
   if (this->uva_sensor_ != nullptr) {
-	  this->uva_sensor_  ->publish_state(uva);
-	  ESP_LOGD(TAG, "UVB: %f" , uva);
+	  this->uva_sensor_ ->publish_state(uva);
+	  ESP_LOGD(TAG, "UVA: %f" , uva);
   }
 	
-  uvb                  = calc_uvb(rawuvb , visible_compensation , ir_compensation);
+  uvb                  = calc_uvb();
   if (this->uva_sensor_ != nullptr) {
-	  this->uvb_sensor_  ->publish_state(uvb);
+	  this->uvb_sensor_ ->publish_state(uvb);
 	  ESP_LOGD(TAG, "UVB: %f" , uvb);
   }
 	
