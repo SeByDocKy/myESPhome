@@ -173,7 +173,7 @@ protected:
   float uva_resp_ = VEML6075_DEFAULT_UVA_RESP, uvb_resp_ = VEML6075_DEFAULT_UVB_RESP;
   float uva_calc_, uvb_calc_;
 */	
-  float uva_responsivity_, uvv_responsivity_;
+  float uva_responsivity_, uvb_responsivity_;
   uint16_t  integrationtime_;
   bool hdenabled_;
 	 
