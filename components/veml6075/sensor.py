@@ -23,6 +23,12 @@ CONF_VEML6075_VISIBLE_COMP             = "visible_comp"
 CONF_VEML6075_IR_COMP                  = "ir_comp"
 CONF_VEML6075_RAWUVA                   = "rawuva"
 CONF_VEML6075_RAWUVB                   = "rawuva"
+CONF_VEML6075_DYNAMIC                  = "dynamic"
+CONF_VEML6075_INTEGRATION_TIME         = "integration_time"
+CONF_VEML6075_AUTO_FORCE               = "auto_force"
+
+
+
 
 CONF_VEML6075_ICON_UV                  = "mdi:sun-wireless"
 CONF_VEML6075_ICON_NUMERIC             = "mdi:numeric"
@@ -107,9 +113,9 @@ CONFIG_SCHEMA = (
 		icon=CONF_VEML6075_ICON_UV,
             ),	
 		
-	    cv.Optional(VEML6075_INTEGRATION_TIME_OPTIONS, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
-	    cv.Optional(VEML6075_DYNAMIC_OPTIONS, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
-	    cv.Optional(VEML6075_AUTOFORCE_OPTIONS, default="disable"): cv.enum(VEML6075_AUTOFORCE_OPTIONS),
+	    cv.Optional(CONF_VEML6075_INTEGRATION_TIME, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
+	    cv.Optional(CONF_VEML6075_DYNAMIC, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
+	    cv.Optional(CONF_VEML6075_AUTO_FORCE, default="disable"): cv.enum(VEML6075_AUTOFORCE_OPTIONS),
         }
     )
     .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA))
@@ -151,14 +157,14 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_VEML6075_RAWUVB])
         cg.add(var.set_rawuvb_sensor(sens))
     
-    if VEML6075_INTEGRATION_TIME_OPTIONS in config:
-        cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
+    if CONF_VEML6075_INTEGRATION_TIME in config:
+        cg.add(var.set_integration_time(config[CONF_VEML6075_INTEGRATION_TIME]))
     
-    if VEM6075_DYNAMIC_OPTIONS in config:
-        cg.add(var.set_dynamic(config[VEM6075_DYNAMIC_OPTIONS]))
+    if CONF_VEML6075_DYNAMIC in config:
+        cg.add(var.set_dynamic(config[CONF_VEML6075_DYNAMIC]))
     
-    if VEM6075_AUTOFORCE_OPTIONS in config:
-        cg.add(var.set_autoforce(config[VEM6075_AUTOFORCE_OPTIONS]))
+    if CONF_VEML6075_AUTO_FORCE in config:
+        cg.add(var.set_autoforce(config[CONF_VEML6075_AUTO_FORCE]))
 
 	
 #     cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
