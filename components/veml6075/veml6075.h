@@ -127,18 +127,18 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void update() override;
   
   void set_uva_sensor(sensor::Sensor *uva_sensor) { this->uva_sensor_ = uva_sensor; }
-  float get_uva_sensor(void){return uva_sensor_;}
+  float get_uva_sensor(void){return (float)this-uva_sensor_;}
   void set_uvb_sensor(sensor::Sensor *uvb_sensor) { this->uvb_sensor_ = uvb_sensor; }
-  float get_uvb_sensor(void){return uvb_sensor_;}
+  float get_uvb_sensor(void){return (float)this-uvb_sensor_;}
   void set_uvindex_sensor(sensor::Sensor *uvindex_sensor) { this->uvindex_sensor_ = uvindex_sensor; }
   void set_visible_comp_sensor(sensor::Sensor *visible_comp_sensor) { this->visible_comp_sensor_ = visible_comp_sensor; }
-  uint16_t get_visible_comp_sensor(void){return visible_comp_sensor_;}
+  uint16_t get_visible_comp_sensor(void){return (uint16_t)this-visible_comp_sensor_;}
   void set_ir_comp_sensor(sensor::Sensor *ir_comp_sensor) { this->ir_comp_sensor_ = ir_comp_sensor; }
-  uint16_t get_ir_comp_sensor(void){return ir_comp_sensor_;}	
+  uint16_t get_ir_comp_sensor(void){return (uint16_t)this-ir_comp_sensor_;}	
   void set_rawuva_sensor(sensor::Sensor *rawuva_sensor) { this->rawuva_sensor_ = rawuva_sensor; }
-  uint16_t get_rawuva_sensor(void){return rawuva_sensor_;}		
+  uint16_t get_rawuva_sensor(void){return (uint16_t)this-rawuva_sensor_;}		
   void set_rawuvb_sensor(sensor::Sensor *rawuvb_sensor) { this->rawuvb_sensor_ = rawuvb_sensor; }
-  uint16_t get_rawuvb_sensor(void){return rawuvb_sensor_;}	
+  uint16_t get_rawuvb_sensor(void){return (uint16_t)this-rawuvb_sensor_;}	
 	
   void set_integration_time(veml6075_uv_it_t it) { this->it_ = it; }
   void set_dynamic(veml6075_hd_t hd) { this->hd_ = hd; }
