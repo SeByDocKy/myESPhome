@@ -139,9 +139,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_rawuva_sensor(sensor::Sensor *rawuva_sensor) { this->rawuva_sensor_ = rawuva_sensor; }
   void set_rawuvb_sensor(sensor::Sensor *rawuvb_sensor) { this->rawuvb_sensor_ = rawuvb_sensor; }
 	
-  void set_integration_time(VEML6075_INTEGRATION_TIME_OPTIONS it) { this->it_ = it; }
-  void set_dynamic(VEM6075_DYNAMIC_OPTIONS hd) { this->hd_ = hd; }
-  void set_autoforce(VEM6075_AUTOFORCE_OPTIONS af) { this->af_ = af; }
+  void set_integration_time(veml6075_uv_it_t it) { this->it_ = it; }
+  void set_dynamic(veml6075_hd_t hd) { this->hd_ = hd; }
+  void set_autoforce(veml6075_af_t af) { this->af_ = af; }
 	
 //   void setcoefficients(float UVA1, float UVA2, float UVB1, float UVB1, float UVA_RESP, float UVB_RESP);
 	 
