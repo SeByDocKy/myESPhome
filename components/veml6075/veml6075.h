@@ -124,13 +124,13 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void update() override;
 
   
-  void set_uva_sensor(sensor::Sensor *uva) { this->uva_ = uva; }
-  void set_uvb_sensor(sensor::Sensor *uvb) { this->uvb_ = uvb; }
-  void set_uvindex_sensor(sensor::Sensor *uvindex) { this->uvindex_ = uvindex; }
-  void set_visible_comp_sensor(sensor::Sensor *uvcomp1) { this->uvcomp1_ = uvcomp1; }
-  void set_ir_comp(sensor::Sensor *uvcomp2) { this->uvcomp2_ = uvcomp2; }
-  void set_rawuva_sensor(sensor::Sensor *rawuva) { this->rawuva_ = rawuva; }
-  void set_rawuvb_sensor(sensor::Sensor *rawuvb) { this->rawuvb_ = rawuvb; }
+  void set_uva_sensor(sensor::Sensor *uva_sensor) { this->uva_sensor_ = uva_sensor; }
+  void set_uvb_sensor(sensor::Sensor *uvb_sensor) { this->uvb_sensor_ = uvb_sensor; }
+  void set_uvindex_sensor(sensor::Sensor *uvindex_sensor) { this->uvindex_sensor_ = uvindex_sensor; }
+  void set_visible_comp_sensor(sensor::Sensor *visible_comp_sensor) { this->visible_comp_sensor_ = visible_comp_sensor; }
+  void set_ir_comp_sensor(sensor::Sensor *ir_comp_sensor) { this->ir_comp_sensor_ = ir_comp_sensor; }
+  void set_rawuva_sensor(sensor::Sensor *rawuva_sensor) { this->rawuva_sensor_ = rawuva_sensor; }
+  void set_rawuvb_sensor(sensor::Sensor *rawuvb_sensor) { this->rawuvb_sensor_ = rawuvb_sensor; }
 	
   void set_integration_time(VEML6075_INTEGRATION_TIME_OPTIONS it) { this->it_ = it; }
   void set_dynamic(VEM6075_DYNAMIC_OPTIONS hd) { this->hd_ = hd; }
@@ -149,13 +149,13 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
    
 protected:
 	
-  sensor::Sensor *uva_{nullptr};
-  sensor::Sensor *uvb_{nullptr};
-  sensor::Sensor *uvindex_{nullptr};  
-  sensor::Sensor *uvcomp1_{nullptr};
-  sensor::Sensor *uvcomp2_{nullptr};
-  sensor::Sensor *rawuva_{nullptr};
-  sensor::Sensor *rawuvb_{nullptr};
+  sensor::Sensor *uva_sensor_{nullptr};
+  sensor::Sensor *uvb_sensor_{nullptr};
+  sensor::Sensor *uvindex_sensor_{nullptr};  
+  sensor::Sensor *visible_comp_sensor_{nullptr};
+  sensor::Sensor *ir_comp_sensor_{nullptr};
+  sensor::Sensor *rawuva_sensor_{nullptr};
+  sensor::Sensor *rawuvb_sensor_{nullptr};
   
   veml6075_uv_it_t it_{IT_100MS};
   veml6075_af_t af_{AF_DISABLE};
