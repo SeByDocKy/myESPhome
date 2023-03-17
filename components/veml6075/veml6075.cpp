@@ -7,15 +7,6 @@ namespace veml6075 {
 
 static const char *const TAG = "veml6075";
 
-// void VEML6075Component::setcoefficients(float UVA1, float UVA2, float UVB1, float UVB1, float UVA_RESP, float UVB_RESP) {
-//    uva1     = UVA1;
-//    uva2     = UVA2;
-//    uvb1     = UVB1;
-//    uvb2     = UVB2;
-//    uva_resp = UVA_RESP;
-//    uvb_resp = UVB_RESP;
-// }
-
 float VEML6075Component::get_setup_priority() const { return setup_priority::DATA; } 
 	
 void VEML6075Component::dump_config() {
@@ -37,10 +28,6 @@ void VEML6075Component::setup() {
   uint8_t chip_id = 0;
   uint8_t conf_register = 0;
   
-//   setCoefficients(VEML6075_DEFAULT_UVA1_COEFF, VEML6075_DEFAULT_UVA2_COEFF,
-//                   VEML6075_DEFAULT_UVB1_COEFF, VEML6075_DEFAULT_UVB2_COEFF,
-//                   VEML6075_DEFAULT_UVA_RESP, VEML6075_DEFAULT_UVB_RESP);
-
   identifychip(); // check if it's a genuine chip
   
   shutdown(true); // Shut down to change settings
