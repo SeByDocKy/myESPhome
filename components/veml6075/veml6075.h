@@ -99,12 +99,11 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_integration_time(VEML6075_INTEGRATION_TIME_OPTIONS it) { this->it_ = it; }
   void set_dynamic(VEM6075_DYNAMIC_OPTIONS hd) { this->hd_ = hd; }
   void set_autoforce(VEM6075_AUTOFORCE_OPTIONS af) { this->af_ = af; }
-
-/*  
-  void setCoefficients(float UV_A_1, float UV_A_2, float UV_B_1,
-                                        float UV_B_1, float UV_A_response,
-                                        float UV_B_response);									
-*/    
+	
+  void setcoefficients(float UVA1, float UVA2, float UVB1,
+                                        float UVB1, float UVA_RESP,
+                                        float UVB_RESP) 
+   
 protected:
 	
   sensor::Sensor *uva_{nullptr};
