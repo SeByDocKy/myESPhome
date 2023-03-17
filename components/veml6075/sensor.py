@@ -16,13 +16,17 @@ VEML6075Component = veml6075_ns.class_(
 CONF_DEFAULT_I2C_ADRESS_SCHEMA = 0x10
 CONF_DEFAULT_POLLING_CONPONENT_SCHEMA = "60s"
 
-CONF_UV_A      = "uv_a"
-CONF_UV_B      = "uv_b"
-CONF_UV_INDEX  = "uv_index"
+CONF_VEML6075_UVA      = "uva"
+CONF_VEML6075_UVB      = "uvb"
+CONF_VEML6075_UVINDEX  = "uvindex"
+CONF_VEML6075_UVCOMP1  = "uvcomp1"
+CONF_VEML6075_UVCOMP2  = "uvcomp2"
+CONF_VEML6075_RAWUVA   = "rawuva"
+CONF_VEML6075_RAWUVB   = "rawuva"
 
-UNIT_UV_A      = "#/uW/cm²"
-UNIT_UV_B      = "#/uW/cm²"
-UNIT_UV_INDEX  = "#"
+CONF_UNIT_UVA          = "#/uW/cm²"
+CONF_UNIT_UVB          = "#/uW/cm²"
+CONF_UNIT_UVINDEX      = "#"
 
 
 VEML6075_INTEGRATION_TIME = veml6075_ns.enum("veml6075_uv_it_t")
@@ -60,14 +64,14 @@ CONFIG_SCHEMA = cv.All(
 #                device_class=DEVICE_CLASS_HUMIDITY,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(CONF_UV_INDEX): sensor.sensor_schema(
+	    cv.Optional(CONF_UV_INDEX): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UV_INDEX,
                 accuracy_decimals=1,
 #                device_class=DEVICE_CLASS_HUMIDITY,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(VEML6075_INTEGRATION_TIME_OPTIONS, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
-			cv.Optional(VEML6075_DYNAMIC_OPTIONS, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
+	    cv.Optional(VEML6075_INTEGRATION_TIME_OPTIONS, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
+	    cv.Optional(VEML6075_DYNAMIC_OPTIONS, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
         }
     )
     .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA))
