@@ -114,7 +114,7 @@ CONFIG_SCHEMA = (
 # 	    cv.Optional(CONF_VEML6075_AUTO_FORCE, default="disable"): cv.enum(VEML6075_AUTOFORCE_OPTIONS),
         }
     )
-    .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA))
+    .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA)),
     .extend(i2c.i2c_device_schema(CONF_DEFAULT_I2C_ADRESS_SCHEMA)),
 #     cv.has_at_least_one_key(CONF_UVA, CONF_UVB, CONF_UVINDEX),
 )
