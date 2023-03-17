@@ -58,49 +58,49 @@ CONFIG_SCHEMA = (
         {
             cv.GenerateID(): cv.declare_id(VEML6075Component),
 		
-            cv.Optional(CONF_UVA): sensor.sensor_schema(
+            cv.Optional(CONF_VEML6075_UVA): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UVA,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),
 		
-            cv.Optional(CONF_UVB): sensor.sensor_schema(
+            cv.Optional(CONF_VEML6075_UVB): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UVB,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),
 		
-	    cv.Optional(CONF_UVINDEX): sensor.sensor_schema(
+	    cv.Optional(CONF_VEML6075_UVINDEX): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-	    cv.Optional(CONF_UVCOMP1): sensor.sensor_schema(
+	    cv.Optional(CONF_VEML6075_UVCOMP1): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		#icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-	    cv.Optional(CONF_UVCOMP2): sensor.sensor_schema(
+	    cv.Optional(CONF_VEML6075_UVCOMP2): sensor.sensor_schema(
                 #unit_of_measurement=UNIT_UVINDEX,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		#icon=CONF_VEML6075_ICON_NUMERIC,
             ),
 		
-	    cv.Optional(CONF_RAWUVA): sensor.sensor_schema(
+	    cv.Optional(CONF_VEML6075_RAWUVA): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UVA,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),
 		
-	    cv.Optional(CONF_RAWUVB): sensor.sensor_schema(
+	    cv.Optional(CONF_VEML6075_RAWUVB): sensor.sensor_schema(
                 unit_of_measurement=UNIT_UVB,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
@@ -122,10 +122,48 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await i2c.register_i2c_device(var, config)
-	
-    cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
 
-    for key, funcName in TYPES.items():
-        if key in config:
-            sens = await sensor.new_sensor(config[key])
-            cg.add(getattr(var, funcName)(sens))
+    if CONF_VEML6075_UVA in config:
+        sens = await sensor.new_sensor(config[CONF_VEML6075_UVA])
+        cg.add(var.set_uva_sensor(sens))
+	 
+    if CONF_VEML6075_UVB in config:
+        sens = await sensor.new_sensor(config[CONF_VEML6075_UVB])
+        cg.add(var.set_uva_sensor(sens))
+   
+    if CONF_VEML6075_UVINDEX in config:
+        sens = await sensor.new_sensor(config[CONF_VEML6075_UVINDEX])
+        cg.add(var.set_uvindex_sensor(sens))
+	
+    if CONF_VEML6075_UVCOMP1 in config:
+        sens = await sensor.new_sensor(config[CONF_VEML6075_UVCOMP1])
+        cg.add(var.set_uvcomp1_sensor(sens))
+	
+    if CONF_VEML6075_UVCOMP2 in config:
+        sens = await sensor.new_sensor(config[CONF_VEML6075_UVCOMP2])
+        cg.add(var.set_uvcomp2_sensor(sens))
+	
+    if CONF_VEML6075_RAWUVA in config:
+        sens = await sensor.new_sensor(config[CONF_VEML6075_RAWUVA])
+        cg.add(var.set_rawuva_sensor(sens))
+	
+    if CONF_VEML6075_RAWUVB in config:
+        sens = await sensor.new_sensor(config[CONF_VEML6075_RAWUVB])
+        cg.add(var.set_rawuvb_sensor(sens))
+    
+    if VEML6075_INTEGRATION_TIME_OPTIONS in config:
+        cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
+    
+    if VEM6075_DYNAMIC_OPTIONS in config:
+        cg.add(var.set_dynamic(config[VEM6075_DYNAMIC_OPTIONS]))
+    
+    if VEM6075_AUTOFORCE_OPTIONS in config:
+        cg.add(var.set_autoforce(config[VEM6075_AUTOFORCE_OPTIONS]))
+
+	
+#     cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
+
+#     for key, funcName in TYPES.items():
+#         if key in config:
+#             sens = await sensor.new_sensor(config[key])
+#             cg.add(getattr(var, funcName)(sens))
