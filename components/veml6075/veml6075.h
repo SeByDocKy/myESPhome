@@ -3,7 +3,7 @@
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/core/component.h"
-#include "esphome/core/optional.h"
+// #include "esphome/core/optional.h"
 
 namespace esphome {
 namespace veml6075 {
@@ -121,25 +121,18 @@ typedef enum{
 class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
  public:
 	
-  //float get_setup_priority() const override { return setup_priority::DATA; }
   float get_setup_priority() const override;	
   void setup() override;
   void dump_config() override;
   void update() override;
   
   void set_uva_sensor(sensor::Sensor *uva_sensor) { this->uva_sensor_ = uva_sensor; }
-  //float get_uva_sensor(void){return (float)this-uva_sensor_.state;}
   void set_uvb_sensor(sensor::Sensor *uvb_sensor) { this->uvb_sensor_ = uvb_sensor; }
-  //float get_uvb_sensor(void){return (float)this-uvb_sensor_;}
   void set_uvindex_sensor(sensor::Sensor *uvindex_sensor) { this->uvindex_sensor_ = uvindex_sensor; }
   void set_visible_comp_sensor(sensor::Sensor *visible_comp_sensor) { this->visible_comp_sensor_ = visible_comp_sensor; }
-  //uint16_t get_visible_comp_sensor(void){return (uint16_t)this-visible_comp_sensor_;}
-  void set_ir_comp_sensor(sensor::Sensor *ir_comp_sensor) { this->ir_comp_sensor_ = ir_comp_sensor; }
-  //uint16_t get_ir_comp_sensor(void){return (uint16_t)this-ir_comp_sensor_;}	
+  void set_ir_comp_sensor(sensor::Sensor *ir_comp_sensor) { this->ir_comp_sensor_ = ir_comp_sensor; }	
   void set_rawuva_sensor(sensor::Sensor *rawuva_sensor) { this->rawuva_sensor_ = rawuva_sensor; }
-  //uint16_t get_rawuva_sensor(void){return (uint16_t)this-rawuva_sensor_;}		
   void set_rawuvb_sensor(sensor::Sensor *rawuvb_sensor) { this->rawuvb_sensor_ = rawuvb_sensor; }
-  //uint16_t get_rawuvb_sensor(void){return (uint16_t)this-rawuvb_sensor_;}	
 	
   void set_integration_time(veml6075_uv_it_t it) { this->it_ = it; }
   void set_dynamic(veml6075_hd_t hd) { this->hd_ = hd; }
@@ -176,14 +169,6 @@ protected:
   veml6075_uv_it_t it_{IT_100MS};
   veml6075_af_t af_{AF_DISABLE};
   veml6075_hd_t hd_{DYNAMIC_NORMAL};
-/*	
-  float uva1_ = VEML6075_DEFAULT_UVA1_COEFF, uva2_ = VEML6075_DEFAULT_UVA2_COEFF;
-  float uvb1_ = VEML6075_DEFAULT_UVB1_COEFF, uvb2_ = VEML6075_DEFAULT_UVB1_COEFF;
-  float uva_resp_ = VEML6075_DEFAULT_UVA_RESP, uvb_resp_ = VEML6075_DEFAULT_UVB_RESP;
-  float uva_calc_, uvb_calc_;
-*/	
-  
-	 
 };
 
 }  // namespace veml6075
