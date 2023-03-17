@@ -24,6 +24,9 @@ CONF_VEML6075_UVCOMP2                  = "uvcomp2"
 CONF_VEML6075_RAWUVA                   = "rawuva"
 CONF_VEML6075_RAWUVB                   = "rawuva"
 
+CONF_VEML6075_ICON_UV                  = "mdi:sun-wireless"
+CONF_VEML6075_ICON_NUMERIC             = "mdi:numeric"
+
 CONF_UNIT_UVA                          = "#/uW/cm²"
 CONF_UNIT_UVB                          = "#/uW/cm²"
 CONF_UNIT_UVINDEX                      = "#"
@@ -50,50 +53,77 @@ VEM6075_AUTOFORCE_OPTIONS = {
    "enable": VEM6075_AUTOFORCE.AF_ENABLE,
 }
 
-
-CONFIG_SCHEMA = cv.All(
+CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(VEML6075Component),
-            cv.Optional(CONF_UV_A): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UV_A,
+		
+            cv.Optional(CONF_UVA): sensor.sensor_schema(
+                unit_of_measurement=UNIT_UVA,
                 accuracy_decimals=2,
-#                device_class=DEVICE_CLASS_TEMPERATURE,
                 state_class=STATE_CLASS_MEASUREMENT,
+		icon=CONF_VEML6075_ICON_UV,
             ),
-            cv.Optional(CONF_UV_B): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UV_B,
+		
+            cv.Optional(CONF_UVB): sensor.sensor_schema(
+                unit_of_measurement=UNIT_UVB,
                 accuracy_decimals=2,
-#                device_class=DEVICE_CLASS_HUMIDITY,
                 state_class=STATE_CLASS_MEASUREMENT,
+		icon=CONF_VEML6075_ICON_UV,
             ),
-	    cv.Optional(CONF_UV_INDEX): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UV_INDEX,
-                accuracy_decimals=1,
-#                device_class=DEVICE_CLASS_HUMIDITY,
+		
+	    cv.Optional(CONF_UVINDEX): sensor.sensor_schema(
+                unit_of_measurement=UNIT_UVINDEX,
+                accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
+		icon=CONF_VEML6075_ICON_NUMERIC,
             ),
+		
+	    cv.Optional(CONF_UVCOMP1): sensor.sensor_schema(
+                #unit_of_measurement=UNIT_UVINDEX,
+                accuracy_decimals=2,
+                state_class=STATE_CLASS_MEASUREMENT,
+		#icon=CONF_VEML6075_ICON_NUMERIC,
+            ),
+		
+	    cv.Optional(CONF_UVCOMP2): sensor.sensor_schema(
+                #unit_of_measurement=UNIT_UVINDEX,
+                accuracy_decimals=2,
+                state_class=STATE_CLASS_MEASUREMENT,
+		#icon=CONF_VEML6075_ICON_NUMERIC,
+            ),
+		
+	    cv.Optional(CONF_RAWUVA): sensor.sensor_schema(
+                unit_of_measurement=UNIT_UVA,
+                accuracy_decimals=2,
+                state_class=STATE_CLASS_MEASUREMENT,
+		icon=CONF_VEML6075_ICON_UV,
+            ),
+		
+	    cv.Optional(CONF_RAWUVB): sensor.sensor_schema(
+                unit_of_measurement=UNIT_UVB,
+                accuracy_decimals=2,
+                state_class=STATE_CLASS_MEASUREMENT,
+		icon=CONF_VEML6075_ICON_UV,
+            ),	
+		
 	    cv.Optional(VEML6075_INTEGRATION_TIME_OPTIONS, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
 	    cv.Optional(VEML6075_DYNAMIC_OPTIONS, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
+	    cv.Optional(VEM6075_AUTOFORCE_OPTIONS, default="disable"): cv.enum(VEM6075_AUTOFORCE_OPTIONS),
         }
     )
     .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA))
     .extend(i2c.i2c_device_schema(CONF_DEFAULT_I2C_ADRESS_SCHEMA)),
-	cv.has_at_least_one_key(CONF_UV_A, CONF_UV_B, CONF_UV_INDEX),
+#     cv.has_at_least_one_key(CONF_UVA, CONF_UVB, CONF_UVINDEX),
 )
 
-TYPES = {
-    CONF_UV_A: "set_uv_a",
-    CONF_UV_B: "set_uv_b",
-	CONF_UV_INDEX: "set_uv_index",
-}
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await i2c.register_i2c_device(var, config)
 	
-	cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
+    cg.add(var.set_integration_time(config[VEML6075_INTEGRATION_TIME_OPTIONS]))
 
     for key, funcName in TYPES.items():
         if key in config:
