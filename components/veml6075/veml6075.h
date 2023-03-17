@@ -182,75 +182,7 @@ protected:
   float uva_responsivity_, uvv_responsivity_;
   uint16_t  integrationtime_;
   boolean hdenabled_;
-	
-/* 
-  typedef enum{
-   REG_UV_CONF = 0x00,
-   REG_UVA_DATA = 0x07,
-   REG_UVB_DATA = 0x09,
-   REG_UVCOMP1_DATA = 0x0A,
-   REG_UVCOMP2_DATA = 0x0B,
-   REG_ID = 0x0C
-  } veml6075_register_t;
-  
-  veml6075_address_t _deviceAddress;
-*/  
-
-/*	
-  uint16_t rawbva(void);
-  uint16_t rawbvb(void);
-  float uva(void);
-  float uvb(void);
-  float index(void);
-	
-  float a(void);
-  float b(void);
-  float i(void);
-
-  uint16_t uvcomp1(void);
-  uint16_t uvcomp2(void);
-  uint16_t visibleCompensation(void);
-  uint16_t irCompensation(void);
-  */
-  
- /* 
-  boolean isConnected(void);
-  
-  veml6075_error_t setIntegrationTime(veml6075_uv_it_t it);
-  veml6075_uv_it_t getIntegrationTime(void);
-  veml6075_error_t setHighDynamic(veml6075_hd_t hd);
-  veml6075_hd_t getHighDynamic(void);
-  veml6075_error_t setTrigger(veml6075_uv_trig_t trig);
-  veml6075_uv_trig_t getTrigger(void);
-  veml6075_error_t trigger(void);
-
-  veml6075_error_t setAutoForce(veml6075_af_t af);
-  veml6075_af_t getAutoForce(void);
-
-  veml6075_error_t powerOn(boolean enable = true);
-  veml6075_error_t shutdown(boolean shutdown = true);
-
-
-  veml6075_error_t deviceID(uint8_t *id);
-  veml6075_error_t deviceAddress(uint8_t *address);
-  */
-  
-  
-/*	
- private:
- 
-  
-  void takeReading(void);
-
-  uint16_t _read_delay;
-
-  float _uv_a_1, _uv_a_2, _uv_b_1, _uv_b_2, _uv_a_resp, _uv_b_resp;
-  float _uv_a_calc, _uv_b_calc; 
-  
-  veml6075_commandRegister _commandRegister;
-*/
-
- 
+	 
 };
 
 }  // namespace veml6075
