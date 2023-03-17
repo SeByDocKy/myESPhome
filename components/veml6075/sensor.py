@@ -94,14 +94,14 @@ CONFIG_SCHEMA = (
             ),
 		
 	    cv.Optional(CONF_VEML6075_RAWUVA): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UVA,
+                #unit_of_measurement=UNIT_UVA,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
             ),
 		
 	    cv.Optional(CONF_VEML6075_RAWUVB): sensor.sensor_schema(
-                unit_of_measurement=UNIT_UVB,
+                #unit_of_measurement=UNIT_UVB,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
 		icon=CONF_VEML6075_ICON_UV,
