@@ -15,8 +15,8 @@ static const uint8_t VEML6075_REG_CONF               = 0x00;
 static const uint8_t VEML6075_REG_UVA                = 0x07;
 static const uint8_t VEML6075_REG_DARK               = 0x08;
 static const uint8_t VEML6075_REG_UVB                = 0x09;
-static const uint8_t VEML6075_REG_UV_UVCOMP1         = 0x0A;
-static const uint8_t VEML6075_REG_UV_UVCOMP2         = 0x0B;
+static const uint8_t VEML6075_REG_VISIBLE_COMP       = 0x0A;
+static const uint8_t VEML6075_REG_IR_COMP            = 0x0B;
 static const uint8_t VEML6075_REG_ID                 = 0x0C;
 static const uint8_t VEML6075_ID                     = 0x26;
 	
