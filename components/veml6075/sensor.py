@@ -34,7 +34,6 @@ CONF_UNIT_UVA                          = "#/uW/cm²"
 CONF_UNIT_UVB                          = "#/uW/cm²"
 CONF_UNIT_UVINDEX                      = "mW/m2"
 
-
 VEML6075_INTEGRATION_TIME = veml6075_ns.enum("veml6075_uv_it_t")
 VEML6075_INTEGRATION_TIME_OPTIONS = {
     "50ms": VEML6075_INTEGRATION_TIME.IT_50MS,
@@ -116,7 +115,7 @@ CONFIG_SCHEMA = (
     )
     .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA))
     .extend(i2c.i2c_device_schema(CONF_DEFAULT_I2C_ADRESS_SCHEMA))
-#     cv.has_at_least_one_key(CONF_UVA, CONF_UVB, CONF_UVINDEX),
+#     cv.has_at_least_one_key(CONF_VEML6075_UVA, CONF_VEML6075_UVB, CONF_VEML6075_UVINDEX),
 )
 
 
