@@ -121,7 +121,7 @@ typedef enum{
 class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
  public:
 	
-  float get_setup_priority() const override { return setup_priority::DATA; }
+  // float get_setup_priority() const override { return setup_priority::DATA; }
   void setup() override;
   void dump_config() override;
   void update() override;
