@@ -16,6 +16,8 @@ static const char *const TAG = "veml6075";
 //    uvb_resp = UVB_RESP;
 // }
 
+float VEML6075Component::get_setup_priority() const { return setup_priority::DATA; } 
+	
 void VEML6075Component::dump_config() {
   ESP_LOGCONFIG(TAG, "Dump data");
   LOG_I2C_DEVICE(this);
@@ -304,7 +306,7 @@ void VEML6075Component::update() {
   }
 }
 
-float VEML6075Component::get_setup_priority() const { return setup_priority::DATA; }
+
 
 }  // namespace veml6075
 }  // namespace esphome
