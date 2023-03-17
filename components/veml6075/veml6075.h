@@ -3,12 +3,10 @@
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/core/component.h"
-//#include "esphome/core/optional.h"
-
+// #include "esphome/core/optional.h"
+// enums from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library/tree/master/src
 namespace esphome {
 namespace veml6075 {
-
-// enums from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library/tree/master/src
 
 static const uint8_t VEML6075_ADDR                    = 0x10;
 static const uint8_t VEML6075_REG_CONF                = 0x00;
@@ -61,7 +59,7 @@ const float VEML6075_UVA_RESPONSIVITY[VEML6075_NUM_INTEGRATION_TIMES] =
         VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED / 2.039087948,  // 200ms
         VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED / 3.781758958,  // 400ms
         VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED / 7.371335505   // 800ms
-};
+    };
 	
 const float VEML6075_UVB_RESPONSIVITY[VEML6075_NUM_INTEGRATION_TIMES] =
     {
@@ -70,7 +68,7 @@ const float VEML6075_UVB_RESPONSIVITY[VEML6075_NUM_INTEGRATION_TIMES] =
         VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED / 2.039087948,  // 200ms
         VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED / 3.781758958,  // 400ms
         VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED / 7.371335505   // 800ms
-};
+    };
 	
 typedef enum
 {
@@ -87,8 +85,6 @@ typedef enum
     VEML6075_ERROR_UNDEFINED = -1,
     VEML6075_ERROR_SUCCESS = 1
 } veml6075_error_t;
-
-const veml6075_error_t VEML6075_SUCCESS = VEML6075_ERROR_SUCCESS;
 
 typedef enum{
   NO_TRIGGER,
@@ -142,11 +138,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_integration_time(veml6075_uv_it_t it) { this->it_ = it; }
   void set_dynamic(veml6075_hd_t hd) { this->hd_ = hd; }
   void set_autoforce(veml6075_af_t af) { this->af_ = af; }
-	
-//   void setcoefficients(float UVA1, float UVA2, float UVB1, float UVB1, float UVA_RESP, float UVB_RESP);
-	 
+		 
   void identifychip(void);
-  void shutdown(boolean stop);
+  void shutdown(bool stop);
   void forcedmode(veml6075_af_t af);
   void integrationtime(veml6075_uv_it_t it);
   void highdynamic(veml6075_hd_t hd);
@@ -181,7 +175,7 @@ protected:
 */	
   float uva_responsivity_, uvv_responsivity_;
   uint16_t  integrationtime_;
-  boolean hdenabled_;
+  bool hdenabled_;
 	 
 };
 
