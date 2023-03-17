@@ -225,17 +225,17 @@ uint16_t VEML6075Component::calc_rawuvb(void){
 }
 	
 float VEML6075Component::calc_uva(void){
-    return (float)this->rawuva_ - ( ( VEML6075_DEFAULT_UVA1_COEFF * VEML6075_UV_ALPHA * this->visible_comp_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * this->ir_comp_) / VEML6075_UV_DELTA );
+    return (float)this->rawuva_sensor_ - ( ( VEML6075_DEFAULT_UVA1_COEFF * VEML6075_UV_ALPHA * this->visible_comp_sensor_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * this->ir_comp_sensor_) / VEML6075_UV_DELTA );
 }
 
 float VEML6075Component::calc_uvb(void){
-    return (float)this->rawuvb_ - ( ( VEML6075_DEFAULT_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp_) / VEML6075_UV_DELTA );	
+    return (float)this->rawuvv_sensor_ - ( ( VEML6075_DEFAULT_UVB1_COEFF * VEML6075_UV_BETA * this->visible_comp_sensor_) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * this->ir_comp_sensor_) / VEML6075_UV_DELTA );	
 }	
 
 float VEML6075Component::calc_uvindex(void){
     float index;
-    float uvia = this->uva_ * (1.0 / VEML6075_UV_ALPHA) * this->uva_responsivity_;
-    float uvib = this->uvb_ * (1.0 / VEML6075_UV_BETA)  * this->uvb_responsivity_;
+    float uvia = this->uva_sensor_ * (1.0 / VEML6075_UV_ALPHA) * this->uva_responsivity_;
+    float uvib = this->uvb_sensor_* (1.0 / VEML6075_UV_BETA)  * this->uvb_responsivity_;
     index = (uvia + uvib) / 2.0;
     if (this->hdenabled_ )
     {
