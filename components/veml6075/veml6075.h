@@ -156,8 +156,9 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   uint16_t calc_rawuva(void);
   uint16_t calc_rawuva(void);
 	
-  float calc_uva(uint16_t rawuva , uint16_t visible_comp , uint16_t ir_comp);
-  float calc_uvb(uint16_t rawuvb , uint16_t visible_comp , uint16_t ir_comp);
+  float calc_uva(void);
+  float calc_uvb(void);
+  float calc_uvindex(void);
    
 protected:
 	
