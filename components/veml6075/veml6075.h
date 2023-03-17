@@ -102,7 +102,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
                                         float UVB1, float UVA_RESP,
                                         float UVB_RESP);
 	 
-  void shutdown(boolean action);
+  void shutdown(boolean stop);
    
 protected:
 	
