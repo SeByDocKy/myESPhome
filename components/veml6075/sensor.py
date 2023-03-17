@@ -13,20 +13,20 @@ VEML6075Component = veml6075_ns.class_(
     "VEML6075Component", cg.PollingComponent, i2c.I2CDevice
 )
 
-CONF_DEFAULT_I2C_ADRESS_SCHEMA = 0x10
-CONF_DEFAULT_POLLING_CONPONENT_SCHEMA = "60s"
+CONF_DEFAULT_I2C_ADRESS_SCHEMA         = 0x10
+CONF_DEFAULT_POLLING_CONPONENT_SCHEMA  = "60s"
 
-CONF_VEML6075_UVA      = "uva"
-CONF_VEML6075_UVB      = "uvb"
-CONF_VEML6075_UVINDEX  = "uvindex"
-CONF_VEML6075_UVCOMP1  = "uvcomp1"
-CONF_VEML6075_UVCOMP2  = "uvcomp2"
-CONF_VEML6075_RAWUVA   = "rawuva"
-CONF_VEML6075_RAWUVB   = "rawuva"
+CONF_VEML6075_UVA                      = "uva"
+CONF_VEML6075_UVB                      = "uvb"
+CONF_VEML6075_UVINDEX                  = "uvindex"
+CONF_VEML6075_UVCOMP1                  = "uvcomp1"
+CONF_VEML6075_UVCOMP2                  = "uvcomp2"
+CONF_VEML6075_RAWUVA                   = "rawuva"
+CONF_VEML6075_RAWUVB                   = "rawuva"
 
-CONF_UNIT_UVA          = "#/uW/cm²"
-CONF_UNIT_UVB          = "#/uW/cm²"
-CONF_UNIT_UVINDEX      = "#"
+CONF_UNIT_UVA                          = "#/uW/cm²"
+CONF_UNIT_UVB                          = "#/uW/cm²"
+CONF_UNIT_UVINDEX                      = "#"
 
 
 VEML6075_INTEGRATION_TIME = veml6075_ns.enum("veml6075_uv_it_t")
@@ -44,8 +44,11 @@ VEM6075_DYNAMIC_OPTIONS = {
    "high": VEM6075_DYNAMIC.DYNAMIC_HIGH,
 }
 
-#VEML6075_REGISTERS = veml6075_ns.enum("VEML6075_REGISTERS")
-#VEML6075_CONSTANTS = veml6075_ns.enum("VEML6075_CONSTANTS")
+VEM6075_AUTOFORCE = veml6075_ns.enum("veml6075_af_t")
+VEM6075_AUTOFORCE_OPTIONS = {
+   "disable": VEM6075_AUTOFORCE.AF_DISABLE,
+   "enable": VEM6075_AUTOFORCE.AF_ENABLE,
+}
 
 
 CONFIG_SCHEMA = cv.All(
