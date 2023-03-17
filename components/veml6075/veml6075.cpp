@@ -190,7 +190,7 @@ uint16_t VEML6075Component::calc_visible_comp(void){
        ESP_LOGW(TAG, "can't read VEML6075_REG_VISIBLE_COMP register");
        this->mark_failed();
        return;	  
-  }
+    }
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
 }
 
@@ -200,7 +200,7 @@ uint16_t VEML6075Component::calc_ir_comp(void){
        ESP_LOGW(TAG, "can't read VEML6075_REG_IR_COMP register");
        this->mark_failed();
        return;	  
-  }
+    }
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
 }
 		
@@ -210,6 +210,7 @@ uint16_t VEML6075Component::calc_rawuva(void){
        ESP_LOGW(TAG, "can't read VEML6075_REG_UVA  register");
        this->mark_failed();
        return;
+    }
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);	    
 }
 	
@@ -218,7 +219,8 @@ uint16_t VEML6075Component::calc_rawuvb(void){
     if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, 2)){
        ESP_LOGW(TAG, "can't read VEML6075_REG_UVB  register");
        this->mark_failed();
-       return;
+       return; 
+    }
     return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);	    
 }
 	
