@@ -16,7 +16,6 @@ static const char *const TAG = "veml6075";
 //    uvb_resp = UVB_RESP;
 // }
 
-
 void VEML6075Component::dump_config() {
   ESP_LOGCONFIG(TAG, "Dump data");
   LOG_I2C_DEVICE(this);
@@ -59,8 +58,8 @@ void VEML6075Component::setup() {
 
 void VEML6075Component::identifychip(void){
   
-  uint8_t chip_id = 0;
-  uint8_t conf_register = 0;
+  uint8_t chip_id;
+//  uint8_t conf_register = 0;
   
   if (!this->read_byte(VEML6075_REG_ID, &chip_id)) {
     #this->error_code_ = COMMUNICATION_FAILED;
@@ -69,7 +68,7 @@ void VEML6075Component::identifychip(void){
     return;
   }
   if (chip_id != VEML6075_ID) {
-    ESP_LOGE(TAG, "Wrong ID register, received %d, expecting %d", chip_id , VEML6075_I);
+    ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", chip_id , VEML6075_ID);
     #this->error_code_ = WRONG_CHIP_ID;
     this->mark_failed();
     return;
@@ -87,39 +86,106 @@ void VEML6075Component::identifychip(void){
 }
  
 void VEML6075Component::shutdown(boolean stop){
-  uint8_t conf=0 , sd = 0;
+  uint8_t conf , sd = 0;
   
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
     #this->error_code_ = COMMUNICATION_FAILED;
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register");
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
     this->mark_failed();
     return;
   }
-  if (stop == true){
-        sd = 1;
-   }
-   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
-   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-   if (!this->write_byte(VEML6075_REG_CONF, conf)) {
+  if (stop == true){ sd = 1;}
+  
+  conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
+  conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  if (!this->write_byte(VEML6075_REG_CONF, conf)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
-  
 }
  
-void VEML6075Component::forcedmode(uint8_t af){
+void VEML6075Component::forcedmode(VEML6075Component::veml6075_af_t af){
+  uint8_t conf;
   
+  if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
+    #this->error_code_ = COMMUNICATION_FAILED;
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in forcemode");
+    this->mark_failed();
+    return;
+  }
   
+  conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
+  conf |= (uint8_t)af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  if (!this->write_byte(VEML6075_REG_CONF, conf)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set autoforce mode");
+     return;
+  }
 }
   
-void VEML6075Component::integrationtime(uint8_t it){
+void VEML6075Component::integrationtime(VEML6075Component::veml6075_uv_it_t it){
   
+  uint8_t conf;
   
+  if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
+    #this->error_code_ = COMMUNICATION_FAILED;
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in integration time");
+    this->mark_failed();
+    return;
+  }
+  
+  conf &= ~(VEML6075_UV_IT_MASK);     // Clear shutdown bit
+  conf |= (uint8_t)it << VEML6075_UV_IT_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  if (!this->write_byte(VEML6075_REG_CONF, conf)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set integration time mode");
+     return;
+  }
+  
+  this->uva_responsivity_ = VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
+  this->uva_Responsivity_ = VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
+
+  switch (it){
+    case IT_50MS:
+        this->integrationtime_ = 50;
+        break;
+    case IT_100MS:
+        this->integrationtime_ = 100;
+        break;
+    case IT_200MS:
+        this->integrationtime_ = 200;
+        break;
+    case IT_400MS:
+        this->integrationtime_ = 400;
+        break;
+    case IT_800MS:
+        this->integrationtime_ = 800;
+        break;
+    default:
+        this->integrationtime_ = 0;
+    } 
 }
 
-void VEML6075Component::highdynamic(uint8_t hd){
+void VEML6075Component::highdynamic(VEML6075Component::veml6075_hd_t hd){
+  uint8_t conf;
   
+  if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
+    #this->error_code_ = COMMUNICATION_FAILED;
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
+    this->mark_failed();
+    return;
+  }
+  if (hd == DYNAMIC_HIGH){
+        this->hdenabled_ = true;
+  }
+  else{
+        this->hdenabled_ = false;
+  }
   
+  conf &= ~(VEML6075_HD_MASK);     // Clear shutdown bit
+  conf |= (uint8_t)hd << VEML6075_HD_SHIFT; 
+  if (!this->write_byte(VEML6075_REG_CONF, conf)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set high dynamic mode");
+     return;
+  }
 }  
  
 
