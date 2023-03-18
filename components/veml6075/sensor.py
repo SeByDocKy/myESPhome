@@ -25,6 +25,7 @@ CONF_VEML6075_IR_COMP                  = "ir_comp"
 CONF_VEML6075_RAWUVA                   = "rawuva"
 CONF_VEML6075_RAWUVB                   = "rawuvb"
 CONF_VEML6075_DYNAMIC                  = "dynamic"
+CONF_VEML6075_TRIGGER                  = "trigger"
 CONF_VEML6075_INTEGRATION_TIME         = "integration_time"
 CONF_VEML6075_AUTO_FORCE               = "auto_force"
 
@@ -42,6 +43,12 @@ VEML6075_INTEGRATION_TIME_OPTIONS = {
     "200ms": VEML6075_INTEGRATION_TIME.IT_200MS,
     "400ms": VEML6075_INTEGRATION_TIME.IT_400MS,
     "800ms": VEML6075_INTEGRATION_TIME.IT_800MS,
+}
+
+VEML6075_TRIGGER         = veml6075_ns.enum("veml6075_uv_trig_t)
+VEML6075_TRIGGER_OPTIONS = {
+    "disable": VEML6075_TRIGGER.NO_TRIGGER,
+    "one_or_uv": VEML6075_TRIGGER.TRIGGER_ONE_OR_UV_TRIG,
 }
 
 VEML6075_DYNAMIC = veml6075_ns.enum("veml6075_hd_t")
@@ -114,6 +121,7 @@ CONFIG_SCHEMA = (
 	    cv.Optional(CONF_VEML6075_INTEGRATION_TIME, default="100ms"): cv.enum(VEML6075_INTEGRATION_TIME_OPTIONS),
 	    cv.Optional(CONF_VEML6075_DYNAMIC, default="normal"): cv.enum(VEML6075_DYNAMIC_OPTIONS),
 	    cv.Optional(CONF_VEML6075_AUTO_FORCE, default="disable"): cv.enum(VEML6075_AUTOFORCE_OPTIONS),
+	    cv.Optional(VEML6075_TRIGGER, default="disable"): cv.enum(VEML6075_TRIGGER_OPTIONS),
         }
     )
     .extend(cv.polling_component_schema(CONF_DEFAULT_POLLING_CONPONENT_SCHEMA))
@@ -163,3 +171,6 @@ async def to_code(config):
     
     if CONF_VEML6075_AUTO_FORCE in config:
         cg.add(var.set_autoforce(config[CONF_VEML6075_AUTO_FORCE]))
+	
+    if CONF_VEML6075_TRIGGER in config:
+        cg.add(var.set_trigger(config[CONF_VEML6075_TRIGGER]))
