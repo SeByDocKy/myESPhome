@@ -222,7 +222,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 }
 
 void VEML6075Component::highdynamic(veml6075_hd_t hd){
-  uint8_t data[2]= {0,0];;
+  uint8_t data[2]= {0,0];
   uint16_t conf;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
