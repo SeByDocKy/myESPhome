@@ -27,14 +27,15 @@ void VEML6075Component::dump_config() {
 void VEML6075Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
+  delay(100);
 
-	
+ /*	
   uint8_t chip_id = 0;
   uint8_t conf_register = 0;
   
   identifychip(); // check if it's a genuine chip
   
-// /*	
+	
   shutdown(true); // Shut down to change settings
 
   // Set Force readings
@@ -47,10 +48,10 @@ void VEML6075Component::setup() {
   highdynamic(this->hd_);
 
   shutdown(false); // Turn on chip after setting set
-// */
+ */
 }
 
-void VEML6075Component::update() { this->read_data_(); }	
+void VEML6075Component::update() { // this->read_data_(); }	
 
 void VEML6075Component::identifychip(void){
   uint8_t chip_id;
