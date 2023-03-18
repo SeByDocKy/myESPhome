@@ -36,7 +36,7 @@ CONF_UNIT_UVA                          = "#/uW/cm²"
 CONF_UNIT_UVB                          = "#/uW/cm²"
 CONF_UNIT_UVINDEX                      = "mW/m2"
 
-VEML6075_INTEGRATION_TIME = veml6075_ns.enum("veml6075_uv_it_t")
+VEML6075_INTEGRATION_TIME              = veml6075_ns.enum("veml6075_uv_it_t")
 VEML6075_INTEGRATION_TIME_OPTIONS = {
     "50ms": VEML6075_INTEGRATION_TIME.IT_50MS,
     "100ms": VEML6075_INTEGRATION_TIME.IT_100MS,
@@ -44,8 +44,7 @@ VEML6075_INTEGRATION_TIME_OPTIONS = {
     "400ms": VEML6075_INTEGRATION_TIME.IT_400MS,
     "800ms": VEML6075_INTEGRATION_TIME.IT_800MS,
 }
-
-VEML6075_TRIGGER         = veml6075_ns.enum("veml6075_uv_trig_t)
+VEML6075_TRIGGER                       = veml6075_ns.enum("veml6075_uv_trig_t")
 VEML6075_TRIGGER_OPTIONS = {
     "disable": VEML6075_TRIGGER.NO_TRIGGER,
     "one_or_uv": VEML6075_TRIGGER.TRIGGER_ONE_OR_UV_TRIG,
