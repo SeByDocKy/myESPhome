@@ -276,6 +276,7 @@ void VEML6075Component::read_data_() {
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
   
+  ESP_LOGD(TAG, "will read visible comp register");
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
