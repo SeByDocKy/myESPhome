@@ -343,7 +343,7 @@ void VEML6075Component::read_data_() {
     this->mark_failed();
     return;
   }
-  ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d, result: %d" , data[0] , data[1]); 
+  ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
 
 
 /*	
