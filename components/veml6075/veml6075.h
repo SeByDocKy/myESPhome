@@ -10,6 +10,7 @@
 namespace esphome {
 namespace veml6075 {
 
+static const uint8_t VEML6075_REG_SIZE                = 2;
 static const uint8_t VEML6075_ADDR                    = 0x10;
 static const uint8_t VEML6075_REG_CONF                = 0x00;
 static const uint8_t VEML6075_REG_UVA                 = 0x07;
