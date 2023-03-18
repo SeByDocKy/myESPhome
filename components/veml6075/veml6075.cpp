@@ -56,11 +56,11 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  uint8_t chip_id[2];
+  uint16_t chip_id;
   uint8_t chip_id_LSB;
   uint16_t conf_register;
   
-  if (!this->read_bytes(VEML6075_REG_ID, &chip_id , 2)) {
+  if (!this->read_byte_16(VEML6075_REG_ID, &chip_id)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
     this->mark_failed();
