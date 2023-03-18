@@ -2,6 +2,8 @@
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
 
+// built from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library
+
 namespace esphome {
 namespace veml6075 {
 
