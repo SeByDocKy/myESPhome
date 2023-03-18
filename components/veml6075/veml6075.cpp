@@ -54,7 +54,7 @@ void VEML6075Component::setup() {
 
 void VEML6075Component::update() { 
 	ESP_LOGD(TAG, "in update() for VEML6075...");
-	// this->read_data_(); 
+	this->read_data_(); 
 }	
 
 void VEML6075Component::identifychip(void){
