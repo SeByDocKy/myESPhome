@@ -99,6 +99,8 @@ void VEML6075Component::shutdown(bool stop){
     this->mark_failed();
     return;
   }
+  ESP_LOGD(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
+	
   conf  = ((data[0]) | (data[1] << 8));	
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   
@@ -107,12 +109,12 @@ void VEML6075Component::shutdown(bool stop){
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
- 
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
+  
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-	
-  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF with: %d %d" , data[1] , data[0]);
+  ESP_LOGD(TAG, "read after masking shutdown %d %d" , data[1] , data[0]);	
+
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
