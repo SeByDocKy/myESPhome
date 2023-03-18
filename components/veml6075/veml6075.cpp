@@ -56,19 +56,19 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  uint16_t chip_id_16;
-  uint8_t  chip_id
+  uint8_t chip_id[2];
+  uint8_t chip_id_LSB;
   uint16_t conf_register;
   
-  if (!this->read_bytes(VEML6075_REG_ID, &chip_id_16 , 2)) {
+  if (!this->read_bytes(VEML6075_REG_ID, &chip_id , 2)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
     this->mark_failed();
     return;
   }
-  chip_id = (uint8_t)(chip_id_16 & 0x00FF);
+  chip_id_LSB = (uint8_t)(chip_id & 0x00FF);
   if (chip_id != VEML6075_ID) {
-    ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", chip_id , VEML6075_ID);
+    ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", chip_id_LSB , VEML6075_ID);
 //     this->error_code_ = WRONG_CHIP_ID;
     this->mark_failed();
     return;
@@ -91,7 +91,7 @@ void VEML6075Component::identifychip(void){
 void VEML6075Component::shutdown(bool stop){
   uint16_t conf , sd = 0;
   
-  if (!this->read_bytes(VEML6075_REG_CONF, &conf , 2)) {
+  if (!this->read_byte_16(VEML6075_REG_CONF, &conf)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
     this->mark_failed();
