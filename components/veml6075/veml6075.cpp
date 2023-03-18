@@ -58,7 +58,7 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  uint8_t data[2];
+  uint8_t data[2] = {0,0];
   uint16_t conf;
   
   if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {
@@ -90,7 +90,7 @@ void VEML6075Component::identifychip(void){
 }
  
 void VEML6075Component::shutdown(bool stop){
-  uint8_t data[2];
+  uint8_t data[2] = {0,0];
   uint16_t conf , sd = 0;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
@@ -121,7 +121,7 @@ void VEML6075Component::shutdown(bool stop){
 }
  
 void VEML6075Component::forcedmode(veml6075_af_t af){
-  uint8_t data[2];
+  uint8_t data[2]= {0,0];
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -129,7 +129,6 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
     this->mark_failed();
     return;
   }
-  delay(10);
   ESP_LOGD(TAG, "read before masking force mode %d %d" , data[1] , data[0]);
   conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
   conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
@@ -147,7 +146,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
 }
 
 void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
-  uint8_t data[2];
+  uint8_t data[2]= {0,0];
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -156,7 +155,6 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
     return;
   }
   ESP_LOGD(TAG, "read before masking trigger %d %d" , data[1] , data[0]);
-  delay(10),
   conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
   conf &= ~(VEML6075_TRIG_MASK);     // Clear shutdown bit
   conf |= trig << VEML6075_TRIG_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
@@ -176,7 +174,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
 }
   
 void VEML6075Component::integrationtime(veml6075_uv_it_t it){
-  uint8_t data[2];
+  uint8_t data[2]= {0,0];
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -224,7 +222,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 }
 
 void VEML6075Component::highdynamic(veml6075_hd_t hd){
-  uint8_t data[2];
+  uint8_t data[2]= {0,0];;
   uint16_t conf;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
