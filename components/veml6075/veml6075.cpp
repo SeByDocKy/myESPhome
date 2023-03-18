@@ -51,7 +51,9 @@ void VEML6075Component::setup() {
  */
 }
 
-void VEML6075Component::update() { // this->read_data_(); }	
+void VEML6075Component::update() { 
+	// this->read_data_(); 
+}	
 
 void VEML6075Component::identifychip(void){
   uint8_t chip_id;
