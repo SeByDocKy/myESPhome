@@ -57,48 +57,50 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  uint8_t data[2];
+  const uint8_t data_read[2];
+  uint8_t data_write[2];
   uint16_t conf;
   
-  if ( !this->read_bytes(VEML6075_REG_ID, &data , VEML6075_REG_SIZE) ) {
+  if ( !this->read_bytes(VEML6075_REG_ID, &data_read , VEML6075_REG_SIZE) ) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
 //    this->mark_failed();
     return;
   }
   
-  if (data[0] != VEML6075_ID) {
-    ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data[0] , VEML6075_ID);
+  if (data_read[0] != VEML6075_ID) {
+    ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data_read[0] , VEML6075_ID);
 //     this->error_code_ = WRONG_CHIP_ID;
     this->mark_failed();
     return;
   }
-  ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
+  ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data_read[0] , VEML6075_ID);
   
 //  /*  
-  if ( !this->read_bytes(VEML6075_REG_CONF, &data , VEML6075_REG_SIZE ) ) {
+  if ( !this->read_bytes(VEML6075_REG_CONF, &data_read , VEML6075_REG_SIZE ) ) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
  //   this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
     return;
   }
-  conf  = ((data[0]) | (data[1] << 8));	
+  conf  = ((data_read[0]) | (data_read[1] << 8));	
   ESP_LOGD(TAG, "Read successuffuly VEML6075_REG_CONF returning %d" , conf);
  //  */
   
 }
  
 void VEML6075Component::shutdown(bool stop){
-  uint8_t data[2];
+  const uint8_t data_read[2];
+  uint8_t data_write[2];
   uint16_t conf , sd = 0;
   
-  if (!this->read_bytes(VEML6075_REG_CONF, &data , VEML6075_REG_SIZE)) {
+  if (!this->read_bytes(VEML6075_REG_CONF, &data_read , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
     this->mark_failed();
     return;
   }
-  conf  = ((data[0]) | (data[1] << 8));	
+  conf  = ((data_read[0]) | (data_read[1] << 8));	
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   
   if (stop == true){ sd = (uint16_t)1;}
@@ -106,12 +108,11 @@ void VEML6075Component::shutdown(bool stop){
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
-  
-	
+ 
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
-  data[0] = (uint8_t)(conf & 0x00FF);
-  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+  data_write[0] = (uint8_t)(conf & 0x00FF);
+  data_write[1] = (uint8_t)((conf & 0xFF00) >> 8);
+  if (!this->write_bytes(VEML6075_REG_CONF, data_write , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
@@ -119,22 +120,23 @@ void VEML6075Component::shutdown(bool stop){
 }
  
 void VEML6075Component::forcedmode(veml6075_af_t af){
-  uint8_t data[2];	
+  const uint8_t data_read[2];
+  uint8_t data_write[2];	
   uint16_t conf;
-  if (!this->read_bytes(VEML6075_REG_CONF, &data , VEML6075_REG_SIZE)) {
+  if (!this->read_bytes(VEML6075_REG_CONF, &data_read , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in forcemode");
     this->mark_failed();
     return;
   }
-  conf  = ((data[0]) | (data[1] << 8));
+  conf  = ((data_read[0]) | (data_read[1] << 8));
   conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
   conf |= af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
-  data[0] = (uint8_t)(conf & 0x00FF);
-  data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
+  data_write[0] = (uint8_t)(conf & 0x00FF);
+  data_write[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
 	
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
+  if (!this->write_bytes(VEML6075_REG_CONF, data_write , VEML6075_REG_SIZE)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set autoforce mode");
      return;
   }
