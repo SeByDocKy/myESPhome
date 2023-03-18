@@ -81,6 +81,7 @@ void VEML6075Component::identifychip(void){
     this->mark_failed();
     return;
   }
+  ESP_LOGD(TAG, "Read successuffuly VEML6075_REG_CONF returning %d" , conf_register);
   // */
   
 }
