@@ -52,7 +52,7 @@ void VEML6075Component::setup() {
 
 void VEML6075Component::identifychip(void){
   uint8_t chip_id;
-//  uint8_t conf_register = 0;
+  uint8_t conf_register;
   
   if (!this->read_byte(VEML6075_REG_ID, &chip_id)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
