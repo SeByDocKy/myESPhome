@@ -332,27 +332,24 @@ void VEML6075Component::read_data_() {
   uint16_t visible_compensation , ir_compensation;
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
-  
-  ESP_LOGD(TAG, "will read visible comp register");
-	
-  uint16_t conf;
-  
+
+/*	
+  ESP_LOGD(TAG, "will read visible comp register");	
+  uint16_t conf;  
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
     this->mark_failed();
     return;
   }
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
+*/
 
-
-	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
-/*	
+// /*	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
@@ -388,7 +385,7 @@ void VEML6075Component::read_data_() {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
-*/	
+// */	
 }
 	
 
