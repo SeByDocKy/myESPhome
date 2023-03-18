@@ -32,11 +32,12 @@ void VEML6075Component::setup() {
 //  uint8_t chip_id = 0;
  // uint8_t conf_register = 0;
   
-  identifychip(); // check if it's a genuine chip
+//  identifychip(); // check if it's a genuine chip
   
- /*	
+ 	
   shutdown(true); // Shut down to change settings
 
+/*	
   // Set Force readings
   forcedmode(this->af_);
 
@@ -45,9 +46,9 @@ void VEML6075Component::setup() {
 
   // Set high dynamic
   highdynamic(this->hd_);
-
+*/
   shutdown(false); // Turn on chip after settings set
- */
+ 
 }
 
 void VEML6075Component::update() { 
