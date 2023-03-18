@@ -141,7 +141,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfull to set autoforce mode");
 }
 
-void VEML6075Component:::trigger(veml6075_uv_trig_t trig) {
+void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   uint8_t data[2];
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
