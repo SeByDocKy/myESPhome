@@ -37,7 +37,7 @@ void VEML6075Component::setup() {
 //  identifychip(); // check if it's a genuine chip
   
 // /*	
-  shutdown(true); // Shut down to change settings
+//  shutdown(true); // Shut down to change settings
 
   // Set Force readings
   forcedmode(this->af_);
@@ -48,7 +48,7 @@ void VEML6075Component::setup() {
   // Set high dynamic
   highdynamic(this->hd_);
 
-  shutdown(false); // Turn on chip after setting set
+//  shutdown(false); // Turn on chip after setting set
 // */
 }
 
@@ -276,6 +276,7 @@ void VEML6075Component::read_data_() {
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }
   
+/*	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
@@ -311,7 +312,7 @@ void VEML6075Component::read_data_() {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
-	
+*/	
 }
 	
 
