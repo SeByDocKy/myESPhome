@@ -140,12 +140,14 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_integration_time(veml6075_uv_it_t it) { this->it_ = it; }
   void set_dynamic(veml6075_hd_t hd) { this->hd_ = hd; }
   void set_autoforce(veml6075_af_t af) { this->af_ = af; }
+  void set_trigger(veml6075_uv_trig_t trig) { this->trig_ = trig; }
 		 
   void identifychip(void);
   void shutdown(bool stop);
   void forcedmode(veml6075_af_t af);
   void integrationtime(veml6075_uv_it_t it);
   void highdynamic(veml6075_hd_t hd);
+  void trigger(veml6075_uv_trig_t trig);
 	
   uint16_t calc_visible_comp(void);
   uint16_t calc_ir_comp(void);
@@ -172,6 +174,7 @@ protected:
   veml6075_uv_it_t it_{IT_100MS};
   veml6075_af_t af_{AF_DISABLE};
   veml6075_hd_t hd_{DYNAMIC_NORMAL};
+  veml6075_uv_trig_t trig_{NO_TRIGGER};
 	
   void read_data_();	
 };
