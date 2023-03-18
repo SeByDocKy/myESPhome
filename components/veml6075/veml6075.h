@@ -5,6 +5,8 @@
 #include "esphome/core/component.h"
 // #include "esphome/core/optional.h"
 
+// built from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library
+
 namespace esphome {
 namespace veml6075 {
 
