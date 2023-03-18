@@ -29,8 +29,6 @@ void VEML6075Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
-//  uint8_t chip_id = 0;
- // uint8_t conf_register = 0;
   
 //  identifychip(); // check if it's a genuine chip
   
@@ -139,6 +137,31 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
      return;
   }
   ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfull to set autoforce mode");
+}
+
+void VEML6075Component:::trigger(veml6075_uv_trig_t trig) {
+  uint8_t data[2];
+  uint16_t conf;
+  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
+//     this->error_code_ = COMMUNICATION_FAILED;
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in trigger mode");
+    this->mark_failed();
+    return;
+  }
+  conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
+  conf &= ~(VEML6075_TRIG_MASK);     // Clear shutdown bit
+  conf |= trig << VEML6075_TRIG_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+	
+  data[0] = (uint8_t)(conf & 0x00FF);
+  data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
+	
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set trigger mode");
+     return;
+  }
+  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfull to set trigger mode");
+	
+	
 }
   
 void VEML6075Component::integrationtime(veml6075_uv_it_t it){
