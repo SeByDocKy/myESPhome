@@ -73,7 +73,7 @@ void VEML6075Component::identifychip(void){
     this->mark_failed();
     return;
   }
-  ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", chip_id , VEML6075_ID);
+  ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", chip_id_LSB , VEML6075_ID);
   
   
 //  /*  
