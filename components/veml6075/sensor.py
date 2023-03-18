@@ -3,6 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import i2c, sensor
 from esphome.const import (
     CONF_ID,
+    CONF_ADDRESS,
     STATE_CLASS_MEASUREMENT,
 )
 
@@ -59,6 +60,8 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(VEML6075Component),
+		
+	    cv.Optional(CONF_ADDRESS): cv.i2c_address,	
 		
             cv.Optional(CONF_VEML6075_UVA): sensor.sensor_schema(
                 unit_of_measurement=CONF_UNIT_UVA,
