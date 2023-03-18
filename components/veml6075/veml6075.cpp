@@ -31,14 +31,16 @@ void VEML6075Component::setup() {
   
   
 //  identifychip(); // check if it's a genuine chip
-  
- 	
+  	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
 // /*	
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
 
+  // Set trigger mode
+  forcedmode(this->trig_); // trigger mode  VEML6075_REG_CONF(0x00) bit2-MSB/bit10 16 bit
+	
   // Set high dynamic
   highdynamic(this->hd_); // high dynamic  VEML6075_REG_CONF(0x00) bit3-MSB/bit11 16 bit	
   
