@@ -27,7 +27,7 @@ void VEML6075Component::dump_config() {
 void VEML6075Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
 
-/*	
+	
   uint8_t chip_id = 0;
   uint8_t conf_register = 0;
   
@@ -45,7 +45,7 @@ void VEML6075Component::setup() {
   highdynamic(this->hd_);
 
   shutdown(false); // Turn on chip after setting set
-*/
+
 }
 
 void VEML6075Component::identifychip(void){
@@ -64,7 +64,7 @@ void VEML6075Component::identifychip(void){
     this->mark_failed();
     return;
   }
-  ESP_LOGE(TAG, "Chip identification successfull, received %d, expecting %d", chip_id , VEML6075_ID);
+  ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", chip_id , VEML6075_ID);
   
   
 /*  
@@ -95,7 +95,7 @@ void VEML6075Component::shutdown(bool stop){
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
-  ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
+  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
 }
  
 void VEML6075Component::forcedmode(veml6075_af_t af){
@@ -113,7 +113,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set autoforce mode");
      return;
   }
-  ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF successfull to set autoforce mode");
+  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to set autoforce mode");
 }
   
 void VEML6075Component::integrationtime(veml6075_uv_it_t it){
@@ -131,7 +131,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set integration time mode");
      return;
   }
-  ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF successfull to set integration time mode");
+  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to set integration time mode");
   
   this->uva_responsivity_ = VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
@@ -179,7 +179,7 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set high dynamic mode");
      return;
   }
-  ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
+  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
 }  
  
 uint16_t VEML6075Component::calc_visible_comp(void){
