@@ -155,7 +155,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
-  if (!this->write_byte(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set integration time mode");
      return;
   }
@@ -186,6 +186,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 }
 
 void VEML6075Component::highdynamic(veml6075_hd_t hd){
+  uint8_t data[2];
   uint8_t conf;
   
   if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
