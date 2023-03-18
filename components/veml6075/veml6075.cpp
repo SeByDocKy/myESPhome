@@ -277,13 +277,14 @@ void VEML6075Component::read_data_() {
   float uva , uvb , uvindex;
   
   ESP_LOGD(TAG, "will read visible comp register");
+/*	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }
   
-/*	
+	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
