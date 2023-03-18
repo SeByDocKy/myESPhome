@@ -58,7 +58,7 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  uint8_t data[2] = {0,0];
+  uint8_t data[2] = {0,0};
   uint16_t conf;
   
   if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {
@@ -90,7 +90,7 @@ void VEML6075Component::identifychip(void){
 }
  
 void VEML6075Component::shutdown(bool stop){
-  uint8_t data[2] = {0,0];
+  uint8_t data[2] = {0,0};
   uint16_t conf , sd = 0;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
@@ -121,7 +121,7 @@ void VEML6075Component::shutdown(bool stop){
 }
  
 void VEML6075Component::forcedmode(veml6075_af_t af){
-  uint8_t data[2]= {0,0];
+  uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -146,7 +146,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
 }
 
 void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
-  uint8_t data[2]= {0,0];
+  uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -174,7 +174,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
 }
   
 void VEML6075Component::integrationtime(veml6075_uv_it_t it){
-  uint8_t data[2]= {0,0];
+  uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -222,7 +222,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 }
 
 void VEML6075Component::highdynamic(veml6075_hd_t hd){
-  uint8_t data[2]= {0,0];
+  uint8_t data[2]= {0,0};
   uint16_t conf;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
@@ -255,7 +255,7 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
 }  
  
 uint16_t VEML6075Component::calc_visible_comp(void){
-    uint8_t data[2] = {0, 0};
+    uint8_t data[2] = {0,0};
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_VISIBLE_COMP register");
