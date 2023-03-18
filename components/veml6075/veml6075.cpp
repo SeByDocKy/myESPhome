@@ -35,7 +35,7 @@ void VEML6075Component::setup() {
 //  identifychip(); // check if it's a genuine chip
   
  	
-  shutdown(true); // Shut down to change settings
+  shutdown(false); // Shut down to change settings
 
 // /*	
   // Set Force readings
@@ -47,7 +47,7 @@ void VEML6075Component::setup() {
   // Set high dynamic
   highdynamic(this->hd_);
 // */
-  shutdown(false); // Turn on chip after settings set
+  shutdown(true); // Turn on chip after settings set
  
 }
 
