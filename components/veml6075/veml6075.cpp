@@ -226,41 +226,47 @@ uint16_t VEML6075Component::calc_visible_comp(void){
 //       return;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
-    ESP_LOGD(TAG , "data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGD(TAG , "calc_visible_comp data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 
 uint16_t VEML6075Component::calc_ir_comp(void){
     uint8_t data[2] = {0, 0};
     uint16_t result;
-    if (!this->read_bytes(VEML6075_REG_IR_COMP, (uint8_t *) &data, 2)){
+    if (!this->read_bytes(VEML6075_REG_IR_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_IR_COMP register");
        this->mark_failed();
 //       return;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
-    ESP_LOGD(TAG , "data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGD(TAG , "calc_ir_comp data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 		
 uint16_t VEML6075Component::calc_rawuva(void){
     uint8_t data[2] = {0, 0};
-    if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, 2)){
+    uint16_t result;
+    if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
        this->mark_failed();
 //       return;
     }
-    return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);	    
+    result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
+    ESP_LOGD(TAG , "calc_rawuva data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    return result;	    
 }
 	
 uint16_t VEML6075Component::calc_rawuvb(void){
     uint8_t data[2] = {0, 0};
-    if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, 2)){
+    uint16_t result;
+    if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVB  register");
        this->mark_failed();
 //       return; 
     }
-    return (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);	    
+    result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
+    ESP_LOGD(TAG , "calc_rawuvb data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
+    return result;	    
 }
 	
 float VEML6075Component::calc_uva(void){
