@@ -89,17 +89,16 @@ void VEML6075Component::identifychip(void){
 }
  
 void VEML6075Component::shutdown(bool stop){
-  const uint8_t data_read[2];
-  uint8_t data_write[2];
+  uint8_t data[2];
   uint16_t conf , sd = 0;
   
-  if (!this->read_bytes(VEML6075_REG_CONF, &data_read , VEML6075_REG_SIZE)) {
+  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
     this->mark_failed();
     return;
   }
-  conf  = ((data_read[0]) | (data_read[1] << 8));	
+  conf  = ((data[0]) | (data[1] << 8));	
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   
   if (stop == true){ sd = (uint16_t)1;}
@@ -109,8 +108,8 @@ void VEML6075Component::shutdown(bool stop){
 	
  
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
-  data_write[0] = (uint8_t)(conf & 0x00FF);
-  data_write[1] = (uint8_t)((conf & 0xFF00) >> 8);
+  data[0] = (uint8_t)(conf & 0x00FF);
+  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   if (!this->write_bytes(VEML6075_REG_CONF, data_write , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
