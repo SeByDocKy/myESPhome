@@ -57,33 +57,32 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  const uint8_t data_read[2];
-  uint8_t data_write[2];
+  uint8_t data[2];
   uint16_t conf;
   
-  if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data_read , VEML6075_REG_SIZE) ) {
+  if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
 //    this->mark_failed();
     return;
   }
   
-  if (data_read[0] != VEML6075_ID) {
-    ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data_read[0] , VEML6075_ID);
+  if (data[0] != VEML6075_ID) {
+    ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data[0] , VEML6075_ID);
 //     this->error_code_ = WRONG_CHIP_ID;
     this->mark_failed();
     return;
   }
-  ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data_read[0] , VEML6075_ID);
+  ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
   
 //  /*  
-  if ( !this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data_read , VEML6075_REG_SIZE ) ) {
+  if ( !this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE ) ) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
  //   this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
     return;
   }
-  conf  = ((data_read[0]) | (data_read[1] << 8));	
+  conf  = ((data[0]) | (data[1] << 8));	
   ESP_LOGD(TAG, "Read successuffuly VEML6075_REG_CONF returning %d" , conf);
  //  */
   
