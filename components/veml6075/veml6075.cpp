@@ -143,7 +143,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
 void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   uint8_t data[2];
   uint16_t conf;
-  if (!this->read_bytes(VEML6075_REG_CONF, &data , 2)) {
+  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in integration time");
     this->mark_failed();
@@ -155,7 +155,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
-  if (!this->write_byte(VEML6075_REG_CONF, data , 2)) {
+  if (!this->write_byte(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set integration time mode");
      return;
   }
