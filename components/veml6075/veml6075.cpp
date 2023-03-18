@@ -34,9 +34,9 @@ void VEML6075Component::setup() {
   uint8_t chip_id = 0;
   uint8_t conf_register = 0;
   
-  identifychip(); // check if it's a genuine chip
+//  identifychip(); // check if it's a genuine chip
   
-/*	
+// /*	
   shutdown(true); // Shut down to change settings
 
   // Set Force readings
@@ -49,7 +49,7 @@ void VEML6075Component::setup() {
   highdynamic(this->hd_);
 
   shutdown(false); // Turn on chip after setting set
- */
+// */
 }
 
 void VEML6075Component::update() { 
@@ -76,7 +76,7 @@ void VEML6075Component::identifychip(void){
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", chip_id , VEML6075_ID);
   
   
-// /*  
+ /*  
   if (!this->read_byte(VEML6075_REG_CONF, &conf_register)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
  //   this->error_code_ = COMMUNICATION_FAILED;
@@ -84,7 +84,7 @@ void VEML6075Component::identifychip(void){
     return;
   }
   ESP_LOGD(TAG, "Read successuffuly VEML6075_REG_CONF returning %d" , conf_register);
-  // */
+   */
   
 }
  
