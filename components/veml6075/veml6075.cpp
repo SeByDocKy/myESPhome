@@ -29,8 +29,6 @@ void VEML6075Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
-
- 	
   uint8_t chip_id = 0;
   uint8_t conf_register = 0;
   
@@ -48,7 +46,7 @@ void VEML6075Component::setup() {
   // Set high dynamic
   highdynamic(this->hd_);
 
-  shutdown(false); // Turn on chip after setting set
+  shutdown(false); // Turn on chip after settings set
 // */
 }
 
@@ -97,10 +95,14 @@ void VEML6075Component::shutdown(bool stop){
     this->mark_failed();
     return;
   }
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
+  
   if (stop == true){ sd = 1;}
   
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+	
+  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
   if (!this->write_byte(VEML6075_REG_CONF, conf)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
