@@ -50,6 +50,8 @@ void VEML6075Component::setup() {
 // */
 }
 
+void VEML6075Component::update() { this->read_data_(); }	
+
 void VEML6075Component::identifychip(void){
   uint8_t chip_id;
   uint8_t conf_register;
@@ -256,8 +258,9 @@ float VEML6075Component::calc_uvindex(void){
     return index;
 }	
 	
-void VEML6075Component::update() {
-  uint16_t visible_compensation , ir_compensation;
+void VEML6075Component::read_data_() {
+	
+ uint16_t visible_compensation , ir_compensation;
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
   
@@ -301,8 +304,11 @@ void VEML6075Component::update() {
    if (this->uvindex_sensor_ != nullptr) {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
-  }
+  }	
+	
 }
+	
+
 
 
 
