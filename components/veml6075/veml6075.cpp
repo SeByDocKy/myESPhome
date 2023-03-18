@@ -263,7 +263,7 @@ float VEML6075Component::calc_uvindex(void){
 	
 void VEML6075Component::read_data_() {
 	
- uint16_t visible_compensation , ir_compensation;
+  uint16_t visible_compensation , ir_compensation;
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
   
