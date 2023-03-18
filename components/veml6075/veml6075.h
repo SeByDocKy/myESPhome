@@ -171,6 +171,8 @@ protected:
   veml6075_uv_it_t it_{IT_100MS};
   veml6075_af_t af_{AF_DISABLE};
   veml6075_hd_t hd_{DYNAMIC_NORMAL};
+	
+  void read_data_();	
 };
 
 }  // namespace veml6075
