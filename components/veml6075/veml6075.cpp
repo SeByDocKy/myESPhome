@@ -105,7 +105,7 @@ void VEML6075Component::shutdown(bool stop){
   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
-  if (!this->write_bytes_16(VEML6075_REG_CONF, conf )) {
+  if (!this->write_byte_16(VEML6075_REG_CONF, conf )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
