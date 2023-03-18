@@ -111,7 +111,7 @@ void VEML6075Component::shutdown(bool stop){
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  if (!this->write_bytes(VEML6075_REG_CONF, &data , (uint8_t)2 )) {
+  if (!this->write_bytes(VEML6075_REG_CONF, data , (uint8_t)2 )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
@@ -134,7 +134,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
 	
-  if (!this->write_bytes(VEML6075_REG_CONF, &data , (uint8_t)2)) {
+  if (!this->write_bytes(VEML6075_REG_CONF, data , (uint8_t)2)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set autoforce mode");
      return;
   }
