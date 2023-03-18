@@ -27,7 +27,7 @@ void VEML6075Component::dump_config() {
 void VEML6075Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
 
-	
+/*	
   uint8_t chip_id = 0;
   uint8_t conf_register = 0;
   
@@ -45,7 +45,7 @@ void VEML6075Component::setup() {
   highdynamic(this->hd_);
 
   shutdown(false); // Turn on chip after setting set
-
+*/
 }
 
 void VEML6075Component::identifychip(void){
