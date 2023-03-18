@@ -58,7 +58,7 @@ void VEML6075Component::update() {
 
 void VEML6075Component::identifychip(void){
   uint8_t data[2];
-  uint16_t conf
+  uint16_t conf;
   
   if ( !this->read_bytes(VEML6075_REG_ID, &data , 2) ) {
 //     this->error_code_ = COMMUNICATION_FAILED;
@@ -134,7 +134,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
 	
-  if (!this->write_bytes(VEML6075_REG_CONF, data , (uint8_t)2)) {
+  if (!this->write_bytes(VEML6075_REG_CONF, data , 2)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set autoforce mode");
      return;
   }
@@ -156,7 +156,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
-  if (!this->write_byte(VEML6075_REG_CONF, &data , 2)) {
+  if (!this->write_byte(VEML6075_REG_CONF, data , 2)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set integration time mode");
      return;
   }
