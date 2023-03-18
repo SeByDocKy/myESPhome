@@ -60,7 +60,7 @@ void VEML6075Component::identifychip(void){
   uint8_t data[2];
   uint18_t conf
   
-  if (!this->read_bytes(VEML6075_REG_ID, &data , 2)) {
+  if (!this->read_bytes(VEML6075_REG_ID, &data , (uint8_t)2)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
 //    this->mark_failed();
@@ -76,7 +76,7 @@ void VEML6075Component::identifychip(void){
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
   
 //  /*  
-  if (!this->read_bytes(VEML6075_REG_CONF, &cdata , 2 )) {
+  if (!this->read_bytes(VEML6075_REG_CONF, &cdata , (uint8_t)2 )) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
  //   this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
@@ -111,7 +111,7 @@ void VEML6075Component::shutdown(bool stop){
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  if (!this->write_bytes(VEML6075_REG_CONF, &data , 2 )) {
+  if (!this->write_bytes(VEML6075_REG_CONF, &data , (uint8_t)2 )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
@@ -134,7 +134,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
 	
-  if (!this->write_bytes(VEML6075_REG_CONF, &data , 2)) {
+  if (!this->write_bytes(VEML6075_REG_CONF, &data , (uint8_t)2)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set autoforce mode");
      return;
   }
