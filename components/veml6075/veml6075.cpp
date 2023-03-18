@@ -126,7 +126,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
     this->mark_failed();
     return;
   }
-  conf  = ((data[0]) | (data[1] << 8));
+  conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
   conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
   conf |= af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
@@ -149,7 +149,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
     this->mark_failed();
     return;
   }
-  conf  = ((data[0]) | (data[1] << 8));
+  conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
   conf &= ~(VEML6075_UV_IT_MASK);     // Clear shutdown bit
   conf |= it << VEML6075_UV_IT_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
@@ -187,14 +187,16 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 
 void VEML6075Component::highdynamic(veml6075_hd_t hd){
   uint8_t data[2];
-  uint8_t conf;
+  uint16_t conf;
   
-  if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
+  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &conf , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
     this->mark_failed();
     return;
   }
+	
+  conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
   if (hd == DYNAMIC_HIGH){
         this->hdenabled_ = true;
   }
@@ -203,8 +205,12 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   }
   
   conf &= ~(VEML6075_HD_MASK);     // Clear shutdown bit
-  conf |= (uint8_t)hd << VEML6075_HD_SHIFT; 
-  if (!this->write_byte(VEML6075_REG_CONF, conf)) {
+  conf |= hd << VEML6075_HD_SHIFT; 
+	
+  data[0] = (uint8_t)(conf & 0x00FF);
+  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
+	
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set high dynamic mode");
      return;
   }
@@ -214,7 +220,7 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
 uint16_t VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0, 0};
     uint16_t result;
-    if (!this->read_bytes(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, 2)){
+    if (!this->read_bytes(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_VISIBLE_COMP register");
        this->mark_failed();
 //       return;	  
