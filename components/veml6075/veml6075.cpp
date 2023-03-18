@@ -29,12 +29,12 @@ void VEML6075Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
-  uint8_t chip_id = 0;
-  uint8_t conf_register = 0;
+//  uint8_t chip_id = 0;
+ // uint8_t conf_register = 0;
   
-//  identifychip(); // check if it's a genuine chip
+  identifychip(); // check if it's a genuine chip
   
-// /*	
+ /*	
   shutdown(true); // Shut down to change settings
 
   // Set Force readings
@@ -47,7 +47,7 @@ void VEML6075Component::setup() {
   highdynamic(this->hd_);
 
   shutdown(false); // Turn on chip after settings set
-// */
+ */
 }
 
 void VEML6075Component::update() { 
@@ -56,15 +56,17 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  uint8_t chip_id;
-  uint8_t conf_register;
+  uint16_t chip_id_16;
+  uint8_t  chip_id
+  uint16_t conf_register;
   
-  if (!this->read_byte(VEML6075_REG_ID, &chip_id)) {
+  if (!this->read_bytes(VEML6075_REG_ID, &chip_id_16 , 2)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
     this->mark_failed();
     return;
   }
+  chip_id = (uint8_t)(chip_id_16 & 0x00FF);
   if (chip_id != VEML6075_ID) {
     ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", chip_id , VEML6075_ID);
 //     this->error_code_ = WRONG_CHIP_ID;
@@ -74,22 +76,22 @@ void VEML6075Component::identifychip(void){
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", chip_id , VEML6075_ID);
   
   
- /*  
-  if (!this->read_byte(VEML6075_REG_CONF, &conf_register)) {
+//  /*  
+  if (!this->read_bytes(VEML6075_REG_CONF, &conf_register , 2)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
  //   this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "Read successuffuly VEML6075_REG_CONF returning %d" , conf_register);
-   */
+ //  */
   
 }
  
 void VEML6075Component::shutdown(bool stop){
-  uint8_t conf , sd = 0;
+  uint16_t conf , sd = 0;
   
-  if (!this->read_byte(VEML6075_REG_CONF, &conf)) {
+  if (!this->read_bytes(VEML6075_REG_CONF, &conf , 2)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
     this->mark_failed();
@@ -103,7 +105,7 @@ void VEML6075Component::shutdown(bool stop){
   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
-  if (!this->write_byte(VEML6075_REG_CONF, conf)) {
+  if (!this->write_bytes_16(VEML6075_REG_CONF, conf )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
