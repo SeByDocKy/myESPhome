@@ -69,14 +69,14 @@ void VEML6075Component::identifychip(void){
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", chip_id , VEML6075_ID);
   
   
-/*  
+// /*  
   if (!this->read_byte(VEML6075_REG_CONF, &conf_register)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
     this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
     return;
   }
-  */
+  // */
   
 }
  
@@ -293,13 +293,13 @@ void VEML6075Component::update() {
 	
   uvb                  = calc_uvb();
   if (this->uva_sensor_ != nullptr) {
-	  this->uvb_sensor_ ->publish_state(uvb);
+	  this->uvb_sensor_->publish_state(uvb);
 	  ESP_LOGD(TAG, "UVB: %f" , uvb);
   }
 	
   uvindex              = calc_uvindex();
    if (this->uvindex_sensor_ != nullptr) {
-	  this->uvindex_sensor_ ->publish_state(uvindex);
+	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }
 }
