@@ -60,7 +60,7 @@ void VEML6075Component::identifychip(void){
   uint8_t data[2];
   uint16_t conf
   
-  if (!this->read_bytes(VEML6075_REG_ID, &data , (uint8_t)2)) {
+  if ( !this->read_bytes(VEML6075_REG_ID, &data , 2) ) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
 //    this->mark_failed();
@@ -76,7 +76,7 @@ void VEML6075Component::identifychip(void){
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
   
 //  /*  
-  if (!this->read_bytes(VEML6075_REG_CONF, &data , (uint8_t)2 )) {
+  if ( !this->read_bytes(VEML6075_REG_CONF, &data , 2 ) ) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
  //   this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
