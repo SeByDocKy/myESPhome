@@ -72,7 +72,7 @@ void VEML6075Component::identifychip(void){
 // /*  
   if (!this->read_byte(VEML6075_REG_CONF, &conf_register)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075");
-    this->error_code_ = COMMUNICATION_FAILED;
+ //   this->error_code_ = COMMUNICATION_FAILED;
     this->mark_failed();
     return;
   }
