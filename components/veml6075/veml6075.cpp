@@ -27,7 +27,8 @@ void VEML6075Component::dump_config() {
 void VEML6075Component::setup() {
 //  delay(100);
   
-  uint8_t data[2] = {0,0};	
+  uint8_t data[2] = {0,0};
+  uint16_t rawuva;
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
@@ -61,6 +62,12 @@ void VEML6075Component::setup() {
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
+	
+  rawuva                = calc_rawuva();
+  if (this->rawuva_sensor_ != nullptr) {
+	  this->rawuva_sensor_->publish_state(rawuva);
+	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
+  }	
   
   /*
   identifychip(); // check if it's a genuine chip
