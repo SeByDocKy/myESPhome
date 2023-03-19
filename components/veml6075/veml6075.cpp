@@ -59,18 +59,19 @@ void VEML6075Component::update() {
 }	
 
 void VEML6075Component::identifychip(void){
-  uint8_t data[2] = {0,0};
-  //uint8_t data[1] = {0};
+  //uint8_t data[2] = {0,0};
+  uint16_t data[1] = {0};
   uint16_t conf;
   
-  if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {   // 
+  //if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {   //
+  if ( !this->read_byte_16(VEML6075_REG_ID, (uint16_t *) &data) ) {   //	  
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
 //    this->mark_failed();
     return;
   }
-  ESP_LOGD(TAG, "read REG_ID register %d %d" , data[1] , data[0]);
- // ESP_LOGD(TAG, "read REG_ID register %d" ,  data[0]);
+  //ESP_LOGD(TAG, "read REG_ID register %d %d" , data[1] , data[0]);
+  ESP_LOGD(TAG, "read REG_ID register %d" ,  data[0]);
   
   if (data[0] != VEML6075_ID) {
     ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data[0] , VEML6075_ID);
