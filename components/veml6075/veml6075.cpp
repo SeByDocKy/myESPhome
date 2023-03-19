@@ -126,7 +126,6 @@ void VEML6075Component::shutdown(bool stop){
   }
   ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
-  delay(300);
   
   data[0] = 0;
   data[1] = 0;
