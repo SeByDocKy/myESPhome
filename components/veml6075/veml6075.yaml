@@ -50,7 +50,8 @@ i2c:
 
 sensor: 
   - platform: veml6075
-    id: ${name}_1
+    update_interval: ${updates}
+    #id: ${name}_1
     uva:
       name: ${name}_uva
     uvb:
@@ -68,5 +69,7 @@ sensor:
     dynamic: 'normal'
     integration_time: '100ms'
     auto_force: 'disable'
+    trigger: 'disable'  # 'one_or_uv'
+    address: 0x10
   
  
