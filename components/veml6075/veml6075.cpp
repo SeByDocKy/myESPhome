@@ -392,6 +392,7 @@ void VEML6075Component::read_data_() {
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
  */
 
+  /* 	
 	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
@@ -399,20 +400,20 @@ void VEML6075Component::read_data_() {
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
 
-/* 
+
 	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
 	  ESP_LOGD(TAG, "ir_compensation: %d" , ir_compensation);
   }
-	
+*/	
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
   }
-
+/*
   rawuvb                = calc_rawuvb();
   if (this->rawuvb_sensor_ != nullptr) {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
