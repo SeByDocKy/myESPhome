@@ -32,6 +32,7 @@ void VEML6075Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
+	
   data[0] = 1;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
@@ -62,18 +63,20 @@ void VEML6075Component::setup() {
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
-	
+
+/*	
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
   }	
   
+*/  
 //  */
 	
-  /*
+  
   identifychip(); // check if it's a genuine chip
-    	
+  /*  	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
 
