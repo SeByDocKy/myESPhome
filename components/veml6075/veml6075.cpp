@@ -34,9 +34,9 @@ void VEML6075Component::setup() {
   	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
-// /*	
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
+ /*	
 
   // Set trigger mode
   trigger(this->trig_); // trigger mode  VEML6075_REG_CONF(0x00) bit2-MSB/bit10 16 bit
@@ -47,7 +47,7 @@ void VEML6075Component::setup() {
   // Set integration time
   integrationtime(this->it_); // integration time  VEML6075_REG_CONF(0x00) bits 6-5-4-MSB/bits 14-13-12 16 bit
 
-// */
+ */
   shutdown(false); // Turn on chip after settings set
  
 }
@@ -347,7 +347,7 @@ void VEML6075Component::read_data_() {
   float uva , uvb , uvindex;
 	
   ESP_LOGD(TAG, "will read visible comp register");
-// /*
+ /*
   uint16_t conf;  
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
@@ -355,7 +355,7 @@ void VEML6075Component::read_data_() {
     return;
   }
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
-// */
+ */
 
 /*	
   visible_compensation  = calc_visible_comp();
