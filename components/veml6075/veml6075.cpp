@@ -120,7 +120,8 @@ void VEML6075Component::shutdown(bool stop){
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGD(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+//  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
