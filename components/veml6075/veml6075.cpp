@@ -31,10 +31,10 @@ void VEML6075Component::setup() {
   
   
 //  identifychip(); // check if it's a genuine chip
-  	
+  /*  	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
-  /*
+
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
 	
@@ -48,9 +48,9 @@ void VEML6075Component::setup() {
   // Set integration time
   integrationtime(this->it_); // integration time  VEML6075_REG_CONF(0x00) bits 6-5-4-MSB/bits 14-13-12 16 bit
 
- */
+
   shutdown(false); // Turn on chip after settings set
- 
+ */ 
 }
 
 void VEML6075Component::update() { 
@@ -377,14 +377,14 @@ void VEML6075Component::read_data_() {
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
  */
 
-/*	
+	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
 
- 	
+/* 	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
