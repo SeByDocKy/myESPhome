@@ -105,8 +105,12 @@ void VEML6075Component::shutdown(bool stop){
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   
   if (stop == true){ sd = (uint16_t)1;}
+  ESP_LOGD(TAG, "sd value: %d" , sd);
+  ESP_LOGD(TAG, "VEML6075_SHUTDOWN_MASK: %d" ,VEML6075_SHUTDOWN_MASK);
   
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK)" , conf);	
+ 
   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
