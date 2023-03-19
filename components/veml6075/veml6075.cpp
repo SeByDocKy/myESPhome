@@ -25,11 +25,19 @@ void VEML6075Component::dump_config() {
 }
 
 void VEML6075Component::setup() {
-  delay(100);	
+//  delay(100);
+  uint8_t data[2] = {0,0};	
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
-  
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+//  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+ //    return;
+  }
+  else{
+  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+  }
   identifychip(); // check if it's a genuine chip
   /*  	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
