@@ -101,7 +101,7 @@ void VEML6075Component::shutdown(bool stop){
   }
   ESP_LOGD(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
 	
-  conf  = ((data[0]) | (data[1] << 8));	
+  conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));	
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   
   if (stop == true){ sd = (uint16_t)1;}
@@ -137,8 +137,11 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   }
   ESP_LOGD(TAG, "read before masking force mode %d %d" , data[1] , data[0]);
   conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
-  conf |= af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
+  conf |= af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
