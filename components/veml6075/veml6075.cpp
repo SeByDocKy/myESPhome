@@ -74,9 +74,9 @@ void VEML6075Component::setup() {
 */  
 //  */
 	
-  
+  /*   
   identifychip(); // check if it's a genuine chip
-  /*  	
+ 	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
 
@@ -417,14 +417,17 @@ void VEML6075Component::read_data_() {
 	
   ESP_LOGD(TAG, "will read visible comp register");
 	
-/*  
+// /*  
+  data[0] = 10;
+  data[1] = 0;
+  
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
   }
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
-*/	
+// */	
  /*
   uint16_t conf;  
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
