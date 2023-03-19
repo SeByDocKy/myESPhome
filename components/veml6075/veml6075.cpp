@@ -432,7 +432,7 @@ void VEML6075Component::read_data_() {
 
  	
   
-  data[0] = 1;   // AF(2) + trigger(4) + 100ms(10)
+  data[0] = 0;   // AF(2) + trigger(4) + 100ms(10)
   data[1] = 0;
 
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
