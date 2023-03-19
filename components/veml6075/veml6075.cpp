@@ -27,10 +27,32 @@ void VEML6075Component::dump_config() {
 void VEML6075Component::setup() {
 //  delay(100);
   
-  uint8_t data[2] = {0,10};	
+  uint8_t data[2] = {0,0};	
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
+  data[0] = 0;
+  data[1] = 1;
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+//  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+ //    return;
+  }
+  else{
+     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+  }
+  data[0] = 0;
+  data[1] = 11;
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+//  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+ //    return;
+  }
+  else{
+     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+  }
+  data[0] = 0;
+  data[1] = 10;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
 //  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
