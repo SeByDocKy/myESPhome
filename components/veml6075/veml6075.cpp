@@ -34,9 +34,10 @@ void VEML6075Component::setup() {
   	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
+  /*
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
- /*	
+	
 
   // Set trigger mode
   trigger(this->trig_); // trigger mode  VEML6075_REG_CONF(0x00) bit2-MSB/bit10 16 bit
@@ -117,13 +118,23 @@ void VEML6075Component::shutdown(bool stop){
   
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  ESP_LOGD(TAG, "read after masking shutdown %d %d" , data[1] , data[0]);	
+  ESP_LOGD(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
   ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
+	
+  data[0] = 0;
+  data[1] = 0;
+  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
+//     this->error_code_ = COMMUNICATION_FAILED;
+    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
+    this->mark_failed();
+    return;
+  }
+  ESP_LOGD(TAG, "Re read after writing %d %d" , data[1] , data[0]);
 }
  
 void VEML6075Component::forcedmode(veml6075_af_t af){
