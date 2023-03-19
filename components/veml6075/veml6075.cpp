@@ -30,7 +30,7 @@ void VEML6075Component::setup() {
   ESP_LOGD(TAG, "Setting up VEML6075...");
   
   
-//  identifychip(); // check if it's a genuine chip
+  identifychip(); // check if it's a genuine chip
   /*  	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
@@ -68,6 +68,7 @@ void VEML6075Component::identifychip(void){
 //    this->mark_failed();
     return;
   }
+  ESP_LOGD(TAG, "read REG_ID register %d %d" , data[1] , data[0]);	
   
   if (data[0] != VEML6075_ID) {
     ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data[0] , VEML6075_ID);
@@ -377,14 +378,14 @@ void VEML6075Component::read_data_() {
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
  */
 
-	
+/* 	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
 
-/* 	
+	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
