@@ -432,7 +432,7 @@ void VEML6075Component::read_data_() {
 
  	
   
-  data[0] = 24;   // AF(2) + trigger(4) + 100ms(10)/200ms(20)
+  data[0] = 12;   // AF(2) + trigger(4) + 50ms(8) 100ms(10)/200ms(20)
   data[1] = 0;
 
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
@@ -514,7 +514,7 @@ void VEML6075Component::read_data_() {
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
  */	
-  data[0] = 20;   // AF(2) + trigger(4) + 100ms(10)
+  data[0] = 8;   // AF(2) + trigger(4) + 100ms(10)
   data[1] = 0;
 
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
