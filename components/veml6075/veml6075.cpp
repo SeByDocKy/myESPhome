@@ -418,7 +418,7 @@ void VEML6075Component::read_data_() {
   ESP_LOGD(TAG, "will read visible comp register");
 	
 // /*  
-  data[0] = 10;
+  data[0] = 14;
   data[1] = 0;
   
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
