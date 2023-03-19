@@ -26,7 +26,7 @@ void VEML6075Component::dump_config() {
 
 void VEML6075Component::setup() {
 //  delay(100);
-  
+/*  
   uint8_t data[2] = {0,0};
   uint16_t rawuva;
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
@@ -69,6 +69,8 @@ void VEML6075Component::setup() {
 	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
   }	
   
+  */
+	
   /*
   identifychip(); // check if it's a genuine chip
     	
