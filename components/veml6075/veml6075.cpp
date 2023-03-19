@@ -330,8 +330,8 @@ uint16_t VEML6075Component::calc_visible_comp(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_VISIBLE_COMP register");
-       this->mark_failed();
-//       return;	  
+ //      this->mark_failed();
+       return 0;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
     ESP_LOGD(TAG , "calc_visible_comp data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
@@ -343,8 +343,8 @@ uint16_t VEML6075Component::calc_ir_comp(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_IR_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_IR_COMP register");
-       this->mark_failed();
-//       return;	  
+//       this->mark_failed();
+       return 0;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
     ESP_LOGD(TAG , "calc_ir_comp data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
@@ -356,8 +356,8 @@ uint16_t VEML6075Component::calc_rawuva(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
-       this->mark_failed();
-//       return;
+ //      this->mark_failed();
+       return 0;
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
     ESP_LOGD(TAG , "calc_rawuva data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
@@ -369,8 +369,8 @@ uint16_t VEML6075Component::calc_rawuvb(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVB  register");
-       this->mark_failed();
-//       return; 
+ //      this->mark_failed();
+       return 0; 
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
     ESP_LOGD(TAG , "calc_rawuvb data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
