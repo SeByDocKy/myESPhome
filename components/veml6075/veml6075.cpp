@@ -26,6 +26,7 @@ void VEML6075Component::dump_config() {
 
 void VEML6075Component::setup() {
 //  delay(100);
+  
   uint8_t data[2] = {0,0};	
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   ESP_LOGD(TAG, "Setting up VEML6075...");
@@ -36,10 +37,12 @@ void VEML6075Component::setup() {
  //    return;
   }
   else{
-  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
+  
+  /*
   identifychip(); // check if it's a genuine chip
-  /*  	
+    	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
 
@@ -389,13 +392,14 @@ void VEML6075Component::read_data_() {
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
  */
 
-/* 	
+	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
 
+/* 
 	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
