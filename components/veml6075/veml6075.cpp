@@ -432,8 +432,8 @@ void VEML6075Component::read_data_() {
 
  	
   
-  data[1] = 14;   // AF(2) + trigger(4) + 50ms(8) 100ms(10)/200ms(20)
-  data[0] = 0;
+  data[0] = 14;   // AF(2) + trigger(4) + 50ms(8) 100ms(10)/200ms(20)
+  data[1] = 0;
 
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
