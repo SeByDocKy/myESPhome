@@ -417,7 +417,7 @@ void VEML6075Component::read_data_() {
 	
   ESP_LOGD(TAG, "will read visible comp register");
 	
- /*  
+// /*  
   data[0] = 14;   // AF(2) + trigger(4) + 100ms(10)
   data[1] = 0;
   
@@ -427,7 +427,7 @@ void VEML6075Component::read_data_() {
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
- */	
+// */	
  /*
   uint16_t conf;  
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
@@ -436,35 +436,47 @@ void VEML6075Component::read_data_() {
     return;
   }
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
- */
+// */
 
-//  /* 	
+  /* 	
 	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
-/*
+///*
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
   }
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
-*/	
+
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
 	  ESP_LOGD(TAG, "ir_compensation: %d" , ir_compensation);
   }
-// */	
+// */
+  	
+  
+	
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
   }
+  data[0] = 14;   // AF(2) + trigger(4) + 100ms(10)
+  data[1] = 0;
 
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+  }
+  else{
+     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+  }
+	
   rawuvb                = calc_rawuvb();
   if (this->rawuvb_sensor_ != nullptr) {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
