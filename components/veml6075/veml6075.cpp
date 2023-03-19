@@ -418,15 +418,7 @@ void VEML6075Component::read_data_() {
   ESP_LOGD(TAG, "will read visible comp register");
 	
 // /*  
-  data[0] = 14;   // AF(2) + trigger(4) + 100ms(10)
-  data[1] = 0;
   
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
-  }
-  else{
-     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
-  }
 // */	
  /*
   uint16_t conf;  
@@ -438,14 +430,26 @@ void VEML6075Component::read_data_() {
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
 // */
 
-  /* 	
-	
+ 	
+  
+  data[0] = 14;   // AF(2) + trigger(4) + 100ms(10)
+  data[1] = 0;
+
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+  }
+  else{
+     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+  }	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
 ///*
+  data[0] = 14;   // AF(2) + trigger(4) + 100ms(10)
+  data[1] = 0;
+
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
   }
@@ -460,7 +464,15 @@ void VEML6075Component::read_data_() {
   }
 // */
   	
-  
+  data[0] = 14;   // AF(2) + trigger(4) + 100ms(10)
+  data[1] = 0;
+
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+  }
+  else{
+     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+  }
 	
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
