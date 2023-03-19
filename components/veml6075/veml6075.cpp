@@ -446,7 +446,12 @@ void VEML6075Component::read_data_() {
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }  
 
-
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
+  }
+  else{
+     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+  }
 	
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
