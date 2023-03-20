@@ -65,10 +65,11 @@ void VEML6075Component::setup() {
 	
   /*   
   identifychip(); // check if it's a genuine chip
- 	
+ 
+*/  
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
-*/ 
+
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
 	
