@@ -143,26 +143,31 @@ void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
 
   
+  ESP_LOGD(TAG, "sd value: %d" , sd);
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
   conf |= (sd << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, " set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
+  ESP_LOGD(TAG, "set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
 	
+  ESP_LOGD(TAG, "af value: %d" , af);
   conf &= ~(VEML6075_AF_MASK);     // Clear af bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
   conf |= (af << VEML6075_AF_SHIFT); //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
   ESP_LOGD(TAG, "set conf |= af << VEML6075_AF_SHIFT to: %d" , conf);
-	
+  
+  ESP_LOGD(TAG, "trig value: %d" , trig);
   conf &= ~(VEML6075_TRIG_MASK);     // Clear trigger bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
   conf |= (trig << VEML6075_TRIG_SHIFT); //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
   ESP_LOGD(TAG, "set conf |= trig << VEML6075_TRIG_SHIFT to: %d" , conf);	
 
+  ESP_LOGD(TAG, "hd value: %d" , hd);
   conf &= ~(VEML6075_HD_MASK);     // Clear hd bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
   conf |= (hd << VEML6075_HD_SHIFT); 
   ESP_LOGD(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
 	
+  ESP_LOGD(TAG, "it value: %d" , it);
   conf &= ~(VEML6075_UV_IT_MASK);     // Clear integration time bits
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
   conf |= (it << VEML6075_UV_IT_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
