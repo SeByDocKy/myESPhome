@@ -151,7 +151,7 @@ void VEML6075Component::shutdown(bool stop){
  
   conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
-  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
+  ESP_LOGD(TAG, " set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
   
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
@@ -191,7 +191,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
   conf |= af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
+  ESP_LOGD(TAG, "set conf |= af << VEML6075_AF_SHIFT to: %d" , conf);
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
@@ -219,7 +219,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   conf &= ~(VEML6075_TRIG_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
   conf |= trig << VEML6075_TRIG_SHIFT; //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
-  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);	
+  ESP_LOGD(TAG, "set conf |= trig << VEML6075_TRIG_SHIFT to: %d" , conf);	
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
@@ -250,7 +250,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   conf &= ~(VEML6075_UV_IT_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
   conf |= it << VEML6075_UV_IT_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);	
+  ESP_LOGD(TAG, "set conf |= it << VEML6075_UV_IT_SHIFT to: %d" , conf);	
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
@@ -312,7 +312,7 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   conf &= ~(VEML6075_HD_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
   conf |= hd << VEML6075_HD_SHIFT; 
-  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);	
+  ESP_LOGD(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
