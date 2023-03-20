@@ -39,7 +39,7 @@ void VEML6075Component::setup() {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
   }
   else{
-     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
+     ESP_LOGD(TAG, "write_bytes 0 into VEML6075_REG_CONF successfully ");
   }
 
 /*	
@@ -101,7 +101,7 @@ void VEML6075Component::identifychip(void){
   if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {   //
   //if ( !this->read_byte_16(VEML6075_REG_ID, (uint16_t *) &data) ) {   //	  
 //     this->error_code_ = COMMUNICATION_FAILED;
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 to check chip ID");
+    ESP_LOGE(TAG, "Can't read  VEML6075_REG_ID");
     this->mark_failed();
     return;
   }
@@ -133,7 +133,7 @@ void VEML6075Component::shutdown(bool stop){
   uint16_t conf , sd = 0;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
+    ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in shutdown ");
 //    this->mark_failed();
 //    return;
   }
@@ -180,7 +180,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in forcemode");
+    ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in forcemode");
   //  this->mark_failed();
   //  return;
   }
@@ -208,7 +208,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in trigger mode");
+    ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in trigger mode");
 //    this->mark_failed();
   //  return;
   }
@@ -239,7 +239,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in integration time");
+    ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in integration time");
 //    this->mark_failed();
  //   return;
   }
@@ -294,7 +294,7 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   
   ESP_LOGD(TAG, "hd: %d" , hd);
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
+    ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in high dynamic");
 //    this->mark_failed();
 //    return;
   }
