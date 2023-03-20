@@ -151,8 +151,8 @@ void VEML6075Component::shutdown(bool stop){
 	
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
   
-  data[0] = (uint8_t)(conf & 0x00FF);
-  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
+  data[1] = (uint8_t)(conf & 0x00FF);
+  data[0] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGD(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
@@ -190,8 +190,8 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   conf |= af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
   ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);
 	
-  data[0] = (uint8_t)(conf & 0x00FF);
-  data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
+  data[1] = (uint8_t)(conf & 0x00FF);
+  data[0] = (uint8_t)((conf & 0xFF00) >> 8); 	
   ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking force mode with: %d %d" , data[1] , data[0]);
 	
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
@@ -214,8 +214,8 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   conf &= ~(VEML6075_TRIG_MASK);     // Clear shutdown bit
   conf |= trig << VEML6075_TRIG_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
-  data[0] = (uint8_t)(conf & 0x00FF);
-  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
+  data[1] = (uint8_t)(conf & 0x00FF);
+  data[0] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking trigger  with: %d %d" , data[1] , data[0]);
 	
   ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF with: %d %d" , data[1] , data[0]);
@@ -241,8 +241,8 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   conf &= ~(VEML6075_UV_IT_MASK);     // Clear shutdown bit
   conf |= it << VEML6075_UV_IT_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
 	
-  data[0] = (uint8_t)(conf & 0x00FF);
-  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
+  data[1] = (uint8_t)(conf & 0x00FF);
+  data[0] = (uint8_t)((conf & 0xFF00) >> 8);
   
   ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking integration time  with: %d %d" , data[1] , data[0]);
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
