@@ -142,7 +142,19 @@ void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
 
-  
+  data[0] = 0;
+  data[1] = 1;	
+	
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed");
+     return;
+  }
+  ESP_LOGD(TAG, "shuntdown VEML6075_REG_CONF successfully");
+
+  data[0] = 0;
+  data[1] = 0;	
+	
+	
   ESP_LOGD(TAG, "sd value: %d" , sd);
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
