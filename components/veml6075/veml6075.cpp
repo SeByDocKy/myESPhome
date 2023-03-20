@@ -481,6 +481,8 @@ void VEML6075Component::read_data_() {
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
 	
+  write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
+	
 //  ESP_LOGD(TAG, "will read visible comp register");
 	
 // /*  
