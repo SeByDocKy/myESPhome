@@ -363,11 +363,11 @@ float VEML6075Component::calc_uva(void){
 }
 
 float VEML6075Component::calc_uvb(void){
-  //  uint16_t rawuvb       =  (uint16_t)this->rawuvb_sensor_->get_state();
+    uint16_t rawuvb       =  (uint16_t)this->rawuvb_sensor_->get_state();
     uint16_t visible_comp =  (uint16_t)this->visible_comp_sensor_->get_state(); 
     uint16_t ir_comp      =  (uint16_t)this->ir_comp_sensor_->get_state(); 
-//    return (float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );
-    return 0;		
+    return (float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );
+//    return 0;		
 }	
 
 float VEML6075Component::calc_uvindex(void){
@@ -475,13 +475,14 @@ void VEML6075Component::read_data_() {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
 	  ESP_LOGD(TAG, "raw UVB: %d" , rawuvb);
   }
+/*	
  	
   uva                  = calc_uva();
   if (this->uva_sensor_ != nullptr) {
 	  this->uva_sensor_->publish_state(uva);
 	  ESP_LOGD(TAG, "UVA: %f" , uva);
   }
-	
+*/	
   uvb                  = calc_uvb();
   if (this->uva_sensor_ != nullptr) {
 	  this->uvb_sensor_->publish_state(uvb);
