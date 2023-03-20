@@ -110,8 +110,7 @@ void VEML6075Component::identifychip(void){
   
   if (data[0] != VEML6075_ID) {
     ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data[0] , VEML6075_ID);
-//     this->error_code_ = WRONG_CHIP_ID;
-    this->mark_failed();
+    //this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
@@ -136,7 +135,7 @@ void VEML6075Component::shutdown(bool stop){
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
 //    this->mark_failed();
-    return;
+//    return;
   }
   ESP_LOGD(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
 	
@@ -182,8 +181,8 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
 //     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in forcemode");
-    this->mark_failed();
-    return;
+  //  this->mark_failed();
+  //  return;
   }
   ESP_LOGD(TAG, "af: %d" , af);
   ESP_LOGD(TAG, "read before masking force mode %d %d" , data[1] , data[0]);
@@ -211,7 +210,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in trigger mode");
 //    this->mark_failed();
-    return;
+  //  return;
   }
   ESP_LOGD(TAG, "trig: %d" , trig);
   ESP_LOGD(TAG, "read before masking trigger %d %d" , data[1] , data[0]);
@@ -242,13 +241,16 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in integration time");
 //    this->mark_failed();
-    return;
+ //   return;
   }
   ESP_LOGD(TAG, "it: %d" , it);
   ESP_LOGD(TAG, "read before masking integration time %d %d" , data[1] , data[0]);
   conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_UV_IT_MASK);     // Clear shutdown bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
   conf |= it << VEML6075_UV_IT_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);	
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
@@ -294,11 +296,12 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
 //    this->mark_failed();
-    return;
+//    return;
   }
   ESP_LOGD(TAG, "read before masking high dynamic %d %d" , data[1] , data[0]);
 	
   conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   if (hd == DYNAMIC_HIGH){
         this->hdenabled_ = true;
   }
@@ -307,8 +310,9 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   }
   
   conf &= ~(VEML6075_HD_MASK);     // Clear shutdown bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
   conf |= hd << VEML6075_HD_SHIFT; 
-	
+  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
