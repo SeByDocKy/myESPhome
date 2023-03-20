@@ -481,7 +481,7 @@ void VEML6075Component::read_data_() {
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
 	
-  write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
+ // write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
 	
 //  ESP_LOGD(TAG, "will read visible comp register");
 	
@@ -581,13 +581,13 @@ void VEML6075Component::read_data_() {
 	  this->uvb_sensor_->publish_state(uvb);
 	  ESP_LOGD(TAG, "UVB: %f" , uvb);
   }
- /*	
+// /*	
   uvindex              = calc_uvindex();
    if (this->uvindex_sensor_ != nullptr) {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
-  */	
+//  */	
 /*	
   data[0] = 8;   // AF(2) + trigger(4) + 100ms(10)
   data[1] = 0;
