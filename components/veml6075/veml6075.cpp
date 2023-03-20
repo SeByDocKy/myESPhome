@@ -253,7 +253,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-  //ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , (float)this->uva_responsivity_ , (float)this->uvb_responsivity_);
+  ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , get_uva_responsability() , get_uvb_responsivity());
 	
 	
   switch (it){
@@ -489,13 +489,13 @@ void VEML6075Component::read_data_() {
 	  this->uvb_sensor_->publish_state(uvb);
 	  ESP_LOGD(TAG, "UVB: %f" , uvb);
   }
-// /*	
+ /*	
   uvindex              = calc_uvindex();
    if (this->uvindex_sensor_ != nullptr) {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
- // */	
+  */	
 /*	
   data[0] = 8;   // AF(2) + trigger(4) + 100ms(10)
   data[1] = 0;
