@@ -376,7 +376,7 @@ float VEML6075Component::calc_uvindex(void){
     float uva              = (float) this->uva_sensor_->get_state();
     float uvb              = (float) this->uvb_sensor_->get_state();	
     float uva_responsivity = get_uva_responsivity();
-    float uvb_responsivity = get_uvv_responsivity();
+    float uvb_responsivity = get_uvb_responsivity();
     bool hdenabled         = get_hdenabled();
 	
     float uvia             = (uva) * (1.0 / VEML6075_UV_ALPHA) * ( uva_responsivity );
