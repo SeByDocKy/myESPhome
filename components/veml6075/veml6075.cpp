@@ -253,7 +253,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   
   this->uva_responsivity_ = VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-  ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , this->uva_responsivity_ , this->uvb_responsivity_);
+  ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , this->uva_responsivity_->get_state() , this->uvb_responsivity_->get_state());
 	
 	
   switch (it){
@@ -375,8 +375,8 @@ float VEML6075Component::calc_uvindex(void){
     float index;
     float uva              = (float) this->uva_sensor_->get_state();
     float uvb              = (float) this->uvb_sensor_->get_state();	
-    float uva_responsivity = (float) this->uva_responsivity_;
-    float uvb_responsivity = (float) this->uvb_responsivity_;
+    float uva_responsivity = (float) this->uva_responsivity_->get_state();
+    float uvb_responsivity = (float) this->uvb_responsivity_->get_state();
     bool hdenabled         = (bool) this->hdenabled_;
 	
     float uvia             = (uva) * (1.0 / VEML6075_UV_ALPHA) * ( uva_responsivity );
