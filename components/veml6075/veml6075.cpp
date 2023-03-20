@@ -403,7 +403,7 @@ uint16_t VEML6075Component::calc_visible_comp(void){
         return 0;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
-    ESP_LOGD(TAG , "calc_visible_comp data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGD(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 
@@ -415,7 +415,7 @@ uint16_t VEML6075Component::calc_ir_comp(void){
        return 0;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
-    ESP_LOGD(TAG , "calc_ir_comp data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 		
@@ -427,7 +427,7 @@ uint16_t VEML6075Component::calc_rawuva(void){
        return 0;
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
-    ESP_LOGD(TAG , "calc_rawuva data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;	    
 }
 	
@@ -439,7 +439,7 @@ uint16_t VEML6075Component::calc_rawuvb(void){
        return 0; 
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
-    ESP_LOGD(TAG , "calc_rawuvb data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
+    ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
     return result;	    
 }
 	
