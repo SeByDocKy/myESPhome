@@ -32,7 +32,7 @@ void VEML6075Component::setup() {
 //  uint16_t rawuva;
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   
-	
+/*	
   data[0] = 0;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
@@ -41,7 +41,7 @@ void VEML6075Component::setup() {
   else{
      ESP_LOGD(TAG, "write_bytes 0 into VEML6075_REG_CONF successfully ");
   }
-
+*/
 /*	
   data[0] = 15;
   data[1] = 0;
@@ -142,6 +142,7 @@ void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
 
+/*	
   data[0] = 1;
   data[1] = 0;	
 	
@@ -151,9 +152,10 @@ void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_
   }
   ESP_LOGD(TAG, "shuntdown VEML6075_REG_CONF successfully");
 
+
   data[0] = 0;
   data[1] = 0;	
-	
+*/	
 	
   ESP_LOGD(TAG, "sd value: %d" , sd);
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
