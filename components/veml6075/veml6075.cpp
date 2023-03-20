@@ -211,8 +211,11 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   }
   ESP_LOGD(TAG, "read before masking trigger %d %d" , data[1] , data[0]);
   conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_TRIG_MASK);     // Clear shutdown bit
-  conf |= trig << VEML6075_TRIG_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
+  conf |= trig << VEML6075_TRIG_SHIFT; //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
+  ESP_LOGD(TAG, "set new VEML6075_REG_CONF to: %d" , conf);	
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
