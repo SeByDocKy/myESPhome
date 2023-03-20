@@ -123,6 +123,11 @@ typedef enum{
 
 class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
  public:
+
+  float uva_responsivity_, uvb_responsivity_;
+  uint16_t  integrationtime_;
+  bool hdenabled_;	
+	
 	
   float get_setup_priority() const override;	
   void setup() override;
@@ -159,10 +164,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   float calc_uvindex(void);
    
 protected:
-  float uva_responsivity_, uvb_responsivity_;
-  uint16_t  integrationtime_;
-  bool hdenabled_;	
-	
+ 	
   sensor::Sensor *uva_sensor_{nullptr};
   sensor::Sensor *uvb_sensor_{nullptr};
   sensor::Sensor *uvindex_sensor_{nullptr};  
