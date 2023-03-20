@@ -28,12 +28,12 @@ void VEML6075Component::setup() {
 //  delay(100);
 // /*  
 	
-//  uint8_t data[2] = {0,0};
+  uint8_t data[2] = {0,0};
 //  uint16_t rawuva;
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   
-/*	
-  data[0] = 1;
+	
+  data[0] = 0;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
@@ -41,6 +41,8 @@ void VEML6075Component::setup() {
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
+
+/*	
   data[0] = 15;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
