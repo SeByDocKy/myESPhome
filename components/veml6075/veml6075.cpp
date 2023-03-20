@@ -67,30 +67,26 @@ void VEML6075Component::setup() {
   identifychip(); // check if it's a genuine chip
  
 */ 
-  // delay(100);	
+/* 
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
  
-
   // Set Force readings
-  // delay(100);
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
 	
 
   // Set trigger mode
-  // delay(100);
   trigger(this->trig_); // trigger mode  VEML6075_REG_CONF(0x00) bit2-MSB/bit10 16 bit
 	
   // Set high dynamic
-  // delay(100);
   highdynamic(this->hd_); // high dynamic  VEML6075_REG_CONF(0x00) bit3-MSB/bit11 16 bit	
   
   // Set integration time
-  // delay(100);
   integrationtime(this->it_); // integration time  VEML6075_REG_CONF(0x00) bits 6-5-4-MSB/bits 14-13-12 16 bit
 
-  // delay(100);
   shutdown(false); // Turn on chip after settings set
- 
+ */
+ write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
+  
 }
 
 void VEML6075Component::update() { 
@@ -132,6 +128,57 @@ void VEML6075Component::identifychip(void){
    */
   
 }
+	
+void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_trig_t trig , veml6075_hd_t hd , veml6075_uv_it_t it){
+  uint8_t data[2] = {0,0};
+  uint16_t conf = 0 , sd = 0;
+  if (stop == true){ sd = (uint16_t)1;}
+  if (hd == DYNAMIC_HIGH){
+        this->hdenabled_ = true;
+  }
+  else{
+        this->hdenabled_ = false;
+  }
+  this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
+  this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
+
+  
+  conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
+  conf |= (sd << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, " set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
+	
+  conf &= ~(VEML6075_AF_MASK);     // Clear af bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
+  conf |= (af << VEML6075_AF_SHIFT); //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "set conf |= af << VEML6075_AF_SHIFT to: %d" , conf);
+	
+  conf &= ~(VEML6075_TRIG_MASK);     // Clear trigger bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
+  conf |= (trig << VEML6075_TRIG_SHIFT); //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
+  ESP_LOGD(TAG, "set conf |= trig << VEML6075_TRIG_SHIFT to: %d" , conf);	
+
+  conf &= ~(VEML6075_HD_MASK);     // Clear hd bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
+  conf |= (hd << VEML6075_HD_SHIFT); 
+  ESP_LOGD(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
+	
+  conf &= ~(VEML6075_UV_IT_MASK);     // Clear integration time bits
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
+  conf |= (it << VEML6075_UV_IT_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "set conf |= it << VEML6075_UV_IT_SHIFT to: %d" , conf);
+	
+  data[0] = (uint8_t)(conf & 0x00FF);
+  data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
+  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF with: %d %d" , data[1] , data[0]);
+	
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed");
+     return;
+  }
+  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully");
+	
+}
  
 void VEML6075Component::shutdown(bool stop){
   uint8_t data[2] = {0,0};
@@ -154,8 +201,7 @@ void VEML6075Component::shutdown(bool stop){
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	
  
-  conf |= sd << VEML6075_SHUTDOWN_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-	
+  conf |= (sd << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
   ESP_LOGD(TAG, " set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
   
   data[0] = (uint8_t)(conf & 0x00FF);
@@ -195,7 +241,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
-  conf |= af << VEML6075_AF_SHIFT; //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
+  conf |= (af << VEML6075_AF_SHIFT); //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
   ESP_LOGD(TAG, "set conf |= af << VEML6075_AF_SHIFT to: %d" , conf);
 	
   data[0] = (uint8_t)(conf & 0x00FF);
@@ -223,7 +269,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_TRIG_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
-  conf |= trig << VEML6075_TRIG_SHIFT; //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
+  conf |= (trig << VEML6075_TRIG_SHIFT); //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
   ESP_LOGD(TAG, "set conf |= trig << VEML6075_TRIG_SHIFT to: %d" , conf);	
 	
   data[0] = (uint8_t)(conf & 0x00FF);
@@ -239,7 +285,43 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
 	
 	
 }
+
+void VEML6075Component::highdynamic(veml6075_hd_t hd){
+  uint8_t data[2]= {0,0};
+  uint16_t conf;
   
+  ESP_LOGD(TAG, "hd: %d" , hd);
+  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
+    ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in high dynamic");
+//    this->mark_failed();
+//    return;
+  }
+  ESP_LOGD(TAG, "read before masking high dynamic %d %d" , data[1] , data[0]);
+	
+  conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
+  if (hd == DYNAMIC_HIGH){
+        this->hdenabled_ = true;
+  }
+  else{
+        this->hdenabled_ = false;
+  }
+  
+  conf &= ~(VEML6075_HD_MASK);     // Clear shutdown bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
+  conf |= hd << VEML6075_HD_SHIFT; 
+  ESP_LOGD(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
+  data[0] = (uint8_t)(conf & 0x00FF);
+  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
+  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set high dynamic mode");
+     return;
+  }
+  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
+}  
+	
+	
 void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   uint8_t data[2]= {0,0};
   uint16_t conf;
@@ -254,7 +336,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_UV_IT_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
-  conf |= it << VEML6075_UV_IT_SHIFT; //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  conf |= (it << VEML6075_UV_IT_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
   ESP_LOGD(TAG, "set conf |= it << VEML6075_UV_IT_SHIFT to: %d" , conf);	
 	
   data[0] = (uint8_t)(conf & 0x00FF);
@@ -293,40 +375,6 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
     } 
 }
 
-void VEML6075Component::highdynamic(veml6075_hd_t hd){
-  uint8_t data[2]= {0,0};
-  uint16_t conf;
-  
-  ESP_LOGD(TAG, "hd: %d" , hd);
-  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-    ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in high dynamic");
-//    this->mark_failed();
-//    return;
-  }
-  ESP_LOGD(TAG, "read before masking high dynamic %d %d" , data[1] , data[0]);
-	
-  conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
-  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
-  if (hd == DYNAMIC_HIGH){
-        this->hdenabled_ = true;
-  }
-  else{
-        this->hdenabled_ = false;
-  }
-  
-  conf &= ~(VEML6075_HD_MASK);     // Clear shutdown bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
-  conf |= hd << VEML6075_HD_SHIFT; 
-  ESP_LOGD(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
-  data[0] = (uint8_t)(conf & 0x00FF);
-  data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to set high dynamic mode");
-     return;
-  }
-  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
-}  
  
 uint16_t VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0,0};
