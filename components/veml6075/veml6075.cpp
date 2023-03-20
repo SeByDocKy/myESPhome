@@ -253,7 +253,9 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   
   this->uva_responsivity_ = VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-
+  ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , this->uva_responsivity_ , this->uvb_responsivity_);
+	
+	
   switch (it){
     case IT_50MS:
         this->integrationtime_ = 50;
@@ -366,8 +368,7 @@ float VEML6075Component::calc_uvb(void){
     uint16_t rawuvb       =  (uint16_t)this->rawuvb_sensor_->get_state();
     uint16_t visible_comp =  (uint16_t)this->visible_comp_sensor_->get_state(); 
     uint16_t ir_comp      =  (uint16_t)this->ir_comp_sensor_->get_state(); 
-    return (float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );
-//    return 0;		
+    return (float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );	
 }	
 
 float VEML6075Component::calc_uvindex(void){
