@@ -357,15 +357,15 @@ uint16_t VEML6075Component::calc_rawuvb(void){
 	
 float VEML6075Component::calc_uva(void){
     uint16_t rawuva       = (uint16_t)this->rawuva_sensor_->get_state();
-    uint16_t visible_comp =  (uint16_t)this->visible_comp_sensor_->get_state(); 
+    uint16_t visible_comp = (uint16_t)this->visible_comp_sensor_->get_state(); 
     uint16_t ir_comp      = (uint16_t)this->ir_comp_sensor_->get_state(); 
     return (float)(rawuva) - ( ( VEML6075_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA );
 }
 
 float VEML6075Component::calc_uvb(void){
-    uint16_t rawuvb       = (uint16_t)this->rawuvb_sensor_->get_state();
+    uint16_t rawuvb       =  (uint16_t)this->rawuvb_sensor_->get_state();
     uint16_t visible_comp =  (uint16_t)this->visible_comp_sensor_->get_state(); 
-    uint16_t ir_comp      = (uint16_t)this->ir_comp_sensor_->get_state(); 
+    uint16_t ir_comp      =  (uint16_t)this->ir_comp_sensor_->get_state(); 
     return (float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );	
 }	
 
@@ -480,13 +480,13 @@ void VEML6075Component::read_data_() {
 	  this->uva_sensor_->publish_state(uva);
 	  ESP_LOGD(TAG, "UVA: %f" , uva);
   }
-	
+/*	
   uvb                  = calc_uvb();
   if (this->uva_sensor_ != nullptr) {
 	  this->uvb_sensor_->publish_state(uvb);
 	  ESP_LOGD(TAG, "UVB: %f" , uvb);
   }
-/*	
+	
   uvindex              = calc_uvindex();
    if (this->uvindex_sensor_ != nullptr) {
 	  this->uvindex_sensor_->publish_state(uvindex);
