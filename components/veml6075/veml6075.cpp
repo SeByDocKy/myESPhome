@@ -475,26 +475,26 @@ void VEML6075Component::read_data_() {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
 	  ESP_LOGD(TAG, "raw UVB: %d" , rawuvb);
   }
-/*	
+///*	
  	
   uva                  = calc_uva();
   if (this->uva_sensor_ != nullptr) {
 	  this->uva_sensor_->publish_state(uva);
 	  ESP_LOGD(TAG, "UVA: %f" , uva);
   }
-*/	
+//*/	
   uvb                  = calc_uvb();
-  if (this->uva_sensor_ != nullptr) {
+  if (this->uvb_sensor_ != nullptr) {
 	  this->uvb_sensor_->publish_state(uvb);
 	  ESP_LOGD(TAG, "UVB: %f" , uvb);
   }
-/*	
+///*	
   uvindex              = calc_uvindex();
    if (this->uvindex_sensor_ != nullptr) {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
- */	
+ //*/	
 /*	
   data[0] = 8;   // AF(2) + trigger(4) + 100ms(10)
   data[1] = 0;
