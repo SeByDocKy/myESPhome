@@ -481,12 +481,12 @@ void VEML6075Component::read_data_() {
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
 	
-  ESP_LOGD(TAG, "will read visible comp register");
+//  ESP_LOGD(TAG, "will read visible comp register");
 	
 // /*  
   
 // */	
-// /*
+ /*
   uint16_t conf;  
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
@@ -494,7 +494,7 @@ void VEML6075Component::read_data_() {
 //    return;
   }
   ESP_LOGD(TAG , "VEML6075_REG_CONF: data[0]= %d, data[1]= %d" , data[0] , data[1]); 
-// */
+ */
 
  	
 /*  
