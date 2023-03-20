@@ -474,13 +474,13 @@ void VEML6075Component::read_data_() {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
 	  ESP_LOGD(TAG, "raw UVB: %d" , rawuvb);
   }
- /*	
+ 	
   uva                  = calc_uva();
   if (this->uva_sensor_ != nullptr) {
 	  this->uva_sensor_->publish_state(uva);
 	  ESP_LOGD(TAG, "UVA: %f" , uva);
   }
-	
+/*	
   uvb                  = calc_uvb();
   if (this->uva_sensor_ != nullptr) {
 	  this->uvb_sensor_->publish_state(uvb);
