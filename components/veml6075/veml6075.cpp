@@ -27,18 +27,16 @@ void VEML6075Component::dump_config() {
 void VEML6075Component::setup() {
 //  delay(100);
 // /*  
-  uint8_t data[2] = {0,0};
-  uint16_t rawuva;
-  ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
-  ESP_LOGD(TAG, "Setting up VEML6075...");
-  
 	
+//  uint8_t data[2] = {0,0};
+//  uint16_t rawuva;
+  ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
+  
+/*	
   data[0] = 1;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-//  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
- //    return;
   }
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
@@ -46,9 +44,7 @@ void VEML6075Component::setup() {
   data[0] = 15;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-//  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
- //    return;
   }
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
@@ -56,22 +52,13 @@ void VEML6075Component::setup() {
   data[0] = 14;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-//  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
- //    return;
   }
   else{
      ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
   }
 
-/*	
-  rawuva                = calc_rawuva();
-  if (this->rawuva_sensor_ != nullptr) {
-	  this->rawuva_sensor_->publish_state(rawuva);
-	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
-  }	
-  
-*/  
+*/
 //  */
 	
   /*   
@@ -79,7 +66,7 @@ void VEML6075Component::setup() {
  	
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 
-
+*/ 
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
 	
@@ -95,7 +82,7 @@ void VEML6075Component::setup() {
 
 
   shutdown(false); // Turn on chip after settings set
- */ 
+ 
 }
 
 void VEML6075Component::update() { 
@@ -144,9 +131,8 @@ void VEML6075Component::shutdown(bool stop){
   uint16_t conf , sd = 0;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
-    this->mark_failed();
+//    this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
@@ -170,22 +156,21 @@ void VEML6075Component::shutdown(bool stop){
   ESP_LOGD(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-//  if (!this->write_register(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) { 	  
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
      return;
   }
   ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
-  
+/*  
   data[0] = 0;
   data[1] = 0;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
     this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "Re read after writing %d %d" , data[1] , data[0]);
+  */
 }
  
 void VEML6075Component::forcedmode(veml6075_af_t af){
@@ -220,9 +205,8 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in trigger mode");
-    this->mark_failed();
+//    this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "read before masking trigger %d %d" , data[1] , data[0]);
@@ -248,9 +232,8 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in integration time");
-    this->mark_failed();
+//    this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "read before masking integration time %d %d" , data[1] , data[0]);
@@ -297,9 +280,8 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   uint16_t conf;
   
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in high dynamic");
-    this->mark_failed();
+//    this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "read before masking high dynamic %d %d" , data[1] , data[0]);
@@ -330,8 +312,7 @@ uint16_t VEML6075Component::calc_visible_comp(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_VISIBLE_COMP register");
- //      this->mark_failed();
-       return 0;	  
+        return 0;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
     ESP_LOGD(TAG , "calc_visible_comp data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
@@ -343,7 +324,6 @@ uint16_t VEML6075Component::calc_ir_comp(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_IR_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_IR_COMP register");
-//       this->mark_failed();
        return 0;	  
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
@@ -356,7 +336,6 @@ uint16_t VEML6075Component::calc_rawuva(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
- //      this->mark_failed();
        return 0;
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
@@ -369,7 +348,6 @@ uint16_t VEML6075Component::calc_rawuvb(void){
     uint16_t result;
     if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVB  register");
- //      this->mark_failed();
        return 0; 
     }
     result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
@@ -378,30 +356,30 @@ uint16_t VEML6075Component::calc_rawuvb(void){
 }
 	
 float VEML6075Component::calc_uva(void){
-    uint16_t rawuva = (uint16_t)this->rawuva_sensor_->get_state();
+    uint16_t rawuva       = (uint16_t)this->rawuva_sensor_->get_state();
     uint16_t visible_comp =  (uint16_t)this->visible_comp_sensor_->get_state(); 
-    uint16_t ir_comp = (uint16_t)this->ir_comp_sensor_->get_state(); 
+    uint16_t ir_comp      = (uint16_t)this->ir_comp_sensor_->get_state(); 
     return (float)(rawuva) - ( ( VEML6075_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA );
 }
 
 float VEML6075Component::calc_uvb(void){
-    uint16_t rawuvb = (uint16_t)this->rawuvb_sensor_->get_state();
+    uint16_t rawuvb       = (uint16_t)this->rawuvb_sensor_->get_state();
     uint16_t visible_comp =  (uint16_t)this->visible_comp_sensor_->get_state(); 
-    uint16_t ir_comp = (uint16_t)this->ir_comp_sensor_->get_state(); 
+    uint16_t ir_comp      = (uint16_t)this->ir_comp_sensor_->get_state(); 
     return (float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );	
 }	
 
 float VEML6075Component::calc_uvindex(void){
     float index;
-    float uva = (float) this->uva_sensor_->get_state();
-    float uvb = (float) this->uvb_sensor_->get_state();	
+    float uva              = (float) this->uva_sensor_->get_state();
+    float uvb              = (float) this->uvb_sensor_->get_state();	
     float uva_responsivity = (float) this->uva_responsivity_;
     float uvb_responsivity = (float) this->uvb_responsivity_;
-    bool hdenabled = (bool) this->hdenabled_;
+    bool hdenabled         = (bool) this->hdenabled_;
 	
-    float uvia = (uva) * (1.0 / VEML6075_UV_ALPHA) * ( uva_responsivity );
-    float uvib = (uvb) * (1.0 / VEML6075_UV_BETA)  * ( uvb_responsivity );
-    index      = (uvia + uvib) / 2.0;
+    float uvia             = (uva) * (1.0 / VEML6075_UV_ALPHA) * ( uva_responsivity );
+    float uvib             = (uvb) * (1.0 / VEML6075_UV_BETA)  * ( uvb_responsivity );
+    index                  = (uvia + uvib) / 2.0;
     if (hdenabled == true)
     {
         index *= VEML6075_HD_SCALAR;
@@ -431,7 +409,7 @@ void VEML6075Component::read_data_() {
 // */
 
  	
-  
+/*  
   data[0] = 14;   // AF(2) + trigger(4) + 50ms(8) 100ms(10)/200ms(20)
   data[1] = 0;
 
@@ -445,7 +423,8 @@ void VEML6075Component::read_data_() {
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
-  }  
+  } 
+*/  
 /*
   data[0] = 14;   // AF(2) + trigger(4) + 100ms(10)  14
   data[1] = 0;
