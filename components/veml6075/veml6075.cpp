@@ -596,13 +596,13 @@ void VEML6075Component::read_data_() {
 	
 //*/	
  
- /*	
+// /*	
   uvindex              = calc_uvindex();
    if (this->uvindex_sensor_ != nullptr) {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
-  */	
+//  */	
 /*	
   data[0] = 8;   // AF(2) + trigger(4) + 100ms(10)
   data[1] = 0;
