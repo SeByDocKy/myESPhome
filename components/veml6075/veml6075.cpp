@@ -14,6 +14,9 @@ float VEML6075Component::get_setup_priority() const { return setup_priority::DAT
 void VEML6075Component::dump_config() {
   ESP_LOGCONFIG(TAG, "Dump data");
   LOG_I2C_DEVICE(this);
+  if (this->is_failed()) {
+    ESP_LOGE(TAG, "Communication with VEML6075 failed!");
+  }
   LOG_UPDATE_INTERVAL(this);
   LOG_SENSOR("  ", "uva", this->uva_sensor_);
   LOG_SENSOR("  ", "uvb", this->uvb_sensor_);
