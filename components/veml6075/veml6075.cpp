@@ -475,8 +475,7 @@ float VEML6075Component::calc_uvindex(void){
     return index;
 }	
 	
-bool VEML6075Component::readI2CRegister(uint16_t *dest, uint8_t registerAddress)
-{   
+bool VEML6075Component::readI2CRegister(uint16_t *dest, uint8_t registerAddress){   
     uint8_t data[2];
     if (!this->read_bytes(registerAddress, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read uint8x2 register");
