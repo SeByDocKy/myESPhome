@@ -155,10 +155,10 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   float get_uvb_responsivity(void) {return uvb_responsivity_;}
   bool  get_hdenabled(void) {return hdenabled_;}
 	
-  uint16_t calc_visible_comp(void);
-  uint16_t calc_ir_comp(void);
-  uint16_t calc_rawuva(void);
-  uint16_t calc_rawuvb(void);
+  float calc_visible_comp(void);
+  float calc_ir_comp(void);
+  float calc_rawuva(void);
+  float calc_rawuvb(void);
 	
   float calc_uva(void);
   float calc_uvb(void);
