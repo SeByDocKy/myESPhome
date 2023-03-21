@@ -426,8 +426,8 @@ float VEML6075Component::calc_ir_comp(void){
 float VEML6075Component::calc_rawuva(void){
     uint8_t data[2] = {0, 0};
     float result;
-    if (!this->read_bytes(VEML6075_REG_UVA , data, VEML6075_REG_SIZE)){
-//    if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, VEML6075_REG_SIZE)){	    
+//    if (!this->read_bytes(VEML6075_REG_UVA , data, VEML6075_REG_SIZE)){
+    if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, VEML6075_REG_SIZE)){	    
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
        return NAN;
     }
