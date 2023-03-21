@@ -140,7 +140,7 @@ async def to_code(config):
 	 
     if CONF_VEML6075_UVB in config:
         sens = await sensor.new_sensor(config[CONF_VEML6075_UVB])
-        cg.add(var.set_uva_sensor(sens))
+        cg.add(var.set_uvb_sensor(sens))
    
     if CONF_VEML6075_UVINDEX in config:
         sens = await sensor.new_sensor(config[CONF_VEML6075_UVINDEX])
