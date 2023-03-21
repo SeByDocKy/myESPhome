@@ -489,7 +489,7 @@ bool VEML6075Component::readI2CRegister(uint16_t *dest, uint8_t reg){
     }
     //delay(10);
     this->read(buf.data(), (size_t)(VEML6075_REG_SIZE));  // 
-    *dest = buf[0]) | ((uint16_t)buf[1] << 8); 
+    *dest = (buf[0]) | ((uint16_t)buf[1] << 8); 
     return true;
 }
 
