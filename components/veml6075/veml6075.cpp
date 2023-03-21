@@ -397,8 +397,8 @@ float VEML6075Component::calc_rawuva(void){
        return NAN;
     }
 */    
-    this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false)
-    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
+    this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
+    result = (float)(data[0] | (data[1] << 8)); 
     ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
     return result;	    
 }
