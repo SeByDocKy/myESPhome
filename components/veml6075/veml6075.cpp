@@ -447,8 +447,8 @@ float VEML6075Component::calc_uva(void){
     float rawuva       = this->rawuva_sensor_->get_state();
     float visible_comp = this->visible_comp_sensor_->get_state(); 
     float ir_comp      = this->ir_comp_sensor_->get_state(); 
-    return ( rawuva - ( ( VEML6075_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA ));
-    //turn (float)rawUva() - ( (UVA_A_COEF * UV_ALPHA * uvComp1()) / UV_GAMMA) - ((UVA_B_COEF * UV_ALPHA * uvComp2()) / UV_DELTA);
+    return ( rawuva -  ( ( VEML6075_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA ) );
+    //return (float)rawUva() - ( (UVA_A_COEF * UV_ALPHA * uvComp1()) / UV_GAMMA) - ((UVA_B_COEF * UV_ALPHA * uvComp2()) / UV_DELTA);
 	
 }
 
@@ -456,16 +456,21 @@ float VEML6075Component::calc_uvb(void){
     float rawuvb       =  this->rawuvb_sensor_->get_state();
     float visible_comp =  this->visible_comp_sensor_->get_state(); 
     float ir_comp      =  this->ir_comp_sensor_->get_state(); 
-    return ((float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA ));	
+    return (rawuvb - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA ));	
 }	
 
 float VEML6075Component::calc_uvindex(void){
     float index;
-    float uva              = (float) this->uva_sensor_->get_state();
-    float uvb              = (float) this->uvb_sensor_->get_state();	
+    float uva              = this->uva_sensor_->get_state();
+    float uvb              = this->uvb_sensor_->get_state();	
+/*	
     float uva_responsivity = get_uva_responsivity();
     float uvb_responsivity = get_uvb_responsivity();
     bool hdenabled         = get_hdenabled();
+*/	
+    float uva_responsivity = this->uva_responsivity_;
+    float uvb_responsivity = this->uvb_responsivity_;
+    bool hdenabled         = this->hdenabled_;
 	
     float uvia             = (uva) * (1.0 / VEML6075_UV_ALPHA) * ( uva_responsivity );
     float uvib             = (uvb) * (1.0 / VEML6075_UV_BETA)  * ( uvb_responsivity );
