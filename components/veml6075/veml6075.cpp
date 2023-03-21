@@ -114,6 +114,17 @@ void VEML6075Component::identifychip(void){
   
 }
 	
+uint8_t VEML6075Component::read_reg_00(void){
+  uint8_t data[2] = {0,0};
+  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
+     ESP_LOGE(TAG, "Can't read  VEML6075_REG_CONF in shutdown ");
+     return 0;
+  }
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF %d %d" , data[0] , data[1]);
+  conf = data[0];
+  //conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
+}
+	
 void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_trig_t trig , veml6075_hd_t hd , veml6075_uv_it_t it){
   uint8_t data[2] = {0,0};
   uint16_t conf = 0 , sd = 0;
