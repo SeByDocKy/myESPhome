@@ -370,7 +370,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-  ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , get_uva_responsivity() , get_uvb_responsivity());
+  ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , this->uva_responsivity_ , this->uvb_responsivity_);
 	
 	
   switch (it){
