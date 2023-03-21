@@ -460,22 +460,19 @@ float VEML6075Component::calc_uvb(void){
 }	
 
 float VEML6075Component::calc_uvindex(void){
+/*	
     float index;
     float uva              = this->uva_sensor_->get_state();
     float uvb              = this->uvb_sensor_->get_state();	
-/*	
-    float uva_responsivity = get_uva_responsivity();
-    float uvb_responsivity = get_uvb_responsivity();
-    bool hdenabled         = get_hdenabled();
-*/	
+	
     float uva_responsivity = this->uva_responsivity_;
     float uvb_responsivity = this->uvb_responsivity_;
     bool hdenabled         = this->hdenabled_;
-	
-    float uvia             = (uva) * (1.0 / VEML6075_UV_ALPHA) * ( uva_responsivity );
-    float uvib             = (uvb) * (1.0 / VEML6075_UV_BETA)  * ( uvb_responsivity );
-    index                  = (uvia + uvib) / 2.0;
-    if (hdenabled == true)
+*/	
+    float uvia             = (this->uva_sensor_->get_state()) * (1.0 / VEML6075_UV_ALPHA) * ( this->uva_responsivity_ );
+    float uvib             = (this->uvb_sensor_->get_state()) * (1.0 / VEML6075_UV_BETA)  * ( this->uvb_responsivity_ );
+    float index            = (uvia + uvib) / 2.0;
+    if (this->hdenabled_ == true)
     {
         index *= VEML6075_HD_SCALAR;
     }
