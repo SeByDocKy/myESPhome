@@ -25,10 +25,9 @@ void VEML6075Component::dump_config() {
 }
 
 void VEML6075Component::setup() {
-//  delay(100);
-// /*  
+
 	
-  uint8_t data[2] = {0,0};
+//  uint8_t data[2] = {0,0};
 //  uint16_t rawuva;
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   
@@ -96,36 +95,20 @@ void VEML6075Component::update() {
 
 void VEML6075Component::identifychip(void){
   uint8_t data[2] = {0,0};
-  //uint16_t data[1] = {0};
   uint16_t conf;
   
   if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {   //
-  //if ( !this->read_byte_16(VEML6075_REG_ID, (uint16_t *) &data) ) {   //	  
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't read  VEML6075_REG_ID");
     this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "read REG_ID register %d %d" , data[1] , data[0]);
-  //ESP_LOGD(TAG, "read REG_ID register %d" ,  data[0]);
   
   if (data[0] != VEML6075_ID) {
     ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data[0] , VEML6075_ID);
-    //this->mark_failed();
     return;
   }
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
-  
-  /*  
-  if ( !this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE ) ) {
-    ESP_LOGE(TAG, "Can't communicate with VEML6075");
- //   this->error_code_ = COMMUNICATION_FAILED;
-    this->mark_failed();
-    return;
-  }
-  conf  = ((data[0]) | (data[1] << 8));	
-  ESP_LOGD(TAG, "Read successuffuly VEML6075_REG_CONF returning %d" , conf);
-   */
   
 }
 	
@@ -141,21 +124,6 @@ void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_
   }
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-
-/*	
-  data[0] = 1;
-  data[1] = 0;	
-	
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed");
-     return;
-  }
-  ESP_LOGD(TAG, "shuntdown VEML6075_REG_CONF successfully");
-
-
-  data[0] = 0;
-  data[1] = 0;	
-*/	
 	
   ESP_LOGD(TAG, "sd value: %d" , sd);
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
@@ -233,23 +201,12 @@ void VEML6075Component::shutdown(bool stop){
   }
   ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
-/*  
-  data[0] = 0;
-  data[1] = 0;
-  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-    ESP_LOGE(TAG, "Can't communicate with VEML6075 for the VEML6075_REG_CONF register in shutdown");
-    this->mark_failed();
-    return;
-  }
-  ESP_LOGD(TAG, "Re read after writing %d %d" , data[1] , data[0]);
-  */
 }
  
 void VEML6075Component::forcedmode(veml6075_af_t af){
   uint8_t data[2]= {0,0};
   uint16_t conf;
   if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-//     this->error_code_ = COMMUNICATION_FAILED;
     ESP_LOGE(TAG, "Can't read initial VEML6075_REG_CONF in forcemode");
   //  this->mark_failed();
   //  return;
@@ -301,8 +258,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
      return;
   }
   ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfull to set trigger mode");
-	
-	
+
 }
 
 void VEML6075Component::highdynamic(veml6075_hd_t hd){
@@ -371,8 +327,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
   ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , this->uva_responsivity_ , this->uvb_responsivity_);
-	
-	
+		
   switch (it){
     case IT_50MS:
         this->integrationtime_ = 50;
@@ -390,11 +345,11 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
         this->integrationtime_ = 800;
         break;
     default:
-        this->integrationtime_ = 0;
+        this->integrationtime_ = 100;
     } 
 }
 
- 
+
 float VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0,0};
     float result;
