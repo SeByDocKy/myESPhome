@@ -493,8 +493,10 @@ void VEML6075Component::read_data_() {
   float visible_compensation , ir_compensation;
   float rawuva , rawuvb;
   float uva , uvb , uvindex;
-
-  rawuva                = calc_rawuva();
+  uint16_t data;
+	
+  rawuva                = (float)readI2CRegister(&data, VEML6075_REG_UVA);
+  //rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %f" , rawuva);
