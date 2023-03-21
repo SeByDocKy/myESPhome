@@ -31,11 +31,11 @@ void VEML6075Component::dump_config() {
 void VEML6075Component::setup() {
 
 	
-  uint8_t data[2] = {0,0};
+//  uint8_t data[2] = {0,0};
 //  uint16_t rawuva;
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   
-///*	
+/*	
   data[0] = 0;
   data[1] = 0;
   if (!this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE )) {
@@ -44,7 +44,7 @@ void VEML6075Component::setup() {
   else{
      ESP_LOGD(TAG, "write_bytes 0 into VEML6075_REG_CONF successfully ");
   }
-//*/
+*/
 /*	
   data[0] = 15;
   data[1] = 0;
