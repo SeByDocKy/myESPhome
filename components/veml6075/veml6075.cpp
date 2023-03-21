@@ -126,13 +126,20 @@ void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_
   }
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-	
+  
+  ESP_LOGD(TAG, "sd value: %d" , 1);
+  conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
+  conf |= (1 << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
+
+/*	
   ESP_LOGD(TAG, "sd value: %d" , sd);
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
   conf |= (sd << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
   ESP_LOGD(TAG, "set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
-	
+*/	
   ESP_LOGD(TAG, "af value: %d" , af);
   conf &= ~(VEML6075_AF_MASK);     // Clear af bit
   ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
@@ -160,6 +167,18 @@ void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_
   data[1] = (uint8_t)(conf & 0x00FF);
   data[0] = (uint8_t)((conf & 0xFF00) >> 8); 	
   ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF with: %d %d" , data[0] , data[1]);
+	
+  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
+     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed");
+     return;
+  }
+  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully");
+	
+  ESP_LOGD(TAG, "sd value: %d" , 0);
+  conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
+  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
+  conf |= (0 << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
+  ESP_LOGD(TAG, "set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
 	
   if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
      ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed");
