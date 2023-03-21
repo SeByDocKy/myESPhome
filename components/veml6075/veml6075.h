@@ -149,6 +149,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void highdynamic(veml6075_hd_t hd);
   void trigger(veml6075_uv_trig_t trig);
   void write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_trig_t trig , veml6075_hd_t hd , veml6075_uv_it_t it);
+  uint8_t read_reg_00(void);
 	
   float calc_visible_comp(void);
   float calc_ir_comp(void);
