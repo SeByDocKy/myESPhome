@@ -481,12 +481,13 @@ void VEML6075Component::read_data_() {
 	    
  // this->read_register(VEML6075_REG_UVA, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE, false);
  // rawuva   = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
+  
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %f" , rawuva);
   }
-
+/*
   rawuvb                = calc_rawuvb();
   if (this->rawuvb_sensor_ != nullptr) {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
@@ -524,7 +525,7 @@ void VEML6075Component::read_data_() {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
-/*  */
+*/
 }
 	
 
