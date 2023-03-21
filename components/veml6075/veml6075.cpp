@@ -84,7 +84,7 @@ void VEML6075Component::setup() {
   shutdown(false); // Turn on chip after settings set
  */
 // /*	
- shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
+ // shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 	
  write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
 //  */
