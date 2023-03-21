@@ -479,7 +479,7 @@ float VEML6075Component::calc_uvindex(void){
 bool VEML6075Component::readI2CRegister(uint16_t *dest, uint8_t reg){   
    //uint8_t data[2];
    const uint8_t len = 2;
-   std::vector<uint8_t> data(num_bytes);
+   std::vector<uint8_t> data(len);
 	
 	
     if (!this->write_bytes(reg, nullptr, 0)) {
