@@ -397,7 +397,7 @@ uint16_t VEML6075Component::calc_rawuva(void){
     return result;	    
 }
 	
-float VEML6075Component::calc_rawuvb(void){
+uint16_t VEML6075Component::calc_rawuvb(void){
     uint8_t data[2] = {0, 0};
     uint16_t result;	
     this->read_register(VEML6075_REG_UVB , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
@@ -406,7 +406,7 @@ float VEML6075Component::calc_rawuvb(void){
     return result;	    
 }
 	
-float VEML6075Component::calc_visible_comp(void){
+uint16_t VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0,0};
     uint16_t result;
     this->read_register(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
@@ -415,7 +415,7 @@ float VEML6075Component::calc_visible_comp(void){
     return result;
 }
 
-float VEML6075Component::calc_ir_comp(void){
+uint16_t VEML6075Component::calc_ir_comp(void){
     uint8_t data[2] = {0, 0};
     uint16_t result;
     this->read_register(VEML6075_REG_IR_COMP, (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
@@ -479,7 +479,6 @@ void VEML6075Component::read_data_() {
 	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }
  
-
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
