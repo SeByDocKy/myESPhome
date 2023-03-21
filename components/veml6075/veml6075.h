@@ -3,7 +3,6 @@
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/core/component.h"
-// #include "esphome/core/optional.h"
 
 // built from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library
 
