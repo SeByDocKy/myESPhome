@@ -457,13 +457,7 @@ void VEML6075Component::read_data_() {
   float visible_compensation , ir_compensation;
   float rawuva , rawuvb;
   float uva , uvb , uvindex;
-  uint8_t data[2];
-	
-//  readI2CRegister(&data, VEML6075_REG_UVA);
-//  this->read_byte_16(VEML6075_REG_UVA , &data);	
-//    read_byte_16(VEML6075_REG_UVA , (uint16_t *) &data);
-//    rawuva                = float(data);	
-	    
+//  uint8_t data[2];		    
 //  this->read_register(VEML6075_REG_UVA, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE, false);
 //  rawuva                  = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
  
@@ -479,7 +473,7 @@ void VEML6075Component::read_data_() {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
 	  ESP_LOGD(TAG, "raw UVB: %f" , rawuvb);
   }	
-/*	
+	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
@@ -493,7 +487,6 @@ void VEML6075Component::read_data_() {
 	  ESP_LOGD(TAG, "ir_compensation: %f" , ir_compensation);
   }
  
-  
   uva                  = calc_uva();
   if (this->uva_sensor_ != nullptr) {
 	  this->uva_sensor_->publish_state(uva);
@@ -511,7 +504,7 @@ void VEML6075Component::read_data_() {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
-*/
+/* */
 }
 	
 
