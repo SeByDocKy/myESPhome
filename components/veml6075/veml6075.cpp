@@ -370,7 +370,7 @@ float VEML6075Component::calc_ir_comp(void){
        return NAN;	  
     }
     result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
-    ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
     return result;
 }
 		
@@ -382,7 +382,7 @@ float VEML6075Component::calc_rawuva(void){
        return NAN;
     }
     result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
-    ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
     return result;	    
 }
 	
@@ -394,7 +394,7 @@ float VEML6075Component::calc_rawuvb(void){
        return NAN; 
     }
     result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8));
-    ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
+    ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 	
     return result;	    
 }
 	
@@ -415,15 +415,7 @@ float VEML6075Component::calc_uvb(void){
 }	
 
 float VEML6075Component::calc_uvindex(void){
-/*	
-    float index;
-    float uva              = this->uva_sensor_->get_state();
-    float uvb              = this->uvb_sensor_->get_state();	
 	
-    float uva_responsivity = this->uva_responsivity_;
-    float uvb_responsivity = this->uvb_responsivity_;
-    bool hdenabled         = this->hdenabled_;
-*/	
     float uvia             = (this->uva_sensor_->get_state()) * (1.0 / VEML6075_UV_ALPHA) * ( this->uva_responsivity_ );
     float uvib             = (this->uvb_sensor_->get_state()) * (1.0 / VEML6075_UV_BETA)  * ( this->uvb_responsivity_ );
     float index            = (uvia + uvib) / 2.0;
@@ -444,38 +436,26 @@ void VEML6075Component::read_data_() {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
 	  ESP_LOGD(TAG, "visible_compensation: %f" , visible_compensation);
   }
-  else {
-	 this->visible_comp_sensor_->publish_state(NAN); 
-  } 
+ 
 
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
 	  ESP_LOGD(TAG, "ir_compensation: %f" , ir_compensation);
   }
-  else {
-	 this->ir_comp_sensor_->publish_state(NAN); 
-  }
-
+ 
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %f" , rawuva);
   }
-  else {
-	 this->rawuva_sensor_->publish_state(NAN); 
-  }
-
+ 
   rawuvb                = calc_rawuvb();
   if (this->rawuvb_sensor_ != nullptr) {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
 	  ESP_LOGD(TAG, "raw UVB: %f" , rawuvb);
   }
-  else {
-	 this->rawuvb_sensor_->publish_state(NAN); 
-  }
-
-
+ 
   uva                  = calc_uva();
   if (this->uva_sensor_ != nullptr) {
 	  this->uva_sensor_->publish_state(uva);
