@@ -30,47 +30,12 @@ void VEML6075Component::dump_config() {
 
 void VEML6075Component::setup() {
 
-	
-//  uint8_t data[2] = {0,0};
-//  uint16_t rawuva;
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
-  
-/*	
-  data[0] = 0;
-  data[1] = 0;
-  if (!this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE )) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
-  }
-  else{
-     ESP_LOGD(TAG, "write_bytes 0 into VEML6075_REG_CONF successfully ");
-  }
-*/
-/*	
-  data[0] = 15;
-  data[1] = 0;
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
-  }
-  else{
-     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
-  }
-  data[0] = 14;
-  data[1] = 0;
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
-  }
-  else{
-     ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully ");
-  }
-
-*/
-//  */
-	
-  /*   
+  	
+// /*   
   identifychip(); // check if it's a genuine chip
  
-*/ 
-// /* 
+// */ 
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
  
   // Set Force readings
@@ -86,12 +51,6 @@ void VEML6075Component::setup() {
   integrationtime(this->it_); // integration time  VEML6075_REG_CONF(0x00) bits 6-5-4-MSB/bits 14-13-12 16 bit
 
   shutdown(false); // Turn on chip after settings set
-// */
-// /*	
- // shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
-	
- // write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
-//  */
 }
 
 void VEML6075Component::update() { 
