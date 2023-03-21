@@ -139,8 +139,7 @@ uint8_t VEML6075Component::read_reg_00(void){
   ESP_LOGD(TAG, "read VEML6075_REG_CONF %d %d" , data&0x00FF , data&0xFF00);
   return data&0x00FF;
 }
-	
-readI2CRegister(uint16_t *dest, uint8_t registerAddress)	
+		
 	
 void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_trig_t trig , veml6075_hd_t hd , veml6075_uv_it_t it){
   uint8_t data[2] = {0,0};
