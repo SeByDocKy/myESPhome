@@ -66,13 +66,12 @@ void VEML6075Component::setup() {
   identifychip(); // check if it's a genuine chip
  
 */ 
-/* 
+// /* 
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
  
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
 	
-
   // Set trigger mode
   trigger(this->trig_); // trigger mode  VEML6075_REG_CONF(0x00) bit2-MSB/bit10 16 bit
 	
@@ -83,11 +82,12 @@ void VEML6075Component::setup() {
   integrationtime(this->it_); // integration time  VEML6075_REG_CONF(0x00) bits 6-5-4-MSB/bits 14-13-12 16 bit
 
   shutdown(false); // Turn on chip after settings set
- */
+// */
+/*	
  shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 	
  write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
-  
+  */
 }
 
 void VEML6075Component::update() { 
