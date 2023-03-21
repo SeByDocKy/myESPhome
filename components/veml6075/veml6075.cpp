@@ -62,15 +62,7 @@ void VEML6075Component::identifychip(void){
   uint8_t data[2] = {0,0};
   uint16_t conf;
   this->read_register(VEML6075_REG_ID, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-/*	
-  if ( !this->read_bytes(VEML6075_REG_ID, (uint8_t *) &data , VEML6075_REG_SIZE) ) {   //
-    ESP_LOGE(TAG, "Can't read  VEML6075_REG_ID");
-    this->mark_failed();
-    return;
-  }
-  ESP_LOGD(TAG, "read REG_ID register %d %d" , data[1] , data[0]);
-*/  
-    
+	
   if (data[0] != VEML6075_ID) {
     ESP_LOGE(TAG, "Wrong ID, received %d, expecting %d", data[0] , VEML6075_ID);
     return;
@@ -82,14 +74,9 @@ void VEML6075Component::identifychip(void){
 /*	
 uint8_t VEML6075Component::read_reg_00(void){
   uint8_t data[2] = {0,0};
-  // uint8_t conf;
-  if (!this->read_bytes(VEML6075_REG_CONF, (uint8_t *) &data , VEML6075_REG_SIZE)) {
-     ESP_LOGE(TAG, "Can't read  VEML6075_REG_CONF in shutdown ");
-     return 0;
-  }
+  this->read_register(VEML6075_REG_ID, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
   ESP_LOGD(TAG, "read VEML6075_REG_CONF %d %d" , data[0] , data[1]);
   return data[0];
-  //conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
 }
 */	
 	
@@ -192,12 +179,6 @@ void VEML6075Component::shutdown(bool stop){
   ESP_LOGD(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
   write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-/*	
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE )) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed to turn on/off chip");
-     return;
-  }
-*/  
   ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
 }
@@ -385,15 +366,10 @@ float VEML6075Component::calc_uvindex(void){
     return index;
 }	
 	
-
-
 void VEML6075Component::read_data_() {
   uint16_t visible_compensation , ir_compensation;
   uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
-//  uint8_t data[2];		    
-//  this->read_register(VEML6075_REG_UVA, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE, false);
-//  rawuva                  = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
  
   rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
@@ -436,10 +412,7 @@ void VEML6075Component::read_data_() {
 	  this->uvindex_sensor_->publish_state(uvindex);
 	  ESP_LOGD(TAG, "UV index: %f" , uvindex);
   }	
-/* */
 }
-	
-
 
 }  // namespace veml6075
 }  // namespace esphome
