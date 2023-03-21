@@ -70,7 +70,7 @@ void VEML6075Component::setup() {
   identifychip(); // check if it's a genuine chip
  
 */ 
- /* 
+// /* 
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
  
   // Set Force readings
@@ -86,7 +86,7 @@ void VEML6075Component::setup() {
   integrationtime(this->it_); // integration time  VEML6075_REG_CONF(0x00) bits 6-5-4-MSB/bits 14-13-12 16 bit
 
   shutdown(false); // Turn on chip after settings set
- */
+// */
 // /*	
  // shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 	
