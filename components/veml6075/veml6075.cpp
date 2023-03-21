@@ -500,7 +500,8 @@ void VEML6075Component::read_data_() {
   float uva , uvb , uvindex;
   uint16_t data;
 	
-  readI2CRegister(&data, VEML6075_REG_UVA);
+//  readI2CRegister(&data, VEML6075_REG_UVA);
+  read_byte_16(VEML6075_REG_UVA , &data);	
   rawuva                = float(data);	
 //	    read_byte_16(VEML6075_REG_UVA , &data);
   //rawuva                = calc_rawuva();
