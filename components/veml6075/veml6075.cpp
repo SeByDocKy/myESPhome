@@ -426,7 +426,7 @@ float VEML6075Component::calc_ir_comp(void){
 float VEML6075Component::calc_rawuva(void){
     uint8_t data[2] = {0, 0};
     float result;
-    if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, VEML6075_REG_SIZE)){
+    if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
        return NAN;
     }
@@ -502,10 +502,10 @@ void VEML6075Component::read_data_() {
 	
 //  readI2CRegister(&data, VEML6075_REG_UVA);
 //  this->read_byte_16(VEML6075_REG_UVA , &data);	
-    read_byte_16(VEML6075_REG_UVA , &data);
-    rawuva                = float(data);	
+//    read_byte_16(VEML6075_REG_UVA , &data);
+//    rawuva                = float(data);	
 	    
-//  rawuva                = calc_rawuva();
+  rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %f" , rawuva);
