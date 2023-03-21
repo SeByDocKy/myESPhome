@@ -388,54 +388,53 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
     } 
 }
 
-float VEML6075Component::calc_rawuva(void){
+uint16_t VEML6075Component::calc_rawuva(void){
     uint8_t data[2];
-    float result;
+    uint16_t result;
     this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
-    result = (float)(data[0] | (data[1] << 8)); 
-    ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
+    result = (data[0] | (data[1] << 8)); 
+    // ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;	    
 }
 	
 float VEML6075Component::calc_rawuvb(void){
     uint8_t data[2] = {0, 0};
-    float result;	
+    uint16_t result;	
     this->read_register(VEML6075_REG_UVB , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
-    result = (float)(data[0] | (data[1] << 8)); 
-    ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 	
+    result = (data[0] | (data[1] << 8)); 
+    // ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
     return result;	    
 }
 	
 float VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0,0};
-    float result;
-   
+    uint16_t result;
     this->read_register(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
-    result = (float)(data[0] | (data[1] << 8)); 
-    ESP_LOGD(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
+    result = (data[0] | (data[1] << 8)); 
+    // ESP_LOGD(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 
 float VEML6075Component::calc_ir_comp(void){
     uint8_t data[2] = {0, 0};
-    float result;
+    uint16_t result;
     this->read_register(VEML6075_REG_IR_COMP, (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
-    result = (float)(data[0] | (data[1] << 8)); 
-    ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
+    result = (data[0] | (data[1] << 8)); 
+    // ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 			
 float VEML6075Component::calc_uva(void){
-    float rawuva       = this->rawuva_sensor_->get_state();
-    float visible_comp = this->visible_comp_sensor_->get_state(); 
-    float ir_comp      = this->ir_comp_sensor_->get_state(); 
+    float rawuva       = (float)this->rawuva_sensor_->get_state();
+    float visible_comp = (float)this->visible_comp_sensor_->get_state(); 
+    float ir_comp      = (float)this->ir_comp_sensor_->get_state(); 
     return ( rawuva -  ( ( VEML6075_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA ) );
 }
 
 float VEML6075Component::calc_uvb(void){
-    float rawuvb       =  this->rawuvb_sensor_->get_state();
-    float visible_comp =  this->visible_comp_sensor_->get_state(); 
-    float ir_comp      =  this->ir_comp_sensor_->get_state(); 
+    float rawuvb       =  (float)this->rawuvb_sensor_->get_state();
+    float visible_comp =  (float)this->visible_comp_sensor_->get_state(); 
+    float ir_comp      =  (float)this->ir_comp_sensor_->get_state(); 
     return (rawuvb - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA ));	
 }	
 
@@ -465,26 +464,26 @@ void VEML6075Component::read_data_() {
  
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
-	  ESP_LOGD(TAG, "raw UVA: %f" , rawuva);
+	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
   }
 
   rawuvb                = calc_rawuvb();
   if (this->rawuvb_sensor_ != nullptr) {
 	  this->rawuvb_sensor_->publish_state(rawuvb);
-	  ESP_LOGD(TAG, "raw UVB: %f" , rawuvb);
+	  ESP_LOGD(TAG, "raw UVB: %d" , rawuvb);
   }	
 	
   visible_compensation  = calc_visible_comp();
   if (this->visible_comp_sensor_ != nullptr) {
 	  this->visible_comp_sensor_->publish_state(visible_compensation);
-	  ESP_LOGD(TAG, "visible_compensation: %f" , visible_compensation);
+	  ESP_LOGD(TAG, "visible_compensation: %d" , visible_compensation);
   }
  
 
   ir_compensation       = calc_ir_comp();
   if (this->ir_comp_sensor_ != nullptr) {
 	  this->ir_comp_sensor_->publish_state(ir_compensation);
-	  ESP_LOGD(TAG, "ir_compensation: %f" , ir_compensation);
+	  ESP_LOGD(TAG, "ir_compensation: %d" , ir_compensation);
   }
  
   uva                  = calc_uva();
