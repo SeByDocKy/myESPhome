@@ -116,7 +116,8 @@ void VEML6075Component::identifychip(void){
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
   
 }
-	
+
+/*	
 uint8_t VEML6075Component::read_reg_00(void){
   uint8_t data[2] = {0,0};
   // uint8_t conf;
@@ -128,6 +129,18 @@ uint8_t VEML6075Component::read_reg_00(void){
   return data[0];
   //conf  = ((data[0]  & 0x00FF) | ((data[1]  & 0x00FF) << 8));
 }
+*/	
+uint8_t VEML6075Component::read_reg_00(void){
+  uint16_t data;	
+  	
+  if(!readI2CRegister(data , VEML6075_REG_CONF)){
+     return 0;	  
+  }
+  ESP_LOGD(TAG, "read VEML6075_REG_CONF %d %d" , data&0x00FF , data&0xFF00);
+  return data&0x00FF;
+}
+	
+readI2CRegister(uint16_t *dest, uint8_t registerAddress)	
 	
 void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_trig_t trig , veml6075_hd_t hd , veml6075_uv_it_t it){
   uint8_t data[2] = {0,0};
@@ -463,6 +476,17 @@ float VEML6075Component::calc_uvindex(void){
     return index;
 }	
 	
+bool VEML6075Component::readI2CRegister(uint16_t *dest, uint8_t registerAddress)
+{   
+    uint8_t data[2];
+    if (!this->read_bytes(registerAddress, (uint8_t *) &data, VEML6075_REG_SIZE)){
+       ESP_LOGE(TAG, "can't read uint8x2 register");
+        return false;	  
+    }
+        *dest = (data[0]) | ((uint16_t)data[1] << 8); 
+    return true;
+}
+
 void VEML6075Component::read_data_() {
   float visible_compensation , ir_compensation;
   float rawuva , rawuvb;
