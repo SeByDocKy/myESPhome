@@ -501,12 +501,12 @@ void VEML6075Component::read_data_() {
   float uva , uvb , uvindex;
   uint16_t data;
 	
-  readI2CRegister(&data, VEML6075_REG_UVA);
+//  readI2CRegister(&data, VEML6075_REG_UVA);
 //  this->read_byte_16(VEML6075_REG_UVA , &data);	
 //    read_byte_16(VEML6075_REG_UVA , (uint16_t *) &data);
-    rawuva                = float(data);	
+//    rawuva                = float(data);	
 	    
-  //rawuva                = calc_rawuva();
+  rawuva                = calc_rawuva();
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %f" , rawuva);
