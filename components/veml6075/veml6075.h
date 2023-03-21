@@ -180,6 +180,8 @@ protected:
   veml6075_uv_trig_t trig_{NO_TRIGGER};
 	
   void read_data_();	
+	
+  bool readI2CRegister(uint16_t, uint8_t);
 };
 
 }  // namespace veml6075
