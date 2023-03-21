@@ -388,7 +388,31 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
     } 
 }
 
+float VEML6075Component::calc_rawuva(void){
+    uint8_t data[2];
+    float result;
 
+    if (!this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false)){	    
+       ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
+       return NAN;
+    }
+    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
+    ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
+    return result;	    
+}
+	
+float VEML6075Component::calc_rawuvb(void){
+    uint8_t data[2] = {0, 0};
+    float result;	
+    if (!this->read_register(VEML6075_REG_UVB , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false)){
+       ESP_LOGE(TAG, "can't read VEML6075_REG_UVB  register");
+       return NAN; 
+    }
+    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8));
+    ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 	
+    return result;	    
+}
+	
 float VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0,0};
     float result;
@@ -414,32 +438,7 @@ float VEML6075Component::calc_ir_comp(void){
     ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
     return result;
 }
-		
-float VEML6075Component::calc_rawuva(void){
-    uint8_t data[2] = {0, 0};
-    float result;
-
-    if (!this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false)){	    
-       ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
-       return NAN;
-    }
-    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
-    ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
-    return result;	    
-}
-	
-float VEML6075Component::calc_rawuvb(void){
-    uint8_t data[2] = {0, 0};
-    float result;	
-    if (!this->read_register(VEML6075_REG_UVB , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false)){
-       ESP_LOGE(TAG, "can't read VEML6075_REG_UVB  register");
-       return NAN; 
-    }
-    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8));
-    ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 	
-    return result;	    
-}
-	
+			
 float VEML6075Component::calc_uva(void){
     float rawuva       = this->rawuva_sensor_->get_state();
     float visible_comp = this->visible_comp_sensor_->get_state(); 
@@ -479,10 +478,10 @@ void VEML6075Component::read_data_() {
 //    read_byte_16(VEML6075_REG_UVA , (uint16_t *) &data);
 //    rawuva                = float(data);	
 	    
-  this->read_register(VEML6075_REG_UVA, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE, false);
-  rawuva                  = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
+//  this->read_register(VEML6075_REG_UVA, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE, false);
+//  rawuva                  = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
  
-//  rawuva                = calc_rawuva();
+  rawuva                = calc_rawuva();
  
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
