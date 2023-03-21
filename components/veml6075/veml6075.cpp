@@ -210,7 +210,7 @@ void VEML6075Component::shutdown(bool stop){
   uint8_t data[2] = {0,0};
   uint16_t conf , sd = 0;
   
-  this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false)
+  this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
   ESP_LOGD(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
 	
   conf  = (data[0] | (data[1] << 8));	
