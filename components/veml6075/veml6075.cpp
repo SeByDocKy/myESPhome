@@ -395,50 +395,50 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
 }
 
  
-uint16_t VEML6075Component::calc_visible_comp(void){
+float VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0,0};
-    uint16_t result;
+    float result;
     if (!this->read_bytes(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_VISIBLE_COMP register");
         return NAN;	  
     }
-    result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
-    ESP_LOGD(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
+    ESP_LOGD(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %f" , data[0] , data[1] , result); 
     return result;
 }
 
-uint16_t VEML6075Component::calc_ir_comp(void){
+float VEML6075Component::calc_ir_comp(void){
     uint8_t data[2] = {0, 0};
-    uint16_t result;
+    float result;
     if (!this->read_bytes(VEML6075_REG_IR_COMP, (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_IR_COMP register");
        return NAN;	  
     }
-    result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
+    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
     ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 		
 uint16_t VEML6075Component::calc_rawuva(void){
     uint8_t data[2] = {0, 0};
-    uint16_t result;
+    float result;
     if (!this->read_bytes(VEML6075_REG_UVA , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVA  register");
        return NAN;
     }
-    result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8); 
+    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
     ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;	    
 }
 	
 uint16_t VEML6075Component::calc_rawuvb(void){
     uint8_t data[2] = {0, 0};
-    uint16_t result;
+    float result;
     if (!this->read_bytes(VEML6075_REG_UVB , (uint8_t *) &data, VEML6075_REG_SIZE)){
        ESP_LOGE(TAG, "can't read VEML6075_REG_UVB  register");
        return NAN; 
     }
-    result = (data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8);
+    result = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8));
     ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
     return result;	    
 }
@@ -447,14 +447,14 @@ float VEML6075Component::calc_uva(void){
     uint16_t rawuva       = (uint16_t)this->rawuva_sensor_->get_state();
     uint16_t visible_comp = (uint16_t)this->visible_comp_sensor_->get_state(); 
     uint16_t ir_comp      = (uint16_t)this->ir_comp_sensor_->get_state(); 
-    return (float)(rawuva) - ( ( VEML6075_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA );
+    return ((float)(rawuva) - ( ( VEML6075_UVA1_COEFF * VEML6075_UV_ALPHA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVA2_COEFF * VEML6075_UV_ALPHA * ir_comp) / VEML6075_UV_DELTA ));
 }
 
 float VEML6075Component::calc_uvb(void){
     uint16_t rawuvb       =  (uint16_t)this->rawuvb_sensor_->get_state();
     uint16_t visible_comp =  (uint16_t)this->visible_comp_sensor_->get_state(); 
     uint16_t ir_comp      =  (uint16_t)this->ir_comp_sensor_->get_state(); 
-    return (float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA );	
+    return ((float)(rawuvb) - ( ( VEML6075_UVB1_COEFF * VEML6075_UV_BETA * visible_comp) / VEML6075_UV_GAMMA ) - ( (VEML6075_UVB2_COEFF * VEML6075_UV_BETA * ir_comp) / VEML6075_UV_DELTA ));	
 }	
 
 float VEML6075Component::calc_uvindex(void){
@@ -476,9 +476,9 @@ float VEML6075Component::calc_uvindex(void){
 }	
 	
 void VEML6075Component::read_data_() {
-  uint8_t data[2];	
-  uint16_t visible_compensation , ir_compensation;
-  uint16_t rawuva , rawuvb;
+  // uint8_t data[2];	
+  float visible_compensation , ir_compensation;
+  float rawuva , rawuvb;
   float uva , uvb , uvindex;
 	
  // write_reg_00(false , this->af_ , this->trig_ , this->hd_ , this->it_);
