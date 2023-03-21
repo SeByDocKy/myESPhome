@@ -478,10 +478,9 @@ float VEML6075Component::calc_uvindex(void){
 }	
 	
 bool VEML6075Component::readI2CRegister(uint16_t *dest, uint8_t reg){   
-   //uint8_t data[2];
+   uint8_t buf[2];
    const uint8_t len = 2;
-   std::vector<uint8_t> buf(len);
-	
+   //std::vector<uint8_t> buf(len);
 	
     if (!this->write_bytes(reg, nullptr, 0)) {
       this->status_set_warning();
@@ -489,9 +488,10 @@ bool VEML6075Component::readI2CRegister(uint16_t *dest, uint8_t reg){
       return false;
     }
     //delay(10);
-    this->read(buf.data(), (size_t)(VEML6075_REG_SIZE));  
+//    this->read(buf.data(), (size_t)(VEML6075_REG_SIZE));  
+    this->read((uint8_t *) &buf, (size_t)(VEML6075_REG_SIZE));  	
     ESP_LOGW(TAG, "buf[0]: %d, buf[1]: %d" , buf[0] , buf[1]);	
-    *dest = (buf[0]) | ((uint16_t)buf[1] << 8); 
+    dest[0] = (buf[0]) | ((uint16_t)buf[1] << 8); 
     return true;
 }
 
@@ -501,9 +501,9 @@ void VEML6075Component::read_data_() {
   float uva , uvb , uvindex;
   uint16_t data;
 	
-//  readI2CRegister(&data, VEML6075_REG_UVA);
+  readI2CRegister(&data, VEML6075_REG_UVA);
 //  this->read_byte_16(VEML6075_REG_UVA , &data);	
-    read_byte_16(VEML6075_REG_UVA , (uint16_t *) &data);
+//    read_byte_16(VEML6075_REG_UVA , (uint16_t *) &data);
     rawuva                = float(data);	
 	    
   //rawuva                = calc_rawuva();
