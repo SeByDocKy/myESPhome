@@ -429,15 +429,14 @@ float VEML6075Component::calc_uvindex(void){
 
 
 void VEML6075Component::read_data_() {
-  float visible_compensation , ir_compensation;
-  float rawuva , rawuvb;
+  uint16_t visible_compensation , ir_compensation;
+  uint16_t rawuva , rawuvb;
   float uva , uvb , uvindex;
 //  uint8_t data[2];		    
 //  this->read_register(VEML6075_REG_UVA, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE, false);
 //  rawuva                  = (float)((data[0] & 0x00FF) | ((data[1] & 0x00FF) << 8)); 
  
   rawuva                = calc_rawuva();
- 
   if (this->rawuva_sensor_ != nullptr) {
 	  this->rawuva_sensor_->publish_state(rawuva);
 	  ESP_LOGD(TAG, "raw UVA: %d" , rawuva);
