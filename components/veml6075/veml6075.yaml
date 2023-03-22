@@ -66,10 +66,10 @@ sensor:
       name: ${name}_rawuva
     rawuvb:
       name: ${name}_rawuvb
-    dynamic: 'normal'
-    integration_time: '100ms'
-    auto_force: 'disable'
-    trigger: 'disable'  # 'one_or_uv'
+    dynamic: 'normal'  # 'normal'/'high'
+    integration_time: '100ms' #'50ms'/'100ms'/'200ms'/'400ms'/'800ms'
+    auto_force: 'disable' # 'disable' or 'one_or_uv'
+    trigger: 'disable'  # 'disable' or 'one_or_uv'
     address: 0x10
   
  
