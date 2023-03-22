@@ -58,7 +58,13 @@ void VEML6075Component::update() {
 	ESP_LOGVV(TAG, "in update() for VEML6075...");
 	this->read_data_(); 
 }	
-
+uint8_t VEML6075Component::read_reg00(void){
+  uint8_t data[2] = {0,0}; 
+  this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  ESP_LOGVV(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
+  return data[0];	
+}
+	
 void VEML6075Component::identifychip(void){
   uint8_t data[2] = {0,0};
   uint16_t conf;
