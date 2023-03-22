@@ -85,7 +85,7 @@ CONFIG_SCHEMA = (
 		
             cv.Optional(CONF_VEML6075_UVINDEX): sensor.sensor_schema(
                 unit_of_measurement=CONF_UNIT_UVINDEX,
-                accuracy_decimals=0,
+                accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
                 icon=CONF_VEML6075_ICON_NUMERIC,
             ),
