@@ -160,7 +160,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
    
 protected:
  	
-  float uva_responsivity_, uvb_responsivity_;
+  float uva_responsivity_=VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED, uvb_responsivity_=VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED;
   uint16_t  integrationtime_;
   bool hdenabled_;	
 	
