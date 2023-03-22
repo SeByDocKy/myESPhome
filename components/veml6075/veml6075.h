@@ -138,6 +138,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_rawuva_sensor(sensor::Sensor *rawuva_sensor) { this->rawuva_sensor_ = rawuva_sensor; }
   void set_rawuvb_sensor(sensor::Sensor *rawuvb_sensor) { this->rawuvb_sensor_ = rawuvb_sensor; }
   uint8_t read_reg_00(void);
+  void  write_reg_00(void);
 	
   void set_integration_time(veml6075_uv_it_t it) { this->it_ = it; }
   void set_dynamic(veml6075_hd_t hd) { this->hd_ = hd; }
