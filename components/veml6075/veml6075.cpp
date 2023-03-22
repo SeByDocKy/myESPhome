@@ -97,7 +97,8 @@ void VEML6075Component::shutdown(bool stop){
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
-  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  //this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  this->write_register(VEML6075_REG_CONF, data , (size_t)VEML6075_REG_SIZE , false);		
   //this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE);
   ESP_LOGVV(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
