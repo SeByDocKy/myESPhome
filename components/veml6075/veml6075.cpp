@@ -1,7 +1,6 @@
 #include "veml6075.h"
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
-#include <cinttypes>
 
 // built from https://github.com/sparkfun/SparkFun_VEML6075_Arduino_Library
 
@@ -32,10 +31,8 @@ void VEML6075Component::setup() {
 
   ESP_LOGCONFIG(TAG, "Setting up VEML6075...");
   	
-// /*   
   identifychip(); // check if it's a genuine chip
  
-// */ 
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
  
   // Set Force readings
@@ -54,7 +51,7 @@ void VEML6075Component::setup() {
 }
 
 void VEML6075Component::update() { 
-	ESP_LOGD(TAG, "in update() for VEML6075...");
+	ESP_LOGVV(TAG, "in update() for VEML6075...");
 	this->read_data_(); 
 }	
 
@@ -70,116 +67,33 @@ void VEML6075Component::identifychip(void){
   ESP_LOGD(TAG, "Chip identification successfull, received %d, expecting %d", data[0] , VEML6075_ID);
   
 }
-
-/*	
-uint8_t VEML6075Component::read_reg_00(void){
-  uint8_t data[2] = {0,0};
-  this->read_register(VEML6075_REG_ID, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-  ESP_LOGD(TAG, "read VEML6075_REG_CONF %d %d" , data[0] , data[1]);
-  return data[0];
-}
-*/	
-	
-void VEML6075Component::write_reg_00(bool stop , veml6075_af_t af , veml6075_uv_trig_t trig , veml6075_hd_t hd , veml6075_uv_it_t it){
-  uint8_t data[2] = {0,0};
-  uint16_t conf = 0 , sd = 0;
-  if (stop == true){ sd = (uint16_t)1;}
-  if (hd == DYNAMIC_HIGH){
-        this->hdenabled_ = true;
-  }
-  else{
-        this->hdenabled_ = false;
-  }
-  this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
-  this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-  
-  ESP_LOGD(TAG, "sd value: %d" , 1);
-  conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
-  conf |= (1 << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
-
-/*	
-  ESP_LOGD(TAG, "sd value: %d" , sd);
-  conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
-  conf |= (sd << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
-*/	
-  ESP_LOGD(TAG, "af value: %d" , af);
-  conf &= ~(VEML6075_AF_MASK);     // Clear af bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
-  conf |= (af << VEML6075_AF_SHIFT); //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set conf |= af << VEML6075_AF_SHIFT to: %d" , conf);
-  
-  ESP_LOGD(TAG, "trig value: %d" , trig);
-  conf &= ~(VEML6075_TRIG_MASK);     // Clear trigger bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
-  conf |= (trig << VEML6075_TRIG_SHIFT); //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
-  ESP_LOGD(TAG, "set conf |= trig << VEML6075_TRIG_SHIFT to: %d" , conf);	
-
-  ESP_LOGD(TAG, "hd value: %d" , hd);
-  conf &= ~(VEML6075_HD_MASK);     // Clear hd bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
-  conf |= (hd << VEML6075_HD_SHIFT); 
-  ESP_LOGD(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
-	
-  ESP_LOGD(TAG, "it value: %d" , it);
-  conf &= ~(VEML6075_UV_IT_MASK);     // Clear integration time bits
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
-  conf |= (it << VEML6075_UV_IT_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set conf |= it << VEML6075_UV_IT_SHIFT to: %d" , conf);
-	
-  data[1] = (uint8_t)(conf & 0x00FF);
-  data[0] = (uint8_t)((conf & 0xFF00) >> 8); 	
-  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF with: %d %d" , data[0] , data[1]);
-	
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed");
-     return;
-  }
-  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully");
-	
-  ESP_LOGD(TAG, "sd value: %d" , 0);
-  conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	 
-  conf |= (0 << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
-	
-  if (!this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE)) {
-     ESP_LOGW(TAG, "write_byte with VEML6075_REG_CONF failed");
-     return;
-  }
-  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfully");
-	
-}
- 
+	 
 void VEML6075Component::shutdown(bool stop){
   uint8_t data[2] = {0,0};
   uint16_t conf , sd = 0;
   
   this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-  ESP_LOGD(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
+  ESP_LOGVV(TAG, "read before masking shutdown %d %d" , data[1] , data[0]);	
 	
   conf  = (data[0] | (data[1] << 8));	
-  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
+  ESP_LOGVV(TAG, "read VEML6075_REG_CONF: %d" , conf);
   
   if (stop == true){ sd = (uint16_t)1;}
-  ESP_LOGD(TAG, "sd value: %d" , sd);
-  ESP_LOGD(TAG, "VEML6075_SHUTDOWN_MASK: %d" ,VEML6075_SHUTDOWN_MASK);
+  ESP_LOGVV(TAG, "sd value: %d" , sd);
+  ESP_LOGVV(TAG, "VEML6075_SHUTDOWN_MASK: %d" ,VEML6075_SHUTDOWN_MASK);
   
   conf &= ~(VEML6075_SHUTDOWN_MASK);     // Clear shutdown bit
-  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	
+  ESP_LOGVV(TAG, "conf = conf & ~(VEML6075_SHUTDOWN_MASK): %d" , conf);	
  
   conf |= (sd << VEML6075_SHUTDOWN_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, " set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
+  ESP_LOGVV(TAG, " set conf |= sd << VEML6075_SHUTDOWN_SHIFT to: %d" , conf);
   
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  ESP_LOGD(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
+  ESP_LOGVV(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
   write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
+  ESP_LOGVV(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
 }
  
@@ -189,43 +103,42 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
 	
   this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
 	
-//  ESP_LOGD(TAG, "af: %d" , af);
-//  ESP_LOGD(TAG, "read before masking force mode %d %d" , data[1] , data[0]);
+  ESP_LOGVV(TAG, "af: %d" , af);
+  ESP_LOGVV(TAG, "read before masking force mode %d %d" , data[1] , data[0]);
   conf  = (data[0] | (data[1] << 8));
-//  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
+  ESP_LOGVV(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_AF_MASK);     // Clear shutdown bit
-//  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
+  ESP_LOGVV(TAG, "conf = conf & ~(VEML6075_AF_MASK): %d" , conf);
   conf |= (af << VEML6075_AF_SHIFT); //VEML6075_MASK(conf, VEML6075_AF_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set conf |= af << VEML6075_AF_SHIFT to: %d" , conf);
+  ESP_LOGVV(TAG, "set conf |= af << VEML6075_AF_SHIFT to: %d" , conf);
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
-  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking force mode with: %d %d" , data[1] , data[0]);
+  ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking force mode with: %d %d" , data[1] , data[0]);
   
   this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);	
-  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfull to set autoforce mode");
+  ESP_LOGVV(TAG, "write_bytes with VEML6075_REG_CONF successfull to set autoforce mode");
 }
 
 void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   uint8_t data[2]= {0,0};
   uint16_t conf;
   this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-//  ESP_LOGD(TAG, "trig: %d" , trig);
-//  ESP_LOGD(TAG, "read before masking trigger %d %d" , data[1] , data[0]);
+  ESP_LOGVV(TAG, "trig: %d" , trig);
+  ESP_LOGVV(TAG, "read before masking trigger %d %d" , data[1] , data[0]);
   conf  = (data[0] | (data[1] << 8));
-//  ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
+  ESP_LOGVV(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_TRIG_MASK);     // Clear shutdown bit
-//  ESP_LOGD(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
+  ESP_LOGVV(TAG, "conf = conf & ~(VEML6075_TRIG_MASK): %d" , conf);	
   conf |= (trig << VEML6075_TRIG_SHIFT); //VEML6075_MASK(conf, VEML6075_TRIG_MASK, VEML6075_TRIG_SHIFT);
- ESP_LOGD(TAG, "set conf |= trig << VEML6075_TRIG_SHIFT to: %d" , conf);	
+  ESP_LOGVV(TAG, "set conf |= trig << VEML6075_TRIG_SHIFT to: %d" , conf);	
 	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking trigger  with: %d %d" , data[1] , data[0]);
+  ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking trigger  with: %d %d" , data[1] , data[0]);
 	
   this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfull to set trigger mode");
-
+  ESP_LOGVV(TAG, "write_bytes with VEML6075_REG_CONF successfull to set trigger mode");
 }
 
 void VEML6075Component::highdynamic(veml6075_hd_t hd){
@@ -233,10 +146,9 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   uint16_t conf;
   
   this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-  //ESP_LOGD(TAG, "read before masking high dynamic %d %d" , data[1] , data[0]);
-	
+  ESP_LOGVV(TAG, "read before masking high dynamic %d %d" , data[1] , data[0]);
   conf  = (data[0] | (data[1] << 8));
-  //ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
+  ESP_LOGVV(TAG, "read VEML6075_REG_CONF: %d" , conf);
   if (hd == DYNAMIC_HIGH){
         this->hdenabled_ = true;
   }
@@ -245,43 +157,37 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   }
   
   conf &= ~(VEML6075_HD_MASK);     // Clear shutdown bit
-  // ESP_LOGD(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
+  ESP_LOGVV(TAG, "conf = conf & ~(VEML6075_HD_MASK): %d" , conf);
   conf |= hd << VEML6075_HD_SHIFT; 
-  // ESP_LOGD(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
+  ESP_LOGVV(TAG, "set conf |= hd << VEML6075_HD_SHIFT to: %d" , conf);	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
-	
+  ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
   this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-  ESP_LOGD(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
+  ESP_LOGVV(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
 }  
-	
-	
+		
 void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   uint8_t data[2]= {0,0};
   uint16_t conf;
   this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
   
-  //ESP_LOGD(TAG, "it: %d" , it);
-  //ESP_LOGD(TAG, "read before masking integration time %d %d" , data[1] , data[0]);
+  ESP_LOGVV(TAG, "it: %d" , it);
+  ESP_LOGVV(TAG, "read before masking integration time %d %d" , data[1] , data[0]);
   conf  = (data[0] | (data[1] << 8));
-  //ESP_LOGD(TAG, "read VEML6075_REG_CONF: %d" , conf);
+  ESP_LOGVV(TAG, "read VEML6075_REG_CONF: %d" , conf);
   conf &= ~(VEML6075_UV_IT_MASK);     // Clear shutdown bit
-  //ESP_LOGD(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
+  ESP_LOGVV(TAG, "conf = conf & ~(VEML6075_UV_UT_MASK): %d" , conf);
   conf |= (it << VEML6075_UV_IT_SHIFT); //VEML6075_MASK(conf, VEML6075_SHUTDOWN_MASK, VEML6075_SHUTDOWN_SHIFT);
-  ESP_LOGD(TAG, "set conf |= it << VEML6075_UV_IT_SHIFT to: %d" , conf);	
-	
+  ESP_LOGVV(TAG, "set conf |= it << VEML6075_UV_IT_SHIFT to: %d" , conf);	
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
-  
-  ESP_LOGD(TAG, "Wil write VEML6075_REG_CONF after masking integration time  with: %d %d" , data[1] , data[0]);
+  ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking integration time  with: %d %d" , data[1] , data[0]);
   this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
-  
-  ESP_LOGD(TAG, "write_bytes with VEML6075_REG_CONF successfull to set integration time mode");
-  
+  ESP_LOGVV(TAG, "write_bytes with VEML6075_REG_CONF successfull to set integration time mode");
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
-  // ESP_LOGD(TAG, "Responsability UVA et UVB %f , %f" , this->uva_responsivity_ , this->uvb_responsivity_);
+  ESP_LOGVV(TAG, "Responsability UVA et UVB %f , %f" , this->uva_responsivity_ , this->uvb_responsivity_);
 		
   switch (it){
     case IT_50MS:
@@ -309,7 +215,7 @@ uint16_t VEML6075Component::calc_rawuva(void){
     uint16_t result;
     this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
     result = (data[0] | (data[1] << 8)); 
-    // ESP_LOGD(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGVV(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;	    
 }
 	
@@ -318,7 +224,7 @@ uint16_t VEML6075Component::calc_rawuvb(void){
     uint16_t result;	
     this->read_register(VEML6075_REG_UVB , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
     result = (data[0] | (data[1] << 8)); 
-    // ESP_LOGD(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
+    ESP_LOGVV(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 	
     return result;	    
 }
 	
@@ -327,7 +233,7 @@ uint16_t VEML6075Component::calc_visible_comp(void){
     uint16_t result;
     this->read_register(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
     result = (data[0] | (data[1] << 8)); 
-    // ESP_LOGD(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGVV(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 
@@ -336,7 +242,7 @@ uint16_t VEML6075Component::calc_ir_comp(void){
     uint16_t result;
     this->read_register(VEML6075_REG_IR_COMP, (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
     result = (data[0] | (data[1] << 8)); 
-    // ESP_LOGD(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
+    ESP_LOGVV(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     return result;
 }
 			
@@ -355,7 +261,6 @@ float VEML6075Component::calc_uvb(void){
 }	
 
 float VEML6075Component::calc_uvindex(void){
-	
     float uvia             = (this->uva_sensor_->get_state()) * (1.0 / VEML6075_UV_ALPHA) * ( this->uva_responsivity_ );
     float uvib             = (this->uvb_sensor_->get_state()) * (1.0 / VEML6075_UV_BETA)  * ( this->uvb_responsivity_ );
     float index            = (uvia + uvib) / 2.0;
