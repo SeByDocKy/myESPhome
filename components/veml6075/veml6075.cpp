@@ -97,7 +97,7 @@ void VEML6075Component::shutdown(bool stop){
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
-  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);
   //this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE);
   ESP_LOGVV(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
@@ -122,7 +122,7 @@ void VEML6075Component::forcedmode(veml6075_af_t af){
   data[1] = (uint8_t)((conf & 0xFF00) >> 8); 	
   ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking force mode with: %d %d" , data[1] , data[0]);
   
-  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);	
+  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);	
   ESP_LOGVV(TAG, "write_bytes with VEML6075_REG_CONF successfull to set autoforce mode");
 }
 
@@ -143,7 +143,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking trigger  with: %d %d" , data[1] , data[0]);
 	
-  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);
   ESP_LOGVV(TAG, "write_bytes with VEML6075_REG_CONF successfull to set trigger mode");
 }
 
@@ -169,7 +169,7 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
-  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  this->write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);
   ESP_LOGVV(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
 }  
 		
