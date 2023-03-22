@@ -53,6 +53,7 @@ const float VEML6075_UVA_RESPONSIVITY_100MS_UNCOVERED = 0.001111;
 const float VEML6075_UVB_RESPONSIVITY_100MS_UNCOVERED = 0.00125;
 	
 const int VEML6075_NUM_INTEGRATION_TIMES              = 5;
+	
 
 const float VEML6075_UVA_RESPONSIVITY[VEML6075_NUM_INTEGRATION_TIMES] =
     {
@@ -136,6 +137,7 @@ class VEML6075Component : public PollingComponent, public i2c::I2CDevice {
   void set_ir_comp_sensor(sensor::Sensor *ir_comp_sensor) { this->ir_comp_sensor_ = ir_comp_sensor; }	
   void set_rawuva_sensor(sensor::Sensor *rawuva_sensor) { this->rawuva_sensor_ = rawuva_sensor; }
   void set_rawuvb_sensor(sensor::Sensor *rawuvb_sensor) { this->rawuvb_sensor_ = rawuvb_sensor; }
+  uint8_t read_reg00(void);
 	
   void set_integration_time(veml6075_uv_it_t it) { this->it_ = it; }
   void set_dynamic(veml6075_hd_t hd) { this->hd_ = hd; }
