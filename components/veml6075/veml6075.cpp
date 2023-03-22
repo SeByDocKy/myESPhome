@@ -36,6 +36,7 @@ void VEML6075Component::setup() {
  
   shutdown(true); // Shut down to change settings   VEML6075_REG_CONF(0x00) bit0-MSB/bit8 16 bit
 */  
+  write_reg_00();	
 
   // Set Force readings
   forcedmode(this->af_); // autoforce/enable trigger  VEML6075_REG_CONF(0x00) bit1-MSB/bit9 16 bit
@@ -58,6 +59,13 @@ void VEML6075Component::update() {
 	ESP_LOGVV(TAG, "in update() for VEML6075...");
 	this->read_data_(); 
 }	
+
+void VEML6075Component::write_reg_00(void){
+  uint8_t data[2] = {0,0}; 
+  this->write_bytes(VEML6075_REG_CONF, data , VEML6075_REG_SIZE);	
+  ESP_LOGVV(TAG, "write_bytes O into VEML6075_REG_CONF successfully");	
+}	
+	
 uint8_t VEML6075Component::read_reg_00(void){
   uint8_t data[2] = {0,0}; 
   this->read_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
