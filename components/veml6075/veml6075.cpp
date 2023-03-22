@@ -96,7 +96,7 @@ void VEML6075Component::shutdown(bool stop){
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "write after masking shutdown %d %d" , data[1] , data[0]);	
 
-  write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  write_register(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);
   ESP_LOGVV(TAG, "write_byte with VEML6075_REG_CONF successfull to turn on/off chip");
   
 }
@@ -141,7 +141,7 @@ void VEML6075Component::trigger(veml6075_uv_trig_t trig) {
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking trigger  with: %d %d" , data[1] , data[0]);
 	
-  this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);
   ESP_LOGVV(TAG, "write_bytes with VEML6075_REG_CONF successfull to set trigger mode");
 }
 
@@ -167,7 +167,7 @@ void VEML6075Component::highdynamic(veml6075_hd_t hd){
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking high dynamic with: %d %d" , data[1] , data[0]);
-  this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);
   ESP_LOGVV(TAG, "write_byte with VEML6075_REG_CONF successfull to set high dynamic mode");
 }  
 		
@@ -187,7 +187,7 @@ void VEML6075Component::integrationtime(veml6075_uv_it_t it){
   data[0] = (uint8_t)(conf & 0x00FF);
   data[1] = (uint8_t)((conf & 0xFF00) >> 8);
   ESP_LOGVV(TAG, "Wil write VEML6075_REG_CONF after masking integration time  with: %d %d" , data[1] , data[0]);
-  this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , false);
+  this->write_bytes(VEML6075_REG_CONF, (uint8_t *) &data , (size_t)VEML6075_REG_SIZE , true);
   ESP_LOGVV(TAG, "write_bytes with VEML6075_REG_CONF successfull to set integration time mode");
   this->uva_responsivity_ = (float)VEML6075_UVA_RESPONSIVITY[(uint8_t)it];
   this->uvb_responsivity_ = (float)VEML6075_UVB_RESPONSIVITY[(uint8_t)it];
