@@ -70,7 +70,7 @@ void PMWCS3Component::read_data_() {
   float e25, ec, temperature, vwc;
   	
  /////// Super important !!!! first activate reading PMWCS3_REG_READ_START (if not, return always the same values) ////
-	
+/*	
   if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
   //if (!this->write(&PMWCS3_REG_READ_START, 0 , false)) {	  
       this->status_set_warning();
@@ -78,10 +78,10 @@ void PMWCS3Component::read_data_() {
       return;
     }
   delay(100);	
-	
+*/	
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
      ESP_LOGD(TAG, "Error reading PMWCS3_REG_GET_DATA registers");
-     this->mark_failed();
+     //this->mark_failed();
      return;	  
   }
   if (this->e25_sensor_ != nullptr) {
