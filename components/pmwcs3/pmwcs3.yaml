@@ -22,7 +22,7 @@ esphome:
 
   #     - lambda: |-
   #         esphome::pmwcs3::PMWCS3Component *sen =  ${name}_pmwc3;
-  #         sen->set_i2c_address(0x65);
+  #         sen->change_i2c_address(0x65);
 
   #     #########  Uncomment the next lamnda section to perform the air/dry soil calibration   ##########
       
