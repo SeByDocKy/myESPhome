@@ -66,7 +66,7 @@ void PMWCS3Component::dump_config() {
 void PMWCS3Component::read_data_() {
   uint8_t data[8];
   float e25, ec, temperature, vwc;
-  	
+/*  	
  /////// Super important !!!! first activate reading PMWCS3_REG_READ_START (if not, return always the same values) ////
 	
   //if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
@@ -76,7 +76,7 @@ void PMWCS3Component::read_data_() {
       return;
     }
   delay(100);	
-	
+*/	
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
      ESP_LOGD(TAG, "Error reading PMWCS3_REG_GET_DATA registers");
      this->mark_failed();
