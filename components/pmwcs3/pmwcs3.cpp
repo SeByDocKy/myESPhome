@@ -65,12 +65,13 @@ void PMWCS3Component::dump_config() {
 
 void PMWCS3Component::read_data_() {
   uint8_t data[8];
+  uint8_t reg = PMWCS3_REG_READ_START;
   float e25, ec, temperature, vwc;
   	
  /////// Super important !!!! first activate reading PMWCS3_REG_READ_START (if not, return always the same values) ////
 	
   //if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
-  if (!this->write(PMWCS3_REG_READ_START, 1 , true)) {	  
+  if (!this->write(&reg, 1 , true)) {	  
       this->status_set_warning();
       ESP_LOGD(TAG, "Failed to write into REG_READ_START register !!!");
       return;
