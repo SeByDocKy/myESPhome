@@ -73,35 +73,35 @@ void PMWCS3Component::read_data_() {
   if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
   //if (!this->write(&PMWCS3_REG_READ_START, 0 , false)) {	  
       this->status_set_warning();
-      ESP_LOGD(TAG, "Failed to write into REG_READ_START register !!!");
+      ESP_LOGVV(TAG, "Failed to write into REG_READ_START register !!!");
       return;
     }
   delay(100);	
 	
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
-     ESP_LOGD(TAG, "Error reading PMWCS3_REG_GET_DATA registers");
-     //this->mark_failed();
+     ESP_LOGVV(TAG, "Error reading PMWCS3_REG_GET_DATA registers");
+     this->mark_failed();
      return;	  
   }
   if (this->e25_sensor_ != nullptr) {
 	  e25 = ((data[1] << 8) | data[0])/100.0;
 	  this->e25_sensor_->publish_state(e25);
-	  ESP_LOGD(TAG, "e25: data[0]=%d, data[1]=%d, result=%f", data[0] , data[1] , e25);
+	  ESP_LOGVV(TAG, "e25: data[0]=%d, data[1]=%d, result=%f", data[0] , data[1] , e25);
   }
   if (this->ec_sensor_ != nullptr) {
 	  ec = ((data[3] << 8) | data[2])/10.0;
 	  this->ec_sensor_->publish_state(ec);
-	  ESP_LOGD(TAG, "ec: data[2]=%d, data[3]=%d, result=%f", data[2] , data[3] , ec);
+	  ESP_LOGVV(TAG, "ec: data[2]=%d, data[3]=%d, result=%f", data[2] , data[3] , ec);
   }
   if (this->temperature_sensor_ != nullptr) {
 	  temperature = ((data[5] << 8) | data[4])/100.0;
 	  this->temperature_sensor_->publish_state(temperature);
-	  ESP_LOGD(TAG, "temp: data[4]=%d, data[5]=%d, result=%f", data[4] , data[5] , temperature); 
+	  ESP_LOGVV(TAG, "temp: data[4]=%d, data[5]=%d, result=%f", data[4] , data[5] , temperature); 
   }
   if (this->vwc_sensor_ != nullptr) {
 	  vwc = ((data[7] << 8) | data[6])/10.0;
 	  this->vwc_sensor_->publish_state(vwc);
-	  ESP_LOGD(TAG, "vwc: data[6]=%d, data[7]=%d, result=%f", data[6] , data[7] , vwc);
+	  ESP_LOGVV(TAG, "vwc: data[6]=%d, data[7]=%d, result=%f", data[6] , data[7] , vwc);
   }	
 }
 
