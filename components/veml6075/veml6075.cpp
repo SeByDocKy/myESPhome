@@ -49,9 +49,10 @@ void VEML6075Component::setup() {
   
   // Set integration time
   integrationtime(this->it_); // integration time  VEML6075_REG_CONF(0x00) bits 6-5-4-MSB/bits 14-13-12 16 bit
-/*	
+	
   shutdown(false); // Turn on chip after settings set
 
+/*	
 //	*/ 
 }
 
