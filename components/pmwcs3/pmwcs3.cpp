@@ -7,7 +7,7 @@ namespace pmwcs3 {
 
 static const char *const TAG = "pmwcs3";
 	
-	
+/*	
 void PMWCS3Component::set_i2c_address(uint8_t newaddress){
   if (!this->write_byte(PMWCS3_SET_I2C_ADDRESS,  newaddress)) {
       this->status_set_warning();
@@ -17,7 +17,7 @@ void PMWCS3Component::set_i2c_address(uint8_t newaddress){
   delay(100);
   ESP_LOGVV(TAG, "new I2C address %d done" , newaddress);	
 }
-	
+*/	
 void PMWCS3Component::set_air_calibration(void){
   if (!this->write_bytes(PMWCS3_REG_CALIBRATE_AIR, nullptr, 0)) {
       this->status_set_warning();
