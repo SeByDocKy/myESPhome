@@ -71,7 +71,7 @@ void PMWCS3Component::read_data_() {
 	
   if (!this->write_bytes(PMWCS3_REG_READ_START, nullptr, 0)) {
       this->status_set_warning();
-      ESP_LOGVV(TAG, "couldn't start a new reading with PMWCS3_REG_READ_START register");
+      ESP_LOGVV(TAG, "Failed to write into REG_READ_START register !!!");
       return;
     }
   delay(100);	
