@@ -43,7 +43,9 @@ void PMWCS3Component::setup() {
    ESP_LOGCONFIG(TAG, "Setting up PMWCS3...");
 }
 	
-void PMWCS3Component::update() { this->read_data_(); }
+void PMWCS3Component::update() { 
+//	this->read_data_(); 
+}
 
 float PMWCS3Component::get_setup_priority() const { return setup_priority::DATA; }
 		
