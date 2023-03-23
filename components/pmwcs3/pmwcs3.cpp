@@ -44,7 +44,7 @@ void PMWCS3Component::setup() {
 }
 	
 void PMWCS3Component::update() { 
-//	this->read_data_(); 
+	this->read_data_(); 
 }
 
 float PMWCS3Component::get_setup_priority() const { return setup_priority::DATA; }
