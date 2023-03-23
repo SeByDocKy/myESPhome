@@ -244,10 +244,10 @@ uint16_t VEML6075Component::calc_rawuva(void){
     uint8_t data[2];
     uint8_t dummy[1];	
     uint16_t result;
-    this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
+    this->read_register(VEML6075_REG_UVA , (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , VEML6075_REGISTER_STOP);
     result = (data[0] | (data[1] << 8)); 
     ESP_LOGVV(TAG , "calc_rawuva read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result);
-    this->read_register(VEML6075_REG_UVA , (uint8_t *) &dummy, (size_t)0 , true);	 // dummy reading to close connexion	
+    //this->read_register(VEML6075_REG_UVA , (uint8_t *) &dummy, (size_t)0 , true);	 // dummy reading to close connexion	
     return result;	    
 }
 	
@@ -255,7 +255,7 @@ uint16_t VEML6075Component::calc_rawuvb(void){
     uint8_t data[2] = {0, 0};
     uint8_t dummy[1];	
     uint16_t result;	
-    this->read_register(VEML6075_REG_UVB , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
+    this->read_register(VEML6075_REG_UVB , (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , VEML6075_REGISTER_STOP);
     result = (data[0] | (data[1] << 8)); 
     ESP_LOGVV(TAG , "calc_rawuvb read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result); 
     this->read_register(VEML6075_REG_UVA , (uint8_t *) &dummy, (size_t)0 , true);	 // dummy reading to close connexion
@@ -266,7 +266,7 @@ uint16_t VEML6075Component::calc_visible_comp(void){
     uint8_t data[2] = {0,0};
     uint8_t dummy[1];	
     uint16_t result;
-    this->read_register(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , false);
+    this->read_register(VEML6075_REG_VISIBLE_COMP, (uint8_t *) &data, (size_t) VEML6075_REG_SIZE , VEML6075_REGISTER_STOP);
     result = (data[0] | (data[1] << 8)); 
     ESP_LOGVV(TAG , "calc_visible_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result);
     this->read_register(VEML6075_REG_UVA , (uint8_t *) &dummy, (size_t)0 , true);	 // dummy reading to close connexion
@@ -277,7 +277,7 @@ uint16_t VEML6075Component::calc_ir_comp(void){
     uint8_t data[2] = {0, 0};
     uint8_t dummy[1];	
     uint16_t result;
-    this->read_register(VEML6075_REG_IR_COMP, (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , false);
+    this->read_register(VEML6075_REG_IR_COMP, (uint8_t *) &data, (size_t)VEML6075_REG_SIZE , VEML6075_REGISTER_STOP);
     result = (data[0] | (data[1] << 8)); 
     ESP_LOGVV(TAG , "calc_ir_comp read successfully data[0]: %d, data[1]: %d, result: %d" , data[0] , data[1] , result);
     this->read_register(VEML6075_REG_UVA , (uint8_t *) &dummy, (size_t)0 , true);	 // dummy reading to close connexion
