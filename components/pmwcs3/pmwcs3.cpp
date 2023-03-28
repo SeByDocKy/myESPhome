@@ -76,7 +76,7 @@ void PMWCS3Component::read_data_() {
       ESP_LOGVV(TAG, "Failed to write into REG_READ_START register !!!");
       return;
     }
-   delay(100);	
+   //delay(100);	
 	
   if (!this->read_bytes(PMWCS3_REG_GET_DATA, (uint8_t *) &data, 8)){
      ESP_LOGVV(TAG, "Error reading PMWCS3_REG_GET_DATA registers");
