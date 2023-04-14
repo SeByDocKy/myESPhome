@@ -1,4 +1,5 @@
 import esphome.codegen as cg
+from esphome import automation
 import esphome.config_validation as cv
 from esphome.components import i2c, sensor
 from esphome.const import (
@@ -24,6 +25,11 @@ pmwcs3_ns = cg.esphome_ns.namespace("pmwcs3")
 PMWCS3Component = pmwcs3_ns.class_(
     "PMWCS3Component", cg.PollingComponent, i2c.I2CDevice
 )
+
+# Actions
+PMWCS3AirCalibrationAction = pmwcs3_ns.class_("PMWCS3AirCalibrationAction", automation.Action)
+PMWCS3WaterCalibrationAction = pmwcs3_ns.class_("PMWCS3WaterCalibrationAction", automation.Action)
+PMWCS3NewI2cAddressAction = pmwcs3_ns.class_("PMWCS3NewI2cAddressAction", automation.Action)
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -60,7 +66,6 @@ CONFIG_SCHEMA = (
     .extend(i2c.i2c_device_schema(0x63))
 )
 
-
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -81,3 +86,47 @@ async def to_code(config):
     if CONF_VWC in config:
         sens = await sensor.new_sensor(config[CONF_VWC])
         cg.add(var.set_vwc_sensor(sens))
+
+# Actions
+PMWCS3_CALIBRATION_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.use_id(PMWCS3Component),
+    }
+)
+
+@automation.register_action(
+    "pmwcs3.air_calibration",
+    PMWCS3AirCalibrationAction,
+    PMWCS3_CALIBRATION_SCHEMA,
+)
+
+@automation.register_action(
+    "pmwcs3.water_calibration",
+    PMWCS3WaterCalibrationAction,
+    PMWCS3_CALIBRATION_SCHEMA,
+)
+
+async def pmwcs3_calibration_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg, parent)
+    return var	
+
+PMWCS3NEWI2CADDRESS_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.use_id(PMWCS3Component),
+        cv.Required(CONF_ADDRESS): cv.templatable(int),
+    }
+)
+
+@automation.register_action(
+    "pmwcs3.newi2caddress",
+    PMWCS3NewI2cAddressAction,
+    PMWCS3NEWI2CADDRESS_SCHEMA,
+)
+
+async def pmwcs3newi2caddress_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg, parent)
+    address_ = await cg.templatable(config[CONF_ADDRESS], args, int)
+    cg.add(var.new_i2c_address(address_))
+    return var
