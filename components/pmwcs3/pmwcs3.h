@@ -29,7 +29,7 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
  protected:
   void read_data_();
   uint8_t newaddress_ = 0x63;
-  void set_newaddress(uint8_t newaddress);
+  void set_newaddress_(uint8_t newaddress);
 
   sensor::Sensor *e25_sensor_{nullptr};
   sensor::Sensor *ec_sensor_{nullptr};
@@ -60,7 +60,7 @@ template<typename... Ts> class PMWCS3WaterCalibrationAction : public Action<Ts..
 template<typename... Ts> class PMWCS3NewI2cAddressAction : public Action<Ts...> {
  public:
   PMWCS3NewI2cAddressAction(PMWCS3Component *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(int, address)
+  TEMPLATABLE_VALUE(int, newaddress)
   
   void play(Ts... x) override { 
   this->parent_->new_i2c_address(this->newaddress_.value(x...)); 

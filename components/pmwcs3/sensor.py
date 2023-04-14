@@ -16,6 +16,7 @@ DEPENDENCIES = ["i2c"]
 
 CONF_E25 = "e25"
 CONF_VWC = "vwc"
+CONF_NEWADDRESS = "newaddres"
 
 ICON_EPSILON = "mdi:epsilon"
 ICON_SIGMA = "mdi:sigma-lower"
@@ -114,7 +115,7 @@ async def pmwcs3_calibration_to_code(config, action_id, template_arg, args):
 PMWCS3NEWI2CADDRESS_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.use_id(PMWCS3Component),
-        cv.Required(CONF_ADDRESS): cv.templatable(int),
+        cv.Required(CONF_NEWADDRESS): cv.templatable(int),
     }
 )
 
@@ -127,7 +128,7 @@ PMWCS3NEWI2CADDRESS_SCHEMA = cv.Schema(
 async def pmwcs3newi2caddress_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
-    newaddress_ = await cg.templatable(config[CONF_ADDRESS], args, int)
+    newaddress_ = await cg.templatable(config[CONF_NEWADDRESS], args, int)
 #    cg.add(var.new_i2c_address(newaddress_))
 	cg.add(var.set_newaddress(newaddress_))
     return var
