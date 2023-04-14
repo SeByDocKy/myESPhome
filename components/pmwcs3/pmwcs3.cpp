@@ -29,7 +29,7 @@ void PMWCS3Component::new_i2c_address(uint8_t newaddress) {
     ESP_LOGW(TAG, "couldn't write the new I2C address %d", newaddress);
     return;
   }
-  ESP_LOGVV(TAG, "new I2C address %d done", newaddress);
+  ESP_LOGVV(TAG, "changed I2C address to %d", newaddress);
 }
 
 void PMWCS3Component::air_calibration() {
