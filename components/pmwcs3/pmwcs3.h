@@ -22,13 +22,13 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
   void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
   void set_vwc_sensor(sensor::Sensor *vwc_sensor) { vwc_sensor_ = vwc_sensor; }
 
-  void new_i2c_address(uint8_t address) {address_ = address;}
+  void new_i2c_address(uint8_t newaddress) {newaddress_ = newaddress;}
   void air_calibration();
   void water_calibration();
 
  protected:
   void read_data_();
-  uint8_t address_ = 0x63;
+  uint8_t newaddress_ = 0x63;
 
   sensor::Sensor *e25_sensor_{nullptr};
   sensor::Sensor *ec_sensor_{nullptr};
@@ -62,7 +62,7 @@ template<typename... Ts> class PMWCS3NewI2cAddressAction : public Action<Ts...> 
   TEMPLATABLE_VALUE(int, address)
   
   void play(Ts... x) override { 
-  this->parent_->new_i2c_address(this->address_.value(x...)); 
+  this->parent_->new_i2c_address(this->newaddress_.value(x...)); 
   }
 
  protected:
