@@ -22,13 +22,14 @@ class PMWCS3Component : public PollingComponent, public i2c::I2CDevice {
   void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
   void set_vwc_sensor(sensor::Sensor *vwc_sensor) { vwc_sensor_ = vwc_sensor; }
 
-  void new_i2c_address(uint8_t newaddress) {newaddress_ = newaddress;}
+  void new_i2c_address(uint8_t newaddress);
   void air_calibration();
   void water_calibration();
 
  protected:
   void read_data_();
   uint8_t newaddress_ = 0x63;
+  void set_newaddress(uint8_t newaddress);
 
   sensor::Sensor *e25_sensor_{nullptr};
   sensor::Sensor *ec_sensor_{nullptr};
