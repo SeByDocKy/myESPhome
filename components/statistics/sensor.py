@@ -1,12 +1,13 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome import automation
 from esphome.components import sensor, time
 from esphome.const import (
     CONF_ICON,
     CONF_ID,
     CONF_RESTORE,
     CONF_TIME_ID,
-	CONF_ENTITY_ID,
+    CONF_ENTITY_ID,
     CONF_METHOD,
     CONF_UNIT_OF_MEASUREMENT,
     CONF_ACCURACY_DECIMALS,
