@@ -7,7 +7,7 @@ from esphome.const import (
     CONF_ID,
     CONF_RESTORE,
     CONF_TIME_ID,
-	CONF_ENTITY_ID,
+    CONF_ENTITY_ID,
     CONF_METHOD,
     CONF_UNIT_OF_MEASUREMENT,
     CONF_ACCURACY_DECIMALS,
