@@ -62,12 +62,12 @@ FINAL_VALIDATE_SCHEMA = cv.All(
         },
         extra=cv.ALLOW_EXTRA,
     ),
-    inherit_property_from(CONF_ICON, CONF_POWER_ID),
+    inherit_property_from(CONF_ICON, CONF_ENTITY_ID),
     inherit_property_from(
-        CONF_UNIT_OF_MEASUREMENT, CONF_POWER_ID
+        CONF_UNIT_OF_MEASUREMENT, CONF_ENTITY_ID
     ),
     inherit_property_from(
-        CONF_ACCURACY_DECIMALS
+        CONF_ACCURACY_DECIMALS, CONF_ENTITY_ID
     ),
 )
 
