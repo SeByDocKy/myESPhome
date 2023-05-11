@@ -33,11 +33,7 @@ void STATISTICSComponent::loop() {
   }
 
   if (t.day_of_year != this->last_day_of_year_) {
-/*     this->last_day_of_year_ = t.day_of_year;
-    this->stats_ = 0;
-	this->last_n_ = 0;
-    this->publish_state_and_save(0);
- */	this->reset();
+   this->reset();
   }
 }
 
@@ -80,7 +76,7 @@ void STATISTICSComponent::process_new_state_(float state) {
       value = ninv * new_state + (1 - ninv) * old_state;
       break;
   }
-  ESP_LOGVV(TAG, "value = %f" , value);
+  ESP_LOGVV(TAG, "n = %d, value = %f" , n , value);
   this->last_statistics_state_ = value;
   this->last_update_ = now;
   this->last_n_ = n;
