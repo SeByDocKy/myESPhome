@@ -66,7 +66,7 @@ void STATISTICSComponent::process_new_state_(float state) {
   uint32_t n = this->last_n_;
   float value = 0.0f;
   float ninv = 1.0f;
-  ESP_LOGD(TAG, "old_state =%f, new_state = %d" , old_state, new_state);
+  ESP_LOGD(TAG, "old_state =%f, new_state = %f" , old_state, new_state);
   switch (this->method_) {
     case STATISTICS_METHODS_MIN:
       value = std::min(old_state , new_state);
