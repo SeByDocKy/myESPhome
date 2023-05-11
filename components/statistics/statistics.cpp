@@ -37,7 +37,8 @@ void STATISTICSComponent::loop() {
     this->stats_ = 0;
 	this->last_n_ = 0;
     this->publish_state_and_save(0);
- */	this->reset();
+ */
+    this->reset();
   }
 }
 
@@ -68,10 +69,10 @@ void STATISTICSComponent::process_new_state_(float state) {
   float ninv = 1.0f;
   switch (this->method_) {
     case STATISTICS_METHODS_MIN:
-      value = min(old_state , new_state);
+      value = std::min(old_state , new_state);
       break;
     case STATISTICS_METHODS_MAX:
-      value = max(old_state , new_state);
+      value = std::max(old_state , new_state);
       break;
     case STATISTICS_METHODS_MEAN:
 	  n++;
