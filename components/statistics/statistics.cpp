@@ -37,8 +37,7 @@ void STATISTICSComponent::loop() {
     this->stats_ = 0;
 	this->last_n_ = 0;
     this->publish_state_and_save(0);
- */
-    this->reset();
+ */	this->reset();
   }
 }
 
@@ -64,7 +63,7 @@ void STATISTICSComponent::process_new_state_(float state) {
   const uint32_t now = millis();
   const float old_state = this->last_statistics_state_;
   const float new_state = state;
-  const uint32_t n = this->last_n_;
+  uint32_t n = this->last_n_;
   float value = 0.0f;
   float ninv = 1.0f;
   switch (this->method_) {
