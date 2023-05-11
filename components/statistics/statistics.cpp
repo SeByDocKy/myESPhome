@@ -80,6 +80,7 @@ void STATISTICSComponent::process_new_state_(float state) {
       value = ninv * new_state + (1 - ninv) * old_state;
       break;
   }
+  ESP_LOGD(TAG, "value = %f" , value);
   this->last_statistics_state_ = new_state;
   this->last_update_ = now;
   this->last_n_ = n;
