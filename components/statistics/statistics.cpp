@@ -82,7 +82,7 @@ void STATISTICSComponent::process_new_state_(float state) {
   this->last_statistics_state_ = new_state;
   this->last_update_ = now;
   this->last_n_ = n;
-  this->publish_state_and_save(this->value);
+  this->publish_state_and_save(value);
 }
 
 }  // namespace statistics
