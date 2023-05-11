@@ -51,7 +51,7 @@ template<typename... Ts> class STATISTICSresetaction : public Action<Ts...> {
   void play(Ts... x) override { this->parent_->reset(); }
 
  protected:
-  PMWCS3Component *parent_;
+  STATISTICSComponent *parent_;
 };
 
 }  // namespace statistics
