@@ -61,7 +61,7 @@ void STATISTICSComponent::process_new_state_(float state) {
   if (std::isnan(state))
     return;
   const uint32_t now = millis();
-  const float old_state = this->last_statistics_state_;
+  const float old_state = this->last_statistics_stats_;
   const float new_state = state;
   uint32_t n = this->last_n_;
   float value = 0.0f;
@@ -81,7 +81,7 @@ void STATISTICSComponent::process_new_state_(float state) {
       break;
   }
   ESP_LOGD(TAG, "value = %f" , value);
-  this->last_statistics_state_ = new_state;
+  this->last_statistics_state_ = value;
   this->last_update_ = now;
   this->last_n_ = n;
   this->publish_state_and_save(value);
