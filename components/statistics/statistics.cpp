@@ -40,14 +40,14 @@ void STATISTICSComponent::loop() {
 void STATISTICSComponent::reset() {
   auto t = this->time_->now();
   this->last_day_of_year_ = t.day_of_year;
-  this->stats_ = 0;
+  //->stats_ = 0;
   this->last_statistics_state_
   this->last_n_ = 0;
   this->publish_state_and_save(0);
 }
 
 void STATISTICSComponent::publish_state_and_save(float state) {
-  this->stats_ = state;
+  //this->stats_ = state;
   this->publish_state(state);
   if (this->restore_) {
     this->pref_.save(&state);

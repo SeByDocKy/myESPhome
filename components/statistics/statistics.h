@@ -41,6 +41,7 @@ class STATISTICSComponent : public sensor::Sensor, public Component {
   uint32_t last_update_{0};
   uint32_t last_n_{0};
   bool restore_;
+  //float stats_{0};
   float last_statistics_state_{0.0f};
 };
 
