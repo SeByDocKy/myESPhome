@@ -41,7 +41,7 @@ void STATISTICSComponent::reset() {
   auto t = this->time_->now();
   this->last_day_of_year_ = t.day_of_year;
   //->stats_ = 0;
-  this->last_statistics_state_
+  this->last_statistics_state_ = 0;
   this->last_n_ = 0;
   this->publish_state_and_save(0);
 }
