@@ -81,7 +81,7 @@ globals:
     type: int
 
   - id: current_load_charging_mode_global
-    type: int  
+    type: int
 
   - id: pv_power_total_veille_global
     type: float
@@ -92,7 +92,7 @@ globals:
     restore_value: yes
 
 uart:
-  id: uart0
+  id: uart_0
   tx_pin: ${tx_pin_uart}
   rx_pin: ${rx_pin_uart}
   baud_rate: ${baudrate}
