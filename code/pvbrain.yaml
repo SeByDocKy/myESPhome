@@ -39,8 +39,8 @@ esp32:
   framework:
     #type: esp-idf
     type: arduino
-    version: 2.0.6 #2.0.5
-    platform_version: 5.3.0 #4.4.0
+    version: 2.0.8 #2.0.5
+    platform_version: 6.1.0 #4.4.0
     
 external_components:
   - source: github://syssi/esphome-jk-bms@main
@@ -114,7 +114,6 @@ globals:
   - id: ${name}_${bms}_battery_discharging_power_veille_global
     type: float
     restore_value: yes
-    
       
 time:
   platform: sntp
@@ -162,20 +161,20 @@ time:
 uart: 
 
  ######### UART for the JKBMS ###### 
-  - id: uart0
+  - id: uart_0
     tx_pin: ${tx_pin_bms}
     rx_pin: ${rx_pin_bms}
     baud_rate: ${baud_rate_bms}
     rx_buffer_size: 384
 
- ######### UART for PIPsolar ######
-  - id: uart1
+ ######### UART for PIPsolar RS232 ######
+  - id: uart_1
     tx_pin: ${tx_pin_inverter}   
     rx_pin: ${rx_pin_inverter}
     baud_rate: ${baud_rate_inverter}
  
- ######### UART for the PZEMs ###### 
-  - id: uart2
+ ######### UART for the PZEMs (modbus) ###### 
+  - id: uart_2
     tx_pin: ${tx_pin_pzem} 
     rx_pin: ${rx_pin_pzem}
     baud_rate: ${baud_rate_pzem}
@@ -185,19 +184,19 @@ uart:
 
 jk_modbus:
   - id: modbus1
-    uart_id: uart0
+    uart_id: uart_0
 jk_bms:
   - id: bms1
     jk_modbus_id: modbus1
 
 pipsolar:
-  - uart_id: uart1
+  - uart_id: uart_1
     id: pip8048 
     #update_interval: 5s
    
 modbus:
    id: modbus2
-   uart_id: uart2
+   uart_id: uart_2
   
 ########################### I2C bus  ##################
 
@@ -254,7 +253,6 @@ output:
       id: ${name}_${inverter}_battery_recharge_voltage_set
       possible_values: [44.0,45.0,46.0,47.0,48.0,49.0,49.0,50.0,51.0]
     
-  
 number:
 
   ######### Seuils Axpert ########
@@ -399,6 +397,22 @@ binary_sensor:
          
   - platform: status
     name: ${name}_status
+
+  - platform: gpio
+    pin: GPIO15
+    name: ${name}_emergency_stop
+    id: ${name}_emergency_stop
+    filters:
+      - invert:
+      - delayed_off: 100ms
+    on_press:
+      then:
+        - select.set:
+           id: ${name}_${inverter}_current_max_charging_current_select 
+           option: "10A"
+        - delay: 3s
+        - switch.turn_off: ${name}_ats_automatic_control
+        - script.execute: script_from_solar_to_grid
     
   - platform: gpio
     pin: GPIO13
@@ -972,7 +986,6 @@ sensor:
     lambda: |-
       return ( id(template_${name}_${inverter}_PV_power_total_veille).state = id(${name}_${inverter}_PV_power_total_veille_global) );
 
-
   - platform: total_daily_energy
     name: ${name}_${inverter}_ac_output_active_power_total_du_jour
     power_id: ${name}_${inverter}_ac_output_active_power 
@@ -1105,6 +1118,8 @@ sensor:
       name: ${name}_${bms}_cell_voltage_15
     cell_voltage_16:
       name: ${name}_${bms}_cell_voltage_16
+    # current_calibration:
+    #   name: ${name}_${bms}_current_calibration
     power_tube_temperature:
       name: ${name}_${bms}_power_tube_temperature
     temperature_sensor_1:
