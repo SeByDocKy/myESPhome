@@ -1,0 +1,1168 @@
+substitutions:
+  updates: 5s
+  name: mosquito-trap-3
+
+esphome:
+  name:  ${name}
+  # on_boot:
+  #   priority: 600
+  #   # ...
+  #   then:
+  #     - switch.turn_off: manual_control_load
+ 
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: 2.0.8 #2.0.3
+    platform_version: 6.1.0 #4.4.0   
+  
+ 
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+  power_save_mode: high
+  output_power: 8.5db
+
+# Enable logging
+
+logger:
+  baud_rate: 0 #need this to free up UART pins
+  #level: debug
+
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+
+globals:    
+  - id: pv_power_total_veille_global
+    type: float
+    restore_value: yes
+    
+  - id: charging_power_total_veille_global
+    type: float
+    restore_value: yes
+    
+  - id: regulation_choice_idx #idx of the template select
+    type: int
+    restore_value: True
+    initial_value: '0'
+    
+time:
+  - platform: sntp
+    id: sntp_time   
+    timezone: "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00" #https://sites.google.com/a/usapiens.com/opnode/time-zones
+    servers: "de.pool.ntp.org"
+
+    on_time:
+    - seconds: 59
+      minutes: 59
+      hours: 23
+      then:  
+        - globals.set:
+                id: pv_power_total_veille_global
+                value: !lambda return ( id(pv_power_total_veille_global) =  float( id(pv_power_total_du_jour).state) );         
+                
+        - globals.set:
+                id: charging_power_total_veille_global
+                value: !lambda return ( id(charging_power_total_veille_global) =  float( id(charging_power_total_du_jour).state) );        
+
+
+# #sun:
+# #  latitude: !secret esphome_lat
+# #  longitude: !secret esphome_long
+              
+uart:
+  id: uart_0
+  tx_pin: GPIO3
+  rx_pin: GPIO1
+  baud_rate: 115200
+  stop_bits: 1                  
+
+i2c:
+  sda: GPIO15
+  scl: GPIO13 
+  scan: True
+  id: i2c_bus
+  
+# ###### PCF pcf8574 ####
+  
+# pcf8574:
+#   - id: pcf_hub
+#     address: 0x21
+#     pcf8575: True
+    
+###### ESP32cam ####    
+
+esp32_camera:
+  external_clock:
+    pin: GPIO0
+    frequency: 20MHz
+  i2c_pins:
+    sda: GPIO26
+    scl: GPIO27
+  data_pins: [GPIO5, GPIO18, GPIO19, GPIO21, GPIO36, GPIO39, GPIO34, GPIO35]
+  vsync_pin: GPIO25
+  href_pin: GPIO23
+  pixel_clock_pin: GPIO22
+  power_down_pin: GPIO32
+  resolution: 1600x1200 #1280x1024 #1280x1024 #800x600 #1280x1024  #800x600 #1280x1024 #1024x768 #800x600 #1024x768 #640x480
+  jpeg_quality: 10
+  horizontal_mirror: false
+  vertical_flip: false
+  max_framerate: 0.1fps
+  idle_framerate: 0.01fps
+  name: ${name}_camera
+  
+###### MODBUS  #### 
+
+modbus:
+  #flow_control_pin: 23
+  send_wait_time: 200ms
+  id: modbus_epever
+  uart_id: uart_0
+
+modbus_controller:
+  - id: epever
+    ## the Modbus device addr
+    address: 0x1
+    modbus_id: modbus_epever
+    command_throttle: 200ms
+    setup_priority: -10
+    update_interval: ${updates} 
+    
+output:
+
+  #flashlight
+  - platform: gpio
+    pin: GPIO4
+    id: gpio_4
+
+  #statuslight
+  - platform: gpio
+    pin:
+      number: GPIO33
+      inverted: True
+    id: gpio_33
+    
+light:
+
+  #flashlight
+  - platform: binary
+    output: gpio_4
+    name: ${name}_flash
+
+  #statuslight
+  - platform: binary   
+    output: gpio_33
+    name: ${name}_led_status  
+  
+switch:
+  - platform: restart
+    name: restart_${name}
+    
+  # - platform: gpio
+  #   id:  relay1
+  #   name: ${name}_relay1
+  #   pin:
+  #     pcf8574: pcf_hub
+  #     # Use pin number 1
+  #     number: 0
+  #     # One of INPUT or OUTPUT
+  #     mode: OUTPUT
+  #     inverted: true     
+    
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: manual_control_load
+    register_type: coil
+    address: 0x0002
+    name: ${name}_manual_control_load
+    bitmask: 0x1
+    skip_updates: 1
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: force_load
+    register_type: coil
+    address: 0x0006
+    name: ${name}_force_load_on/off
+    bitmask: 0x1  
+      
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+    
+select:
+
+  - platform: template
+    name: ${name}_regulation_choice_select
+    id: regulation_choice_select
+    optimistic: true
+    options:
+      - '0 - pas de régulation'
+      - '1 - via programmation horaire'
+      - '2 - via température'
+    initial_option: '0 - pas de régulation'
+    restore_value: true
+    on_value:
+      then:
+         - lambda: !lambda |-
+            id(regulation_choice_idx) = i;
+
+  - platform: modbus_controller
+    name: ${name}_battery_type_select
+    address: 0x9000
+    value_type: U_WORD
+    icon: mdi:car-battery
+    optionsmap:
+      "Libattery": 0
+      "Sealed": 1
+      "Gel": 2
+      "Flooded": 3
+      "LFPO4S": 4
+
+  - platform: modbus_controller
+    name: ${name}_rated_voltage_level_select
+    address: 0x9067
+    value_type: U_WORD
+    icon: mdi:car-battery
+    optionsmap:
+      "Self-recognition": 0
+      "12V": 1
+      "24V": 2
+      "36V": 3
+      "48V": 4       
+                                          
+number:
+  
+  - platform: template
+    name: ${name}_after_sunrise_hours_number
+    id: after_sunrise_hours_number
+    optimistic: true
+    unit_of_measurement: 'h'
+    icon: mdi:timer-sand
+    min_value: 8
+    max_value: 12
+    step:  1
+    initial_value: 10
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+      - if:  #####    #### 
+          condition:
+            and:
+              - lambda: |-
+                 return ( (  (id(regulation_choice_idx))  == 1  ));
+              - switch.is_on: manual_control_load  
+              - lambda: |-
+                 auto time = id(sntp_time).now();
+                 return ( (time.hour >= id(after_sunrise_hours_number).state ) &&  (time.hour <= id(before_sunset_hours_number).state )  );
+                  
+          then:
+            - switch.turn_off: manual_control_load
+      
+      - if:  #####    #### 
+          condition:
+            and:
+              - lambda: |-
+                 return ( (  (id(regulation_choice_idx))  == 1  ));
+              - switch.is_off: manual_control_load  
+              - lambda: |-
+                 auto time = id(sntp_time).now();
+                 return ( (time.hour < id(after_sunrise_hours_number).state ) ||  (time.hour > id(before_sunset_hours_number).state )  );
+                  
+          then:
+            - switch.turn_on: manual_control_load
+
+
+    
+  - platform: template
+    name: ${name}_before_sunset_hours_number
+    id: before_sunset_hours_number
+    optimistic: true
+    unit_of_measurement: 'h'
+    icon: mdi:timer-sand
+    min_value: 16
+    max_value: 22
+    step: 1
+    initial_value: 18
+    restore_value: true
+    mode: 'slider'  
+    on_value:
+      then:
+      - if:  #####    #### 
+          condition:
+            and:
+              - lambda: |-
+                 return ( (  (id(regulation_choice_idx))  == 1  ));
+              - switch.is_on: manual_control_load  
+              - lambda: |-
+                 auto time = id(sntp_time).now();
+                 return ( (time.hour >= id(after_sunrise_hours_number).state ) &&  (time.hour <= id(before_sunset_hours_number).state )  );
+                  
+          then:
+            - switch.turn_off: manual_control_load
+      
+      - if:  #####    #### 
+          condition:
+            and:
+              - lambda: |-
+                 return ( (  (id(regulation_choice_idx))  == 1  ));
+              - switch.is_off: manual_control_load  
+              - lambda: |-
+                 auto time = id(sntp_time).now();
+                 return ( (time.hour < id(after_sunrise_hours_number).state ) ||  (time.hour > id(before_sunset_hours_number).state )  );
+                  
+          then:
+            - switch.turn_on: manual_control_load
+  
+  
+  - platform: template
+    name: ${name}_temp_fan_switch_off_number
+    id: temp_fan_switch_off_number
+    optimistic: true
+    unit_of_measurement: '°C'
+    icon: mdi:thermometer
+    min_value: 28
+    max_value: 40
+    step:  1
+    initial_value: 34
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+      - if:  #####    #### 
+          condition:
+            and:
+              - lambda: |-
+                 return ( (  (id(regulation_choice_idx))  == 2  ));
+              - switch.is_on: manual_control_load  
+              - lambda: |-
+                 return (  id(bme290_temperature).state >= id(temp_fan_switch_off_number).state   );
+                  
+          then:
+            - switch.turn_off: manual_control_load
+            
+            
+  - platform: template
+    name: ${name}_temp_fan_switch_on_number
+    id: temp_fan_switch_on_number
+    optimistic: true
+    unit_of_measurement: '°C'
+    icon: mdi:thermometer
+    min_value: 28
+    max_value: 40
+    step:  1
+    initial_value: 32
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:
+      - if:  #####    #### 
+          condition:
+            and:
+              - lambda: |-
+                 return ( (  (id(regulation_choice_idx))  == 2  ));
+              - switch.is_on: manual_control_load  
+              - lambda: |-
+                 return (  id(bme290_temperature).state <= id(temp_fan_switch_on_number).state   );
+                  
+          then:
+            - switch.turn_on: manual_control_load          
+  
+  
+  - platform: modbus_controller
+    id: battery_capacity_number
+    name: ${name}_battery_cap_number
+    address: 0x9001
+    value_type: U_WORD
+    unit_of_measurement: 'Ah'
+    icon: mdi:car-battery
+    min_value: 1
+    max_value: 50
+    step:  2
+    mode: 'slider'
+    
+  - platform: modbus_controller
+    id: equalization_duration_number
+    name: ${name}_equalization_duration_number
+    address: 0x906B
+    value_type: U_WORD
+    unit_of_measurement: 'min'
+    icon: mdi:timer-sand
+    min_value: 0
+    max_value: 180
+    step:  10
+    mode: 'slider'
+
+  - platform: modbus_controller
+    id: boost_duration_number
+    name: ${name}_boost_duration_number
+    address: 0x906C
+    value_type: U_WORD
+    unit_of_measurement: 'min'
+    icon: mdi:timer-sand
+    min_value: 10
+    max_value: 180
+    step:  10
+    mode: 'slider'     
+      
+    
+  - platform: modbus_controller
+    id: temperature_compensation_coefficient_number
+    name: ${name}_temperature_compensation_coefficient_number
+    address: 0x9002
+    value_type: U_WORD
+    unit_of_measurement: "mV/°C/2V"
+    icon: mdi:thermometer
+    min_value: -10
+    max_value: 0
+    step:  1
+    multiply: -100
+    mode: 'slider'    
+    
+
+  - platform: template
+    id: high_voltage_disconnect_number
+    name: ${name}_high_voltage_disconnect_number
+    unit_of_measurement: "V"
+    icon: mdi:sine-wave
+    optimistic: true
+    min_value: 14.10
+    max_value: 14.65
+    step:  0.05
+    initial_value: 14.60
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers
+        
+  - platform: template
+    id: charging_limit_voltage_number
+    name: ${name}_charging_limit_voltage_number
+    unit_of_measurement: "V"
+    icon: mdi:sine-wave
+    optimistic: true
+    min_value: 14.10
+    max_value: 14.65
+    step:  0.05
+    initial_value: 14.50
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers
+
+  - platform: template
+    id: over_voltage_reconnect_number
+    name: ${name}_over_voltage_reconnect_number
+    unit_of_measurement: "V"
+    icon: mdi:sine-wave
+    optimistic: true
+    min_value: 13.75
+    max_value: 14.50
+    step:  0.05
+    initial_value: 14.05
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers
+
+  - platform: template
+    id: equalization_voltage_number
+    name: ${name}_equalization_voltage_number
+    unit_of_measurement: "V"
+    icon: mdi:sine-wave
+    optimistic: true
+    min_value: 13.50
+    max_value: 14.65
+    step:  0.05
+    initial_value: 13.95
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers        
+         
+    
+  - platform: template
+    id: boost_voltage_number
+    name: ${name}_boost_voltage_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 13.50
+    max_value: 14.65
+    step: 0.05
+    initial_value: 13.95
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers    
+    
+  - platform: template
+    id: float_voltage_number
+    name: ${name}_float_voltage_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 13.00
+    max_value: 14.25
+    step: 0.05
+    initial_value: 13.50
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers    
+
+
+  - platform: template
+    id: boost_reconnect_voltage_number
+    name: ${name}_boost_reconnect_voltage_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 13.00
+    max_value: 14.00
+    step: 0.05
+    initial_value: 13.45
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers
+
+  - platform: template
+    id: low_voltage_reconnect_number
+    name: ${name}_low_voltage_reconnect_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 12.00
+    max_value: 13.25
+    step: 0.05
+    initial_value: 12.60
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers
+
+  - platform: template
+    id: under_voltage_recover_number
+    name: ${name}_under_voltage_recover_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 12.00
+    max_value: 13.25
+    step: 0.05
+    initial_value: 12.10
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers
+
+  - platform: template
+    id: under_voltage_warning_number
+    name: ${name}_under_voltage_warning_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 11.50
+    max_value: 12.50
+    step: 0.05
+    initial_value: 12.00
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers
+        
+  - platform: template
+    id: low_voltage_disconnect_number
+    name: ${name}_low_voltage_disconnect_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 11.00
+    max_value: 12.50
+    step: 0.05
+    initial_value: 11.60
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers        
+
+  - platform: template
+    id: discharging_limit_voltage_number
+    name: ${name}_discharging_limit_voltage_number
+    unit_of_measurement: 'V'
+    optimistic: true
+    icon: mdi:sine-wave
+    min_value: 11.00
+    max_value: 12.50
+    step: 0.05
+    initial_value: 11.50
+    restore_value: true
+    mode: 'slider'
+    on_value:
+      then:       
+        - script.execute: write_9003_900E_registers        
+
+
+sensor:
+  
+  - platform: uptime
+    id: uptime_sec  
+    
+  - platform: wifi_signal
+    name: WiFi puissance_${name}
+    update_interval: ${updates}
+    
+    
+  - platform: bme280
+    i2c_id: i2c_bus
+    temperature:
+      name: ${name}_temperature
+      id: bme290_temperature
+      oversampling: 16x
+    pressure:
+      name: ${name}_pression
+      unit_of_measurement: "bar"
+      accuracy_decimals: 3
+      filters:
+      - lambda: return x / 1000.0;
+    humidity:
+      name: ${name}_humidite
+    address: 0x76
+    update_interval: 10s        
+    
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: pv_input_voltage
+    name: ${name}_pv_array_input_voltage
+    address: 0x3100
+    unit_of_measurement: "V" ## for any other unit the value is returned in minutes
+    register_type: read
+    value_type: U_WORD
+    accuracy_decimals: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: pv_input_current
+    name: ${name}_pv_array_input_current
+    address: 0x3101
+    unit_of_measurement: "A" ## for any other unit the value is returned in minutes
+    register_type: read
+    value_type: U_WORD
+    accuracy_decimals: 1
+    icon: mdi:current-dc
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: pv_input_power
+    name: ${name}_pv_array_input_power
+    address: 0x3102
+    unit_of_measurement: "W" ## for any other unit the value is returned in minutes
+    register_type: read
+    value_type: U_DWORD_R
+    accuracy_decimals: 1
+    icon: mdi:power
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: charging_voltage
+    name: ${name}_charging_voltage
+    address: 0x3104
+    unit_of_measurement: "V"
+    register_type: read
+    value_type: U_WORD
+    accuracy_decimals: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: charging_current
+    name: ${name}_charging_current
+    address: 0x3105
+    unit_of_measurement: "A"
+    register_type: read
+    value_type: U_WORD
+    accuracy_decimals: 1
+    icon: mdi:current-dc
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: charging_power
+    name: ${name}_charging_power
+    address: 0x3106
+    unit_of_measurement: "W"
+    register_type: read
+    value_type: U_DWORD_R
+    accuracy_decimals: 1
+    icon: mdi:power
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: load_voltage
+    name: ${name}_load_voltage
+    address: 0x310C
+    unit_of_measurement: "V"
+    register_type: read
+    value_type: U_WORD
+    accuracy_decimals: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: load_current
+    name: ${name}_load_current
+    address: 0x310D
+    unit_of_measurement: "A"
+    register_type: read
+    value_type: U_WORD
+    accuracy_decimals: 1
+    icon: mdi:current-dc
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: load_power
+    name: ${name}_load_power
+    address: 0x310E
+    unit_of_measurement: "W"
+    register_type: read
+    value_type: U_DWORD_R
+    accuracy_decimals: 1
+    icon: mdi:power
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: battery_temperature
+    name: ${name}_battery_temperature
+    address: 0x3110
+    unit_of_measurement: "°C"
+    register_type: read
+    value_type: S_WORD
+    accuracy_decimals: 1
+    icon: mdi:thermometer
+    filters:
+      - multiply: 0.01
+      
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: battery_type
+    address: 0x9000
+    name: ${name}_battery_type
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: battery_capacity
+    address: 0x9001
+    name: ${name}_battery_capacity
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: 'Ah'
+    skip_updates: 1
+    icon: mdi:car-battery
+    
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: temperature_compensation_coefficient
+    address: 0x9002
+    name: ${name}_temperature_compensation_coefficient
+    unit_of_measurement: "mV/°C/2V"
+    register_type: holding
+    value_type: U_WORD
+    icon: mdi:thermometer
+    skip_updates: 1
+    filters:
+      - multiply: -0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: high_voltage_disconnect
+    address: 0x9003
+    name: ${name}_high_voltage_disconnect
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: charging_limit_voltage
+    address: 0x9004
+    name: ${name}_charging_limit_voltage
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+  
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: over_voltage_reconnect
+    address: 0x9005
+    name: ${name}_over_voltage_reconnect
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: equalization_voltage
+    address: 0x9006
+    name: ${name}_equalization_voltage
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: boost_voltage
+    address: 0x9007
+    name: ${name}_boost_voltage
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: float_voltage
+    address: 0x9008
+    name: ${name}_float_voltage
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: boost_reconnect_voltage
+    address: 0x9009
+    name: ${name}_boost_reconnect_voltage
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: low_voltage_reconnect
+    address: 0x900A
+    name: ${name}_low_voltage_reconnect
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: under_voltage_recover
+    address: 0x900B
+    name: ${name}_under_voltage_recover
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: under_voltage_warning
+    address: 0x900C
+    name: ${name}_under_voltage_warning
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: low_voltage_disconnect
+    address: 0x900D
+    name: ${name}_low_voltage_disconnect
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: discharging_limit_voltage
+    address: 0x900E
+    name: ${name}_discharging_limit_voltage
+    unit_of_measurement: "V"
+    accuracy_decimals: 1
+    register_type: holding
+    value_type: U_WORD
+    skip_updates: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: rated_voltage_level
+    address: 0x9067
+    name: ${name}_rated_voltage_level
+    register_type: holding
+    value_type: U_WORD
+#    unit_of_measurement: 'Ah'
+    skip_updates: 1
+    icon: mdi:car-battery
+
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: equalization_duration
+    address: 0x906B
+    name: ${name}_equalization_duration
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: 'min'
+    skip_updates: 1
+    icon: mdi:timer-sand    
+    
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: boost_duration
+    address: 0x906C
+    name: ${name}_boost_duration
+    register_type: holding
+    value_type: U_WORD
+    unit_of_measurement: 'min'
+    skip_updates: 1
+    icon: mdi:timer-sand
+
+  - platform: total_daily_energy
+    name: ${name}_pv_power_total_du_jour
+    power_id: pv_input_power 
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    id: pv_power_total_du_jour
+    method: trapezoid
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_pv_power_total_veille
+    id: template_pv_power_total_veille
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    icon: mdi:power
+    update_interval: ${updates}
+    lambda: |-
+      return (id(template_pv_power_total_veille).state = id(pv_power_total_veille_global));
+      
+  - platform: total_daily_energy
+    name: ${name}_charging_power_total_du_jour
+    power_id: charging_power 
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    id: charging_power_total_du_jour
+    method: trapezoid
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_charging_power_total_veille
+    id: template_charging_power_total_veille
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    icon: mdi:power
+    update_interval: ${updates}
+    lambda: |-
+      return (id(template_charging_power_total_veille).state = id(charging_power_total_veille_global));
+      
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: battery_soc
+    name: ${name}_battery_soc
+    address: 0x311A
+    unit_of_measurement: "%"
+    register_type: read
+    value_type: U_WORD
+    accuracy_decimals: 0
+    icon: mdi:percent
+    
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: device_temperature
+    name: ${name}_device_temperature
+    address: 0x3111
+    unit_of_measurement: "°C"
+    register_type: read
+    value_type: S_WORD
+    accuracy_decimals: 1
+    icon: mdi:thermometer
+    filters:
+      - multiply: 0.01   
+      
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: rated_charging_current
+    name: ${name}_rated_charging_current
+    address: 0x3005
+    unit_of_measurement: "A"
+    register_type: read
+    value_type: S_WORD
+    accuracy_decimals: 0
+    icon: mdi:current-dc
+    filters:
+      - multiply: 0.01
+      
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: battery_volt_settings
+    name: ${name}_remote_real_voltage
+    address: 0x311D
+    unit_of_measurement: "V"
+    register_type: read
+    value_type: S_WORD
+    accuracy_decimals: 1
+    icon: mdi:sine-wave
+    filters:
+      - multiply: 0.01
+      
+  - platform: modbus_controller
+    modbus_controller_id: epever
+    id: generated_energy_total
+    name: ${name}_generated_energy_total
+    address: 0x3312
+    register_type: read
+    value_type: U_DWORD_R
+    accuracy_decimals: 1
+    unit_of_measurement: 'kWh'
+    icon: mdi:power
+    filters:
+      - multiply: 0.01     
+ 
+    
+text_sensor:
+  - platform: template
+    name: ${name}_uptime_total
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s    
+    
+script:
+  - id: write_9003_900E_registers
+    then:
+      - lambda: |-
+          esphome::modbus_controller::ModbusController *controller = id(epever);
+          std::vector<uint16_t> battery_settings(12);
+          battery_settings[0]  = uint16_t((id(high_voltage_disconnect_number).state)*100);
+          battery_settings[1]  = uint16_t((id(charging_limit_voltage_number).state)*100);
+          battery_settings[2]  = uint16_t((id(over_voltage_reconnect_number).state)*100);
+          battery_settings[3]  = uint16_t((id(equalization_voltage_number).state)*100);
+          battery_settings[4]  = uint16_t((id(boost_voltage_number).state)*100);
+          battery_settings[5]  = uint16_t((id(float_voltage_number).state)*100);
+          battery_settings[6]  = uint16_t((id(boost_reconnect_voltage_number).state)*100);
+          battery_settings[7]  = uint16_t((id(low_voltage_reconnect_number).state)*100);
+          battery_settings[8]  = uint16_t((id(under_voltage_recover_number).state)*100);
+          battery_settings[9]  = uint16_t((id(under_voltage_warning_number).state)*100);
+          battery_settings[10] = uint16_t(id(low_voltage_disconnect_number).state*100);
+          battery_settings[11] = uint16_t(id(discharging_limit_voltage_number).state*100);
+          esphome::modbus_controller::ModbusCommandItem battery_command = esphome::modbus_controller::ModbusCommandItem::create_write_multiple_command(controller, 0x9003, battery_settings.size() ,
+                                                                                          battery_settings);
+          delay(200);
+          controller->queue_command(battery_command);
+          delay(200);
