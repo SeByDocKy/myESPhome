@@ -1,0 +1,356 @@
+###############################  e-2-nomy YT vidéo #16 : https://www.youtube.com/watch?v=p1qNiYdCNbI   ############
+#### pip install git+https://github.com/esphome/esphome.git@d8746266625c5a4c9127577297876e445cffe859
+
+substitutions:
+  updates: 10s
+  name: potager
+
+esphome:
+  name: ${name}
+  # includes:
+  #   - tinovi_esp32_custom_sensor.h
+  # on_boot:
+  #   then:
+  #     - cover.close: ${name}_electrovanne  
+  
+esp32:
+  board: esp32dev
+  framework:
+    #type: esp-idf
+    type: arduino
+    version: 2.0.9 #1.0.6 #1.0.6 2.0.5
+    platform_version: 6.2.0 #3.5.0 #3.5.0  4.4.0  5.2.0  
+
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [ pmwcs3]
+    refresh: 0s
+
+# external_components:
+#   - source: github://pr#4182
+#     refresh: 0s
+#     components: 
+#       - esp32
+#       - esp32_camera
+
+
+# external_components:
+#   - source:
+#       type: git
+#       url: https://github.com/espressif/esp32-camera
+#     components: 
+#       - esp32_camera
+#     refresh: 0s
+#     components: 
+#       - esp32
+#       - esp32_camera
+# external_components:
+#   - source: github.com//esphome/esphome.git@c2e198311ca73112fa7c9c213101277200085a6f
+#     refresh: 0s
+#     components: 
+#       - esp32
+#       - esp32_camera
+#3564  
+
+wifi:
+  ssid: !secret esphome_ssid
+  password: !secret esphome_password
+
+# Enable logging
+
+logger:
+  #level: very_verbose #very_verbose #
+  #baud_rate: 0 #need this to free up UART pins
+  #level: debug
+  
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+globals:
+  - id: ${name}_veille_global
+    type: float
+    restore_value: yes
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time     
+    on_time:
+      - seconds: 55
+        minutes: 59
+        hours: 23
+        then:  
+          - globals.set: # Set global to current position
+                id: ${name}_veille_global
+                value: !lambda return ( id(${name}_veille_global) =  float( id(daily_${name}).state) );         
+              
+number:
+
+    ##### Electrovanne potager ####  
+    
+  - platform: template
+    name: ${name}_electrovanne_number  
+    id: ${name}_electrovanne_number
+    optimistic: true
+    unit_of_measurement: '%'
+    icon: mdi:valve
+    min_value: 0
+    max_value: 100
+    step: 1
+    mode: 'slider'
+    initial_value: 0
+    restore_value: true
+    on_value:
+       then:
+          - if: 
+              condition:
+                -  lambda: |-
+                    return id(${name}_electrovanne_number).state != 0;
+              then:            
+                - cover.control:
+                   id: ${name}_electrovanne
+                   position: !lambda |-
+                    return id(${name}_electrovanne_number).state/100.0;
+              else:
+                - cover.close: ${name}_electrovanne
+
+i2c:
+  sda: GPIO1 
+  scl: GPIO3 
+  scan: True
+  id: bus_i2c2
+
+esp32_camera:
+  external_clock:
+    pin: GPIO0
+    frequency: 20MHz
+  i2c_pins:
+    sda: GPIO26
+    scl: GPIO27
+  data_pins: [GPIO5, GPIO18, GPIO19, GPIO21, GPIO36, GPIO39, GPIO34, GPIO35]
+  vsync_pin: GPIO25
+  href_pin: GPIO23
+  pixel_clock_pin: GPIO22
+  power_down_pin: GPIO32
+  resolution: 800x600 #1280x1024 #800x600 #1280x1024  #800x600 #1280x1024 #1024x768 #800x600 #1024x768 #640x480
+  jpeg_quality: 10
+  horizontal_mirror: false
+  vertical_flip: false
+  max_framerate: 0.1fps
+  idle_framerate: 0.01fps
+  name: ${name}_camera
+  
+cover:
+- platform: time_based
+  name: ${name}_electrovanne
+  id: ${name}_electrovanne
+  assumed_state: false
+  open_action:
+    - switch.turn_on: open_valve
+  open_duration: 15s
+  close_action:
+    - switch.turn_on: close_valve
+  close_duration: 15s
+  stop_action:
+    - switch.turn_off: open_valve
+    - switch.turn_off: close_valve
+
+output:
+#flashlight
+  - platform: gpio
+    pin: GPIO4
+    id: gpio_4
+#statuslight
+  - platform: gpio
+    pin:
+      number: GPIO33
+      inverted: True
+    id: gpio_33
+light:
+#flashlight
+  - platform: binary
+    output: gpio_4
+    name: ${name}_flash
+#statuslight
+  - platform: binary   
+    output: gpio_33
+    name: ${name}_led_status  
+  
+switch:
+  - platform: restart
+    name: restart_${name}
+    
+  - platform: gpio
+    pin: GPIO14
+    interlock: &interlock [open_valve, close_valve]
+    inverted: True
+    id: open_valve
+    
+  - platform: gpio
+    pin: GPIO15
+    interlock: *interlock
+    inverted: True
+    id: close_valve  
+    
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+    
+  # détection de la pluie  
+  # - platform: gpio
+  #   pin: GPIO02
+  #   filters:
+  #     invert: 
+  #   name: ${name}_pluie
+    
+sensor:
+
+#  - platform: adc
+#    id: potager_conductivite_pluie
+#    name: potager_conductivite_pluie
+#    pin: GPIO04
+#    update_interval: 10s
+#    attenuation: 0db  
+  
+  - platform: uptime
+    id: uptime_sec  
+    
+  - platform: wifi_signal
+    name: WiFi puissance_${name}
+    update_interval: ${updates}
+
+  # - platform: pulse_meter
+  #   id: water_flow_meter_${name}
+  #   pin: GPIO16
+  #   unit_of_measurement: "L/min"
+  #   device_class: 'water'
+  #   icon: mdi:water
+  #   filters:
+  #    - lambda: return (x / 5.48);
+    
+  - platform: pulse_counter
+    id: water_flow_meter_${name}
+    pin: GPIO16
+    update_interval: 1s
+    icon: mdi:water
+    filters:
+     - lambda: return (x / 5.48);
+    unit_of_measurement: "L"
+    device_class: 'water'
+    
+  - platform: total_daily_energy
+    name: ${name}_du_jour
+    power_id: water_flow_meter_${name}  
+    unit_of_measurement: "L"
+    device_class: 'water'
+    accuracy_decimals: 2
+    id: daily_${name}
+    
+  - platform: template
+    name: ${name}_veille
+    id: template_${name}_veille
+    unit_of_measurement: "L"
+    device_class: 'water'
+    accuracy_decimals: 2
+    icon: mdi:water
+    update_interval: ${updates}
+    lambda: |-
+      return (id(template_${name}_veille).state = id(${name}_veille_global));
+    
+  - platform: bh1750
+    name: ${name}_luminosite
+    address: 0x23
+    update_interval: ${updates}
+    i2c_id: bus_i2c2
+    filters:
+    # - lambda: |-
+    #     if (x < 54612.5) return x;
+    - sliding_window_moving_average:
+        window_size: 9
+        send_every: 1
+    
+  - platform: pmwcs3
+    id: ${name}_id
+    address: 0x63
+    e25:
+      name: ${name}_e25    
+    ec:
+      name: ${name}_ec
+    temperature:
+      name: ${name}_temperature 
+    vwc:
+      name: ${name}_vwc
+    
+  # - platform: custom
+  #   id: tinovi_id
+  #   lambda: |-
+  #     auto TINOVI = new TINOVICustomSensor();
+  #     App.register_component(TINOVI);
+  #     return {TINOVI->e25_sensor, TINOVI->ec_sensor , TINOVI->temp_sensor , TINOVI->vwc_sensor};
+
+  #   sensors:
+  #   - name: ${name}_e25
+  #     unit_of_measurement: "dS/m"
+  #     accuracy_decimals: 2
+  #     icon: mdi:epsilon
+  #     filters:
+  #     - lambda: if (x <= 80.0) return x;
+  #     - sliding_window_moving_average:
+  #         window_size: 15
+  #         send_every: 1  
+    
+  #   - name: ${name}_ec
+  #     unit_of_measurement: "mS/m"
+  #     accuracy_decimals: 2
+  #     icon: mdi:sigma-lower
+  #     filters:
+  #     - lambda: if (x <= 300.0) return x;
+  #     - sliding_window_moving_average:
+  #         window_size: 15
+  #         send_every: 1
+      
+  #   - name: ${name}_temperature
+  #     unit_of_measurement: "°C"
+  #     accuracy_decimals: 2
+  #     icon: mdi:thermometer
+  #     filters:
+  #     - lambda: if (x <= 70.0) return x;
+  #     - sliding_window_moving_average:
+  #         window_size: 15
+  #         send_every: 1
+          
+  #   - name: ${name}_vwc
+  #     accuracy_decimals: 2
+  #     unit_of_measurement: "cm3cm−3"
+  #     icon: mdi:alpha-h-circle-outline
+  #     filters:
+  #     - lambda: if (x <= 100.0) return x;
+  #     - sliding_window_moving_average:
+  #         window_size: 15
+  #         send_every: 1
+    
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s    
