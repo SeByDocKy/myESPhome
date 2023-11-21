@@ -26,7 +26,7 @@ CONF_NEG_ENERGY1 = "neg_energy1"
 CONF_POWER1 = "power1"
 CONF_VOLTAGE1 = "voltage1"
 CONF_FREQUENCY1 = "frequency1"
-CONF_POWER_FACTOR1 = power_factor1"
+CONF_POWER_FACTOR1 = "power_factor1"
 
 CONF_CURRENT2 = "current2"
 CONF_POS_ENERGY2 = "pos_energy2"
@@ -34,7 +34,7 @@ CONF_NEG_ENERGY2 = "neg_energy2"
 CONF_POWER2 = "power2"
 CONF_VOLTAGE2 = "voltage2"
 CONF_FREQUENCY2 = "frequency2"
-CONF_POWER_FACTOR2 = power_factor2"
+CONF_POWER_FACTOR2 = "power_factor2"
 
 
 AUTO_LOAD = ["modbus"]
