@@ -45,24 +45,24 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   float frequency1 = raw_frequency / 100.0f;
   
   
-  uint16_t raw_voltage = jsy193_get_16bit(20);
+  raw_voltage = jsy193_get_16bit(20);
   float voltage2 = raw_voltage / 100.0f;  // max 655?35 V
 
-  uint16_t raw_sign = jsy193_get_16bit(26); //0 for positive, 1 for negative 
+  raw_sign = jsy193_get_16bit(26); //0 for positive, 1 for negative 
   
-  uint16_t raw_current = jsy193_get_16bit(22);  
+  raw_current = jsy193_get_16bit(22);  
   float current2 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // max 
   
-  uint16_t raw_power   = jsy193_get_16bit(24);
+  raw_power   = jsy193_get_16bit(24);
   float power2 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // max
     
-  float pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/1000.0f;
-  float neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/1000.0f;
+  pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/1000.0f;
+  neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/1000.0f;
 
-  uint16_t raw_power_factor = jsy193_get_16bit(36);
+  raw_power_factor = jsy193_get_16bit(36);
   float power_factor2 = raw_power_factor / 1000.0f;
 
-  uint16_t raw_frequency = jsy193_get_16bit(38);
+  raw_frequency = jsy193_get_16bit(38);
   float frequency2 = raw_frequency / 100.0f;
 
   
