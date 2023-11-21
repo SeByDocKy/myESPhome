@@ -8,7 +8,7 @@ static const char *const TAG = "jsy193";
 
 static const uint8_t JSY193_CMD_READ_IN_REGISTERS = 0x03;
 static const uint8_t JSY193_CMD_WRITE_IN_REGISTERS = 0x10;
-static const uint8_t JSY193_CMD_START_ADDRESS = 0x100;
+static const uint16_t JSY193_CMD_START_ADDRESS = 0x100;
 static const uint8_t JSY193_CMD_RESET_ENERGY = 0x42;
 static const uint8_t JSY193_REGISTER_COUNT = 20;  // 20x 16-bit registers
 
