@@ -39,7 +39,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   float neg_energy1 = static_cast<float>(jsy193_get_32bit(12))/1000.0f;
 
   uint16_t raw_power_factor = jsy193_get_16bit(16);
-  float power_factor = raw_power_factor / 1000.0f;
+  float power_factor1 = raw_power_factor / 1000.0f;
 
   uint16_t raw_frequency = jsy193_get_16bit(18);
   float frequency1 = raw_frequency / 100.0f;
@@ -56,8 +56,8 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   raw_power   = jsy193_get_16bit(24);
   float power2 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // max
     
-  pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/1000.0f;
-  neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/1000.0f;
+  float pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/1000.0f;
+  float neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/1000.0f;
 
   raw_power_factor = jsy193_get_16bit(36);
   float power_factor2 = raw_power_factor / 1000.0f;
