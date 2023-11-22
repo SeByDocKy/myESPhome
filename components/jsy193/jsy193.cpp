@@ -27,45 +27,45 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   };
 
   uint16_t raw_voltage = jsy193_get_16bit(0);
-  float voltage1 = raw_voltage / 100.0f;  // max 655?35 V
+  float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
 
   uint16_t raw_sign = jsy193_get_16bit(6); //0 for positive, 1 for negative 
   
   uint16_t raw_current = jsy193_get_16bit(2);  
-  float current1 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // max 4294967.295 A
+  float current1 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // min -655.35 A, max 655.35 A
   
   uint16_t raw_power   = jsy193_get_16bit(4);
-  float power1 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // max 4294967.295 A
+  float power1 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // min 65535 W max 65535 W
     
-  float pos_energy1 = static_cast<float>(jsy193_get_32bit(8))/1000.0f;
-  float neg_energy1 = static_cast<float>(jsy193_get_32bit(12))/1000.0f;
+  float pos_energy1 = static_cast<float>(jsy193_get_32bit(8))/100.0f; // max 42 949 673 kWh
+  float neg_energy1 = static_cast<float>(jsy193_get_32bit(12))/100.0f; // max 42 949 673 kWh
 
   uint16_t raw_power_factor = jsy193_get_16bit(16);
-  float power_factor1 = raw_power_factor / 1000.0f;
+  float power_factor1 = raw_power_factor / 1000.0f;  // max 65.535
 
   uint16_t raw_frequency = jsy193_get_16bit(18);
-  float frequency1 = raw_frequency / 100.0f;
+  float frequency1 = raw_frequency / 100.0f;  // max 655.35 Hz
   
   
   raw_voltage = jsy193_get_16bit(20);
-  float voltage2 = raw_voltage / 100.0f;  // max 655?35 V
+  float voltage2 = raw_voltage / 100.0f;  // max 655.35 V
 
   raw_sign = jsy193_get_16bit(26); //0 for positive, 1 for negative 
   
   raw_current = jsy193_get_16bit(22);  
-  float current2 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // max 
+  float current2 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // min -655.35 A, max 655.35 A 
   
   raw_power   = jsy193_get_16bit(24);
-  float power2 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // max
+  float power2 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // min 65535 W max 65535 W
     
-  float pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/1000.0f;
-  float neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/1000.0f;
+  float pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/100.0f; // max 42 949 673 kWh
+  float neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/100.0f; // max 42 949 673 kWh
 
   raw_power_factor = jsy193_get_16bit(36);
-  float power_factor2 = raw_power_factor / 1000.0f;
+  float power_factor2 = raw_power_factor / 1000.0f;  // max 65.535
 
   raw_frequency = jsy193_get_16bit(38);
-  float frequency2 = raw_frequency / 100.0f;
+  float frequency2 = raw_frequency / 100.0f;     // max 655.35 Hz
 
   
   ESP_LOGD(TAG, "JSY193: V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
