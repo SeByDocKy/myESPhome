@@ -23,7 +23,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     return (uint16_t(data[i + 0]) << 8) | (uint16_t(data[i + 1]) << 0);
   };
   auto jsy193_get_32bit = [&](size_t i) -> uint32_t {
-    return (uint32_t(jsy193_get_16bit(i + 2)) << 16) | (uint32_t(jsy193_get_16bit(i + 0)) << 0);
+    return (uint32_t(jsy193_get_16bit(i + 0)) << 16) | (uint32_t(jsy193_get_16bit(i + 2)) << 0);
   };
 
   uint16_t raw_voltage = jsy193_get_16bit(0);
