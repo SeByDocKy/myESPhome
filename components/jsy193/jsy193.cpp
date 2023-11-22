@@ -131,7 +131,7 @@ void JSY193::reset_energy1_() {
   cmd.push_back(JSY193_RESET_RESET_ENERGY1_LB);
   cmd.push_back(0x00);
   cmd.push_back(0x02);
-  cmd.push_back(0x08);
+  cmd.push_back(0x04);
   
   cmd.push_back(0x00);
   cmd.push_back(0x00);
@@ -142,17 +142,7 @@ void JSY193::reset_energy1_() {
   cmd.push_back(0x00);
   cmd.push_back(0x00);
   cmd.push_back(0x00);
-  
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  
+   
   this->send_raw(cmd);
 }
 void JSY193::reset_energy2_() {
@@ -163,7 +153,7 @@ void JSY193::reset_energy2_() {
   cmd.push_back(JSY193_RESET_RESET_ENERGY2_LB);
   cmd.push_back(0x00);
   cmd.push_back(0x02);
-  cmd.push_back(0x08);
+  cmd.push_back(0x04);
   
   cmd.push_back(0x00);
   cmd.push_back(0x00);
@@ -175,15 +165,6 @@ void JSY193::reset_energy2_() {
   cmd.push_back(0x00);
   cmd.push_back(0x00);
   
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
   this->send_raw(cmd);
 }
 
