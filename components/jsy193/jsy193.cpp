@@ -8,8 +8,9 @@ static const char *const TAG = "jsy193";
 
 static const uint8_t JSY193_CMD_READ_IN_REGISTERS = 0x03;
 static const uint8_t JSY193_CMD_WRITE_IN_REGISTERS = 0x10;
-static const uint16_t JSY193_CMD_START_ADDRESS = 0x100;
-static const uint8_t JSY193_CMD_RESET_ENERGY = 0x42;
+static const uint16_t JSY193_REGISTER_START = 0x100;
+static const uint8_t JSY193_RESET_RESET_ENERGY1 = 0x104;
+static const uint8_t JSY193_RESET_RESET_ENERGY2 = 0x106;
 static const uint8_t JSY193_REGISTER_COUNT = 20;  // 20x 16-bit registers
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
@@ -100,7 +101,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     this->power_factor2_sensor_->publish_state(power_factor2);
 }
 
-void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_CMD_START_ADDRESS , JSY193_REGISTER_COUNT); }
+void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_START , JSY193_REGISTER_COUNT); }
 void JSY193::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY193:");
   ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address_);
@@ -121,10 +122,16 @@ void JSY193::dump_config() {
   LOG_SENSOR("", "Power Factor2", this->power_factor2_sensor_);
 }
 
-void JSY193::reset_energy_() {
+void JSY193::reset_energy1_() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
-  cmd.push_back(JSY193_CMD_RESET_ENERGY);
+  cmd.push_back(JSY193_RESET_RESET_ENERGY1);
+  this->send_raw(cmd);
+}
+void JSY193::reset_energy2_() {
+  std::vector<uint8_t> cmd;
+  cmd.push_back(this->address_);
+  cmd.push_back(JSY193_RESET_RESET_ENERGY1);
   this->send_raw(cmd);
 }
 

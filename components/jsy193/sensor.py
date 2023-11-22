@@ -11,13 +11,14 @@ from esphome.const import (
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_ENERGY,
     ICON_CURRENT_AC,
+    ICON_POWER,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
     UNIT_HERTZ,
     UNIT_VOLT,
     UNIT_AMPERE,
     UNIT_WATT,
-    UNIT_WATT_HOURS,
+    UNIT_KILOWATT_HOURS,
 )
 
 CONF_CURRENT1 = "current1"
@@ -36,14 +37,17 @@ CONF_VOLTAGE2 = "voltage2"
 CONF_FREQUENCY2 = "frequency2"
 CONF_POWER_FACTOR2 = "power_factor2"
 
+ICON_FREQUENCY = "sine-wave"
 
+CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = ["modbus"]
 
 jsy193_ns = cg.esphome_ns.namespace("jsy193")
 JSY193 = jsy193_ns.class_("JSY193", cg.PollingComponent, modbus.ModbusDevice)
 
 # Actions
-ResetEnergyAction = jsy193_ns.class_("ResetEnergyAction", automation.Action)
+ResetEnergy1Action = jsy193_ns.class_("ResetEnergy1Action", automation.Action)
+ResetEnergy2Action = jsy193_ns.class_("ResetEnergy2Action", automation.Action)
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -57,31 +61,33 @@ CONFIG_SCHEMA = (
             ),
             cv.Optional(CONF_CURRENT1): sensor.sensor_schema(
                 unit_of_measurement=UNIT_AMPERE,
+                icon=ICON_CURRENT_AC,
                 accuracy_decimals=3,
                 device_class=DEVICE_CLASS_CURRENT,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_POWER1): sensor.sensor_schema(
                 unit_of_measurement=UNIT_WATT,
+                icon=ICON_POWER,
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_POS_ENERGY1): sensor.sensor_schema(
-                unit_of_measurement=UNIT_WATT_HOURS,
+                unit_of_measurement=UNIT_KILOWATT_HOURS,
                 accuracy_decimals=0,
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),
             cv.Optional(CONF_NEG_ENERGY1): sensor.sensor_schema(
-                unit_of_measurement=UNIT_WATT_HOURS,
+                unit_of_measurement=UNIT_KILOWATT_HOURS,
                 accuracy_decimals=0,
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),
             cv.Optional(CONF_FREQUENCY1): sensor.sensor_schema(
                 unit_of_measurement=UNIT_HERTZ,
-                icon=ICON_CURRENT_AC,
+                icon=ICON_FREQUENCY,
                 accuracy_decimals=1,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
@@ -98,12 +104,14 @@ CONFIG_SCHEMA = (
             ),
             cv.Optional(CONF_CURRENT2): sensor.sensor_schema(
                 unit_of_measurement=UNIT_AMPERE,
+                icon=ICON_CURRENT_AC,
                 accuracy_decimals=3,
                 device_class=DEVICE_CLASS_CURRENT,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_POWER2): sensor.sensor_schema(
                 unit_of_measurement=UNIT_WATT,
+                icon=ICON_POWER,
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
@@ -122,7 +130,7 @@ CONFIG_SCHEMA = (
             ),
             cv.Optional(CONF_FREQUENCY2): sensor.sensor_schema(
                 unit_of_measurement=UNIT_HERTZ,
-                icon=ICON_CURRENT_AC,
+                icon=ICON_FREQUENCY,
                 accuracy_decimals=1,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
@@ -139,14 +147,24 @@ CONFIG_SCHEMA = (
 
 
 @automation.register_action(
-    "jsy193.reset_energy",
-    ResetEnergyAction,
+    "jsy193.reset_energy1",
+    ResetEnergy1Action,
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(JSY193),
         }
     ),
 )
+@automation.register_action(
+    "jsy193.reset_energy2",
+    ResetEnergy2Action,
+    maybe_simple_id(
+        {
+            cv.Required(CONF_ID): cv.use_id(JSY193),
+        }
+    ),
+)
+
 async def reset_energy_to_code(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
     return cg.new_Pvariable(action_id, template_arg, paren)

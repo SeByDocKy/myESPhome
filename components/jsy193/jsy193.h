@@ -10,7 +10,7 @@
 namespace esphome {
 namespace jsy193 {
 
-template<typename... Ts> class ResetEnergyAction;
+template<typename... Ts> class ResetEnergy1Action;
 
 class JSY193 : public PollingComponent, public modbus::ModbusDevice {
  public:
@@ -58,11 +58,17 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   void reset_energy_();
 };
 
-template<typename... Ts> class ResetEnergyAction : public Action<Ts...> {
+template<typename... Ts> class ResetEnergy1Action : public Action<Ts...> {
  public:
-  ResetEnergyAction(JSY193 *jsy193) : jsy193_(jsy193) {}
+  ResetEnergy1Action(JSY193 *jsy193) : jsy193_(jsy193) {}
 
-  void play(Ts... x) override { this->jsy193_->reset_energy_(); }
+  void play(Ts... x) override { this->jsy193_->reset_energy1_(); }
+  
+template<typename... Ts> class ResetEnergy2Action : public Action<Ts...> {
+ public:
+  ResetEnergy2Action(JSY193 *jsy193) : jsy193_(jsy193) {}
+
+  void play(Ts... x) override { this->jsy193_->reset_energy2_(); }  
 
  protected:
   JSY193 *jsy193_;
