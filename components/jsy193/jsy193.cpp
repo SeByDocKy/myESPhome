@@ -9,8 +9,8 @@ static const char *const TAG = "jsy193";
 static const uint8_t JSY193_CMD_READ_IN_REGISTERS = 0x03;
 static const uint8_t JSY193_CMD_WRITE_IN_REGISTERS = 0x10;
 static const uint16_t JSY193_REGISTER_START = 0x100;
-static const uint8_t JSY193_RESET_RESET_ENERGY1 = 0x104;
-static const uint8_t JSY193_RESET_RESET_ENERGY2 = 0x106;
+static const uint16_t JSY193_RESET_RESET_ENERGY1 = 0x104;
+static const uint16_t JSY193_RESET_RESET_ENERGY2 = 0x106;
 static const uint8_t JSY193_REGISTER_COUNT = 20;  // 20x 16-bit registers
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
