@@ -37,6 +37,9 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   void on_modbus_data(const std::vector<uint8_t> &data) override;
 
   void dump_config() override;
+  
+  void reset_energy1_();
+  void reset_energy2_();
 
  protected:
   template<typename... Ts> friend class ResetEnergyAction;
@@ -56,8 +59,8 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   sensor::Sensor *frequency2_sensor_{nullptr};
   sensor::Sensor *power_factor2_sensor_{nullptr};
 
-  void reset_energy1_();
-  void reset_energy2_();
+//  void reset_energy1_();
+//  void reset_energy2_();
 };
 
 template<typename... Ts> class ResetEnergy1Action : public Action<Ts...> {
