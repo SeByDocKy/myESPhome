@@ -59,8 +59,6 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   sensor::Sensor *frequency2_sensor_{nullptr};
   sensor::Sensor *power_factor2_sensor_{nullptr};
 
-//  void reset_energy1_();
-//  void reset_energy2_();
 };
 
 template<typename... Ts> class ResetEnergy1Action : public Action<Ts...> {
