@@ -8,9 +8,9 @@ static const char *const TAG = "jsy193";
 
 static const uint8_t JSY193_CMD_READ_IN_REGISTERS = 0x03;
 static const uint8_t JSY193_CMD_WRITE_IN_REGISTERS = 0x10;
-static const uint16_t JSY193_REGISTER_START = 0x100;
-static const uint16_t JSY193_RESET_RESET_ENERGY1 = 0x104;
-static const uint16_t JSY193_RESET_RESET_ENERGY2 = 0x106;
+static const uint16_t JSY193_REGISTER_START = 0x0100;
+static const uint8_t JSY193_RESET_RESET_ENERGY1_LB = 0x04; // 0x0104;
+static const uint8_t JSY193_RESET_RESET_ENERGY2_LB = 0x06; // 0x0106;
 static const uint8_t JSY193_REGISTER_COUNT = 20;  // 20x 16-bit registers
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
@@ -102,6 +102,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
 }
 
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_START , JSY193_REGISTER_COUNT); }
+
 void JSY193::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY193:");
   ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address_);
@@ -125,13 +126,43 @@ void JSY193::dump_config() {
 void JSY193::reset_energy1_() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
-  cmd.push_back(JSY193_RESET_RESET_ENERGY1);
+  cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
+  cmd.push_back(0x01);
+  cmd.push_back(JSY193_RESET_RESET_ENERGY1_LB);
+  cmd.push_back(0x00);
+  cmd.push_back(0x02);
+  cmd.push_back(0x04);
+  
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
   this->send_raw(cmd);
 }
 void JSY193::reset_energy2_() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
-  cmd.push_back(JSY193_RESET_RESET_ENERGY1);
+  cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
+  cmd.push_back(0x01);
+  cmd.push_back(JSY193_RESET_RESET_ENERGY2_LB);
+  cmd.push_back(0x00);
+  cmd.push_back(0x02);
+  cmd.push_back(0x04);
+  
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
+  cmd.push_back(0x00);
   this->send_raw(cmd);
 }
 
