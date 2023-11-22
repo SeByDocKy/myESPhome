@@ -37,7 +37,7 @@ CONF_VOLTAGE2 = "voltage2"
 CONF_FREQUENCY2 = "frequency2"
 CONF_POWER_FACTOR2 = "power_factor2"
 
-ICON_FREQUENCY = "sine-wave"
+ICON_FREQUENCY = "mdi:sine-wave"
 
 CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = ["modbus"]
