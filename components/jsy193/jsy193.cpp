@@ -114,7 +114,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
       this->frequency2_sensor_->publish_state(frequency2);
     if (this->power_factor2_sensor_ != nullptr)
       this->power_factor2_sensor_->publish_state(power_factor2);
-//  }
+  }
 }
 
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_COUNT); }
