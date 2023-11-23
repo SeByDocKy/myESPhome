@@ -36,8 +36,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   if (this->read_data_ == false){
 	this->current_address_ = data[0];  
 	this->current_baudrate_= data[1];
-	uint8_t current_modbus_baudrate = data[1];
-	ESP_LOGD(TAG, "JSY193: Address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
+	ESP_LOGD(TAG, "JSY193: Address=%f, baudrate = %f", this->current_address_, this->current_baudrate_);
 	this->read_data_ = true;
   }
   else{
