@@ -33,6 +33,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   auto jsy193_get_32bit = [&](size_t i) -> uint32_t {
     return (uint32_t(jsy193_get_16bit(i + 0)) << 16) | (uint32_t(jsy193_get_16bit(i + 2)) << 0);
   };
+/*  
   if (this->read_data_ == false){
 	this->current_address_ = data[0];  
 	this->current_baudrate_= data[1];
@@ -40,6 +41,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
 	this->read_data_ = true;
   }
   else{
+*/	  
     uint16_t raw_voltage = jsy193_get_16bit(0);
     float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
 
@@ -112,7 +114,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
       this->frequency2_sensor_->publish_state(frequency2);
     if (this->power_factor2_sensor_ != nullptr)
       this->power_factor2_sensor_->publish_state(power_factor2);
-  }
+//  }
 }
 
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_COUNT); }
@@ -150,11 +152,11 @@ void JSY193::reset_energy1_() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-  cmd.push_back(0x01);  // 0x01  0x00
-  cmd.push_back(JSY193_RESET_RESET_ENERGY1_LB); // JSY193_RESET_RESET_ENERGY1_LB 0x0C
+  cmd.push_back(0x01);  
+  cmd.push_back(JSY193_RESET_RESET_ENERGY1_LB);
   cmd.push_back(0x00);
-  cmd.push_back(0x04);   // 02
-  cmd.push_back(0x08);   // 04
+  cmd.push_back(0x04); 
+  cmd.push_back(0x08);
   
   cmd.push_back(0x00);
   cmd.push_back(0x00);
@@ -172,8 +174,8 @@ void JSY193::reset_energy2_() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-  cmd.push_back(0x01); // 0x01 0x00
-  cmd.push_back(JSY193_RESET_RESET_ENERGY2_LB); // JSY193_RESET_RESET_ENERGY2_LB 0x0C
+  cmd.push_back(0x01);
+  cmd.push_back(JSY193_RESET_RESET_ENERGY2_LB);
   cmd.push_back(0x00);
   cmd.push_back(0x04);
   cmd.push_back(0x08);
