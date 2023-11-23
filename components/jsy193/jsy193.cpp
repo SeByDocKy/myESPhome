@@ -33,7 +33,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   auto jsy193_get_32bit = [&](size_t i) -> uint32_t {
     return (uint32_t(jsy193_get_16bit(i + 0)) << 16) | (uint32_t(jsy193_get_16bit(i + 2)) << 0);
   };
-/*  
+// /*  
   if (this->read_data_ == false){
 	this->current_address_ = data[0];  
 	this->current_baudrate_= data[1];
@@ -41,7 +41,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
 	this->read_data_ = true;
   }
   else{
-*/	  
+// */	  
     uint16_t raw_voltage = jsy193_get_16bit(0);
     float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
 
@@ -83,7 +83,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     float frequency2 = raw_frequency / 100.0f;     // max 655.35 Hz
 
   
-    ESP_LOGD(TAG, "JSY193: V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
+    ESP_LOGD(TAG, "JSY193: addr = %d, baudrate=%d, V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", this->current_address_, this->current_baudrate_, voltage1, current1, power1,
              pos_energy1, neg_energy1, frequency1, power_factor1, voltage2, current2, power2, pos_energy2, neg_energy2, frequency2, power_factor2);
     if (this->voltage1_sensor_ != nullptr)
       this->voltage1_sensor_->publish_state(voltage1);
@@ -140,11 +140,36 @@ void JSY193::dump_config() {
 }
 
 void JSY193::change_modbus_address_(uint8_t new_address) {
-		
+  std::vector<uint8_t> cmd;
+  cmd.push_back(0x00);  // broadcast address
+  cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
+  cmd.push_back(0x00);  
+  cmd.push_back(0x04);
+  cmd.push_back(0x00);
+  cmd.push_back(0x01); 
+  cmd.push_back(0x02);
+  
+  cmd.push_back(new_address);
+  cmd.push_back(0x06);  // this->current_baudrate_
+  
+  this->send_raw(cmd);
+  
 }
 
 void JSY193::change_modbus_baudrate_(uint8_t new_baudrate) {
-		
+  std::vector<uint8_t> cmd;
+  cmd.push_back(0x00);  // broadcast address
+  cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
+  cmd.push_back(0x00);  
+  cmd.push_back(0x04);
+  cmd.push_back(0x00);
+  cmd.push_back(0x01); 
+  cmd.push_back(0x02);
+  
+  cmd.push_back(0x01); // this->current_address_
+  cmd.push_back(new_baudrate);  
+  
+  this->send_raw(cmd);
 }
 
 
