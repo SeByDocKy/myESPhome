@@ -255,7 +255,8 @@ async def newmodbusaddress_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
     new_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int)
-    return cg.add(var.set_new_address_(new_address_))
+    # return cg.add(var.set_new_address_(new_address_))
+    return cg.add(var.value(new_address_))
     
 NEWMODBUSBAUDRATE_SCHEMA = cv.Schema(
     {
