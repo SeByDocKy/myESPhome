@@ -14,12 +14,11 @@ static const uint8_t JSY193_RESET_RESET_ENERGY1_LB = 0x04; // 0x0104;
 static const uint8_t JSY193_RESET_RESET_ENERGY2_LB = 0x0E; // 0x010E;
 static const uint8_t JSY193_REGISTER_COUNT = 20;  // 20x 16-bit registers
 
-
 void JSY193::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY193...");
+  this->read_data_ = false;
   this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_SETTINGS_START , 1);
 }
-
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   if ((data.size() < JSY193_REGISTER_COUNT*2)) {   // (this->read_data_ == true) | 
@@ -114,7 +113,9 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
       this->frequency2_sensor_->publish_state(frequency2);
     if (this->power_factor2_sensor_ != nullptr)
       this->power_factor2_sensor_->publish_state(power_factor2);
+// /*  
   }
+// */  
 }
 
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_COUNT); }
@@ -171,7 +172,6 @@ void JSY193::change_modbus_baudrate_(uint8_t new_baudrate) {
   
   this->send_raw(cmd);
 }
-
 
 void JSY193::reset_energy1_() {
   std::vector<uint8_t> cmd;
