@@ -246,19 +246,16 @@ NEWMODBUSADDRESS_SCHEMA = cv.Schema(
         cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
     }
 )
-
 @automation.register_action(
     "jsy193.new_modbus_address",
     NewModbusAddressAction,
     NEWMODBUSADDRESS_SCHEMA,
 )
-
 async def newmodbusaddress_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
     new_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int)
     return cg.add(var.set_new_address_(new_address_))
-    
     
 NEWMODBUSBAUDRATE_SCHEMA = cv.Schema(
     {
@@ -266,13 +263,11 @@ NEWMODBUSBAUDRATE_SCHEMA = cv.Schema(
         cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
     }
 )
-
 @automation.register_action(
     "jsy193.new_modbus_baudrate",
     NewModbusBaudrateAction,
     NEWMODBUSBAUDRATE_SCHEMA,
 )
-
 async def newmodbusbaudrate_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
