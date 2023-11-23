@@ -6,15 +6,23 @@ namespace jsy193 {
 
 static const char *const TAG = "jsy193";
 
-static const uint8_t JSY193_CMD_READ_IN_REGISTERS = 0x03;
+static const uint8_t JSY193_CMD_READ_IN_REGISTERS = 0x03;   // multiple registers
 static const uint8_t JSY193_CMD_WRITE_IN_REGISTERS = 0x10;
-static const uint16_t JSY193_REGISTER_START = 0x0100;
+static const uint16_t JSY193_REGISTER_SETTINGS_START = 0x0004;
+static const uint16_t JSY193_REGISTER_DATA_START = 0x0100;
 static const uint8_t JSY193_RESET_RESET_ENERGY1_LB = 0x04; // 0x0104;
 static const uint8_t JSY193_RESET_RESET_ENERGY2_LB = 0x0E; // 0x010E;
 static const uint8_t JSY193_REGISTER_COUNT = 20;  // 20x 16-bit registers
 
+
+void JSY193::setup() { 
+  ESP_LOGCONFIG(TAG, "Setting up JSY193...");
+  this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_SETTINGS_START , 1);
+}
+
+
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
-  if (data.size() < JSY193_REGISTER_COUNT*2) {
+  if ((self->read_data_ == true) | (data.size() != JSY193_REGISTER_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY193 data!");
     return;
   }
@@ -25,83 +33,90 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   auto jsy193_get_32bit = [&](size_t i) -> uint32_t {
     return (uint32_t(jsy193_get_16bit(i + 0)) << 16) | (uint32_t(jsy193_get_16bit(i + 2)) << 0);
   };
+  if (self->read_data_ == false){
+	this->current_address_ = data[0];  
+	this->current_baudrate_= data[1];
+	uint8_t current_modbus_baudrate = data[1];
+	ESP_LOGD(TAG, "JSY193: Address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
+	self->read_data_ = true;
+  }
+  else{
+    uint16_t raw_voltage = jsy193_get_16bit(0);
+    float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
 
-  uint16_t raw_voltage = jsy193_get_16bit(0);
-  float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
-
-  uint16_t raw_sign = jsy193_get_16bit(6); //0 for positive, 1 for negative 
+    uint16_t raw_sign = jsy193_get_16bit(6); //0 for positive, 1 for negative 
   
-  uint16_t raw_current = jsy193_get_16bit(2);  
-  float current1 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // min -655.35 A, max 655.35 A
+    uint16_t raw_current = jsy193_get_16bit(2);  
+    float current1 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // min -655.35 A, max 655.35 A
   
-  uint16_t raw_power   = jsy193_get_16bit(4);
-  float power1 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // min 65535 W max 65535 W
+    uint16_t raw_power   = jsy193_get_16bit(4);
+    float power1 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // min 65535 W max 65535 W
     
-  float pos_energy1 = static_cast<float>(jsy193_get_32bit(8))/100.0f; // max 42 949 673 kWh
-  float neg_energy1 = static_cast<float>(jsy193_get_32bit(12))/100.0f; // max 42 949 673 kWh
+    float pos_energy1 = static_cast<float>(jsy193_get_32bit(8))/100.0f; // max 42 949 673 kWh
+    float neg_energy1 = static_cast<float>(jsy193_get_32bit(12))/100.0f; // max 42 949 673 kWh
 
-  uint16_t raw_power_factor = jsy193_get_16bit(16);
-  float power_factor1 = raw_power_factor / 1000.0f;  // max 65.535
+    uint16_t raw_power_factor = jsy193_get_16bit(16);
+    float power_factor1 = raw_power_factor / 1000.0f;  // max 65.535
 
-  uint16_t raw_frequency = jsy193_get_16bit(18);
-  float frequency1 = raw_frequency / 100.0f;  // max 655.35 Hz
+    uint16_t raw_frequency = jsy193_get_16bit(18);
+    float frequency1 = raw_frequency / 100.0f;  // max 655.35 Hz
   
-  
-  raw_voltage = jsy193_get_16bit(20);
-  float voltage2 = raw_voltage / 100.0f;  // max 655.35 V
+    raw_voltage = jsy193_get_16bit(20);
+    float voltage2 = raw_voltage / 100.0f;  // max 655.35 V
 
-  raw_sign = jsy193_get_16bit(26); //0 for positive, 1 for negative 
+    raw_sign = jsy193_get_16bit(26); //0 for positive, 1 for negative 
   
-  raw_current = jsy193_get_16bit(22);  
-  float current2 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // min -655.35 A, max 655.35 A 
+    raw_current = jsy193_get_16bit(22);  
+    float current2 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // min -655.35 A, max 655.35 A 
   
-  raw_power   = jsy193_get_16bit(24);
-  float power2 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // min 65535 W max 65535 W
+    raw_power   = jsy193_get_16bit(24);
+    float power2 = (1 - raw_sign)*raw_power - raw_sign*raw_power;  // min 65535 W max 65535 W
     
-  float pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/100.0f; // max 42 949 673 kWh
-  float neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/100.0f; // max 42 949 673 kWh
+    float pos_energy2 = static_cast<float>(jsy193_get_32bit(28))/100.0f; // max 42 949 673 kWh
+    float neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/100.0f; // max 42 949 673 kWh
 
-  raw_power_factor = jsy193_get_16bit(36);
-  float power_factor2 = raw_power_factor / 1000.0f;  // max 65.535
+    raw_power_factor = jsy193_get_16bit(36);
+    float power_factor2 = raw_power_factor / 1000.0f;  // max 65.535
 
-  raw_frequency = jsy193_get_16bit(38);
-  float frequency2 = raw_frequency / 100.0f;     // max 655.35 Hz
+    raw_frequency = jsy193_get_16bit(38);
+    float frequency2 = raw_frequency / 100.0f;     // max 655.35 Hz
 
   
-  ESP_LOGD(TAG, "JSY193: V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
-           pos_energy1, neg_energy1, frequency1, power_factor1, voltage2, current2, power2, pos_energy2, neg_energy2, frequency2, power_factor2);
-  if (this->voltage1_sensor_ != nullptr)
-    this->voltage1_sensor_->publish_state(voltage1);
-  if (this->current1_sensor_ != nullptr)
-    this->current1_sensor_->publish_state(current1);
-  if (this->power1_sensor_ != nullptr)
-    this->power1_sensor_->publish_state(power1);
-  if (this->pos_energy1_sensor_ != nullptr)
-    this->pos_energy1_sensor_->publish_state(pos_energy1);
-  if (this->neg_energy1_sensor_ != nullptr)
-    this->neg_energy1_sensor_->publish_state(neg_energy1);
-  if (this->frequency1_sensor_ != nullptr)
-    this->frequency1_sensor_->publish_state(frequency1);
-  if (this->power_factor1_sensor_ != nullptr)
-    this->power_factor1_sensor_->publish_state(power_factor1);
+    ESP_LOGD(TAG, "JSY193: V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
+             pos_energy1, neg_energy1, frequency1, power_factor1, voltage2, current2, power2, pos_energy2, neg_energy2, frequency2, power_factor2);
+    if (this->voltage1_sensor_ != nullptr)
+      this->voltage1_sensor_->publish_state(voltage1);
+    if (this->current1_sensor_ != nullptr)
+      this->current1_sensor_->publish_state(current1);
+    if (this->power1_sensor_ != nullptr)
+      this->power1_sensor_->publish_state(power1);
+    if (this->pos_energy1_sensor_ != nullptr)
+      this->pos_energy1_sensor_->publish_state(pos_energy1);
+    if (this->neg_energy1_sensor_ != nullptr)
+      this->neg_energy1_sensor_->publish_state(neg_energy1);
+    if (this->frequency1_sensor_ != nullptr)
+      this->frequency1_sensor_->publish_state(frequency1);
+    if (this->power_factor1_sensor_ != nullptr)
+      this->power_factor1_sensor_->publish_state(power_factor1);
   
-  if (this->voltage2_sensor_ != nullptr)
-    this->voltage2_sensor_->publish_state(voltage2);
-  if (this->current2_sensor_ != nullptr)
-    this->current2_sensor_->publish_state(current2);
-  if (this->power2_sensor_ != nullptr)
-    this->power2_sensor_->publish_state(power2);
-  if (this->pos_energy2_sensor_ != nullptr)
-    this->pos_energy2_sensor_->publish_state(pos_energy2);
-  if (this->neg_energy2_sensor_ != nullptr)
-    this->neg_energy2_sensor_->publish_state(neg_energy2);
-  if (this->frequency2_sensor_ != nullptr)
-    this->frequency2_sensor_->publish_state(frequency2);
-  if (this->power_factor2_sensor_ != nullptr)
-    this->power_factor2_sensor_->publish_state(power_factor2);
+    if (this->voltage2_sensor_ != nullptr)
+      this->voltage2_sensor_->publish_state(voltage2);
+    if (this->current2_sensor_ != nullptr)
+      this->current2_sensor_->publish_state(current2);
+    if (this->power2_sensor_ != nullptr)
+      this->power2_sensor_->publish_state(power2);
+    if (this->pos_energy2_sensor_ != nullptr)
+      this->pos_energy2_sensor_->publish_state(pos_energy2);
+    if (this->neg_energy2_sensor_ != nullptr)
+      this->neg_energy2_sensor_->publish_state(neg_energy2);
+    if (this->frequency2_sensor_ != nullptr)
+      this->frequency2_sensor_->publish_state(frequency2);
+    if (this->power_factor2_sensor_ != nullptr)
+      this->power_factor2_sensor_->publish_state(power_factor2);
+  }
 }
 
-void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_START , JSY193_REGISTER_COUNT); }
+void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_COUNT); }
 
 void JSY193::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY193:");
@@ -122,6 +137,15 @@ void JSY193::dump_config() {
   LOG_SENSOR("", "Frequency2", this->frequency2_sensor_);
   LOG_SENSOR("", "Power Factor2", this->power_factor2_sensor_);
 }
+
+void JSY193::change_modbus_address_(uint8_t new_address) {
+		
+}
+
+void JSY193::change_modbus_baudrate_(uint8_t new_baudrate) {
+		
+}
+
 
 void JSY193::reset_energy1_() {
   std::vector<uint8_t> cmd;

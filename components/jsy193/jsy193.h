@@ -10,8 +10,8 @@
 namespace esphome {
 namespace jsy193 {
 
-template<typename... Ts> class ResetEnergy1Action;
-template<typename... Ts> class ResetEnergy2Action;
+// template<typename... Ts> class ResetEnergy1Action;
+// template<typename... Ts> class ResetEnergy2Action;
 
 class JSY193 : public PollingComponent, public modbus::ModbusDevice {
  public:
@@ -30,8 +30,10 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   void set_neg_energy2_sensor(sensor::Sensor *neg_energy2_sensor) { neg_energy2_sensor_ = neg_energy2_sensor; }
   void set_frequency2_sensor(sensor::Sensor *frequency2_sensor) { frequency2_sensor_ = frequency2_sensor; }
   void set_power_factor2_sensor(sensor::Sensor *power_factor2_sensor) { power_factor2_sensor_ = power_factor2_sensor; }
+  
 
-
+  void setup() override;
+  
   void update() override;
 
   void on_modbus_data(const std::vector<uint8_t> &data) override;
@@ -40,9 +42,22 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   
   void reset_energy1_();
   void reset_energy2_();
+  void change_modbus_address_(uint8_t new_address);
+  void change_modbus_baudrate_(uint8_t new_baudrate);
 
  protected:
   template<typename... Ts> friend class ResetEnergyAction;
+  
+  bool read_data_ = false;
+  uint8_t new_address_ = 0x01;
+  uint8_t new_baudrate_ = 0x06;
+ 
+  uint8_t current_address_ = 0x01;
+  uint8_t current_baudrate_ = 0x06;
+ 
+  void set_new_address_(uint8_t new_address);
+  void set_new_baudrate_(uint8_t new_baudrate);
+  
   sensor::Sensor *voltage1_sensor_{nullptr};
   sensor::Sensor *current1_sensor_{nullptr};
   sensor::Sensor *power1_sensor_{nullptr};
@@ -63,23 +78,46 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
 
 template<typename... Ts> class ResetEnergy1Action : public Action<Ts...> {
  public:
-  ResetEnergy1Action(JSY193 *jsy193) : jsy193_(jsy193) {}
+  ResetEnergy1Action(JSY193 *parent) : parent_(parent) {}
 
-  void play(Ts... x) override { this->jsy193_->reset_energy1_(); }
+  void play(Ts... x) override { this->parent_->reset_energy1_(); }
   
  protected:
- JSY193 *jsy193_;
+ JSY193 *parent_;
 };
   
 template<typename... Ts> class ResetEnergy2Action : public Action<Ts...> {
  public:
-  ResetEnergy2Action(JSY193 *jsy193) : jsy193_(jsy193) {}
+  ResetEnergy2Action(JSY193 *parent) : parent_(parent) {}
 
-  void play(Ts... x) override { this->jsy193_->reset_energy2_(); }  
+  void play(Ts... x) override { this->parent_->reset_energy2_(); }  
 
  protected:
-  JSY193 *jsy193_;
+  JSY193 *parent_;
 };
+
+template<typename... Ts> class NewModbusAddressAction : public Action<Ts...> {
+ public:
+  NewModbusAddressAction(JSY193 *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(int, new_address)
+
+  void play(Ts... x) override { this->parent_->change_modbus_address_(this->new_address_.value(x...)); }
+
+ protected:
+  JSY *parent_;
+};
+
+template<typename... Ts> class NewModbusBaudRateAction : public Action<Ts...> {
+ public:
+  NewModbusBaudRateAction(JSY193 *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(int, new_baudrate)
+
+  void play(Ts... x) override { this->parent_->change_modbus_baudrate_(this->new_baudrate_.value(x...)); }
+
+ protected:
+  JSY *parent_;
+};
+
 
 }  // namespace jsy193
 }  // namespace esphome
