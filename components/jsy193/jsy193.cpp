@@ -22,7 +22,7 @@ void JSY193::setup() {
 
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
-  if ((self->read_data_ == true) | (data.size() != JSY193_REGISTER_COUNT*2)) {
+  if ((this->read_data_ == true) | (data.size() != JSY193_REGISTER_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY193 data!");
     return;
   }
@@ -33,12 +33,12 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   auto jsy193_get_32bit = [&](size_t i) -> uint32_t {
     return (uint32_t(jsy193_get_16bit(i + 0)) << 16) | (uint32_t(jsy193_get_16bit(i + 2)) << 0);
   };
-  if (self->read_data_ == false){
+  if (this->read_data_ == false){
 	this->current_address_ = data[0];  
 	this->current_baudrate_= data[1];
 	uint8_t current_modbus_baudrate = data[1];
 	ESP_LOGD(TAG, "JSY193: Address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
-	self->read_data_ = true;
+	this->read_data_ = true;
   }
   else{
     uint16_t raw_voltage = jsy193_get_16bit(0);
