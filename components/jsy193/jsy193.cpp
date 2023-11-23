@@ -36,7 +36,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   if (this->read_data_ == false){
 	this->current_address_ = data[0];  
 	this->current_baudrate_= data[1];
-	ESP_LOGD(TAG, "JSY193: Address=%f, baudrate = %f", this->current_address_, this->current_baudrate_);
+	ESP_LOGD(TAG, "JSY193: Address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
 	this->read_data_ = true;
   }
   else{
@@ -150,8 +150,8 @@ void JSY193::reset_energy1_() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-  cmd.push_back(0x00);  // 0x01
-  cmd.push_back(0x0C); // JSY193_RESET_RESET_ENERGY1_LB
+  cmd.push_back(0x01);  // 0x01  0x00
+  cmd.push_back(JSY193_RESET_RESET_ENERGY1_LB); // JSY193_RESET_RESET_ENERGY1_LB 0x0C
   cmd.push_back(0x00);
   cmd.push_back(0x02);
   cmd.push_back(0x04);
@@ -167,8 +167,8 @@ void JSY193::reset_energy2_() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-  cmd.push_back(0x00); // 0x01
-  cmd.push_back(0x0C); // JSY193_RESET_RESET_ENERGY2_LB
+  cmd.push_back(0x01); // 0x01 0x00
+  cmd.push_back(JSY193_RESET_RESET_ENERGY2_LB); // JSY193_RESET_RESET_ENERGY2_LB 0x0C
   cmd.push_back(0x00);
   cmd.push_back(0x02);
   cmd.push_back(0x04);
