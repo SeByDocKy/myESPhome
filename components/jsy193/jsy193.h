@@ -102,8 +102,8 @@ template<typename... Ts> class NewModbusAddressAction : public Action<Ts...>, pu
   TEMPLATABLE_VALUE(int, new_address)
 
   void play(Ts... x) override { 
-    auto new_address = this->new_address_.value(x...);
-    this->parent_->change_modbus_address_(new_address); 
+    // auto new_address = this->new_address_.value(x...);
+    this->parent_->change_modbus_address_(this->new_address_.value(x...)); 
 	}
 
 /*
