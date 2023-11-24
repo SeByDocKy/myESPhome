@@ -1,3 +1,5 @@
+# https://github.com/esphome/esphome/blob/dev/esphome/components/grove_tb6612fng/__init__.py#L176
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
@@ -44,6 +46,8 @@ ICON_FREQUENCY = "mdi:sine-wave"
 
 CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = ["modbus"]
+
+MULTI_CONF = True
 
 jsy193_ns = cg.esphome_ns.namespace("jsy193")
 JSY193 = jsy193_ns.class_("JSY193", cg.PollingComponent, modbus.ModbusDevice)
