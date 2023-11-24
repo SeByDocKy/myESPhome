@@ -241,7 +241,7 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
 NEWMODBUSADDRESS_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.use_id(JSY193),
-        cv.Required(CONF_NEW_ADDRESS): cv.templatable(int), #cv.int_range(min=1, max=255)
+        cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)), 
     }
 )
 @automation.register_action(
@@ -252,7 +252,7 @@ NEWMODBUSADDRESS_SCHEMA = cv.Schema(
 async def newmodbusaddress_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
-    new_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int)
+    new_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, cg.uint16)  #int
     return cg.add(var.set_new_address_(new_address_))
     
 NEWMODBUSBAUDRATE_SCHEMA = cv.Schema(
