@@ -96,7 +96,7 @@ template<typename... Ts> class ResetEnergy2Action : public Action<Ts...> {
   JSY193 *parent_;
 };
 
-template<typename... Ts> class NewModbusAddressAction : public Action<Ts...> {
+template<typename... Ts> class NewModbusAddressAction : public Action<Ts...>, public Parented<JSY193> {
  public:
   NewModbusAddressAction(JSY193 *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(int, new_address)
