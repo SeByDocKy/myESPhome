@@ -270,5 +270,5 @@ async def newmodbusbaudrate_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
     new_baudrate_ = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
-    return cg.add(var.set_new_baudrate_(new_baudrate_))    
+    return cg.add(var.set_new_baudrate(new_baudrate_))    
     
