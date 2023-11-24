@@ -98,13 +98,18 @@ template<typename... Ts> class ResetEnergy2Action : public Action<Ts...> {
 
 template<typename... Ts> class NewModbusAddressAction : public Action<Ts...>, public Parented<JSY193> {
  public:
-  NewModbusAddressAction(JSY193 *parent) : parent_(parent) {}
+  // NewModbusAddressAction(JSY193 *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(int, new_address)
 
-  void play(Ts... x) override { this->parent_->change_modbus_address_(this->new_address_.value(x...)); }
+  void play(Ts... x) override { 
+    auto new_address = this->new_address_.value(x...);
+    this->parent_->change_modbus_address_(new_address); 
+	}
 
+/*
  protected:
   JSY193 *parent_;
+*/  
 };
 
 template<typename... Ts> class NewModbusBaudRateAction : public Action<Ts...> {
