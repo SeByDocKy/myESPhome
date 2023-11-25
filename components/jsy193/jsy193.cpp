@@ -28,7 +28,7 @@ void JSY193::setup() {
 }
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
-  if ((data.size() < JSY193_REGISTER_COUNT*2)) {   // (this->read_data_ == true) | 
+  if ((this->read_data_ == true) & (data.size() < JSY193_REGISTER_COUNT*2)) {   // (this->read_data_ == true) | 
     ESP_LOGW(TAG, "Invalid size for JSY193 data!");
     return;
   }
