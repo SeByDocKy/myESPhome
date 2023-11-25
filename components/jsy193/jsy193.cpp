@@ -23,9 +23,7 @@ void JSY193::setup() {
   cmd.push_back(JSY193_CMD_READ_IN_REGISTERS);
   cmd.push_back(0x00);  
   cmd.push_back(0x04);
-  cmd.push_back(0x00);
-  cmd.push_back(0x01); 
-  cmd.push_back(0x02);
+  cmd.push_back(0x01);
   this->send_raw(cmd);
 }
 
