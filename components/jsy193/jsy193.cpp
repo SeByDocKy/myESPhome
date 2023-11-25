@@ -17,7 +17,15 @@ static const uint8_t JSY193_REGISTER_COUNT = 20;  // 20x 16-bit registers
 void JSY193::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY193...");
   this->read_data_ = false;
-  this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_SETTINGS_START , 1);
+  // this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_SETTINGS_START , 1);
+  cmd.push_back(0x00); // this->address_
+  cmd.push_back(JSY193_CMD_READ_IN_REGISTERS);
+  cmd.push_back(0x00);  
+  cmd.push_back(0x04);
+  cmd.push_back(0x00);
+  cmd.push_back(0x01); 
+  cmd.push_back(0x02);
+  this->send_raw(cmd);
 }
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
