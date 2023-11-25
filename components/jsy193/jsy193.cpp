@@ -19,7 +19,7 @@ void JSY193::setup() {
   this->read_data_ = false;
   // this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_SETTINGS_START , 1);
   std::vector<uint8_t> cmd;
-  cmd.push_back(0x00); // this->address_
+  cmd.push_back(this->address_); //0x00 
   cmd.push_back(JSY193_CMD_READ_IN_REGISTERS);
   cmd.push_back(0x00);  
   cmd.push_back(0x04);
