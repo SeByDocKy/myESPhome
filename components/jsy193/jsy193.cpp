@@ -159,7 +159,7 @@ void JSY193::change_modbus_address_(uint8_t new_address) {
   cmd.push_back(0x02);
   
   cmd.push_back(new_address);
-  cmd.push_back(0x06);  // this->current_baudrate_
+  cmd.push_back(this->current_baudrate_);  // this->current_baudrate_
   
   this->send_raw(cmd);
   
@@ -175,7 +175,7 @@ void JSY193::change_modbus_baudrate_(uint8_t new_baudrate) {
   cmd.push_back(0x01); 
   cmd.push_back(0x02);
   
-  cmd.push_back(0x01); // this->current_address_
+  cmd.push_back(this->current_address_); // this->current_address_
   cmd.push_back(new_baudrate);  
   
   this->send_raw(cmd);
