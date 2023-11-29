@@ -255,7 +255,7 @@ async def changeaddress_to_code(config, action_id, template_arg, args):
 	
     template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
     cg.add(var.set_address(template_address))
-	return var
+    return var
     
 @automation.register_action(
     "jsy193.change_baudrate",
@@ -273,4 +273,4 @@ async def changebaudrate_to_code(config, action_id, template_arg, args):
 	
     template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
     cg.add(var.set_baudrate(template_baudrate))
-	return var
+    return var
