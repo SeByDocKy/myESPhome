@@ -251,7 +251,7 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
 )
 async def changeaddress_to_code(config, action_id, template_arg, args):
     parent = await cg.get_getvariable(config[CONF_ID])
-	var = cg.new_Pvariable(action_id, template_arg , parent)
+    var = cg.new_Pvariable(action_id, template_arg , parent)
     # await cg.register_parented(var , config[CONF_ID])
 	
     template_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
