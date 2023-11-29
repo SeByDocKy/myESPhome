@@ -39,8 +39,8 @@ CONF_VOLTAGE2 = "voltage2"
 CONF_FREQUENCY2 = "frequency2"
 CONF_POWER_FACTOR2 = "power_factor2"
 
-CONF_CHANGE_ADDRESS = "change_address"
-CONF_CHANGE_BAUDRATE = "change_baudrate"
+CONF_NEW_ADDRESS = "new_address"
+CONF_NEW_BAUDRATE = "new_baudrate"
 
 ICON_FREQUENCY = "mdi:sine-wave"
 
@@ -245,7 +245,7 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
 	cv.Schema(
         {
 		  cv.GenerateID(): cv.use_id(JSY193),
-          cv.Required(CONF_CHANGE_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)), 
+          cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)), 
 		}
 	),
 )
@@ -261,7 +261,7 @@ async def changeaddress_to_code(config, action_id, template_arg, args):
 	cv.Schema(
         {
 		  cv.GenerateID(): cv.use_id(JSY193),
-          cv.Required(CONF_CHANGE_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
+          cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
 		}
 	),
 )
