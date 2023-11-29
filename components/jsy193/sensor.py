@@ -245,7 +245,8 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
 	cv.Schema(
         {
 		  cv.GenerateID(): cv.use_id(JSY193),
-          cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)), 
+          # cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
+          cv.Required(CONF_NEW_ADDRESS): cv.int_range(min=1, max=255),		  
 		}
 	),
 )
