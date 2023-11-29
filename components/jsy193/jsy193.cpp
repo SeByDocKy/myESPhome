@@ -148,7 +148,7 @@ void JSY193::dump_config() {
   LOG_SENSOR("", "Power Factor2", this->power_factor2_sensor_);
 }
 
-void JSY193::change_address_(uint8_t new_address) {
+void JSY193::change_address(uint8_t new_address) {
   std::vector<uint8_t> cmd;
   cmd.push_back(0x00);  // broadcast address
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
@@ -165,7 +165,7 @@ void JSY193::change_address_(uint8_t new_address) {
   
 }
 
-void JSY193::change_baudrate_(uint8_t new_baudrate) {
+void JSY193::change_baudrate(uint8_t new_baudrate) {
   std::vector<uint8_t> cmd;
   cmd.push_back(0x00);  // broadcast address
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
@@ -181,7 +181,7 @@ void JSY193::change_baudrate_(uint8_t new_baudrate) {
   this->send_raw(cmd);
 }
 
-void JSY193::reset_energy1_() {
+void JSY193::reset_energy1() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
@@ -203,7 +203,7 @@ void JSY193::reset_energy1_() {
      
   this->send_raw(cmd);
 }
-void JSY193::reset_energy2_() {
+void JSY193::reset_energy2() {
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_);
   cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);

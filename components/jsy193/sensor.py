@@ -254,7 +254,7 @@ async def changeaddress_to_code(config, action_id, template_arg, args):
     await cg.register_parented(var , config[CONF_ID])
 	
     template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
-    cg.add(var.set_address_(template_address))
+    cg.add(var.set_address(template_address))
     return var
     
 @automation.register_action(
@@ -272,5 +272,5 @@ async def changebaudrate_to_code(config, action_id, template_arg, args):
     await cg.register_parented(var , config[CONF_ID])
 	
     template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
-    cg.add(var.set_baudrate_(template_baudrate))
+    cg.add(var.set_baudrate(template_baudrate))
     return var

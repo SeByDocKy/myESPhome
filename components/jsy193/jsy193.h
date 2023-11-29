@@ -40,10 +40,10 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
 
   void dump_config() override;
   
-  void reset_energy1_();
-  void reset_energy2_();
-  void change_address_(uint8_t new_address);
-  void change_baudrate_(uint8_t new_baudrate);
+  void reset_energy1();
+  void reset_energy2();
+  void change_address(uint8_t new_address);
+  void change_baudrate(uint8_t new_baudrate);
   
  /* 
   void set_address_(uint8_t new_address) {new_address_ = new_address;}
@@ -92,7 +92,7 @@ template<typename... Ts> class ResetEnergy1Action : public Action<Ts...> {
  public:
   ResetEnergy1Action(JSY193 *parent) : parent_(parent) {}
 
-  void play(Ts... x) override { this->parent_->reset_energy1_(); }
+  void play(Ts... x) override { this->parent_->reset_energy1(); }
   
  protected:
  JSY193 *parent_;
@@ -102,7 +102,7 @@ template<typename... Ts> class ResetEnergy2Action : public Action<Ts...> {
  public:
   ResetEnergy2Action(JSY193 *parent) : parent_(parent) {}
 
-  void play(Ts... x) override { this->parent_->reset_energy2_(); }  
+  void play(Ts... x) override { this->parent_->reset_energy2(); }  
 
  protected:
   JSY193 *parent_;
@@ -113,14 +113,14 @@ class ChangeAddressAction : public Action<Ts...>, public Parented<JSY193> {
  public:
   TEMPLATABLE_VALUE(uint8_t, new_address)
   
-  void play(Ts... x) override { this->parent_->change_address_(this->new_address_.value(x...)); }
+  void play(Ts... x) override { this->parent_->change_address(this->new_address_.value(x...)); }
 };
 
 template<typename... Ts> class ChangeBaudRateAction : public Action<Ts...>, public Parented<JSY193> {
  public:
   TEMPLATABLE_VALUE(uint8_t, new_baudrate)
 
-  void play(Ts... x) override { this->parent_->change_baudrate_(this->new_baudrate_.value(x...)); }
+  void play(Ts... x) override { this->parent_->change_baudrate(this->new_baudrate_.value(x...)); }
 
 };
 
