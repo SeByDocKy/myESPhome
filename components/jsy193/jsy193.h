@@ -45,10 +45,10 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   void change_address(uint8_t new_address);
   void change_baudrate(uint8_t new_baudrate);
   
- /* 
-  void set_address_(uint8_t new_address) {new_address_ = new_address;}
-  void set_baudrate_(uint8_t new_baudrate) {new_baudrate_ = new_baudrate;}
-*/
+// /* 
+  void set_address(uint8_t new_address) {new_address_ = new_address;}
+  void set_baudrate(uint8_t new_baudrate) {new_baudrate_ = new_baudrate;}
+// */
   
   
  protected:
