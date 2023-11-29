@@ -99,7 +99,7 @@ template<typename... Ts> class ResetEnergy2Action : public Action<Ts...> {
   JSY193 *parent_;
 };
 
-template<typename... Ts> class NewModbusAddressAction : public Action<Ts...>, public Parented<JSY193> {
+template<typename... Ts> class ChangeAddressAction : public Action<Ts...>, public Parented<JSY193> {
  public:
   // NewModbusAddressAction(JSY193 *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(uint8_t, new_address)
@@ -111,10 +111,10 @@ template<typename... Ts> class NewModbusAddressAction : public Action<Ts...>, pu
 */  
 };
 
-template<typename... Ts> class NewModbusBaudRateAction : public Action<Ts...>, public Parented<JSY193> {
+template<typename... Ts> class ChangeBaudRateAction : public Action<Ts...>, public Parented<JSY193> {
  public:
   // NewModbusBaudRateAction(JSY193 *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(int, new_baudrate)
+  TEMPLATABLE_VALUE(uint8_t, new_baudrate)
 
   void play(Ts... x) override { this->parent_->change_modbus_baudrate_(this->new_baudrate_.value(x...)); }
 

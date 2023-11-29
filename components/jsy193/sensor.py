@@ -39,8 +39,8 @@ CONF_VOLTAGE2 = "voltage2"
 CONF_FREQUENCY2 = "frequency2"
 CONF_POWER_FACTOR2 = "power_factor2"
 
-CONF_NEW_ADDRESS = "new_address"
-CONF_NEW_BAUDRATE = "new_baudrate"
+CONF_CHANGE_ADDRESS = "change_address"
+CONF_CHANGE_BAUDRATE = "change_baudrate"
 
 ICON_FREQUENCY = "mdi:sine-wave"
 
@@ -54,8 +54,8 @@ JSY193 = jsy193_ns.class_("JSY193", cg.PollingComponent, modbus.ModbusDevice)
 ResetEnergy1Action = jsy193_ns.class_("ResetEnergy1Action", automation.Action)
 ResetEnergy2Action = jsy193_ns.class_("ResetEnergy2Action", automation.Action)
 
-NewModbusAddressAction = jsy193_ns.class_("NewModbusAddressAction" , automation.Action)
-NewModbusBaudrateAction = jsy193_ns.class_("NewModbusBaudrateAction" , automation.Action)
+ChangeAddressAction = jsy193_ns.class_("ChangeAddressAction" , automation.Action)
+ChangeBaudrateAction = jsy193_ns.class_("ChangeBaudrateAction" , automation.Action)
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -240,20 +240,20 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
     return cg.new_Pvariable(action_id, template_arg, paren)
 
 @automation.register_action(
-    "jsy193.new_modbus_address",
-    NewModbusAddressAction,
+    "jsy193.change_address",
+    ChangeAddressAction,
 	cv.Schema(
         {
 		  cv.GenerateID(): cv.use_id(JSY193),
-          cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)), 
+          cv.Required(CONF_CHANGE_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)), 
 		}
 	),
 )
-async def newmodbusaddress_to_code(config, action_id, template_arg, args):
+async def changeaddress_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
-    new_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
-    return cg.add(var.set_new_address(new_address_))
+    template_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
+    return cg.add(var.set_address(template_address_))
     
 @automation.register_action(
     "jsy193.new_modbus_baudrate",
@@ -261,13 +261,13 @@ async def newmodbusaddress_to_code(config, action_id, template_arg, args):
 	cv.Schema(
         {
 		  cv.GenerateID(): cv.use_id(JSY193),
-          cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
+          cv.Required(CONF_CHANGE_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
 		}
 	),
 )
 async def newmodbusbaudrate_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, parent)
-    new_baudrate_ = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
-    return cg.add(var.set_new_baudrate(new_baudrate_))    
+    template_baudrate_ = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
+    return cg.add(var.set_baudrate(template_baudrate_))    
     
