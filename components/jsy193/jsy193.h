@@ -52,7 +52,7 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   
   
  protected:
-//  template<typename... Ts> friend class ResetEnergyAction;
+
 
 // /*  
   uint8_t new_address_;
@@ -88,7 +88,8 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
 
 };
 
-template<typename... Ts> class ResetEnergy1Action : public Action<Ts...> {
+template<typename... Ts> 
+class ResetEnergy1Action : public Action<Ts...> {
  public:
   ResetEnergy1Action(JSY193 *parent) : parent_(parent) {}
 
@@ -98,7 +99,8 @@ template<typename... Ts> class ResetEnergy1Action : public Action<Ts...> {
  JSY193 *parent_;
 };
   
-template<typename... Ts> class ResetEnergy2Action : public Action<Ts...> {
+template<typename... Ts> 
+class ResetEnergy2Action : public Action<Ts...> {
  public:
   ResetEnergy2Action(JSY193 *parent) : parent_(parent) {}
 
