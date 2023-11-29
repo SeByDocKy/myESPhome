@@ -253,8 +253,8 @@ async def changeaddress_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var , config[CONF_ID])
 	
-    template_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
-    return cg.add(var.set_address(template_address_))
+    template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
+    return cg.add(var.set_address(template_address))
     
 @automation.register_action(
     "jsy193.change_baudrate",
@@ -270,5 +270,5 @@ async def changebaudrate_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var , config[CONF_ID])
 	
-    template_baudrate_ = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
-    return cg.add(var.set_baudrate(template_baudrate_))    
+    template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
+    return cg.add(var.set_baudrate(template_baudrate))    
