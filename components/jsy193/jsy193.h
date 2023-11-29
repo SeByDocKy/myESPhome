@@ -111,15 +111,17 @@ template<typename... Ts> class NewModbusAddressAction : public Action<Ts...>, pu
 */  
 };
 
-template<typename... Ts> class NewModbusBaudRateAction : public Action<Ts...> {
+template<typename... Ts> class NewModbusBaudRateAction : public Action<Ts...>, public Parented<JSY193> {
  public:
-  NewModbusBaudRateAction(JSY193 *parent) : parent_(parent) {}
+  // NewModbusBaudRateAction(JSY193 *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(int, new_baudrate)
 
   void play(Ts... x) override { this->parent_->change_modbus_baudrate_(this->new_baudrate_.value(x...)); }
 
+/*  
  protected:
   JSY193 *parent_;
+*/
 };
 
 
