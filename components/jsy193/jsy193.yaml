@@ -1,0 +1,205 @@
+substitutions:
+  updates: 2s
+  modbus_throttle: 1000ms
+  name: jsy193
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: 2.0.11 #2.0.5 2.0.9
+    platform_version: 6.4.0 #4.4.0 6.2.0   
+ 
+esphome:
+  name: ${name}
+  friendly_name: ${name}
+
+
+# Enable logging
+logger:
+  #level: debug
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Jsy193 Fallback Hotspot"
+    password: "OpHFaf5UmP0c"
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [jsy193]
+    refresh: 0s
+
+uart:
+  - id: uart_0
+    tx_pin: GPIO1
+    rx_pin: GPIO03 
+    baud_rate: 9600
+    stop_bits: 1 # 2 for ESP32, 1 for ESP8266
+        
+modbus:
+   id: modbus_0
+   uart_id: uart_0
+   send_wait_time: ${modbus_throttle}
+
+# i2c: 
+#   - id: i2c_id
+#     sda: GPIO16
+#     scl: GPIO17
+
+# grove_tb6612fng:
+#   - address: 0x14
+#     id: test_motor
+
+# number:
+#   - platform: template
+#     name: ${name}_stop_channel
+#     id: stop_channel
+#     optimistic: true
+#     initial_value: 1
+#     icon: mdi:sort-numeric-variant
+#     min_value: 0
+#     max_value: 1
+#     step: 1
+#     mode: 'slider'
+#     on_value:
+#       then:
+#         - grove_tb6612fng.stop:
+#             id: test_motor
+#             #new_address: 2
+#             # address: 2
+#             channel: !lambda 'return id(stop_channel).state;'
+
+
+
+
+button:
+  - platform: template
+    name: ${name}_reset_energy1
+    id: ${name}_reset_energy1
+    icon: "mdi:emoticon-outline"
+    on_press:
+      then:
+        - jsy193.reset_energy1: 
+           id: ${name}_id
+
+  - platform: template
+    name: ${name}_reset_energy2
+    id: ${name}_reset_energy2
+    icon: "mdi:emoticon-outline"
+    on_press:
+      then:
+        - jsy193.reset_energy2: 
+           id: ${name}_id    
+
+
+number:
+  - platform: template
+    name: ${name}_new_address
+    id: new_address
+    optimistic: true
+    initial_value: 1
+    icon: mdi:sort-numeric-variant
+    min_value: 1
+    max_value: 255
+    step: 5
+    mode: 'slider'
+    on_value:
+      then:
+        # - jsy193.change_address:
+        #     id: ${name}_id
+        #     new_address: !lambda 'return id(new_address).state';
+
+        - lambda: |-
+            esphome::jsy193::JSY193 *sen =  id(${name}_id);
+            sen->change_address_(uint8_t( id(new_address).state  ));   
+            
+      
+
+select:
+
+  - platform: template
+    name: ${name}_new_baudrate
+    id: new_baudrate
+    optimistic: true
+    options:
+      - '3 - 1200 bauds'
+      - '4 - 2400 bauds'
+      - '5 - 4800 bauds'
+      - '6 - 9600 bauds'
+      - '7 - 19200 bauds'
+      - '8 - 38400 bauds'
+    initial_option: '6 - 9600 bauds'
+    restore_value: true
+    on_value:
+      then:
+         - lambda: !lambda |-
+             esphome::jsy193::JSY193 *sen =  id(${name}_id);
+             sen->change_baudrate_(uint8_t( i + 3  ));
+
+
+sensor:
+  - platform: jsy193
+    address: 1
+    current1:
+      name: ${name}_current1
+      accuracy_decimals: 2
+    voltage1:
+      name: ${name}_voltage1
+      accuracy_decimals: 2
+    power1:
+      name: ${name}_power1
+      unit_of_measurement: W
+      accuracy_decimals: 2
+    frequency1:
+      name: ${name}_frequency1
+      unit_of_measurement: Hz
+      accuracy_decimals: 2
+    power_factor1:
+      name: ${name}_power_factor1
+      accuracy_decimals: 2
+    pos_energy1:
+      name: ${name}_pos_energy1
+      unit_of_measurement: kWh
+      accuracy_decimals: 1
+    neg_energy1:
+      name: ${name}_neg_energy1
+      unit_of_measurement: kWh
+      accuracy_decimals: 1
+
+    current2:
+      name: ${name}_current2
+      accuracy_decimals: 2
+    voltage2:
+      name: ${name}_voltage2
+      accuracy_decimals: 2
+    power2:
+      name: ${name}_power2
+      unit_of_measurement: W
+      accuracy_decimals: 2
+    frequency2:
+      name: ${name}_frequency2
+      unit_of_measurement: Hz
+      accuracy_decimals: 2
+    power_factor2:
+      name: ${name}_power_factor2
+      accuracy_decimals: 2
+    pos_energy2:
+      name: ${name}_pos_energy2
+      unit_of_measurement: kWh
+      accuracy_decimals: 1
+    neg_energy2:
+      name: ${name}_neg_energy2
+      unit_of_measurement: kWh
+      accuracy_decimals: 1     
+    update_interval: ${updates}
+    modbus_id: modbus_0
+    id: ${name}_id
