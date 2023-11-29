@@ -114,13 +114,13 @@ number:
     mode: 'slider'
     on_value:
       then:
-        # - jsy193.change_address:
-        #     id: ${name}_id
-        #     new_address: !lambda 'return id(new_address).state';
+        - jsy193.change_address:
+            id: ${name}_id
+            new_address: !lambda 'return int(id(new_address).state);'
 
-        - lambda: |-
-            esphome::jsy193::JSY193 *sen =  id(${name}_id);
-            sen->change_address_(uint8_t( id(new_address).state  ));   
+        # - lambda: |-
+        #     esphome::jsy193::JSY193 *sen =  id(${name}_id);
+        #     sen->change_address_(uint8_t( id(new_address).state  ));   
             
       
 
@@ -141,9 +141,14 @@ select:
     restore_value: true
     on_value:
       then:
-         - lambda: !lambda |-
-             esphome::jsy193::JSY193 *sen =  id(${name}_id);
-             sen->change_baudrate_(uint8_t( i + 3  ));
+        #  - lambda: !lambda |-
+        #      esphome::jsy193::JSY193 *sen =  id(${name}_id);
+        #      sen->change_baudrate(uint8_t( i + 3  ));
+
+         - jsy193.change_baudrate:
+            id: ${name}_id
+            new_baudrate: !lambda 'return uint8_t( i + 3  );'
+            
 
 
 sensor:
