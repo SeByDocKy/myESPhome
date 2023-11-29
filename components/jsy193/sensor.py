@@ -55,7 +55,7 @@ ResetEnergy1Action = jsy193_ns.class_("ResetEnergy1Action", automation.Action)
 ResetEnergy2Action = jsy193_ns.class_("ResetEnergy2Action", automation.Action)
 
 ChangeAddressAction = jsy193_ns.class_("ChangeAddressAction" , automation.Action)
-ChangeBaudrateAction = jsy193_ns.class_("ChangeBaudrateAction" , automation.Action)
+ChangeBaudrateAction = jsy193_ns.class_("ChangeBaudRateAction" , automation.Action)
 
 CONFIG_SCHEMA = (
     cv.Schema(

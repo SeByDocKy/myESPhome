@@ -52,7 +52,7 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   
   
  protected:
-  template<typename... Ts> friend class ResetEnergyAction;
+//  template<typename... Ts> friend class ResetEnergyAction;
 
 // /*  
   uint8_t new_address_;
@@ -120,7 +120,8 @@ class ChangeAddressAction : public Action<Ts...> {
     JSY193 *parent_;
 };
 
-template<typename... Ts> class ChangeBaudRateAction : public Action<Ts...> {
+template<typename... Ts> 
+class ChangeBaudRateAction : public Action<Ts...> {
  public:
   ChangeBaudRateAction(JSY193 *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(uint8_t, new_baudrate)
