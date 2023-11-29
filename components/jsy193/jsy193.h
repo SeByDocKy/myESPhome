@@ -48,10 +48,10 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
  protected:
   template<typename... Ts> friend class ResetEnergyAction;
 
-/*  
+// /*  
   uint8_t new_address_;
   uint8_t new_baudrate_;
-*/
+// */
   
 // /* 
   bool read_data_ = false;
