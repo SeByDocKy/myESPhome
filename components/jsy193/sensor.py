@@ -257,7 +257,7 @@ async def changeaddress_to_code(config, action_id, template_arg, args):
     
 @automation.register_action(
     "jsy193.new_modbus_baudrate",
-    NewModbusBaudrateAction,
+    ChangeBaudrateAction,
 	cv.Schema(
         {
 		  cv.GenerateID(): cv.use_id(JSY193),
