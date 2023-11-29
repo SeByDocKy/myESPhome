@@ -42,8 +42,8 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   
   void reset_energy1_();
   void reset_energy2_();
-  void change_modbus_address_(uint8_t new_address);
-  void change_modbus_baudrate_(uint8_t new_baudrate);
+  void change_address_(uint8_t new_address);
+  void change_baudrate_(uint8_t new_baudrate);
 
  protected:
   template<typename... Ts> friend class ResetEnergyAction;
@@ -107,14 +107,14 @@ class ChangeAddressAction : public Action<Ts...>, public Parented<JSY193> {
  public:
   TEMPLATABLE_VALUE(uint8_t, new_address)
   
-  void play(Ts... x) override { this->parent_->change_modbus_address_(this->new_address_.value(x...)); }
+  void play(Ts... x) override { this->parent_->change_address_(this->new_address_.value(x...)); }
 };
 
 template<typename... Ts> class ChangeBaudRateAction : public Action<Ts...>, public Parented<JSY193> {
  public:
   TEMPLATABLE_VALUE(uint8_t, new_baudrate)
 
-  void play(Ts... x) override { this->parent_->change_modbus_baudrate_(this->new_baudrate_.value(x...)); }
+  void play(Ts... x) override { this->parent_->change_baudrate_(this->new_baudrate_.value(x...)); }
 
 };
 
