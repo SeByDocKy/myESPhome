@@ -245,14 +245,15 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
 	cv.Schema(
         {
 		  cv.GenerateID(): cv.use_id(JSY193),
-          # cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
-          cv.Required(CONF_NEW_ADDRESS): cv.int_range(min=1, max=255),		  
+          cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
 		}
 	),
 )
 async def changeaddress_to_code(config, action_id, template_arg, args):
-    parent = await cg.get_variable(config[CONF_ID])
-    var = cg.new_Pvariable(action_id, template_arg, parent)
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var , config[CONF_ID]);
+	# var = cg.new_Pvariable(action_id, template_arg, parent)
+	# parent = await cg.get_variable(config[CONF_ID])
     template_address_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
     return cg.add(var.set_address_(template_address_))
     
@@ -267,8 +268,10 @@ async def changeaddress_to_code(config, action_id, template_arg, args):
 	),
 )
 async def changebaudrate_to_code(config, action_id, template_arg, args):
-    parent = await cg.get_variable(config[CONF_ID])
-    var = cg.new_Pvariable(action_id, template_arg, parent)
+    var = cg.new_Pvariable(action_id, template_arg)
+	await cg.register_parented(var , config[CONF_ID]);
+	# var = cg.new_Pvariable(action_id, template_arg, parent)
+	# parent = await cg.get_variable(config[CONF_ID])
     template_baudrate_ = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
     return cg.add(var.set_baudrate_(template_baudrate_))    
     
