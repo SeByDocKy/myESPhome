@@ -66,8 +66,8 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
 // */
 
 // /*  
-  void set_address_(uint8_t new_address); // {new_address_ = new_address;}
-  void set_baudrate_(uint8_t new_baudrate); // {new_baudrate_ = new_baudrate;}
+  void set_newaddress_(uint8_t new_address); // {new_address_ = new_address;}
+  void set_newbaudrate_(uint8_t new_baudrate); // {new_baudrate_ = new_baudrate;}
 // */
 
   sensor::Sensor *voltage1_sensor_{nullptr};
