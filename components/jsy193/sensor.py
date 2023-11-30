@@ -254,8 +254,8 @@ async def changeaddress_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg , parent)
     # await cg.register_parented(var , config[CONF_ID])
 	
-    new_adress_ = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) 
-    cg.add(var.set_new_address(new_adress_))
+    template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int) # new_adress_
+    cg.add(var.set_new_address(template_address))
     return var
     
 @automation.register_action(
