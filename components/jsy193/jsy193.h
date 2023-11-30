@@ -36,6 +36,8 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   void reset_energy2();
   void change_address(uint8_t new_address);
   void change_baudrate(uint8_t new_baudrate);
+  uint8_t get_address(void) {return current_address_;}
+  uint8_t get_baudrate(void) {return current_baudrate_;}
     
  protected:
 
