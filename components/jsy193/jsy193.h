@@ -10,9 +10,6 @@
 namespace esphome {
 namespace jsy193 {
 
-// template<typename... Ts> class ResetEnergy1Action;
-// template<typename... Ts> class ResetEnergy2Action;
-
 class JSY193 : public PollingComponent, public modbus::ModbusDevice {
  public:
   void set_voltage1_sensor(sensor::Sensor *voltage1_sensor) { voltage1_sensor_ = voltage1_sensor; }
@@ -31,15 +28,10 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   void set_frequency2_sensor(sensor::Sensor *frequency2_sensor) { frequency2_sensor_ = frequency2_sensor; }
   void set_power_factor2_sensor(sensor::Sensor *power_factor2_sensor) { power_factor2_sensor_ = power_factor2_sensor; }
   
-
-  void setup() override;
-  
+  void setup() override;  
   void update() override;
-
   void on_modbus_data(const std::vector<uint8_t> &data) override;
-
   void dump_config() override;
-  
   void reset_energy1();
   void reset_energy2();
   void change_address(uint8_t new_address);
@@ -52,7 +44,6 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   
   
  protected:
-
 
 // /*  
   uint8_t new_address_;
@@ -85,14 +76,12 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   sensor::Sensor *neg_energy2_sensor_{nullptr};
   sensor::Sensor *frequency2_sensor_{nullptr};
   sensor::Sensor *power_factor2_sensor_{nullptr};
-
 };
 
 template<typename... Ts> 
 class ResetEnergy1Action : public Action<Ts...> {
  public:
   ResetEnergy1Action(JSY193 *parent) : parent_(parent) {}
-
   void play(Ts... x) override { this->parent_->reset_energy1(); }
   
  protected:
@@ -103,7 +92,6 @@ template<typename... Ts>
 class ResetEnergy2Action : public Action<Ts...> {
  public:
   ResetEnergy2Action(JSY193 *parent) : parent_(parent) {}
-
   void play(Ts... x) override { this->parent_->reset_energy2(); }  
 
  protected:
@@ -114,8 +102,7 @@ template<typename... Ts>
 class ChangeAddressAction : public Action<Ts...> {
  public:
   ChangeAddressAction(JSY193 *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(uint8_t, new_address)
-  
+  TEMPLATABLE_VALUE(uint8_t, new_address)  
   void play(Ts... x) override { this->parent_->change_address(this->new_address_.value(x...)); }
   
   protected:
@@ -127,13 +114,11 @@ class ChangeBaudRateAction : public Action<Ts...> {
  public:
   ChangeBaudRateAction(JSY193 *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(uint8_t, new_baudrate)
-
   void play(Ts... x) override { this->parent_->change_baudrate(this->new_baudrate_.value(x...)); }
   
   protected:
     JSY193 *parent_;
 };
-
 
 }  // namespace jsy193
 }  // namespace esphome
