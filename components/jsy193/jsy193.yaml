@@ -13,7 +13,22 @@ esp32:
 esphome:
   name: ${name}
   friendly_name: ${name}
-
+  on_boot:
+    priority: -100
+    then:
+      - delay: 4s 
+      - lambda: |-
+          uint8_t current_address, current_baudrate;
+          esphome::jsy193::JSY193 *sen =  id(${name}_id);
+          current_address = sen->get_address();
+          auto address = id(new_address).make_call();
+          address.set_value(current_address);
+          address.perform();
+          current_baudrate = sen->get_baudrate();
+          auto baudrate = id(new_baudrate).make_call();
+          baudrate.set_index(current_baudrate - 3);
+          baudrate.perform();
+ 
 
 # Enable logging
 logger:
