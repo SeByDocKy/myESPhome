@@ -41,8 +41,8 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
     
  protected:
 
-  uint8_t new_address_;
-  uint8_t new_baudrate_;
+  uint8_t new_address_ = 0x01;
+  uint8_t new_baudrate_ = 0x06;
   bool read_data_ = false;
   uint8_t current_address_ = 0x01;
   uint8_t current_baudrate_ = 0x06;
