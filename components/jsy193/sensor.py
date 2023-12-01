@@ -1,5 +1,3 @@
-# https://github.com/esphome/esphome/blob/dev/esphome/components/grove_tb6612fng/__init__.py#L176
-
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
