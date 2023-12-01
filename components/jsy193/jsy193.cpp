@@ -41,9 +41,15 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   };
 
   if (this->read_data_ == false){
-	this->current_address_ = data[0];  
-	this->current_baudrate_= data[1];
-	ESP_LOGD(TAG, "JSY193: Address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
+	if ((data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
+	  this->current_address_ = data[0];
+	  this->current_baudrate_= data[1];
+	  ESP_LOGD(TAG, "JSY193: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
+	}
+   else{
+	  ESP_LOGD(TAG, "JSY193: Read bad values from 0x04 : Address=%d, baudrate = %d", data[0], data[1]);
+   }	
+
 	this->read_data_ = true;
   }
   else{
@@ -146,31 +152,35 @@ void JSY193::dump_config() {
 }
 
 void JSY193::change_address(uint8_t new_address) {
-  std::vector<uint8_t> cmd;
-  cmd.push_back(0x00);  // broadcast address
-  cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-  cmd.push_back(0x00);  
-  cmd.push_back(0x04);
-  cmd.push_back(0x00);
-  cmd.push_back(0x01); 
-  cmd.push_back(0x02);
-  cmd.push_back(new_address);
-  cmd.push_back(this->current_baudrate_);
-  this->send_raw(cmd);
+  if ((new_address>=1) & (new_address <= 255) & (this->current_baudrate_>=3) & this->current_baudrate_ <= 8)){
+    std::vector<uint8_t> cmd;
+    cmd.push_back(0x00);  // broadcast address
+    cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
+    cmd.push_back(0x00);  
+    cmd.push_back(0x04);
+    cmd.push_back(0x00);
+    cmd.push_back(0x01); 
+    cmd.push_back(0x02);
+    cmd.push_back(new_address);
+    cmd.push_back(this->current_baudrate_);
+    this->send_raw(cmd);
+  }
 }
 
 void JSY193::change_baudrate(uint8_t new_baudrate) {
-  std::vector<uint8_t> cmd;
-  cmd.push_back(0x00);  // broadcast address
-  cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-  cmd.push_back(0x00);  
-  cmd.push_back(0x04);
-  cmd.push_back(0x00);
-  cmd.push_back(0x01); 
-  cmd.push_back(0x02);
-  cmd.push_back(this->current_address_);
-  cmd.push_back(new_baudrate);  
-  this->send_raw(cmd);
+  if ((this->current_address_>=1) & (this->current_address_ <= 255) & (new_baudrate>=3) & new_baudrate <= 8)){
+    std::vector<uint8_t> cmd;
+    cmd.push_back(0x00);  // broadcast address
+    cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
+    cmd.push_back(0x00);  
+    cmd.push_back(0x04);
+    cmd.push_back(0x00);
+    cmd.push_back(0x01); 
+    cmd.push_back(0x02);
+    cmd.push_back(this->current_address_);
+    cmd.push_back(new_baudrate);  
+    this->send_raw(cmd);
+  }
 }
 
 void JSY193::reset_energy1() {
