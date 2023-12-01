@@ -47,7 +47,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
 	  ESP_LOGD(TAG, "JSY193: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
 	}
    else{
-	  ESP_LOGD(TAG, "JSY193: Read bad values from 0x04 : Address=%d, baudrate = %d", data[0], data[1]);
+	  ESP_LOGD(TAG, "JSY193: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
    }	
 
 	this->read_data_ = true;
