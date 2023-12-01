@@ -165,6 +165,9 @@ void JSY193::change_address(uint8_t new_address) {
     cmd.push_back(this->current_baudrate_);
     this->send_raw(cmd);
   }
+  else{
+	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", new_address, this->current_baudrate_); 
+  }
 }
 
 void JSY193::change_baudrate(uint8_t new_baudrate) {
@@ -181,6 +184,10 @@ void JSY193::change_baudrate(uint8_t new_baudrate) {
     cmd.push_back(new_baudrate);  
     this->send_raw(cmd);
   }
+  else{
+	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", this->current_address_, new_baudrate); 
+  }
+  
 }
 
 void JSY193::reset_energy1() {
