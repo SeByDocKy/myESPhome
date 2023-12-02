@@ -16,12 +16,15 @@ static const uint8_t JSY193_REGISTER_DATA_COUNT = 20;  // 20 x 16-bit data regis
 
 void JSY193::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY193...");
+/*  
   this->read_data_ = false;
   read_register04();
+*/  
 }
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
-  if ((this->read_data_ == true) & (data.size() < JSY193_REGISTER_DATA_COUNT*2)) {   // (this->read_data_ == true) | 
+  // if ((this->read_data_ == true) & (data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
+  if ((data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY193 data!");
     return;
   }
@@ -33,6 +36,8 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     return (uint32_t(jsy193_get_16bit(i + 0)) << 16) | (uint32_t(jsy193_get_16bit(i + 2)) << 0);
   };
 
+  
+/*  
   if (this->read_data_ == false){
 	if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
 	  this->current_address_ = data[0];
@@ -46,7 +51,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
 	this->read_data_ = true;
   }
   else{
-	  
+*/	  
     uint16_t raw_voltage = jsy193_get_16bit(0);
     float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
 
@@ -119,7 +124,9 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
       this->frequency2_sensor_->publish_state(frequency2);
     if (this->power_factor2_sensor_ != nullptr)
       this->power_factor2_sensor_->publish_state(power_factor2);
-  } 
+/*  
+  }
+*/  
 }
 
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_DATA_COUNT); }
@@ -166,11 +173,13 @@ void JSY193::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(0x01); 
     cmd.push_back(0x02);
     cmd.push_back(new_address);
-    cmd.push_back(new_address);
+    cmd.push_back(new_baudrate);
     this->send_raw(cmd);
-  }  
+  }
+  else{
+	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", new_address_, new_baudrate); 
+  }
 }
-
 
 void JSY193::change_address(uint8_t new_address) {
   if ((new_address>=1) & (new_address <= 255) & (this->current_baudrate_>=3) & (this->current_baudrate_ <= 8)){
@@ -208,7 +217,6 @@ void JSY193::change_baudrate(uint8_t new_baudrate) {
   else{
 	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", this->current_address_, new_baudrate); 
   }
-  
 }
 
 void JSY193::reset_energy1() {
