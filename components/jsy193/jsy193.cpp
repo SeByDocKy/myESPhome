@@ -155,6 +155,23 @@ void JSY193::read_register04() {
   this->send_raw(cmd);
 }
 
+void JSY193::write_register04(uint8_t new_address , uint8_t new_baudrate) {
+  if ((new_address>=1) & (new_address <= 255) & (new_baudrate>=3) & (new_baudrate <= 8)){
+    std::vector<uint8_t> cmd;
+    cmd.push_back(0x00);  // broadcast address
+    cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
+    cmd.push_back(0x00);  
+    cmd.push_back(0x04);
+    cmd.push_back(0x00);
+    cmd.push_back(0x01); 
+    cmd.push_back(0x02);
+    cmd.push_back(new_address);
+    cmd.push_back(new_address);
+    this->send_raw(cmd);
+  }  
+}
+
+
 void JSY193::change_address(uint8_t new_address) {
   if ((new_address>=1) & (new_address <= 255) & (this->current_baudrate_>=3) & (this->current_baudrate_ <= 8)){
     std::vector<uint8_t> cmd;

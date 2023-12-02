@@ -54,6 +54,8 @@ ResetEnergy2Action = jsy193_ns.class_("ResetEnergy2Action", automation.Action)
 
 ChangeAddressAction = jsy193_ns.class_("ChangeAddressAction" , automation.Action)
 ChangeBaudrateAction = jsy193_ns.class_("ChangeBaudRateAction" , automation.Action)
+WriteCommunicationSettingAction = jsy193_ns.class_("WriteCommunicationSettingAction" , automation.Action)
+
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -269,4 +271,25 @@ async def changebaudrate_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg , parent)	
     template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
     cg.add(var.set_new_baudrate(template_baudrate))
+    return var
+
+@automation.register_action(
+    "jsy193.write_com_setting",
+    WriteCommunicationSettingAction,
+	cv.Schema(
+        {
+		  cv.GenerateID(): cv.use_id(JSY193),
+		  cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
+          cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
+		}
+	),
+)
+	
+async def writecommunicationsetting_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)	
+    template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int)
+	template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
+    cg.add(var.set_new_address(template_address))
+	cg.add(var.set_new_baudrate(template_baudrate))
     return var
