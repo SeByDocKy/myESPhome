@@ -47,7 +47,6 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     else{
 	  ESP_LOGD(TAG, "JSY193: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
     }	
-
 	this->read_data_ = true;
   }
   else{
@@ -176,7 +175,8 @@ void JSY193::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(new_address);
     cmd.push_back(new_baudrate);
     this->send_raw(cmd);
-  }
+	ESP_LOGD(TAG, "JSY193: writing values into 0x04 : Address=%d, baudrate = %d", new_address_, new_baudrate); 
+  } 
   else{
 	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", new_address_, new_baudrate); 
   }
