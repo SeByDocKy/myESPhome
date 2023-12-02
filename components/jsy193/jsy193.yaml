@@ -13,22 +13,8 @@ esp32:
 esphome:
   name: ${name}
   friendly_name: ${name}
-  on_boot:
-    priority: -100
-    then:
-      - delay: 10s 
-      - lambda: |-
-          uint8_t current_address, current_baudrate;
-          esphome::jsy193::JSY193 *sen =  id(${name}_id);
-          current_address = sen->get_address();
-          auto address = id(new_address).make_call();
-          address.set_value(current_address);
-          address.perform();
-          current_baudrate = sen->get_baudrate();
-          auto baudrate = id(new_baudrate).make_call();
-          baudrate.set_index(current_baudrate - 3);
-          baudrate.perform();
- 
+
+
 # Enable logging
 logger:
   #level: debug
@@ -64,6 +50,37 @@ modbus:
    uart_id: uart_0
    send_wait_time: ${modbus_throttle}
 
+# i2c: 
+#   - id: i2c_id
+#     sda: GPIO16
+#     scl: GPIO17
+
+# grove_tb6612fng:
+#   - address: 0x14
+#     id: test_motor
+
+# number:
+#   - platform: template
+#     name: ${name}_stop_channel
+#     id: stop_channel
+#     optimistic: true
+#     initial_value: 1
+#     icon: mdi:sort-numeric-variant
+#     min_value: 0
+#     max_value: 1
+#     step: 1
+#     mode: 'slider'
+#     on_value:
+#       then:
+#         - grove_tb6612fng.stop:
+#             id: test_motor
+#             #new_address: 2
+#             # address: 2
+#             channel: !lambda 'return id(stop_channel).state;'
+
+
+
+
 button:
   - platform: template
     name: ${name}_reset_energy1
@@ -83,6 +100,7 @@ button:
         - jsy193.reset_energy2: 
            id: ${name}_id    
 
+
 number:
   - platform: template
     name: ${name}_new_address
@@ -92,13 +110,18 @@ number:
     icon: mdi:sort-numeric-variant
     min_value: 1
     max_value: 255
-    step: 1
+    step: 5
     mode: 'slider'
     on_value:
       then:
         - jsy193.change_address:
             id: ${name}_id
             new_address: !lambda 'return int(id(new_address).state);'
+
+        # - lambda: |-
+        #     esphome::jsy193::JSY193 *sen =  id(${name}_id);
+        #     sen->change_address_(uint8_t( id(new_address).state  ));   
+            
       
 
 select:
@@ -118,10 +141,16 @@ select:
     restore_value: true
     on_value:
       then:
+        #  - lambda: !lambda |-
+        #      esphome::jsy193::JSY193 *sen =  id(${name}_id);
+        #      sen->change_baudrate(uint8_t( i + 3  ));
+
          - jsy193.change_baudrate:
             id: ${name}_id
             new_baudrate: !lambda 'return uint8_t( i + 3  );'
             
+
+
 sensor:
   - platform: jsy193
     address: 1

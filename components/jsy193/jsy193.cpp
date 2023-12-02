@@ -17,14 +17,7 @@ static const uint8_t JSY193_REGISTER_DATA_COUNT = 20;  // 20 x 16-bit data regis
 void JSY193::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY193...");
   this->read_data_ = false;
-  std::vector<uint8_t> cmd;
-  cmd.push_back(this->address_); 
-  cmd.push_back(JSY193_CMD_READ_IN_REGISTERS);
-  cmd.push_back(0x00);  
-  cmd.push_back(JSY193_REGISTER_SETTINGS_START);
-  cmd.push_back(0x00);
-  cmd.push_back(JSY193_REGISTER_SETTINGS_COUNT);
-  this->send_raw(cmd);
+  read_register04();
 }
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
@@ -149,6 +142,17 @@ void JSY193::dump_config() {
   LOG_SENSOR("", "Negative Energy2", this->neg_energy2_sensor_);
   LOG_SENSOR("", "Frequency2", this->frequency2_sensor_);
   LOG_SENSOR("", "Power Factor2", this->power_factor2_sensor_);
+}
+
+void JSY193::read_register04() {
+  std::vector<uint8_t> cmd;
+  cmd.push_back(this->address_); 
+  cmd.push_back(JSY193_CMD_READ_IN_REGISTERS);
+  cmd.push_back(0x00);  
+  cmd.push_back(JSY193_REGISTER_SETTINGS_START);
+  cmd.push_back(0x00);
+  cmd.push_back(JSY193_REGISTER_SETTINGS_COUNT);
+  this->send_raw(cmd);
 }
 
 void JSY193::change_address(uint8_t new_address) {
