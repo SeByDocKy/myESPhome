@@ -23,8 +23,8 @@ void JSY193::setup() {
 }
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
-  // if ((this->read_data_ == true) & (data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
-  if ((data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
+  if ((this->read_data_ == true) & (data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
+  //if ((data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY193 data!");
     return;
   }
@@ -37,21 +37,21 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   };
 
   
-/*  
+// /*  
   if (this->read_data_ == false){
 	if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
 	  this->current_address_ = data[0];
 	  this->current_baudrate_= data[1];
 	  ESP_LOGD(TAG, "JSY193: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
 	}
-   else{
+    else{
 	  ESP_LOGD(TAG, "JSY193: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
-   }	
+    }	
 
 	this->read_data_ = true;
   }
   else{
-*/	  
+// */	  
     uint16_t raw_voltage = jsy193_get_16bit(0);
     float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
 
@@ -124,9 +124,9 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
       this->frequency2_sensor_->publish_state(frequency2);
     if (this->power_factor2_sensor_ != nullptr)
       this->power_factor2_sensor_->publish_state(power_factor2);
-/*  
+// /*  
   }
-*/  
+// */  
 }
 
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_DATA_COUNT); }
@@ -152,6 +152,7 @@ void JSY193::dump_config() {
 }
 
 void JSY193::read_register04() {
+  this->read_data_ = false;
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_); 
   cmd.push_back(JSY193_CMD_READ_IN_REGISTERS);
