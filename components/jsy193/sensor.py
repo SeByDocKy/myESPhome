@@ -278,8 +278,8 @@ async def changebaudrate_to_code(config, action_id, template_arg, args):
     WriteCommunicationSettingAction,
 	cv.Schema(
         {
-		  cv.GenerateID(): cv.use_id(JSY193),
-		  cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
+          cv.GenerateID(): cv.use_id(JSY193),
+          cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
           cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
 		}
 	),
@@ -289,7 +289,7 @@ async def writecommunicationsetting_to_code(config, action_id, template_arg, arg
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)	
     template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int)
-	template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
+    template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
     cg.add(var.set_new_address(template_address))
-	cg.add(var.set_new_baudrate(template_baudrate))
+    cg.add(var.set_new_baudrate(template_baudrate))
     return var
