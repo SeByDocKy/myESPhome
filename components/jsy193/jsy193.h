@@ -36,8 +36,6 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   void reset_energy2();
   void read_register04();
   void write_register04(uint8_t new_address , uint8_t new_baudrate);
-  void change_address(uint8_t new_address);
-  void change_baudrate(uint8_t new_baudrate);
   uint8_t get_address(void) {return current_address_;}
   uint8_t get_baudrate(void) {return current_baudrate_;}
     
@@ -87,29 +85,6 @@ class ResetEnergy2Action : public Action<Ts...> {
 };
 
 template<typename... Ts> 
-class ChangeAddressAction : public Action<Ts...> {
- public:
-  ChangeAddressAction(JSY193 *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(uint8_t, new_address)  
-  void play(Ts... x) override { this->parent_->change_address(this->new_address_.value(x...)); }
-  
-  protected:
-    JSY193 *parent_;
-};
-
-template<typename... Ts> 
-class ChangeBaudRateAction : public Action<Ts...> {
- public:
-  ChangeBaudRateAction(JSY193 *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(uint8_t, new_baudrate)
-  void play(Ts... x) override { this->parent_->change_baudrate(this->new_baudrate_.value(x...)); }
-  
-  protected:
-    JSY193 *parent_;
-};
-
-
-template<typename... Ts> 
 class WriteCommunicationSettingAction : public Action<Ts...> {
  public:
   WriteCommunicationSettingAction(JSY193 *parent) : parent_(parent) {}
@@ -120,7 +95,6 @@ class WriteCommunicationSettingAction : public Action<Ts...> {
   protected:
     JSY193 *parent_;
 };
-
 
 }  // namespace jsy193
 }  // namespace esphome

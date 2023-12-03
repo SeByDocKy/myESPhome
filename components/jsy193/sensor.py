@@ -51,11 +51,7 @@ JSY193 = jsy193_ns.class_("JSY193", cg.PollingComponent, modbus.ModbusDevice)
 # Actions
 ResetEnergy1Action = jsy193_ns.class_("ResetEnergy1Action", automation.Action)
 ResetEnergy2Action = jsy193_ns.class_("ResetEnergy2Action", automation.Action)
-
-ChangeAddressAction = jsy193_ns.class_("ChangeAddressAction" , automation.Action)
-ChangeBaudrateAction = jsy193_ns.class_("ChangeBaudRateAction" , automation.Action)
 WriteCommunicationSettingAction = jsy193_ns.class_("WriteCommunicationSettingAction" , automation.Action)
-
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -238,40 +234,6 @@ async def to_code(config):
 async def reset_energy_to_code(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
     return cg.new_Pvariable(action_id, template_arg, paren)
-
-@automation.register_action(
-    "jsy193.change_address",
-    ChangeAddressAction,
-	cv.Schema(
-        {
-		  cv.GenerateID(): cv.use_id(JSY193),
-          cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
-		}
-	),
-)
-async def changeaddress_to_code(config, action_id, template_arg, args):
-    parent = await cg.get_variable(config[CONF_ID])
-    var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int)
-    cg.add(var.set_new_address(template_address))
-    return var
-    
-@automation.register_action(
-    "jsy193.change_baudrate",
-    ChangeBaudrateAction,
-	cv.Schema(
-        {
-		  cv.GenerateID(): cv.use_id(JSY193),
-          cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
-		}
-	),
-)
-async def changebaudrate_to_code(config, action_id, template_arg, args):
-    parent = await cg.get_variable(config[CONF_ID])
-    var = cg.new_Pvariable(action_id, template_arg , parent)	
-    template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
-    cg.add(var.set_new_baudrate(template_baudrate))
-    return var
 
 @automation.register_action(
     "jsy193.write_com_setting",

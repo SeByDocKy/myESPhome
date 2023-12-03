@@ -15,16 +15,11 @@ static const uint16_t JSY193_REGISTER_DATA_START = 0x0100;
 static const uint8_t JSY193_REGISTER_DATA_COUNT = 20;  // 20 x 16-bit data registers
 
 void JSY193::setup() { 
-  ESP_LOGCONFIG(TAG, "Setting up JSY193...");
-/*  
-  this->read_data_ = false;
-  read_register04();
-*/  
+  ESP_LOGCONFIG(TAG, "Setting up JSY193..."); 
 }
 
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   if ((this->read_data_ == true) & (data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
-  //if ((data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY193 data!");
     return;
   }
@@ -35,9 +30,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   auto jsy193_get_32bit = [&](size_t i) -> uint32_t {
     return (uint32_t(jsy193_get_16bit(i + 0)) << 16) | (uint32_t(jsy193_get_16bit(i + 2)) << 0);
   };
-
-  
-// /*  
+ 
   if (this->read_data_ == false){
 	if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
 	  this->current_address_ = data[0];
@@ -50,7 +43,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
 	this->read_data_ = true;
   }
   else{
-// */	  
+  
     uint16_t raw_voltage = jsy193_get_16bit(0);
     float voltage1 = raw_voltage / 100.0f;  // max 655.35 V
 
@@ -122,10 +115,8 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     if (this->frequency2_sensor_ != nullptr)
       this->frequency2_sensor_->publish_state(frequency2);
     if (this->power_factor2_sensor_ != nullptr)
-      this->power_factor2_sensor_->publish_state(power_factor2);
-// /*  
+      this->power_factor2_sensor_->publish_state(power_factor2); 
   }
-// */  
 }
 
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_DATA_COUNT); }
@@ -159,6 +150,7 @@ void JSY193::read_register04() {
   cmd.push_back(JSY193_REGISTER_SETTINGS_START);
   cmd.push_back(0x00);
   cmd.push_back(JSY193_REGISTER_SETTINGS_COUNT);
+  ESP_LOGD(TAG, "JSY193: reading values from 0x04 register"); 
   this->send_raw(cmd);
 }
 
@@ -174,49 +166,11 @@ void JSY193::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(0x02);
     cmd.push_back(new_address);
     cmd.push_back(new_baudrate);
+    ESP_LOGD(TAG, "JSY193: writing values into 0x04 register: address=%d, baudrate = %d", new_address_, new_baudrate); 
     this->send_raw(cmd);
-	ESP_LOGD(TAG, "JSY193: writing values into 0x04 : Address=%d, baudrate = %d", new_address_, new_baudrate); 
   } 
   else{
 	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", new_address_, new_baudrate); 
-  }
-}
-
-void JSY193::change_address(uint8_t new_address) {
-  if ((new_address>=1) & (new_address <= 255) & (this->current_baudrate_>=3) & (this->current_baudrate_ <= 8)){
-    std::vector<uint8_t> cmd;
-    cmd.push_back(0x00);  // broadcast address
-    cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-    cmd.push_back(0x00);  
-    cmd.push_back(0x04);
-    cmd.push_back(0x00);
-    cmd.push_back(0x01); 
-    cmd.push_back(0x02);
-    cmd.push_back(new_address);
-    cmd.push_back(this->current_baudrate_);
-    this->send_raw(cmd);
-  }
-  else{
-	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", new_address, this->current_baudrate_); 
-  }
-}
-
-void JSY193::change_baudrate(uint8_t new_baudrate) {
-  if ((this->current_address_>=1) & (this->current_address_ <= 255) & (new_baudrate>=3) & (new_baudrate <= 8)){
-    std::vector<uint8_t> cmd;
-    cmd.push_back(0x00);  // broadcast address
-    cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
-    cmd.push_back(0x00);  
-    cmd.push_back(0x04);
-    cmd.push_back(0x00);
-    cmd.push_back(0x01); 
-    cmd.push_back(0x02);
-    cmd.push_back(this->current_address_);
-    cmd.push_back(new_baudrate);  
-    this->send_raw(cmd);
-  }
-  else{
-	 ESP_LOGD(TAG, "JSY193: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", this->current_address_, new_baudrate); 
   }
 }
 
@@ -239,7 +193,7 @@ void JSY193::reset_energy1() {
   cmd.push_back(0x00);
   cmd.push_back(0x00);
   cmd.push_back(0x00);
-     
+  ESP_LOGD(TAG, "JSY193: reset energy1"); 
   this->send_raw(cmd);
 }
 void JSY193::reset_energy2() {
@@ -261,6 +215,7 @@ void JSY193::reset_energy2() {
   cmd.push_back(0x00);
   cmd.push_back(0x00);
   cmd.push_back(0x00);
+  ESP_LOGD(TAG, "JSY193: reset energy2"); 
   this->send_raw(cmd);
 }
 
