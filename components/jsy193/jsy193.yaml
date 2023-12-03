@@ -2,6 +2,7 @@ substitutions:
   updates: 2s
   modbus_throttle: 1000ms
   name: jsy193
+  offset_select: '2'
 
 esp32:
   board: esp32dev
@@ -13,8 +14,7 @@ esp32:
 esphome:
   name: ${name}
   friendly_name: ${name}
-
-
+   
 # Enable logging
 logger:
   #level: debug
@@ -50,42 +50,11 @@ modbus:
    uart_id: uart_0
    send_wait_time: ${modbus_throttle}
 
-# i2c: 
-#   - id: i2c_id
-#     sda: GPIO16
-#     scl: GPIO17
-
-# grove_tb6612fng:
-#   - address: 0x14
-#     id: test_motor
-
-# number:
-#   - platform: template
-#     name: ${name}_stop_channel
-#     id: stop_channel
-#     optimistic: true
-#     initial_value: 1
-#     icon: mdi:sort-numeric-variant
-#     min_value: 0
-#     max_value: 1
-#     step: 1
-#     mode: 'slider'
-#     on_value:
-#       then:
-#         - grove_tb6612fng.stop:
-#             id: test_motor
-#             #new_address: 2
-#             # address: 2
-#             channel: !lambda 'return id(stop_channel).state;'
-
-
-
-
 button:
   - platform: template
     name: ${name}_reset_energy1
     id: ${name}_reset_energy1
-    icon: "mdi:emoticon-outline"
+    icon: "mdi:button-pointer"
     on_press:
       then:
         - jsy193.reset_energy1: 
@@ -94,63 +63,72 @@ button:
   - platform: template
     name: ${name}_reset_energy2
     id: ${name}_reset_energy2
-    icon: "mdi:emoticon-outline"
+    icon: "mdi:button-pointer"
     on_press:
       then:
         - jsy193.reset_energy2: 
            id: ${name}_id    
 
+  - platform: template
+    name: ${name}_write_register04
+    id: ${name}_write_register04
+    icon: "mdi:button-pointer"
+    on_press:
+      then:
+        - jsy193.write_com_setting:
+            id: ${name}_id
+            new_address: !lambda 'return stoi(id(new_address).state);'
+            new_baudrate: !lambda |-
+              auto index = id(new_baudrate).active_index();
+              return uint8_t( index.value() + ${offset_select}  );
+          
+  - platform: template
+    name: ${name}_read_register04
+    id: ${name}_read_register04
+    icon: "mdi:button-pointer"
+    on_press:
+      then:
+        - lambda: |-
+           uint8_t current_address, current_baudrate;
+           esphome::jsy193::JSY193 *sen =  id(${name}_id);
+           sen->read_register04();
+           current_address = sen->get_address();
+           auto address = id(new_address).make_call();
+           address.set_value(std::to_string(current_address));
+           address.perform();
+           current_baudrate = sen->get_baudrate();
+           auto baudrate = id(new_baudrate).make_call();
+           baudrate.set_index(current_baudrate - ${offset_select});
+           baudrate.perform();        
 
-number:
+text:
   - platform: template
     name: ${name}_new_address
     id: new_address
     optimistic: true
-    initial_value: 1
-    icon: mdi:sort-numeric-variant
-    min_value: 1
-    max_value: 255
-    step: 5
-    mode: 'slider'
-    on_value:
-      then:
-        - jsy193.change_address:
-            id: ${name}_id
-            new_address: !lambda 'return int(id(new_address).state);'
-
-        # - lambda: |-
-        #     esphome::jsy193::JSY193 *sen =  id(${name}_id);
-        #     sen->change_address_(uint8_t( id(new_address).state  ));   
-            
-      
+    min_length: 0
+    max_length: 3
+    mode: text
+    initial_value: '   '
+    restore_value: false
 
 select:
-
   - platform: template
     name: ${name}_new_baudrate
     id: new_baudrate
     optimistic: true
     options:
+      - '              '
       - '3 - 1200 bauds'
       - '4 - 2400 bauds'
       - '5 - 4800 bauds'
       - '6 - 9600 bauds'
       - '7 - 19200 bauds'
       - '8 - 38400 bauds'
-    initial_option: '6 - 9600 bauds'
-    restore_value: true
-    on_value:
-      then:
-        #  - lambda: !lambda |-
-        #      esphome::jsy193::JSY193 *sen =  id(${name}_id);
-        #      sen->change_baudrate(uint8_t( i + 3  ));
+    initial_option: '              '
+    restore_value: false
 
-         - jsy193.change_baudrate:
-            id: ${name}_id
-            new_baudrate: !lambda 'return uint8_t( i + 3  );'
             
-
-
 sensor:
   - platform: jsy193
     address: 1
