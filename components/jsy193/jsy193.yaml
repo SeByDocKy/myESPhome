@@ -1,9 +1,11 @@
 substitutions:
+  name: jsy193
+  current_address: '1'
+  current_baud_rate: '9600'
   updates: 2s
   modbus_throttle: 1000ms
-  name: jsy193
   offset_select: '2'
-
+ 
 esp32:
   board: esp32dev
   framework:
@@ -42,7 +44,7 @@ uart:
   - id: uart_0
     tx_pin: GPIO1
     rx_pin: GPIO03 
-    baud_rate: 9600
+    baud_rate: ${current_baud_rate}
     stop_bits: 1 # 2 for ESP32, 1 for ESP8266
         
 modbus:
@@ -131,7 +133,7 @@ select:
             
 sensor:
   - platform: jsy193
-    address: 1
+    address: ${current_address}
     current1:
       name: ${name}_current1
       accuracy_decimals: 2
@@ -140,22 +142,18 @@ sensor:
       accuracy_decimals: 2
     power1:
       name: ${name}_power1
-      unit_of_measurement: W
       accuracy_decimals: 2
     frequency1:
       name: ${name}_frequency1
-      unit_of_measurement: Hz
       accuracy_decimals: 2
     power_factor1:
       name: ${name}_power_factor1
       accuracy_decimals: 2
     pos_energy1:
       name: ${name}_pos_energy1
-      unit_of_measurement: kWh
       accuracy_decimals: 1
     neg_energy1:
       name: ${name}_neg_energy1
-      unit_of_measurement: kWh
       accuracy_decimals: 1
 
     current2:
@@ -170,18 +168,15 @@ sensor:
       accuracy_decimals: 2
     frequency2:
       name: ${name}_frequency2
-      unit_of_measurement: Hz
       accuracy_decimals: 2
     power_factor2:
       name: ${name}_power_factor2
       accuracy_decimals: 2
     pos_energy2:
       name: ${name}_pos_energy2
-      unit_of_measurement: kWh
       accuracy_decimals: 1
     neg_energy2:
       name: ${name}_neg_energy2
-      unit_of_measurement: kWh
       accuracy_decimals: 1     
     update_interval: ${updates}
     modbus_id: modbus_0

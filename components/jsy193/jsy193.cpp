@@ -59,7 +59,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     float neg_energy1 = static_cast<float>(jsy193_get_32bit(12))/100.0f; // max 42 949 673 kWh
 
     uint16_t raw_power_factor = jsy193_get_16bit(16);
-    float power_factor1 = raw_power_factor / 1000.0f;  // max 65.535
+    float power_factor1 = ((1 - raw_sign)*raw_power_factor - raw_sign*raw_power_factor) / 1000.0f;  // max 65.535
 
     uint16_t raw_frequency = jsy193_get_16bit(18);
     float frequency1 = raw_frequency / 100.0f;  // max 655.35 Hz
@@ -79,7 +79,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     float neg_energy2 = static_cast<float>(jsy193_get_32bit(32))/100.0f; // max 42 949 673 kWh
 
     raw_power_factor = jsy193_get_16bit(36);
-    float power_factor2 = raw_power_factor / 1000.0f;  // max 65.535
+    float power_factor2 = ((1 - raw_sign)*raw_power_factor - raw_sign*raw_power_factor) / 1000.0f;  // max 65.535
 
     raw_frequency = jsy193_get_16bit(38);
     float frequency2 = raw_frequency / 100.0f;     // max 655.35 Hz
@@ -160,7 +160,7 @@ void JSY193::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(0x00);  // broadcast address
     cmd.push_back(JSY193_CMD_WRITE_IN_REGISTERS);
     cmd.push_back(0x00);  
-    cmd.push_back(0x04);
+    cmd.push_back(JSY193_REGISTER_SETTINGS_START);
     cmd.push_back(0x00);
     cmd.push_back(0x01); 
     cmd.push_back(0x02);
