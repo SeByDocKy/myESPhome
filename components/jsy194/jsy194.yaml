@@ -1,5 +1,5 @@
 substitutions:
-  name: jsy193
+  name: jsy194
   current_address: '1'
   current_baud_rate: '9600'
   updates: 2s
@@ -32,12 +32,12 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Jsy193 Fallback Hotspot"
+    ssid: "Jsy194 Fallback Hotspot"
     password: "OpHFaf5UmP0c"
 
 external_components:
   - source: "github://SeByDocKy/myESPhome/"
-    components: [jsy193]
+    components: [jsy194]
     refresh: 0s
 
 uart:
@@ -59,7 +59,7 @@ button:
     icon: "mdi:button-pointer"
     on_press:
       then:
-        - jsy193.reset_energy1: 
+        - jsy194.reset_energy1: 
            id: ${name}_id
 
   - platform: template
@@ -68,7 +68,7 @@ button:
     icon: "mdi:button-pointer"
     on_press:
       then:
-        - jsy193.reset_energy2: 
+        - jsy194.reset_energy2: 
            id: ${name}_id    
 
   - platform: template
@@ -77,7 +77,7 @@ button:
     icon: "mdi:button-pointer"
     on_press:
       then:
-        - jsy193.write_com_setting:
+        - jsy194.write_com_setting:
             id: ${name}_id
             new_address: !lambda 'return stoi(id(new_address).state);'
             new_baudrate: !lambda |-
@@ -92,7 +92,7 @@ button:
       then:
         - lambda: |-
            uint8_t current_address, current_baudrate;
-           esphome::jsy193::JSY193 *sen =  id(${name}_id);
+           esphome::jsy194::JSY194 *sen =  id(${name}_id);
            sen->read_register04();
            current_address = sen->get_address();
            auto address = id(new_address).make_call();
@@ -132,7 +132,7 @@ select:
 
             
 sensor:
-  - platform: jsy193
+  - platform: jsy194
     address: ${current_address}
     current1:
       name: ${name}_current1
