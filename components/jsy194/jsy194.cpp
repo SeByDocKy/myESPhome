@@ -69,20 +69,20 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
   
   
   
-    uint32_t raw_voltage = jsy194_get_32bit(32);
+    raw_voltage = jsy194_get_32bit(32);
     float voltage2 = raw_voltage / 10000.0f;  // max 429496.7295 V
 
     raw_sign = (uint32_t)jsy194_get_16bit(26); //0 for positive, 1 for negative 
   
-    uint32_t raw_current = jsy194_get_32bit(36);  
+    raw_current = jsy194_get_32bit(36);  
     float current2 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
   
-    uint32_t raw_power   = jsy194_get_32bit(40);
+    raw_power   = jsy194_get_32bit(40);
     float power2 = ((1 - raw_sign)*raw_power - raw_sign*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
     
     float pos_energy2 = static_cast<float>(jsy194_get_32bit(44))/10000.0f; // max 429496.7295 kWh
 	
-	uint32_t raw_power_factor = jsy194_get_32bit(48);
+	raw_power_factor = jsy194_get_32bit(48);
     float power_factor2 = raw_power_factor / 1000.0f;   // max 4294967.295
 	
     float neg_energy2 = static_cast<float>(jsy194_get_32bit(52))/100.0f; // max 42 949 673 kWh  
