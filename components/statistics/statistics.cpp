@@ -66,10 +66,20 @@ void STATISTICSComponent::process_new_state_(float state) {
   ESP_LOGVV(TAG, "old_state =%f, new_state = %f" , old_state, new_state);
   switch (this->method_) {
     case STATISTICS_METHODS_MIN:
-      value = std::min(new_state , old_state);
+      if (old_state != NULL){
+        value = std::min(new_state , old_state);
+      }
+     else{
+	value = new_state;
+     }
       break;
     case STATISTICS_METHODS_MAX:
-      value = std::max(new_state , old_state);
+      if (old_state != NULL){	    
+         value = std::max(new_state , old_state);
+      }
+      else{
+         value = new_state;
+      }
       break;
     case STATISTICS_METHODS_MEAN:
 	  n++;
