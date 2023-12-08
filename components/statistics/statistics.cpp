@@ -82,11 +82,9 @@ void STATISTICSComponent::process_new_state_(float state) {
       }
       break;
     case STATISTICS_METHODS_MEAN:
-      if (old_state != NULL){	    
 	n++;
 	ninv = 1.0f/n;
         value = ninv * new_state + (1 - ninv) * old_state;
-      }
       break;
   }
   ESP_LOGVV(TAG, "n = %d, value = %f" , n , value);
