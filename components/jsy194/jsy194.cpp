@@ -124,7 +124,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
   }
 }
 
-void JSY194::update() { this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*2); }
+void JSY194::update() { this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*4); }
 
 void JSY194::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY194:");
