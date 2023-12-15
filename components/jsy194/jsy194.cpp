@@ -126,16 +126,18 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
 }
 
 void JSY194::update() { 
-// this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*2); 
+  this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*1); 
+/*
   std::vector<uint8_t> cmd;
-  cmd.push_back(this->address_); 
+  cmd.push1_back(this->address_); 
   cmd.push_back(JSY194_CMD_READ_IN_REGISTERS);
   cmd.push_back(0x00);  
   cmd.push_back(JSY194_REGISTER_DATA_START_LB);
   cmd.push_back(0x00);
-  cmd.push_back(JSY194_REGISTER_SETTINGS_COUNT*1);
+  cmd.push_back(JSY194_REGISTER_SETTINGS_COUNT);
   ESP_LOGD(TAG, "JSY194: reading values from 0x0048 register"); 
-  this->send_raw(cmd);
+/  this->send_raw(cmd);
+  
 }
 
 void JSY194::dump_config() {
