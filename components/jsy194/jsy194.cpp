@@ -133,7 +133,7 @@ void JSY194::update() {
   cmd.push_back(0x00);  
   cmd.push_back(JSY194_REGISTER_DATA_START_LB);
   cmd.push_back(0x00);
-  cmd.push_back(JSY194_REGISTER_SETTINGS_COUNT*2);
+  cmd.push_back(JSY194_REGISTER_SETTINGS_COUNT*1);
   ESP_LOGD(TAG, "JSY194: reading values from 0x0048 register"); 
   this->send_raw(cmd);
 }
