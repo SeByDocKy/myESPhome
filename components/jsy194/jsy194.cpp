@@ -82,7 +82,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     ESP_LOGD(TAG, "raw sign2: %d" , raw_sign );
 */
 //    uint32_t raw_sign2 = (raw_sign & 0b0000000000000001);
-    uint32_t raw_sign1 = uint32_t(data[25] & 0b00000001);
+    uint32_t raw_sign2 = uint32_t(data[25] & 0b00000001);
 	ESP_LOGD(TAG, "sign2: %d" , raw_sign2 );
 	
     raw_current = jsy194_get_32bit(36);  
