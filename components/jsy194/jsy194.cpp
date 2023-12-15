@@ -50,10 +50,10 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     float voltage1 = raw_voltage / 10000.0f;  // max 429496.7295 V
 
     uint32_t raw_sign = (uint32_t)jsy194_get_32bit(24); //0 for positive, 1 for negative 
-    ESP_LOGD(TAG, "raw sign: %d" , raw_sign );
+    ESP_LOGD(TAG, "raw sign1: %d" , raw_sign );
 
   
-    uint32_t raw_current = jsy194_get_32bit(4);  
+    uint32_t raw_current = jsy194_get_16bit(4);  
     float current1 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
   
     uint32_t raw_power   = jsy194_get_32bit(8);
@@ -74,7 +74,8 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     float voltage2 = raw_voltage / 10000.0f;  // max 429496.7295 V
 
     raw_sign = (uint32_t)jsy194_get_16bit(26); //0 for positive, 1 for negative 
-  
+    ESP_LOGD(TAG, "raw sign2: %d" , raw_sign );
+	
     raw_current = jsy194_get_32bit(36);  
     float current2 = ((1 - raw_sign)*raw_current - raw_sign*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
   
