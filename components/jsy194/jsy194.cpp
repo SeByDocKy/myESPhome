@@ -14,6 +14,7 @@ static const uint8_t JSY194_RESET_RESET_NEG_ENERGY1_LB = 0x4D; // 0x004D;
 static const uint8_t JSY194_RESET_RESET_POS_ENERGY2_LB = 0x53; // 0x0053;
 static const uint8_t JSY194_RESET_RESET_NEG_ENERGY2_LB = 0x55; // 0x0055;
 static const uint16_t JSY194_REGISTER_DATA_START = 0x0048;
+static const uint8_t JSY194_REGISTER_DATA_START_LB = 0x48;
 static const uint8_t JSY194_REGISTER_DATA_COUNT = 14;  // 14 x 32-bit data registers
 
 void JSY194::setup() { 
@@ -124,7 +125,18 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
   }
 }
 
-void JSY194::update() { this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*4); }
+void JSY194::update() { 
+// this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*2); 
+  std::vector<uint8_t> cmd;
+  cmd.push_back(this->address_); 
+  cmd.push_back(JSY194_CMD_READ_IN_REGISTERS);
+  cmd.push_back(0x00);  
+  cmd.push_back(JSY194_REGISTER_DATA_START_LB);
+  cmd.push_back(0x00);
+  cmd.push_back(JSY194_REGISTER_SETTINGS_COUNT*2);
+  ESP_LOGD(TAG, "JSY194: reading values from 0x0048 register"); 
+  this->send_raw(cmd);
+}
 
 void JSY194::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY194:");
