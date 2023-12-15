@@ -137,7 +137,8 @@ void JSY194::update() {
   cmd.push_back(JSY194_REGISTER_SETTINGS_COUNT);
   ESP_LOGD(TAG, "JSY194: reading values from 0x0048 register"); 
   this->send_raw(cmd);
-/*  
+*/
+  
 }
 
 void JSY194::dump_config() {
