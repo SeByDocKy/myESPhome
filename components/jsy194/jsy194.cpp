@@ -70,7 +70,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
 	uint32_t raw_power_factor = jsy194_get_32bit(16);
     float power_factor1 = raw_power_factor / 1000.0f;   // max 4294967.295
 	
-    float neg_energy1 = static_cast<float>(jsy194_get_32bit(20))/100.0f; // max 42 949 673 kWh
+    float neg_energy1 = static_cast<float>(jsy194_get_32bit(20))/10000.0f; // max 42 949 673 kWh
 
     uint32_t raw_frequency = jsy194_get_32bit(28);
     float frequency1 = raw_frequency / 100.0f;  // max 655.35 Hz
@@ -97,7 +97,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
 	raw_power_factor = jsy194_get_32bit(48);
     float power_factor2 = raw_power_factor / 1000.0f;   // max 4294967.295
 	
-    float neg_energy2 = static_cast<float>(jsy194_get_32bit(52))/100.0f; // max 42 949 673 kWh  
+    float neg_energy2 = static_cast<float>(jsy194_get_32bit(52))/10000.0f; // max 42 949 673 kWh  
     
 	float frequency2 = frequency2;  // max 655.35 Hz
 	
