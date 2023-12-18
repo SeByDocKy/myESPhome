@@ -68,7 +68,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     
     float pos_energy1 = static_cast<float>(jsy194_get_32bit(12))/10000.0f; // max 429496.7295 kWh
 	
-	float raw_power_factor = static_cast<float>(jsy194_get_32bit(16))Z;
+	float raw_power_factor = static_cast<float>(jsy194_get_32bit(16));
     float power_factor1 = raw_power_factor / 1000.0f;   // max 4294967.295
 	
     float neg_energy1 = static_cast<float>(jsy194_get_32bit(20))/10000.0f; // max 42 949 673 kWh
