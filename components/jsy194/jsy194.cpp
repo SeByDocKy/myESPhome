@@ -59,7 +59,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
 
   
     uint32_t raw_current = jsy194_get_32bit(4); 
-    ESP_LOGD(TAG, "raw_current: %d" , raw_current );	
+    ESP_LOGD(TAG, "raw_current: %ld" , raw_current );	
     float current1 = ((1 - sign1)*raw_current - sign1*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
   
     uint32_t raw_power   = jsy194_get_32bit(8);
