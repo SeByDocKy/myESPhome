@@ -48,7 +48,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
  
 	float sign1 = float(data[24] & 0b00000001);
   
-    float voltage1 = static_cast<float>(jsy194_get_32bit(0)) / 10000.0f;  // max 429496.7295 V
+    float voltage1 = static_cast<float>(jsy194_get_32bit(0))/10000.0f;  // max 429496.7295 V
 
     float raw_current = static_cast<float>(jsy194_get_32bit(4)); 
     float current1 = ((1.0f - sign1)*raw_current - sign1*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
@@ -58,16 +58,16 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     
     float pos_energy1 = static_cast<float>(jsy194_get_32bit(12))/10000.0f; // max 429496.7295 kWh
 	
-    float power_factor1 = static_cast<float>(jsy194_get_32bit(16)) / 1000.0f;   // max 4294967.295
+    float power_factor1 = static_cast<float>(jsy194_get_32bit(16))/1000.0f;   // max 4294967.295
 	
     float neg_energy1 = static_cast<float>(jsy194_get_32bit(20))/10000.0f; // max 42 949 673 kWh
 
-    float frequency1 = static_cast<float>(jsy194_get_32bit(28)) / 100.0f;  // max 655.35 Hz
+    float frequency1 = static_cast<float>(jsy194_get_32bit(28))/100.0f;  // max 655.35 Hz
 
 	
     float sign2 = float(data[25] & 0b00000001);
 	
-    float voltage2 = static_cast<float>(jsy194_get_32bit(32)) / 10000.0f;  // max 429496.7295 V
+    float voltage2 = static_cast<float>(jsy194_get_32bit(32))/10000.0f;  // max 429496.7295 V
 
     raw_current = static_cast<float>(jsy194_get_32bit(36));  
     float current2 = ( (1.0f - sign2)*raw_current - sign2*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
@@ -77,7 +77,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     
     float pos_energy2 = static_cast<float>(jsy194_get_32bit(44))/10000.0f; // max 429496.7295 kWh
 	
-    float power_factor2 = static_cast<float>(jsy194_get_32bit(48)) /1000.0f;   // max 4294967.295
+    float power_factor2 = static_cast<float>(jsy194_get_32bit(48))/1000.0f;   // max 4294967.295
 	
     float neg_energy2 = static_cast<float>(jsy194_get_32bit(52))/10000.0f; // max 42 949 673 kWh  
     
@@ -120,7 +120,6 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
 
 void JSY194::update() { 
   this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*1); 
-  
 }
 
 void JSY194::dump_config() {
