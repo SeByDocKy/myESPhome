@@ -68,7 +68,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     
     float pos_energy1 = static_cast<float>(jsy194_get_32bit(12))/10000.0f; // max 429496.7295 kWh
 	
-	uint32_t raw_power_factor = jsy194_get_32bit(16);
+	float raw_power_factor = static_cast<float> jsy194_get_32bit(16);
     float power_factor1 = raw_power_factor / 1000.0f;   // max 4294967.295
 	
     float neg_energy1 = static_cast<float>(jsy194_get_32bit(20))/10000.0f; // max 42 949 673 kWh
@@ -95,12 +95,12 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     
     float pos_energy2 = static_cast<float>(jsy194_get_32bit(44))/10000.0f; // max 429496.7295 kWh
 	
-	raw_power_factor = jsy194_get_32bit(48);
-    float power_factor2 = raw_power_factor / 1000.0f;   // max 4294967.295
+	raw_power_factor = static_cast<float>jsy194_get_32bit(48);
+    float power_factor2 = raw_power_factor /1000.0f;   // max 4294967.295
 	
     float neg_energy2 = static_cast<float>(jsy194_get_32bit(52))/10000.0f; // max 42 949 673 kWh  
     
-	float frequency2 = frequency2;  // max 655.35 Hz
+	float frequency2 = frequency1;  // max 655.35 Hz
 	
 	ESP_LOGD(TAG, "V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
              pos_energy1, neg_energy1, frequency1, power_factor1, voltage2, current2, power2, pos_energy2, neg_energy2, frequency2, power_factor2);
