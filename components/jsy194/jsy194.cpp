@@ -64,7 +64,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
 //    float current1 = raw_current/10000.0f;  // min -429496.7295 A, max 429496.7295 A
     
 	uint32_t raw_power   = jsy194_get_32bit(8);
-    float power1 = ((1 - sign1)*raw_power - sign1*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
+    float power1 = ((1.0f - sign1)*raw_power - sign1*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
     
     float pos_energy1 = static_cast<float>(jsy194_get_32bit(12))/10000.0f; // max 429496.7295 kWh
 	
@@ -84,14 +84,14 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     ESP_LOGD(TAG, "raw sign2: %d" , raw_sign );
 */
 //    uint32_t raw_sign2 = (raw_sign & 0b0000000000000001);
-    uint8_t sign2 = (data[25] & 0b00000001);
+    float sign2 = float(data[25] & 0b00000001);
 	ESP_LOGD(TAG, "sign2: %d" , sign2 );
 	
     raw_current = jsy194_get_32bit(36);  
-    float current2 = ( (1 - sign2)*raw_current - sign2*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
+    float current2 = ( (1.0f - sign2)*raw_current - sign2*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
   
     raw_power   = jsy194_get_32bit(40);
-    float power2 = ((1 - sign2)*raw_power - sign2*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
+    float power2 = ((1.0f - sign2)*raw_power - sign2*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
     
     float pos_energy2 = static_cast<float>(jsy194_get_32bit(44))/10000.0f; // max 429496.7295 kWh
 	
