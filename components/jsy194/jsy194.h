@@ -32,8 +32,10 @@ class JSY194 : public PollingComponent, public modbus::ModbusDevice {
   void update() override;
   void on_modbus_data(const std::vector<uint8_t> &data) override;
   void dump_config() override;
-  void reset_energy1();
-  void reset_energy2();
+  void reset_energy1pos();
+  void reset_energy1neg();
+  void reset_energy2pos();
+  void reset_energy2neg();
   void read_register04();
   void write_register04(uint8_t new_address , uint8_t new_baudrate);
   uint8_t get_address(void) {return current_address_;}
@@ -65,20 +67,38 @@ class JSY194 : public PollingComponent, public modbus::ModbusDevice {
 };
 
 template<typename... Ts> 
-class ResetEnergy1Action : public Action<Ts...> {
+class ResetEnergy1PosAction : public Action<Ts...> {
  public:
-  ResetEnergy1Action(JSY194 *parent) : parent_(parent) {}
-  void play(Ts... x) override { this->parent_->reset_energy1(); }
+  ResetEnergy1PosAction(JSY194 *parent) : parent_(parent) {}
+  void play(Ts... x) override { this->parent_->reset_energy1pos(); }
+  
+ protected:
+ JSY194 *parent_;
+};
+template<typename... Ts> 
+class ResetEnergy1NegAction : public Action<Ts...> {
+ public:
+  ResetEnergy1NegAction(JSY194 *parent) : parent_(parent) {}
+  void play(Ts... x) override { this->parent_->reset_energy1neg(); }
   
  protected:
  JSY194 *parent_;
 };
   
 template<typename... Ts> 
-class ResetEnergy2Action : public Action<Ts...> {
+class ResetEnergy2PosAction : public Action<Ts...> {
  public:
-  ResetEnergy2Action(JSY194 *parent) : parent_(parent) {}
-  void play(Ts... x) override { this->parent_->reset_energy2(); }  
+  ResetEnergy2PosAction(JSY194 *parent) : parent_(parent) {}
+  void play(Ts... x) override { this->parent_->reset_energy2pos(); }  
+
+ protected:
+  JSY194 *parent_;
+};
+template<typename... Ts> 
+class ResetEnergy2NegAction : public Action<Ts...> {
+ public:
+  ResetEnergy2NegAction(JSY194 *parent) : parent_(parent) {}
+  void play(Ts... x) override { this->parent_->reset_energy2neg(); }  
 
  protected:
   JSY194 *parent_;

@@ -49,8 +49,10 @@ jsy194_ns = cg.esphome_ns.namespace("jsy194")
 JSY194 = jsy194_ns.class_("JSY194", cg.PollingComponent, modbus.ModbusDevice)
 
 # Actions
-ResetEnergy1Action = jsy194_ns.class_("ResetEnergy1Action", automation.Action)
-ResetEnergy2Action = jsy194_ns.class_("ResetEnergy2Action", automation.Action)
+ResetEnergy1PosAction = jsy194_ns.class_("ResetEnergy1PosAction", automation.Action)
+ResetEnergy1NegAction = jsy194_ns.class_("ResetEnergy1NegAction", automation.Action)
+ResetEnergy2PosAction = jsy194_ns.class_("ResetEnergy2PosAction", automation.Action)
+ResetEnergy2NegAction = jsy194_ns.class_("ResetEnergy2NegAction", automation.Action)
 WriteCommunicationSettingAction = jsy194_ns.class_("WriteCommunicationSettingAction" , automation.Action)
 
 CONFIG_SCHEMA = (
@@ -213,8 +215,8 @@ async def to_code(config):
         cg.add(var.set_power_factor2_sensor(sens))
 
 @automation.register_action(
-    "jsy194.reset_energy1",
-    ResetEnergy1Action,
+    "jsy194.reset_energy1pos",
+    ResetEnergy1PosAction,
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(JSY194),
@@ -222,8 +224,26 @@ async def to_code(config):
     ),
 )
 @automation.register_action(
-    "jsy194.reset_energy2",
-    ResetEnergy2Action,
+    "jsy194.reset_energy1neg",
+    ResetEnergy1NegAction,
+    maybe_simple_id(
+        {
+            cv.Required(CONF_ID): cv.use_id(JSY194),
+        }
+    ),
+)
+@automation.register_action(
+    "jsy194.reset_energy2pos",
+    ResetEnergy2PosAction,
+    maybe_simple_id(
+        {
+            cv.Required(CONF_ID): cv.use_id(JSY194),
+        }
+    ),
+)
+@automation.register_action(
+    "jsy194.reset_energy2neg",
+    ResetEnergy2NegAction,
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(JSY194),
