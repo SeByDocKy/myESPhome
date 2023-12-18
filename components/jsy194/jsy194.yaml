@@ -10,7 +10,7 @@ esp32:
   board: esp32dev
   framework:
     type: arduino
-    version: 2.0.11 #2.0.5 2.0.9
+    version: 2.0.14 #2.0.5 2.0.9
     platform_version: 6.4.0 #4.4.0 6.2.0   
  
 esphome:
@@ -45,7 +45,7 @@ uart:
     tx_pin: GPIO1
     rx_pin: GPIO03 
     baud_rate: ${current_baud_rate}
-    stop_bits: 1 # 2 for ESP32, 1 for ESP8266
+    stop_bits: 1 # 1 for ESP32, 2 for ESP8266
         
 modbus:
    id: modbus_0
@@ -59,7 +59,10 @@ button:
     icon: "mdi:button-pointer"
     on_press:
       then:
-        - jsy194.reset_energy1: 
+        - jsy194.reset_energy1pos: 
+           id: ${name}_id
+        - delay: 2s
+        - jsy194.reset_energy1neg: 
            id: ${name}_id
 
   - platform: template
@@ -68,8 +71,11 @@ button:
     icon: "mdi:button-pointer"
     on_press:
       then:
-        - jsy194.reset_energy2: 
-           id: ${name}_id    
+        - jsy194.reset_energy2pos: 
+           id: ${name}_id
+        - delay: 2s
+        - jsy194.reset_energy2neg: 
+           id: ${name}_id  
 
   - platform: template
     name: ${name}_write_register04
