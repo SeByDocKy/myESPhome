@@ -224,7 +224,8 @@ void JSY194::reset_energy2() {
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
   this->send_raw(cmdpos);
-  
+ 
+/* 
   std::vector<uint8_t> cmdneg;
   cmdneg.push_back(this->address_);
   cmdneg.push_back(JSY194_CMD_WRITE_IN_REGISTERS);
@@ -239,7 +240,8 @@ void JSY194::reset_energy2() {
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);  
   ESP_LOGD(TAG, "JSY194: reset energy2"); 
-  this->send_raw(cmdneg);
+  this->send_raw(cmdneg
+*/  
 }
 
 }  // namespace jsy194
