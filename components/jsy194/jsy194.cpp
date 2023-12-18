@@ -60,9 +60,10 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
   
     uint32_t raw_current = jsy194_get_32bit(4); 
     ESP_LOGD(TAG, "raw_current: %ld" , raw_current );	
-    float current1 = ((1 - sign1)*raw_current - sign1*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
-  
-    uint32_t raw_power   = jsy194_get_32bit(8);
+//    float current1 = ((1 - sign1)*raw_current - sign1*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
+    float current1 = raw_current/10000.0f;  // min -429496.7295 A, max 429496.7295 A
+    
+	uint32_t raw_power   = jsy194_get_32bit(8);
     float power1 = ((1 - sign1)*raw_power - sign1*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
     
     float pos_energy1 = static_cast<float>(jsy194_get_32bit(12))/10000.0f; // max 429496.7295 kWh
