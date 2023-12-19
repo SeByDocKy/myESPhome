@@ -21,7 +21,7 @@ void JSY194::setup() {
 }
 
 void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
-  if ((this->read_data_ == true) & (data.size() < JSY194_REGISTER_DATA_COUNT*4)) {
+  if ((this->read_data_ == 1) & (data.size() < JSY194_REGISTER_DATA_COUNT*4)) {
     ESP_LOGW(TAG, "Invalid size for JSY194 data!");
     return;
   }
@@ -33,54 +33,28 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     return (uint32_t(jsy194_get_16bit(i + 0)) << 16) | (uint32_t(jsy194_get_16bit(i + 2)) << 0);
   };
  
-  if (this->read_data_ == false){
-	if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
-	  this->current_address_ = data[0];
-	  this->current_baudrate_= data[1];
-	  ESP_LOGD(TAG, "JSY194: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
-	}
-    else{
-	  ESP_LOGD(TAG, "JSY194: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
-    }	
-	this->read_data_ = true;
-  }
-  else{
- 
-	float sign1 = float(data[24] & 0b00000001);
-  
+  if (this->read_data_ == 1){
+	
+    float sign1 = float(data[24] & 0b00000001);  
     float voltage1 = static_cast<float>(jsy194_get_32bit(0))/10000.0f;  // max 429496.7295 V
-
     float raw_current = static_cast<float>(jsy194_get_32bit(4)); 
-    float current1 = ((1.0f - sign1)*raw_current - sign1*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
-    
+    float current1 = ((1.0f - sign1)*raw_current - sign1*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A 
 	float raw_power   = static_cast<float>(jsy194_get_32bit(8));
-    float power1 = ((1.0f - sign1)*raw_power - sign1*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
-    
+    float power1 = ((1.0f - sign1)*raw_power - sign1*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W  
     float pos_energy1 = static_cast<float>(jsy194_get_32bit(12))/10000.0f; // max 429496.7295 kWh
-	
     float power_factor1 = static_cast<float>(jsy194_get_32bit(16))/1000.0f;   // max 4294967.295
-	
     float neg_energy1 = static_cast<float>(jsy194_get_32bit(20))/10000.0f; // max 42 949 673 kWh
-
     float frequency1 = static_cast<float>(jsy194_get_32bit(28))/100.0f;  // max 655.35 Hz
-
 	
     float sign2 = float(data[25] & 0b00000001);
-	
     float voltage2 = static_cast<float>(jsy194_get_32bit(32))/10000.0f;  // max 429496.7295 V
-
     raw_current = static_cast<float>(jsy194_get_32bit(36));  
     float current2 = ( (1.0f - sign2)*raw_current - sign2*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A
-  
     raw_power   = static_cast<float>(jsy194_get_32bit(40));
     float power2 = ((1.0f - sign2)*raw_power - sign2*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W
-    
     float pos_energy2 = static_cast<float>(jsy194_get_32bit(44))/10000.0f; // max 429496.7295 kWh
-	
     float power_factor2 = static_cast<float>(jsy194_get_32bit(48))/1000.0f;   // max 4294967.295
-	
     float neg_energy2 = static_cast<float>(jsy194_get_32bit(52))/10000.0f; // max 42 949 673 kWh  
-    
 	float frequency2 = frequency1;  // max 655.35 Hz
 	
 	ESP_LOGD(TAG, "V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
@@ -114,8 +88,65 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     if (this->frequency2_sensor_ != nullptr)
       this->frequency2_sensor_->publish_state(frequency2);
     if (this->power_factor2_sensor_ != nullptr)
-      this->power_factor2_sensor_->publish_state(power_factor2); 
+      this->power_factor2_sensor_->publish_state(power_factor2);  
+	
   }
+  else if(this->read_data_ == 2){ // read 0x04 register
+   	if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
+	  this->current_address_ = data[0];
+	  this->current_baudrate_= data[1];
+	  ESP_LOGD(TAG, "JSY194: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
+	}
+    else{
+	  ESP_LOGD(TAG, "JSY194: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
+    }	
+	this->read_data_ = 1; 
+  }
+  else if(this->read_data_ == 3){ // write 0x04 register
+   	if ( data.size() < 2){
+	  ESP_LOGD(TAG, "JSY194: failed to write new values 0x04 register with address=%d, baudrate = %d", this->new_address_, this->new_baudrate_);
+	}
+    else{
+	  ESP_LOGD(TAG, "JSY194: wrote new values into 0x04 register with address=%d, baudrate = %d", this->new_address_ , this->new_baudrate_);
+    }	
+	this->read_data_ = 1; 
+  }
+  else if(this->read_data_ == 4){ // Reset Energy1Pos
+   	if ( data.size() < 2){
+	  ESP_LOGD(TAG, "JSY194: failed to reset Energy1Pos");
+	}
+    else{
+	  ESP_LOGD(TAG, "JSY194: successfully reset Energy1Pos");
+    }	
+	this->read_data_ = 1; 
+  }
+  else if(this->read_data_ == 5){ // Reset Energy1Neg
+    if ( data.size() < 2){
+	  ESP_LOGD(TAG, "JSY194: failed to reset Energy1Neg");
+	}
+    else{
+	  ESP_LOGD(TAG, "JSY194: successfully reset Energy1Neg");
+    }	
+	this->read_data_ = 1; 
+  }
+  else if(this->read_data_ == 6){ // Reset Energy2Pos
+   	if ( data.size() < 2){
+	  ESP_LOGD(TAG, "JSY194: failed to reset Energy2Pos");
+	}
+    else{
+	  ESP_LOGD(TAG, "JSY194: successfully reset Energy2Pos");
+    }	
+	this->read_data_ = 1; 
+  }
+  else if(this->read_data_ == 7){ // Reset Energy2Neg
+    if ( data.size() < 2){
+	  ESP_LOGD(TAG, "JSY194: failed to reset Energy2Neg");
+	}
+    else{
+	  ESP_LOGD(TAG, "JSY194: successfully reset Energy2Neg");
+    }	
+	this->read_data_ = 1; 
+  }  
 }
 
 void JSY194::update() { 
@@ -143,7 +174,7 @@ void JSY194::dump_config() {
 }
 
 void JSY194::read_register04() {
-  this->read_data_ = false;
+  this->read_data_ = 2;
   std::vector<uint8_t> cmd;
   cmd.push_back(this->address_); 
   cmd.push_back(JSY194_CMD_READ_IN_REGISTERS);
@@ -157,7 +188,8 @@ void JSY194::read_register04() {
 
 void JSY194::write_register04(uint8_t new_address , uint8_t new_baudrate) {
   if ((new_address>=1) & (new_address <= 255) & (new_baudrate>=3) & (new_baudrate <= 8)){
-    std::vector<uint8_t> cmd;
+    this->read_data_ = 3;
+	std::vector<uint8_t> cmd;
     cmd.push_back(0x00);  // broadcast address
     cmd.push_back(JSY194_CMD_WRITE_IN_REGISTERS);
     cmd.push_back(0x00);  
@@ -176,8 +208,8 @@ void JSY194::write_register04(uint8_t new_address , uint8_t new_baudrate) {
 }
 
 void JSY194::reset_energy1pos() {
+  this->read_data_ = 4;
   std::vector<uint8_t> cmdpos;
-  
   cmdpos.push_back(this->address_);
   cmdpos.push_back(JSY194_CMD_WRITE_IN_REGISTERS);
   cmdpos.push_back(0x00);  
@@ -190,10 +222,11 @@ void JSY194::reset_energy1pos() {
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
-  ESP_LOGD(TAG, "JSY194: reset energy1 pos"); 
+  ESP_LOGD(TAG, "JSY194: send reset Energy1Pos command"); 
   this->send_raw(cmdpos);
 }  
-void JSY194::reset_energy1neg() {  
+void JSY194::reset_energy1neg() {
+  this->read_data_ = 5;
   std::vector<uint8_t> cmdneg;
   cmdneg.push_back(this->address_);
   cmdneg.push_back(JSY194_CMD_WRITE_IN_REGISTERS);
@@ -207,12 +240,12 @@ void JSY194::reset_energy1neg() {
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);  
-  ESP_LOGD(TAG, "JSY194: reset energy1 neg"); 
+  ESP_LOGD(TAG, "JSY194: send reset Energy1Nos command"); 
   this->send_raw(cmdneg);
 }
 void JSY194::reset_energy2pos() {
+  this->read_data_ = 6;
   std::vector<uint8_t> cmdpos;
-  
   cmdpos.push_back(this->address_);
   cmdpos.push_back(JSY194_CMD_WRITE_IN_REGISTERS);
   cmdpos.push_back(0x00);  
@@ -225,11 +258,12 @@ void JSY194::reset_energy2pos() {
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
-  ESP_LOGD(TAG, "JSY194: reset energy2 pos"); 
+  ESP_LOGD(TAG, "JSY194: send reset Energy2Pos command"); 
   this->send_raw(cmdpos);
 } 
 void JSY194::reset_energy2neg() {
 // /* 
+  this->read_data_ = 7;
   std::vector<uint8_t> cmdneg;
   cmdneg.push_back(this->address_);
   cmdneg.push_back(JSY194_CMD_WRITE_IN_REGISTERS);
@@ -243,7 +277,7 @@ void JSY194::reset_energy2neg() {
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);  
-  ESP_LOGD(TAG, "JSY194: reset energy2 neg"); 
+  ESP_LOGD(TAG, "JSY194: send reset Energy2Neg command"); 
   this->send_raw(cmdneg);
 // */  
 }
