@@ -222,7 +222,7 @@ void JSY194::reset_energy1pos() {
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
-  ESP_LOGD(TAG, "JSY194: send reset Energy1Pos command"); 
+  ESP_LOGD(TAG, "JSY194: sending reset Energy1Pos command"); 
   this->send_raw(cmdpos);
 }  
 void JSY194::reset_energy1neg() {
@@ -240,7 +240,7 @@ void JSY194::reset_energy1neg() {
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);  
-  ESP_LOGD(TAG, "JSY194: send reset Energy1Nos command"); 
+  ESP_LOGD(TAG, "JSY194: sending reset Energy1Neg command"); 
   this->send_raw(cmdneg);
 }
 void JSY194::reset_energy2pos() {
@@ -258,11 +258,10 @@ void JSY194::reset_energy2pos() {
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
-  ESP_LOGD(TAG, "JSY194: send reset Energy2Pos command"); 
+  ESP_LOGD(TAG, "JSY194: sending reset Energy2Pos command"); 
   this->send_raw(cmdpos);
 } 
 void JSY194::reset_energy2neg() {
-// /* 
   this->read_data_ = 7;
   std::vector<uint8_t> cmdneg;
   cmdneg.push_back(this->address_);
@@ -277,9 +276,8 @@ void JSY194::reset_energy2neg() {
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);  
-  ESP_LOGD(TAG, "JSY194: send reset Energy2Neg command"); 
-  this->send_raw(cmdneg);
-// */  
+  ESP_LOGD(TAG, "JSY194: sending reset Energy2Neg command"); 
+  this->send_raw(cmdneg);  
 }
 
 }  // namespace jsy194
