@@ -1,5 +1,4 @@
 #pragma once
-
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
@@ -40,10 +39,10 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   uint8_t get_baudrate(void) {return current_baudrate_;}
     
  protected:
-
+ 
+  uint8_t read_data_ = 1;
   uint8_t new_address_ = 0x01;
   uint8_t new_baudrate_ = 0x06;
-  uint8_t read_data_ = 1;
   uint8_t current_address_ = 0x01;
   uint8_t current_baudrate_ = 0x06;
 

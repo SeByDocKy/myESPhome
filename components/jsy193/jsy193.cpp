@@ -226,7 +226,7 @@ void JSY193::reset_energy2() {
   cmd.push_back(0x00);
   cmd.push_back(0x00);
   cmd.push_back(0x00);
-  ESP_LOGD(TAG, "JSY193: sending reset Energy1 command"); 
+  ESP_LOGD(TAG, "JSY193: sending reset Energy2 command"); 
   this->send_raw(cmd);
 }
 
