@@ -50,7 +50,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     if (this->current_sensor_ != nullptr)
       this->current_sensor_->publish_state(current);
     if (this->active_power_sensor_ != nullptr)
-      this->active_power_sensor_->publish_state(power);
+      this->active_power_sensor_->publish_state(active_power);
     if (this->active_energy_sensor_ != nullptr)
       this->active_energy_sensor_->publish_state(active_energy);
     if (this->power_factor_sensor_ != nullptr)
