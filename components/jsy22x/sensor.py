@@ -18,9 +18,9 @@ from esphome.const import (
     UNIT_VOLT,
     UNIT_AMPERE,
     UNIT_WATT,
-	UNIT_VOLT_AMPS,
+    UNIT_VOLT_AMPS,
     UNIT_KILOWATT_HOURS,
-	UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
+    UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
 )
 
 CONF_VOLTAGE = "voltage"
@@ -78,12 +78,12 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),
-			cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
+	    cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER_FACTOR,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
+	    cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
                 unit_of_measurement=UNIT_VOLT_AMPS,
                 icon=ICON_POWER,
                 accuracy_decimals=2,
@@ -102,8 +102,7 @@ CONFIG_SCHEMA = (
                 accuracy_decimals=1,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(CONF_ACDC_MODE, default=1): cv.int_range(min=1, max=2),
-
+	    cv.Optional(CONF_ACDC_MODE, default=1): cv.int_range(min=1, max=2),
         }
     )
     .extend(cv.polling_component_schema("60s"))
@@ -148,11 +147,10 @@ async def to_code(config):
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_frequency_sensor(sens))
     if CONF_ACDC_MODE in config:
-	    conf = config[CONF_ACDC_MODE]
+	conf = config[CONF_ACDC_MODE]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_acdc_mode_sensor(sens))
            
-
 @automation.register_action(
     "jsy22x.reset_energy",
     ResetEnergyAction,
