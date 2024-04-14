@@ -155,7 +155,7 @@ async def to_code(config):
 
 @automation.register_action(
     "jsy22x.reset_energy",
-    ResetEnergy1Action,
+    ResetEnergyAction,
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(JSY22X),
