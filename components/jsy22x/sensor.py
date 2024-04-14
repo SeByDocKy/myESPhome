@@ -113,7 +113,6 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await modbus.register_modbus_device(var, config)
-
     if CONF_VOLTAGE in config:
         conf = config[CONF_VOLTAGE]
         sens = await sensor.new_sensor(conf)
@@ -173,7 +172,7 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
           cv.GenerateID(): cv.use_id(JSY22X),
           cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
           cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
-		}
+	}
 	),
 )
 	
