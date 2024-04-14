@@ -147,7 +147,7 @@ async def to_code(config):
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_frequency_sensor(sens))
     if CONF_ACDC_MODE in config:
-	conf = config[CONF_ACDC_MODE]
+        conf = config[CONF_ACDC_MODE]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_acdc_mode_sensor(sens))
            
