@@ -107,6 +107,7 @@ CONFIG_SCHEMA = (
                 icon=ICON_NUMERIC,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
+			),	
 		}
     )
     .extend(cv.polling_component_schema("60s"))
