@@ -102,8 +102,8 @@ CONFIG_SCHEMA = (
                 accuracy_decimals=1,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_ACDC_MODE, default=1): cv.int_range(min=1, max=2),
-        }
+			# cv.Optional(CONF_ACDC_MODE, default=1): cv.int_range(min=1, max=2),
+		}
     )
     .extend(cv.polling_component_schema("60s"))
     .extend(modbus.modbus_device_schema(0x01))
@@ -113,6 +113,7 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await modbus.register_modbus_device(var, config)
+
     if CONF_VOLTAGE in config:
         conf = config[CONF_VOLTAGE]
         sens = await sensor.new_sensor(conf)
@@ -145,10 +146,10 @@ async def to_code(config):
         conf = config[CONF_FREQUENCY]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_frequency_sensor(sens))
-    if CONF_ACDC_MODE in config:
-        conf = config[CONF_ACDC_MODE]
-        sens = await sensor.new_sensor(conf)
-        cg.add(var.set_acdc_mode_sensor(sens))
+    # if CONF_ACDC_MODE in config:
+        # conf = config[CONF_ACDC_MODE]
+        # sens = await sensor.new_sensor(conf)
+        # cg.add(var.set_acdc_mode_sensor(sens))
            
 @automation.register_action(
     "jsy22x.reset_energy",
