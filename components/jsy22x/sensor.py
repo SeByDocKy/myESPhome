@@ -90,7 +90,7 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_ACTIVE_ENERGY): sensor.sensor_schema(
+            cv.Optional(CONF_REACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
                 accuracy_decimals=0,
                 device_class=DEVICE_CLASS_ENERGY,
