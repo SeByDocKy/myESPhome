@@ -78,7 +78,7 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),
-	        cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
+            cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER_FACTOR,
                 state_class=STATE_CLASS_MEASUREMENT,
