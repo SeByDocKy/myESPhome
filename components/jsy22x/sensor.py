@@ -78,12 +78,12 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),
-	    cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
+	        cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER_FACTOR,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-	    cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
+	        cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
                 unit_of_measurement=UNIT_VOLT_AMPS,
                 icon=ICON_POWER,
                 accuracy_decimals=2,
@@ -102,7 +102,7 @@ CONFIG_SCHEMA = (
                 accuracy_decimals=1,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-	    cv.Optional(CONF_ACDC_MODE, default=1): cv.int_range(min=1, max=2),
+	        cv.Optional(CONF_ACDC_MODE, default=1): cv.int_range(min=1, max=2),
         }
     )
     .extend(cv.polling_component_schema("60s"))
@@ -172,7 +172,7 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
           cv.GenerateID(): cv.use_id(JSY22X),
           cv.Required(CONF_NEW_ADDRESS): cv.templatable(cv.int_range(min=1, max=255)),
           cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
-	}
+	    }
 	),
 )
 	
