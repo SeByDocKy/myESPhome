@@ -42,7 +42,7 @@ CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = ["modbus"]
 
 jsy22x_ns = cg.esphome_ns.namespace("jsy22x")
-JSY22x = jsy22x_ns.class_("JSY22X", cg.PollingComponent, modbus.ModbusDevice)
+JSY22X = jsy22x_ns.class_("JSY22X", cg.PollingComponent, modbus.ModbusDevice)
 
 # Actions
 ResetEnergyAction = jsy22x_ns.class_("ResetEnergyAction", automation.Action)
