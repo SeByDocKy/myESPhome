@@ -32,7 +32,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
   };
  
   if (this->read_data_ == 1){
-	float raw_sign = static_cast<float>(jsy193_get_16bit(6)); //0 for positive, 1 for negative  
+    float raw_sign = static_cast<float>(jsy193_get_16bit(6)); //0 for positive, 1 for negative  
     float voltage1 = static_cast<float>(jsy193_get_16bit(0))/100.0f;  // max 655.35 V
     uint16_t raw_current = jsy193_get_16bit(2);  
     float current1 = ((1.0f - raw_sign)*raw_current - raw_sign*raw_current)/100.0f;  // min -655.35 A, max 655.35 A
