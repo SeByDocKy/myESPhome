@@ -35,26 +35,26 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     float reactive_power_direction = static_cast<float>(jsy193_get_16bit(22)); //0 for positive, 1 for negative 	
     
 	float voltage = static_cast<float>(jsy22x_get_16bit(0))/10000.0f;
-    uint16_t raw_current = jsy193_get_16bit(2);  
+    uint16_t raw_current = jsy22x_get_16bit(2);  
     float current = ((1.0f - active_power_direction)*raw_current - active_power_direction*raw_current)/10000.0f;
     // float current = static_cast<float>(jsy22x_get_16bit(2))/10000.0f;
-	uint16_t raw_active_power   = jsy193_get_16bit(4);
+	uint16_t raw_active_power   = jsy22x_get_16bit(4);
     float active_power = ((1.0f - active_power_direction)*raw_active_power - active_power_direction*raw_active_power)/10000.0f;
 	// float active_power = static_cast<float>(jsy22x_get_16bit(4))/10000.0f;
-	uint16_t raw_reactive_power   = jsy193_get_16bit(6);
+	uint16_t raw_reactive_power   = jsy22x_get_16bit(6);
 	float reactive_power = ((1.0f - reactive_power_direction)*raw_reactive_power - reactive_power_direction*raw_reactive_power)/10000.0f;
 	//float reactive_power = static_cast<float>(jsy22x_get_16bit(10))/10000.0f;
 	
-	uint16_t raw_apparent_power   = jsy193_get_16bit(8);
+	uint16_t raw_apparent_power   = jsy22x_get_16bit(8);
 	float apparent_power = ((1.0f - reactive_power_direction)*raw_apparent_power - reactive_power_direction*raw_apparent_power)/10000.0f;
     
     float power_factor = static_cast<float>(jsy22x_get_16bit(10))/1000.0f;
     float frequency = static_cast<float>(jsy22x_get_16bit(12))/100.0f;   	
 	
-	uint16_t raw_active_energy   = jsy193_get_16bit(14);
+	uint16_t raw_active_energy   = jsy22x_get_16bit(14);
 	float active_energy = ((1.0f - active_power_direction)*raw_active_energy - active_power_direction*raw_active_energy)/1000.0f;
 	// float active_energy = static_cast<float>(jsy22x_get_16bit(6))/1000.0f;
-	uint16_t raw_reactive_energy   = jsy193_get_16bit(16);
+	uint16_t raw_reactive_energy   = jsy22x_get_16bit(16);
 	float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
     // float reactive_energy = static_cast<float>(jsy22x_get_16bit(14))/1000.0f;
 		    
@@ -76,7 +76,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     if (this->current_sensor_ != nullptr)
       this->current_sensor_->publish_state(current);
     if (this->active_power_sensor_ != nullptr)
-      this->active_power_sensor_->publish_state(power);
+      this->active_power_sensor_->publish_state(active_power);
     if (this->reactive_power_sensor_ != nullptr)
       this->reactive_power_sensor_->publish_state(reactive_power);
     if (this->apparent_power_sensor_ != nullptr)
@@ -103,8 +103,6 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
       this->pos_reactive_energy_sensor_->publish_state(pos_reactive_energy);
     if (this->neg_reactive_energy_sensor_ != nullptr)
       this->neg_reactive_energy_sensor_->publish_state(neg_reactive_energy);
-  
-  
    }
   else if(this->read_data_ == 2){ // read 0x04 register
    if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
