@@ -14,13 +14,20 @@ class JSY22X : public PollingComponent, public modbus::ModbusDevice {
   void set_voltage_sensor(sensor::Sensor *voltage_sensor) { voltage_sensor_ = voltage_sensor; }
   void set_current_sensor(sensor::Sensor *current_sensor) { current_sensor_ = current_sensor; }
   void set_active_power_sensor(sensor::Sensor *active_power_sensor) { active_power_sensor_ = active_power_sensor; }
-  void set_active_energy_sensor(sensor::Sensor *active_energy_sensor) { active_energy_sensor_ = active_energy_sensor; }
-  void set_power_factor_sensor(sensor::Sensor *power_factor_sensor) { power_factor_sensor_ = power_factor_sensor; }
   void set_reactive_power_sensor(sensor::Sensor *reactive_power_sensor) { reactive_power_sensor_ = reactive_power_sensor; }
-  void set_reactive_energy_sensor(sensor::Sensor *reactive_energy_sensor) { reactive_energy_sensor_ = reactive_energy_sensor; }
+  void set_apparent_power_sensor(sensor::Sensor *apparent_power_sensor) { apparent_power_sensor_ = apparent_power_sensor; }
+  void set_power_factor_sensor(sensor::Sensor *power_factor_sensor) { power_factor_sensor_ = power_factor_sensor; }
   void set_frequency_sensor(sensor::Sensor *frequency_sensor) { frequency_sensor_ = frequency_sensor; }
+  void set_active_energy_sensor(sensor::Sensor *active_energy_sensor) { active_energy_sensor_ = active_energy_sensor; }
+  void set_reactive_energy_sensor(sensor::Sensor *reactive_energy_sensor) { reactive_energy_sensor_ = reactive_energy_sensor; }
   void set_acdc_mode_sensor(sensor::Sensor *acdc_mode_sensor) { acdc_mode_sensor_ = acdc_mode_sensor; }
-   
+  void set_active_power_direction_sensor(sensor::Sensor *active_power_direction_sensor) { active_power_direction_sensor_ = active_power_direction_sensor; }
+  void set_reactive_power_direction_sensor(sensor::Sensor *reactive_power_direction_sensor) { reactive_power_direction_sensor_ = reactive_power_direction_sensor; }
+  void set_pos_active_power_sensor(sensor::Sensor *pos_active_power_sensor) { pos_active_power_sensor_ = pos_active_power_sensor; }
+  void set_neg_active_power_sensor(sensor::Sensor *neg_active_power_sensor) { neg_active_power_sensor_ = neg_active_power_sensor; }
+  void set_pos_reactive_power_sensor(sensor::Sensor *pos_reactive_power_sensor) { pos_reactive_power_sensor_ = pos_reactive_power_sensor; }
+  void set_neg_reactive_power_sensor(sensor::Sensor *neg_reactive_power_sensor) { neg_reactive_power_sensor_ = neg_reactive_power_sensor; }
+  
   void setup() override;  
   void update() override;
   void on_modbus_data(const std::vector<uint8_t> &data) override;
@@ -42,12 +49,19 @@ class JSY22X : public PollingComponent, public modbus::ModbusDevice {
   sensor::Sensor *voltage_sensor_{nullptr};
   sensor::Sensor *current_sensor_{nullptr};
   sensor::Sensor *active_power_sensor_{nullptr};
-  sensor::Sensor *active_energy_sensor_{nullptr};
-  sensor::Sensor *power_factor_sensor_{nullptr};
   sensor::Sensor *reactive_power_sensor_{nullptr};
-  sensor::Sensor *reactive_energy_sensor_{nullptr};
+  sensor::Sensor *apparent_power_sensor_{nullptr};
+  sensor::Sensor *power_factor_sensor_{nullptr};
   sensor::Sensor *frequency_sensor_{nullptr};
+  sensor::Sensor *active_energy_sensor_{nullptr};
+  sensor::Sensor *reactive_energy_sensor_{nullptr};
   sensor::Sensor *acdc_mode_sensor_{nullptr};
+  sensor::Sensor *active_power_direction_sensor_{nullptr};
+  sensor::Sensor *reactive_power_direction_sensor_{nullptr};
+  sensor::Sensor *pos_active_power_sensor_{nullptr};
+  sensor::Sensor *neg_active_power_sensor_{nullptr};
+  sensor::Sensor *pos_reactive_power_sensor_{nullptr};
+  sensor::Sensor *neg_reactive_power_sensor_{nullptr};
   
 };
 

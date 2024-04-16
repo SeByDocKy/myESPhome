@@ -26,15 +26,25 @@ from esphome.const import (
 CONF_VOLTAGE = "voltage"
 CONF_CURRENT = "current"
 CONF_ACTIVE_POWER = "active_power"
-CONF_ACTIVE_ENERGY = "active_energy"
-CONF_POWER_FACTOR = "power_factor"
 CONF_REACTIVE_POWER = "reactive_power"
-CONF_REACTIVE_ENERGY = "reactive_energy"
+CONF_APPARENT_POWER = "apparent_power"
+CONF_POWER_FACTOR = "power_factor"
 CONF_FREQUENCY = "frequency"
+CONF_ACTIVE_ENERGY = "active_energy"
+CONF_REACTIVE_ENERGY = "reactive_energy"
 CONF_ACDC_MODE = "acdc_mode"
+CONF_ACTIVE_POWER_DIRECTION = "active_power_direction"
+CONF_REACTIVE_POWER_DIRECTION = "reactive_power_direction"
+CONF_POS_ACTIVE_ENERGY = "positive_active_energy"
+CONF_NEG_ACTIVE_ENERGY = "negative_active_energy"
+CONF_POS_REACTIVE_ENERGY = "positive_reactive_energy"
+CONF_NEG_REACTIVE_ENERGY = "negative_reactive_energy"
+
 
 CONF_NEW_ADDRESS = "new_address"
 CONF_NEW_BAUDRATE = "new_baudrate"
+
+UNIT_VOLT_AMPS_REACTIVE = "VAr"
 
 ICON_FREQUENCY = "mdi:sine-wave"
 ICON_NUMERIC = "mdi:numeric"
@@ -73,41 +83,86 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_ACTIVE_ENERGY): sensor.sensor_schema(
-                unit_of_measurement=UNIT_KILOWATT_HOURS,
-                accuracy_decimals=0,
-                device_class=DEVICE_CLASS_ENERGY,
-                state_class=STATE_CLASS_TOTAL_INCREASING,
-            ),
-            cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
+			cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
+                unit_of_measurement=UNIT_VOLT_AMPS_REACTIVE,
+                icon=ICON_POWER,
                 accuracy_decimals=2,
-                device_class=DEVICE_CLASS_POWER_FACTOR,
+                device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
+			cv.Optional(CONF_APPARENT_POWER): sensor.sensor_schema(
                 unit_of_measurement=UNIT_VOLT_AMPS,
                 icon=ICON_POWER,
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_REACTIVE_ENERGY): sensor.sensor_schema(
-                unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
-                accuracy_decimals=0,
-                device_class=DEVICE_CLASS_ENERGY,
-                state_class=STATE_CLASS_TOTAL_INCREASING,
+			cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_POWER_FACTOR,
+                state_class=STATE_CLASS_MEASUREMENT,
             ),
-            cv.Optional(CONF_FREQUENCY): sensor.sensor_schema(
+			cv.Optional(CONF_FREQUENCY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_HERTZ,
                 icon=ICON_FREQUENCY,
                 accuracy_decimals=1,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
+            cv.Optional(CONF_ACTIVE_ENERGY): sensor.sensor_schema(
+                unit_of_measurement=UNIT_KILOWATT_HOURS,
+                accuracy_decimals=0,
+                device_class=DEVICE_CLASS_ENERGY,
+                state_class=STATE_CLASS_TOTAL_INCREASING,
+            ),
+            cv.Optional(CONF_REACTIVE_ENERGY): sensor.sensor_schema(
+                unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
+                accuracy_decimals=0,
+                device_class=DEVICE_CLASS_ENERGY,
+                state_class=STATE_CLASS_TOTAL_INCREASING,
+            ),    
 			cv.Optional(CONF_ACDC_MODE): sensor.sensor_schema(
                 icon=ICON_NUMERIC,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),	
+			),
+            cv.Optional(CONF_ACTIVE_POWER_DIRECTION): sensor.sensor_schema(
+                icon=ICON_NUMERIC,
+                accuracy_decimals=0,
+                state_class=STATE_CLASS_MEASUREMENT,
+			),
+            cv.Optional(CONF_REACTIVE_POWER_DIRECTION): sensor.sensor_schema(
+                icon=ICON_NUMERIC,
+                accuracy_decimals=0,
+                state_class=STATE_CLASS_MEASUREMENT,
+			),
+            cv.Optional(CONF_POS_ACTIVE_ENERGY): sensor.sensor_schema(
+                unit_of_measurement=UNIT_WATT,
+                icon=ICON_POWER,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_POWER,
+                state_class=STATE_CLASS_MEASUREMENT,
+			),
+            cv.Optional(CONF_NEG_ACTIVE_ENERGY): sensor.sensor_schema(
+                unit_of_measurement=UNIT_WATT,
+                icon=ICON_POWER,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_POWER,
+                state_class=STATE_CLASS_MEASUREMENT,
+			),
+            cv.Optional(CONF_POS_REACTIVE_ENERGY): sensor.sensor_schema(
+                unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
+                icon=ICON_POWER,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_POWER,
+                state_class=STATE_CLASS_MEASUREMENT,
+			),
+            cv.Optional(CONF_NEG_REACTIVE_ENERGY): sensor.sensor_schema(
+                unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
+                icon=ICON_POWER,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_POWER,
+                state_class=STATE_CLASS_MEASUREMENT,
+			),			
 		}
     )
     .extend(cv.polling_component_schema("60s"))
@@ -131,30 +186,58 @@ async def to_code(config):
         conf = config[CONF_ACTIVE_POWER]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_active_power_sensor(sens))
-    if CONF_ACTIVE_ENERGY in config:
-        conf = config[CONF_ACTIVE_ENERGY]
-        sens = await sensor.new_sensor(conf)
-        cg.add(var.set_active_energy_sensor(sens))
-    if CONF_POWER_FACTOR in config:
-        conf = config[CONF_POWER_FACTOR]
-        sens = await sensor.new_sensor(conf)
-        cg.add(var.set_power_factor_sensor(sens))
     if CONF_REACTIVE_POWER in config:
         conf = config[CONF_REACTIVE_POWER]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_reactive_power_sensor(sens))
+    if CONF_APPARENT_POWER in config:
+        conf = config[CONF_APPARENT_POWER]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_apparent_power_sensor(sens))
+    if CONF_POWER_FACTOR in config:
+        conf = config[CONF_POWER_FACTOR]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_power_factor_sensor(sens))
+    if CONF_FREQUENCY in config:
+        conf = config[CONF_FREQUENCY]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_frequency_sensor(sens))	
+    if CONF_ACTIVE_ENERGY in config:
+        conf = config[CONF_ACTIVE_ENERGY]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_active_energy_sensor(sens))
     if CONF_REACTIVE_ENERGY in config:
         conf = config[CONF_REACTIVE_ENERGY]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_reactive_energy_sensor(sens))
-    if CONF_FREQUENCY in config:
-        conf = config[CONF_FREQUENCY]
-        sens = await sensor.new_sensor(conf)
-        cg.add(var.set_frequency_sensor(sens))
     if CONF_ACDC_MODE in config:
         conf = config[CONF_ACDC_MODE]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_acdc_mode_sensor(sens))
+    if CONF_ACTIVE_POWER_DIRECTION in config:
+        conf = config[CONF_ACTIVE_POWER_DIRECTION]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_active_power_direction_sensor(sens))
+    if CONF_REACTIVE_POWER_DIRECTION in config:
+        conf = config[CONF_REACTIVE_POWER_DIRECTION]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_reactive_power_direction_sensor(sens))
+    if CONF_POS_ACTIVE_POWER in config:
+        conf = config[POS_ACTIVE_POWER]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_pos_active_power_sensor(sens))
+    if CONF_NEG_ACTIVE_POWER in config:
+        conf = config[NEG_ACTIVE_POWER]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_neg_active_power_sensor(sens))
+    if CONF_POS_REACTIVE_POWER in config:
+        conf = config[POS_REACTIVE_POWER]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_pos_reactive_power_sensor(sens))
+    if CONF_NEG_REACTIVE_POWER in config:
+        conf = config[NEG_REACTIVE_POWER]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_neg_reactive_power_sensor(sens))
            
 @automation.register_action(
     "jsy22x.reset_energy",
