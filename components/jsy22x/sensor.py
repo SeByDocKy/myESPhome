@@ -222,22 +222,22 @@ async def to_code(config):
         conf = config[CONF_REACTIVE_POWER_DIRECTION]
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_reactive_power_direction_sensor(sens))
-    if CONF_POS_ACTIVE_POWER in config:
-        conf = config[POS_ACTIVE_POWER]
+    if CONF_POS_ACTIVE_ENERGY in config:
+        conf = config[CONF_POS_ACTIVE_ENERGY]
         sens = await sensor.new_sensor(conf)
-        cg.add(var.set_pos_active_power_sensor(sens))
-    if CONF_NEG_ACTIVE_POWER in config:
-        conf = config[NEG_ACTIVE_POWER]
+        cg.add(var.set_pos_active_energy_sensor(sens))
+    if CONF_POS_ACTIVE_ENERGY in config:
+        conf = config[CONF_NEG_ACTIVE_ENERGY]
         sens = await sensor.new_sensor(conf)
-        cg.add(var.set_neg_active_power_sensor(sens))
-    if CONF_POS_REACTIVE_POWER in config:
-        conf = config[POS_REACTIVE_POWER]
+        cg.add(var.set_neg_active_energy_sensor(sens))
+    if CONF_POS_REACTIVE_ENERGY in config:
+        conf = config[CONF_POS_REACTIVE_ENERGY]
         sens = await sensor.new_sensor(conf)
-        cg.add(var.set_pos_reactive_power_sensor(sens))
-    if CONF_NEG_REACTIVE_POWER in config:
-        conf = config[NEG_REACTIVE_POWER]
+        cg.add(var.set_pos_reactive_energy_sensor(sens))
+    if CONF_NEG_REACTIVE_ENERGY in config:
+        conf = config[CONF_NEG_REACTIVE_ENERGY]
         sens = await sensor.new_sensor(conf)
-        cg.add(var.set_neg_reactive_power_sensor(sens))
+        cg.add(var.set_neg_reactive_energy_sensor(sens))
            
 @automation.register_action(
     "jsy22x.reset_energy",

@@ -23,10 +23,10 @@ class JSY22X : public PollingComponent, public modbus::ModbusDevice {
   void set_acdc_mode_sensor(sensor::Sensor *acdc_mode_sensor) { acdc_mode_sensor_ = acdc_mode_sensor; }
   void set_active_power_direction_sensor(sensor::Sensor *active_power_direction_sensor) { active_power_direction_sensor_ = active_power_direction_sensor; }
   void set_reactive_power_direction_sensor(sensor::Sensor *reactive_power_direction_sensor) { reactive_power_direction_sensor_ = reactive_power_direction_sensor; }
-  void set_pos_active_power_sensor(sensor::Sensor *pos_active_power_sensor) { pos_active_power_sensor_ = pos_active_power_sensor; }
-  void set_neg_active_power_sensor(sensor::Sensor *neg_active_power_sensor) { neg_active_power_sensor_ = neg_active_power_sensor; }
-  void set_pos_reactive_power_sensor(sensor::Sensor *pos_reactive_power_sensor) { pos_reactive_power_sensor_ = pos_reactive_power_sensor; }
-  void set_neg_reactive_power_sensor(sensor::Sensor *neg_reactive_power_sensor) { neg_reactive_power_sensor_ = neg_reactive_power_sensor; }
+  void set_pos_active_energy_sensor(sensor::Sensor *pos_active_energy_sensor) { pos_active_energy_sensor_ = pos_active_energy_sensor; }
+  void set_neg_active_energy_sensor(sensor::Sensor *neg_active_energy_sensor) { neg_active_energy_sensor_ = neg_active_energy_sensor; }
+  void set_pos_reactive_energy_sensor(sensor::Sensor *pos_reactive_energy_sensor) { pos_reactive_energy_sensor_ = pos_reactive_energy_sensor; }
+  void set_neg_reactive_energy_sensor(sensor::Sensor *neg_reactive_energy_sensor) { neg_reactive_energy_sensor_ = neg_reactive_energy_sensor; }
   
   void setup() override;  
   void update() override;
@@ -58,11 +58,10 @@ class JSY22X : public PollingComponent, public modbus::ModbusDevice {
   sensor::Sensor *acdc_mode_sensor_{nullptr};
   sensor::Sensor *active_power_direction_sensor_{nullptr};
   sensor::Sensor *reactive_power_direction_sensor_{nullptr};
-  sensor::Sensor *pos_active_power_sensor_{nullptr};
-  sensor::Sensor *neg_active_power_sensor_{nullptr};
-  sensor::Sensor *pos_reactive_power_sensor_{nullptr};
-  sensor::Sensor *neg_reactive_power_sensor_{nullptr};
-  
+  sensor::Sensor *pos_active_energy_sensor_{nullptr};
+  sensor::Sensor *neg_active_energy_sensor_{nullptr};
+  sensor::Sensor *pos_reactive_energy_sensor_{nullptr};
+  sensor::Sensor *neg_reactive_energy_sensor_{nullptr};
 };
 
 template<typename... Ts> 
