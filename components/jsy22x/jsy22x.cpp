@@ -55,7 +55,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     uint16_t raw_reactive_energy   = jsy22x_get_16bit(16);
     float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
     // float reactive_energy = static_cast<float>(jsy22x_get_16bit(14))/1000.0f;	    
-    unsigned int acdc_mode = static_cast<unsigned int>(jsy22x_get_16bit(18))/1.0f;
+    float acdc_mode = static_cast<float>(jsy22x_get_16bit(18))/1.0f;
 //	float active_power_direction = static_cast<float>(jsy22x_get_16bit(20))/1.0f;	  
     float pos_active_energy = static_cast<float>(jsy22x_get_16bit(24))/1000.0f;
     float neg_active_energy = static_cast<float>(jsy22x_get_16bit(26))/1000.0f;
@@ -63,7 +63,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     float pos_reactive_energy = static_cast<float>(jsy22x_get_16bit(28))/1000.0f;
     float neg_reactive_energy = static_cast<float>(jsy22x_get_16bit(30))/1000.0f;	
 	
-    ESP_LOGD(TAG, "V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%d, P_dir=%d, Q_dir=%d, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", voltage, current, active_power,
+    ESP_LOGD(TAG, "V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%1.0f, P_dir=%1.0f, Q_dir=%1.0f, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", voltage, current, active_power,
              reactive_power, apparent_power, power_factor, frequency, active_energy, reactive_energy, acdc_mode, active_power_direction, reactive_power_direction,
 			 pos_active_energy, neg_active_energy, pos_reactive_energy, neg_reactive_energy);
 
