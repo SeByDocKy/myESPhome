@@ -39,10 +39,10 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     // float current = static_cast<float>(jsy22x_get_16bit(2))/10000.0f;
     uint16_t raw_active_power   = jsy22x_get_16bit(4);
     float active_power = ((1.0f - active_power_direction)*raw_active_power - active_power_direction*raw_active_power)/10000.0f;
-	// float active_power = static_cast<float>(jsy22x_get_16bit(4))/10000.0f;
+    // float active_power = static_cast<float>(jsy22x_get_16bit(4))/10000.0f;
     uint16_t raw_reactive_power   = jsy22x_get_16bit(6);
     float reactive_power = ((1.0f - reactive_power_direction)*raw_reactive_power - reactive_power_direction*raw_reactive_power)/10000.0f;
-	//float reactive_power = static_cast<float>(jsy22x_get_16bit(10))/10000.0f;
+    //float reactive_power = static_cast<float>(jsy22x_get_16bit(10))/10000.0f;
 	
     uint16_t raw_apparent_power   = jsy22x_get_16bit(8);
     float apparent_power = ((1.0f - reactive_power_direction)*raw_apparent_power - reactive_power_direction*raw_apparent_power)/10000.0f;
@@ -51,12 +51,12 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
 	
     uint16_t raw_active_energy   = jsy22x_get_16bit(14);
     float active_energy = ((1.0f - active_power_direction)*raw_active_energy - active_power_direction*raw_active_energy)/1000.0f;
-	// float active_energy = static_cast<float>(jsy22x_get_16bit(6))/1000.0f;
+    // float active_energy = static_cast<float>(jsy22x_get_16bit(6))/1000.0f;
     uint16_t raw_reactive_energy   = jsy22x_get_16bit(16);
     float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
     // float reactive_energy = static_cast<float>(jsy22x_get_16bit(14))/1000.0f;	    
     float acdc_mode = static_cast<float>(jsy22x_get_16bit(18))/1.0f;
-//	float active_power_direction = static_cast<float>(jsy22x_get_16bit(20))/1.0f;	  
+    //	float active_power_direction = static_cast<float>(jsy22x_get_16bit(20))/1.0f;	  
     float pos_active_energy = static_cast<float>(jsy22x_get_16bit(24))/1000.0f;
     float neg_active_energy = static_cast<float>(jsy22x_get_16bit(26))/1000.0f;
 
@@ -65,7 +65,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
 	
     ESP_LOGD(TAG, "V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%1.0f, P_dir=%1.0f, Q_dir=%1.0f, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", voltage, current, active_power,
              reactive_power, apparent_power, power_factor, frequency, active_energy, reactive_energy, acdc_mode, active_power_direction, reactive_power_direction,
-			 pos_active_energy, neg_active_energy, pos_reactive_energy, neg_reactive_energy);
+	     pos_active_energy, neg_active_energy, pos_reactive_energy, neg_reactive_energy);
 
     if (this->voltage_sensor_ != nullptr)
       this->voltage_sensor_->publish_state(voltage);
@@ -105,11 +105,11 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
 	  this->current_address_ = data[0];
 	  this->current_baudrate_= data[1];
 	  ESP_LOGD(TAG, "JSY22X: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
-	}
+    }
     else{
 	  ESP_LOGD(TAG, "JSY22X: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
     }	
-	this->read_data_ = 1;
+    this->read_data_ = 1;
   }
   else if(this->read_data_ == 3){ // write 0x04 register
    	if ( data.size() < 2){
@@ -118,7 +118,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     else{
 	  ESP_LOGD(TAG, "JSY22X: wrote new values into 0x04 register with address=%d, baudrate = %d", this->new_address_ , this->new_baudrate_);
     }	
-	this->read_data_ = 1; 
+  this->read_data_ = 1; 
   }
   else if(this->read_data_ == 4){ // Reset Energy1
    	if ( data.size() < 2){
@@ -127,7 +127,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     else{
 	  ESP_LOGD(TAG, "JSY22X: successfully reset Energy1");
     }	
-	this->read_data_ = 1; 
+    this->read_data_ = 1; 
   }
   else if(this->read_data_ == 5){ // Reset Energy2
    	if ( data.size() < 2){
@@ -136,7 +136,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     else{
 	  ESP_LOGD(TAG, "JSY22X: successfully reset Energy2");
     }	
-	this->read_data_ = 1; 
+  this->read_data_ = 1; 
   }  
 }
 
@@ -163,8 +163,6 @@ void JSY22X::dump_config() {
   LOG_SENSOR("", "Negative active power", this->neg_active_energy_sensor_);
   LOG_SENSOR("", "Positive reactive power", this->pos_reactive_energy_sensor_);
   LOG_SENSOR("", "Negative reactive power", this->neg_reactive_energy_sensor_);
-
-  
 }
 
 void JSY22X::read_register04() {
@@ -183,7 +181,7 @@ void JSY22X::read_register04() {
 void JSY22X::write_register04(uint8_t new_address , uint8_t new_baudrate) {
   if ((new_address>=1) & (new_address <= 255) & (new_baudrate>=3) & (new_baudrate <= 8)){
     this->read_data_ = 3;
-	std::vector<uint8_t> cmd;
+    std::vector<uint8_t> cmd;
     cmd.push_back(0x00);  // broadcast address
     cmd.push_back(JSY22X_CMD_WRITE_IN_REGISTERS);
     cmd.push_back(0x00);  
