@@ -40,7 +40,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     uint32_t raw_current = jsy22x_get_32bit(4);
     float current = ((1.0f - active_power_direction)*raw_current - active_power_direction*raw_current)/10000.0f;
  */
-    float active_power  = static_cast<float>(jsy22x_get_32bit(4))/10000.0f;	
+    float active_power  = static_cast<float>(jsy22x_get_32bit(8))/10000.0f;	
 /*	  
     uint32_t raw_active_power   = jsy22x_get_32bit(8);
     float active_power = ((1.0f - active_power_direction)*raw_active_power - active_power_direction*raw_active_power)/10000.0f;
