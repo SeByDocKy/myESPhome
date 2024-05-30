@@ -116,13 +116,13 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
    
    }
   else if(this->read_data_ == 2){ // read 0x04 register
-   if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
+   if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 6)){
 	  this->current_address_ = data[0];
 	  this->current_baudrate_= data[1];
 	  ESP_LOGD(TAG, "JSY22X: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
     }
     else{
-	  ESP_LOGD(TAG, "JSY22X: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
+	  ESP_LOGD(TAG, "JSY22X: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->address_ , this->current_baudrate_);
     }	
     this->read_data_ = 1;
   }
@@ -183,7 +183,7 @@ void JSY22X::dump_config() {
 void JSY22X::read_register04() {
   this->read_data_ = 2;
   std::vector<uint8_t> cmd;
-  cmd.push_back(this->address_); 
+  cmd.push_back(0x00);  //this->address_
   cmd.push_back(JSY22X_CMD_READ_IN_REGISTERS);
   cmd.push_back(0x00);  
   cmd.push_back(JSY22X_REGISTER_SETTINGS_START);
