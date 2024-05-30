@@ -63,7 +63,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     float pos_reactive_energy = static_cast<float>(jsy22x_get_16bit(28))/1000.0f;
     float neg_reactive_energy = static_cast<float>(jsy22x_get_16bit(30))/1000.0f;	
 	
-    ESP_LOGD(TAG, "modbus address=%d, baudrate=%d, V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%1.0f, P_dir=%1.0f, Q_dir=%1.0f, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", int(this->address_), int(ths->baud_rate_) , voltage, current, active_power,
+    ESP_LOGD(TAG, "modbus address=%d, baudrate=%d, V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%1.0f, P_dir=%1.0f, Q_dir=%1.0f, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", int(this->address_), int(this->baud_rate_) , voltage, current, active_power,
              reactive_power, apparent_power, power_factor, frequency, active_energy, reactive_energy, acdc_mode, active_power_direction, reactive_power_direction,
 	     pos_active_energy, neg_active_energy, pos_reactive_energy, neg_reactive_energy);
 
