@@ -83,26 +83,26 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
+	    cv.Optional(CONF_REACTIVE_POWER): sensor.sensor_schema(
                 unit_of_measurement=UNIT_VOLT_AMPS_REACTIVE,
                 icon=ICON_POWER,
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(CONF_APPARENT_POWER): sensor.sensor_schema(
+	    cv.Optional(CONF_APPARENT_POWER): sensor.sensor_schema(
                 unit_of_measurement=UNIT_VOLT_AMPS,
                 icon=ICON_POWER,
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
+	    cv.Optional(CONF_POWER_FACTOR): sensor.sensor_schema(
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_POWER_FACTOR,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-			cv.Optional(CONF_FREQUENCY): sensor.sensor_schema(
+	    cv.Optional(CONF_FREQUENCY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_HERTZ,
                 icon=ICON_FREQUENCY,
                 accuracy_decimals=1,
@@ -110,13 +110,13 @@ CONFIG_SCHEMA = (
             ),
             cv.Optional(CONF_ACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOWATT_HOURS,
-                accuracy_decimals=0,
+                accuracy_decimals=1,
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),
             cv.Optional(CONF_REACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
-                accuracy_decimals=0,
+                accuracy_decimals=1,
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),    
