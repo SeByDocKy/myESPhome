@@ -11,14 +11,14 @@ static const uint8_t JSY22X_REGISTER_SETTINGS_START = 0x04; // modbus address & 
 static const uint8_t JSY22X_REGISTER_SETTINGS_COUNT = 0x01;  // 1 x 16-bit setting registers
 static const uint8_t JSY22X_RESET_RESET_ENERGY_LB = 0x0C; // 0x043;
 static const uint16_t JSY22X_REGISTER_DATA_START = 0x0100;
-static const uint8_t JSY22X_REGISTER_DATA_COUNT = 16;  // 16 x 32-bit data registers
+static const uint8_t JSY22X_REGISTER_DATA_COUNT = 15;  // 14 x 32-bit + 2 x 16-bits = 15 x 32bits data registers
 
 void JSY22X::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY22X..."); 
 }
 
 void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
-  if ((this->read_data_ == 1) & (data.size() < JSY22X_REGISTER_DATA_COUNT*2)) {
+  if ((this->read_data_ == 1) & (data.size() < JSY22X_REGISTER_DATA_COUNT*4)) {
     ESP_LOGW(TAG, "Invalid size for JSY22X data!");
     return;
   }
