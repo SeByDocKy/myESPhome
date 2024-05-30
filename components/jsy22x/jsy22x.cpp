@@ -11,7 +11,7 @@ static const uint8_t JSY22X_REGISTER_SETTINGS_START = 0x04; // modbus address & 
 static const uint8_t JSY22X_REGISTER_SETTINGS_COUNT = 0x01;  // 1 x 16-bit setting registers
 static const uint8_t JSY22X_RESET_RESET_ENERGY_LB = 0x0C; // 0x043;
 static const uint16_t JSY22X_REGISTER_DATA_START = 0x0100;
-static const uint8_t JSY22X_REGISTER_DATA_COUNT = 28;  // 14 x 32-bit + 2 x 16-bits = 15 x 32bits data registers
+static const uint8_t JSY22X_REGISTER_DATA_COUNT = 30;  // 14 x 32-bit + 2 x 16-bits = 15 x 32bits data registers
 
 void JSY22X::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY22X..."); 
