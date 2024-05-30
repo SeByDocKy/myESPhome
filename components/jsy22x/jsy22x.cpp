@@ -51,14 +51,21 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     uint32_t raw_reactive_power   = jsy22x_get_32bit(12);
     float reactive_power = ((1.0f - reactive_power_direction)*raw_reactive_power - reactive_power_direction*raw_reactive_power)/10000.0f;
 */
-	
+
+    float apparent_power = static_cast<float>(jsy22x_get_32bit(16))/10000.0f; 
+/*	  
     uint32_t raw_apparent_power   = jsy22x_get_32bit(16);
     float apparent_power = ((1.0f - reactive_power_direction)*raw_apparent_power - reactive_power_direction*raw_apparent_power)/10000.0f;
+*/    
+  
     float power_factor = static_cast<float>(jsy22x_get_32bit(20))/1000.0f;
-    float frequency = static_cast<float>(jsy22x_get_16bit(24))/100.0f;   	
-	
+    float frequency = static_cast<float>(jsy22x_get_32bit(24))/100.0f;   	
+
+    float active_energy =  static_cast<float>(jsy22x_get_32bit(28))/10000.0f;
+   /*	  
     uint32_t raw_active_energy   = jsy22x_get_32bit(28);
     float active_energy = ((1.0f - active_power_direction)*raw_active_energy - active_power_direction*raw_active_energy)/1000.0f;
+    */
     // float active_energy = static_cast<float>(jsy22x_get_16bit(6))/1000.0f;
     uint32_t raw_reactive_energy   = jsy22x_get_32bit(32);
     float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
