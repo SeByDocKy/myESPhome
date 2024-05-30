@@ -120,50 +120,50 @@ CONFIG_SCHEMA = (
                 device_class=DEVICE_CLASS_ENERGY,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),    
-			cv.Optional(CONF_ACDC_MODE): sensor.sensor_schema(
+	    cv.Optional(CONF_ACDC_MODE): sensor.sensor_schema(
                 icon=ICON_NUMERIC,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),
+	    ),
             cv.Optional(CONF_ACTIVE_POWER_DIRECTION): sensor.sensor_schema(
                 icon=ICON_NUMERIC,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),
+	    ),
             cv.Optional(CONF_REACTIVE_POWER_DIRECTION): sensor.sensor_schema(
                 icon=ICON_NUMERIC,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),
+	    ),
             cv.Optional(CONF_POS_ACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOWATT_HOURS,
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),
+	    ),
             cv.Optional(CONF_NEG_ACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOWATT_HOURS,
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),
+	    ),
             cv.Optional(CONF_POS_REACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),
+            ),
             cv.Optional(CONF_NEG_REACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
-			),			
-		}
+	     ),			
+	}
     )
     .extend(cv.polling_component_schema("60s"))
     .extend(modbus.modbus_device_schema(0x01))
@@ -243,7 +243,7 @@ async def to_code(config):
     "jsy22x.reset_energy",
     ResetEnergyAction,
     maybe_simple_id(
-	    {
+	{
             cv.Required(CONF_ID): cv.use_id(JSY22X),
         }
     ),
