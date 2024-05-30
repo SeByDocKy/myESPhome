@@ -18,7 +18,7 @@ void JSY22X::setup() {
 }
 
 void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
-  if ((this->read_data_ == 1) & (data.size() < JSY22X_REGISTER_DATA_COUNT*4)) {
+  if ((this->read_data_ == 1) & (data.size() < JSY22X_REGISTER_DATA_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY22X data!");
     return;
   }
