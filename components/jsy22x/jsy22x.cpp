@@ -31,7 +31,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
   };
  
   if (this->read_data_ == 1){
-      int databaud = this->parent_->parent_->get_baud_rate();
+ //     int databaud = this->parent_->parent_->get_baud_rate();
 //    float active_power_direction   = static_cast<float>(jsy22x_get_16bit(20)); //0 for positive, 1 for negative 
 //    float reactive_power_direction = static_cast<float>(jsy22x_get_16bit(22)); //0 for positive, 1 for negative
     float voltage = static_cast<float>(jsy22x_get_32bit(0))/10000.0f;
