@@ -35,43 +35,35 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     float active_power_direction   = static_cast<float>(jsy22x_get_16bit(40)); //0 for positive, 1 for negative 
     float reactive_power_direction = static_cast<float>(jsy22x_get_16bit(42)); //0 for positive, 1 for negative
     float voltage = static_cast<float>(jsy22x_get_32bit(0))/10000.0f;
-    float current = static_cast<float>(jsy22x_get_32bit(4))/10000.0f;	  
-/*
+ 
+//   float current = static_cast<float>(jsy22x_get_32bit(4))/10000.0f;	  
     uint32_t raw_current = jsy22x_get_32bit(4);
     float current = ((1.0f - active_power_direction)*raw_current - active_power_direction*raw_current)/10000.0f;
- */
-    float active_power  = static_cast<float>(jsy22x_get_32bit(8))/10000.0f;	
-/*	  
+ 
+//    float active_power  = static_cast<float>(jsy22x_get_32bit(8))/10000.0f;		  
     uint32_t raw_active_power   = jsy22x_get_32bit(8);
     float active_power = ((1.0f - active_power_direction)*raw_active_power - active_power_direction*raw_active_power)/10000.0f;
-*/    
-
-    float reactive_power = static_cast<float>(jsy22x_get_32bit(12))/10000.0f;
-/* 	  
+    
+//    float reactive_power = static_cast<float>(jsy22x_get_32bit(12))/10000.0f;	  
     uint32_t raw_reactive_power   = jsy22x_get_32bit(12);
     float reactive_power = ((1.0f - reactive_power_direction)*raw_reactive_power - reactive_power_direction*raw_reactive_power)/10000.0f;
-*/
 
-    float apparent_power = static_cast<float>(jsy22x_get_32bit(16))/10000.0f; 
-/*	  
+ //   float apparent_power = static_cast<float>(jsy22x_get_32bit(16))/10000.0f;   
     uint32_t raw_apparent_power   = jsy22x_get_32bit(16);
     float apparent_power = ((1.0f - reactive_power_direction)*raw_apparent_power - reactive_power_direction*raw_apparent_power)/10000.0f;
-*/    
-  
+      
     float power_factor = static_cast<float>(jsy22x_get_32bit(20))/1000.0f;
     float frequency = static_cast<float>(jsy22x_get_32bit(24))/100.0f;   	
 
-    float active_energy =  static_cast<float>(jsy22x_get_32bit(28))/1000.0f;
-   /*	  
+   // float active_energy =  static_cast<float>(jsy22x_get_32bit(28))/1000.0f;
     uint32_t raw_active_energy   = jsy22x_get_32bit(28);
     float active_energy = ((1.0f - active_power_direction)*raw_active_energy - active_power_direction*raw_active_energy)/1000.0f;
-    */
+   
 
-    float reactive_energy = static_cast<float>(jsy22x_get_32bit(32))/1000.0f;	  
-/*	  
+//    float reactive_energy = static_cast<float>(jsy22x_get_32bit(32))/1000.0f;	  	  
     uint32_t raw_reactive_energy   = jsy22x_get_32bit(32);
     float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
-*/    
+    
    
     float acdc_mode = static_cast<float>(jsy22x_get_32bit(36))/1.0f;
    
