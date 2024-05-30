@@ -11,14 +11,14 @@ static const uint8_t JSY22X_REGISTER_SETTINGS_START = 0x04; // modbus address & 
 static const uint8_t JSY22X_REGISTER_SETTINGS_COUNT = 0x01;  // 1 x 16-bit setting registers
 static const uint8_t JSY22X_RESET_RESET_ENERGY_LB = 0x0C; // 0x043;
 static const uint16_t JSY22X_REGISTER_DATA_START = 0x0100;
-static const uint8_t JSY22X_REGISTER_DATA_COUNT = 16;  // 16 x 16-bit data registers
+static const uint8_t JSY22X_REGISTER_DATA_COUNT = 16;  // 16 x 32-bit data registers
 
 void JSY22X::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY22X..."); 
 }
 
 void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
-  if ((this->read_data_ == 1) & (data.size() < JSY22X_REGISTER_DATA_COUNT*2)) {
+  if ((this->read_data_ == 1) & (data.size() < JSY22X_REGISTER_DATA_COUNT*4)) {
     ESP_LOGW(TAG, "Invalid size for JSY22X data!");
     return;
   }
@@ -31,46 +31,50 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
   };
  
   if (this->read_data_ == 1){
-    float active_power_direction   = static_cast<float>(jsy22x_get_16bit(20)); //0 for positive, 1 for negative 
-    float reactive_power_direction = static_cast<float>(jsy22x_get_16bit(22)); //0 for positive, 1 for negative
-    float voltage = static_cast<float>(jsy22x_get_16bit(0))/10000.0f;
-    uint16_t raw_current = jsy22x_get_16bit(2);  
-    float current = ((1.0f - active_power_direction)*raw_current - active_power_direction*raw_current)/10000.0f;
+//    float active_power_direction   = static_cast<float>(jsy22x_get_16bit(20)); //0 for positive, 1 for negative 
+//    float reactive_power_direction = static_cast<float>(jsy22x_get_16bit(22)); //0 for positive, 1 for negative
+    float voltage = static_cast<float>(jsy22x_get_32bit(0))/10000.0f;
+    float current = static_cast<float>(jsy22x_get_32bit(4)/10000.0f;	  
+//    uint16_t raw_current = jsy22x_get_32bit(4);
+//    uint16_t raw_current = jsy22x_get_32bit(4);  
+//    float current = ((1.0f - active_power_direction)*raw_current - active_power_direction*raw_current)/10000.0f;
     // float current = static_cast<float>(jsy22x_get_16bit(2))/10000.0f;
-    uint16_t raw_active_power   = jsy22x_get_16bit(4);
-    float active_power = ((1.0f - active_power_direction)*raw_active_power - active_power_direction*raw_active_power)/10000.0f;
+//    uint16_t raw_active_power   = jsy22x_get_16bit(4);
+//    float active_power = ((1.0f - active_power_direction)*raw_active_power - active_power_direction*raw_active_power)/10000.0f;
     // float active_power = static_cast<float>(jsy22x_get_16bit(4))/10000.0f;
-    uint16_t raw_reactive_power   = jsy22x_get_16bit(6);
-    float reactive_power = ((1.0f - reactive_power_direction)*raw_reactive_power - reactive_power_direction*raw_reactive_power)/10000.0f;
+//    uint16_t raw_reactive_power   = jsy22x_get_16bit(6);
+//    float reactive_power = ((1.0f - reactive_power_direction)*raw_reactive_power - reactive_power_direction*raw_reactive_power)/10000.0f;
     //float reactive_power = static_cast<float>(jsy22x_get_16bit(10))/10000.0f;
 	
-    uint16_t raw_apparent_power   = jsy22x_get_16bit(8);
-    float apparent_power = ((1.0f - reactive_power_direction)*raw_apparent_power - reactive_power_direction*raw_apparent_power)/10000.0f;
-    float power_factor = static_cast<float>(jsy22x_get_16bit(10))/1000.0f;
-    float frequency = static_cast<float>(jsy22x_get_16bit(12))/100.0f;   	
+//    uint16_t raw_apparent_power   = jsy22x_get_16bit(8);
+//    float apparent_power = ((1.0f - reactive_power_direction)*raw_apparent_power - reactive_power_direction*raw_apparent_power)/10000.0f;
+//    float power_factor = static_cast<float>(jsy22x_get_16bit(10))/1000.0f;
+//    float frequency = static_cast<float>(jsy22x_get_16bit(12))/100.0f;   	
 	
-    uint16_t raw_active_energy   = jsy22x_get_16bit(14);
-    float active_energy = ((1.0f - active_power_direction)*raw_active_energy - active_power_direction*raw_active_energy)/1000.0f;
+//    uint16_t raw_active_energy   = jsy22x_get_16bit(14);
+//    float active_energy = ((1.0f - active_power_direction)*raw_active_energy - active_power_direction*raw_active_energy)/1000.0f;
     // float active_energy = static_cast<float>(jsy22x_get_16bit(6))/1000.0f;
-    uint16_t raw_reactive_energy   = jsy22x_get_16bit(16);
-    float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
+//    uint16_t raw_reactive_energy   = jsy22x_get_16bit(16);
+//    float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
     // float reactive_energy = static_cast<float>(jsy22x_get_16bit(14))/1000.0f;	    
-    float acdc_mode = static_cast<float>(jsy22x_get_16bit(18))/1.0f;
+//    float acdc_mode = static_cast<float>(jsy22x_get_16bit(18))/1.0f;
     //	float active_power_direction = static_cast<float>(jsy22x_get_16bit(20))/1.0f;	  
-    float pos_active_energy = static_cast<float>(jsy22x_get_16bit(24))/1000.0f;
-    float neg_active_energy = static_cast<float>(jsy22x_get_16bit(26))/1000.0f;
+//    float pos_active_energy = static_cast<float>(jsy22x_get_16bit(24))/1000.0f;
+//    float neg_active_energy = static_cast<float>(jsy22x_get_16bit(26))/1000.0f;
 
-    float pos_reactive_energy = static_cast<float>(jsy22x_get_16bit(28))/1000.0f;
-    float neg_reactive_energy = static_cast<float>(jsy22x_get_16bit(30))/1000.0f;	
-	
+//    float pos_reactive_energy = static_cast<float>(jsy22x_get_16bit(28))/1000.0f;
+//    float neg_reactive_energy = static_cast<float>(jsy22x_get_16bit(30))/1000.0f;	
+
+/*	  
     ESP_LOGD(TAG, "modbus address=%d, baudrate=%d, V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%1.0f, P_dir=%1.0f, Q_dir=%1.0f, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", int(this->address_), int(this->current_baudrate_) , voltage, current, active_power,
              reactive_power, apparent_power, power_factor, frequency, active_energy, reactive_energy, acdc_mode, active_power_direction, reactive_power_direction,
 	     pos_active_energy, neg_active_energy, pos_reactive_energy, neg_reactive_energy);
-
+*/
     if (this->voltage_sensor_ != nullptr)
       this->voltage_sensor_->publish_state(voltage);
     if (this->current_sensor_ != nullptr)
       this->current_sensor_->publish_state(current);
+/*	  
     if (this->active_power_sensor_ != nullptr)
       this->active_power_sensor_->publish_state(active_power);
     if (this->reactive_power_sensor_ != nullptr)
@@ -99,6 +103,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
       this->pos_reactive_energy_sensor_->publish_state(pos_reactive_energy);
     if (this->neg_reactive_energy_sensor_ != nullptr)
       this->neg_reactive_energy_sensor_->publish_state(neg_reactive_energy);
+   */   
    }
   else if(this->read_data_ == 2){ // read 0x04 register
    if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
