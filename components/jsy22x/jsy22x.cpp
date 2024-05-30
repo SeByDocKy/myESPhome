@@ -55,15 +55,17 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     float power_factor = static_cast<float>(jsy22x_get_32bit(20))/1000.0f;
     float frequency = static_cast<float>(jsy22x_get_32bit(24))/100.0f;   	
 
-   // float active_energy =  static_cast<float>(jsy22x_get_32bit(28))/1000.0f;
+    float active_energy =  static_cast<float>(jsy22x_get_32bit(28))/1000.0f;
+/*  
     float raw_active_energy   = static_cast<float>(jsy22x_get_32bit(28));
     float active_energy = ((1.0f - active_power_direction)*raw_active_energy - active_power_direction*raw_active_energy)/1000.0f;
-   
+*/   
 
-//    float reactive_energy = static_cast<float>(jsy22x_get_32bit(32))/1000.0f;	  	  
+    float reactive_energy = static_cast<float>(jsy22x_get_32bit(32))/1000.0f;
+/*	  
     float raw_reactive_energy   = static_cast<float>(jsy22x_get_32bit(32));
     float reactive_energy = ((1.0f - reactive_power_direction)*raw_reactive_energy - reactive_power_direction*raw_reactive_energy)/1000.0f;
-    
+*/  
    
     float acdc_mode = static_cast<float>(jsy22x_get_32bit(36))/1.0f;
    
