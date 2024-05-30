@@ -32,8 +32,8 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
  
   if (this->read_data_ == 1){
  //     int databaud = this->parent_->parent_->get_baud_rate();
-    float active_power_direction   = static_cast<float>(jsy22x_get_32bit(40)); //0 for positive, 1 for negative 
-    float reactive_power_direction = static_cast<float>(jsy22x_get_32bit(44)); //0 for positive, 1 for negative
+    float active_power_direction   = static_cast<float>(jsy22x_get_16bit(40)); //0 for positive, 1 for negative 
+    float reactive_power_direction = static_cast<float>(jsy22x_get_16bit(42)); //0 for positive, 1 for negative
     float voltage = static_cast<float>(jsy22x_get_32bit(0))/10000.0f;
 //    float current = static_cast<float>(jsy22x_get_32bit(4))/10000.0f;	  
     uint32_t raw_current = jsy22x_get_32bit(4);
@@ -59,14 +59,14 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
     // float reactive_energy = static_cast<float>(jsy22x_get_16bit(14))/1000.0f;	    
     float acdc_mode = static_cast<float>(jsy22x_get_32bit(36))/1.0f;
     //	float active_power_direction = static_cast<float>(jsy22x_get_16bit(20))/1.0f;	  
-    float pos_active_energy = static_cast<float>(jsy22x_get_32bit(48))/1000.0f;
-    float neg_active_energy = static_cast<float>(jsy22x_get_32bit(52))/1000.0f;
+    float pos_active_energy = static_cast<float>(jsy22x_get_32bit(44))/1000.0f;
+    float neg_active_energy = static_cast<float>(jsy22x_get_32bit(48))/1000.0f;
 
-    float pos_reactive_energy = static_cast<float>(jsy22x_get_32bit(56))/1000.0f;
-    float neg_reactive_energy = static_cast<float>(jsy22x_get_32bit(60))/1000.0f;	
+    float pos_reactive_energy = static_cast<float>(jsy22x_get_32bit(52))/1000.0f;
+    float neg_reactive_energy = static_cast<float>(jsy22x_get_32bit(56))/1000.0f;	
 
   
-    ESP_LOGD(TAG, "modbus address=%d, baudrate=%d, V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%1.0f, P_dir=%1.0f, Q_dir=%1.0f, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", int(this->address_), int(this->current_baudrate_) , voltage, current, active_power,
+    ESP_LOGVV(TAG, "modbus address=%d, baudrate=%d, V=%.1f V, I=%.3f A, P=%.1f W, Q=%.1f VAr, S=%.1f VA, PF=%.2f, F=%.1f Hz, EP=%.1f kWh, EQ=%.1f kVArh, ACDC mode=%1.0f, P_dir=%1.0f, Q_dir=%1.0f, E+=%.1f, E-=%.1f , Q+=%.1f, Q-=%.1f", int(this->address_), int(this->current_baudrate_) , voltage, current, active_power,
              reactive_power, apparent_power, power_factor, frequency, active_energy, reactive_energy, acdc_mode, active_power_direction, reactive_power_direction,
 	     pos_active_energy, neg_active_energy, pos_reactive_energy, neg_reactive_energy);
 
