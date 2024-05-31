@@ -54,7 +54,7 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
     float power_factor2 = static_cast<float>(jsy193_get_16bit(36))/1000.0f;  // max 65.535
     float frequency2 = static_cast<float>(jsy193_get_16bit(38))/100.0f;     // max 655.35 Hz
   
-    ESP_LOGD(TAG, "modbus address=%d, V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", int(this->address_), voltage1, current1, power1,
+    ESP_LOGVV(TAG, "modbus address=%d, V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh , E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh , E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", int(this->address_), voltage1, current1, power1,
              pos_energy1, neg_energy1, frequency1, power_factor1, voltage2, current2, power2, pos_energy2, neg_energy2, frequency2, power_factor2);
 
     if (this->voltage1_sensor_ != nullptr)
