@@ -39,7 +39,7 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     float voltage1 = static_cast<float>(jsy194_get_32bit(0))/10000.0f;  // max 429496.7295 V
     float raw_current = static_cast<float>(jsy194_get_32bit(4)); 
     float current1 = ((1.0f - sign1)*raw_current - sign1*raw_current)/10000.0f;  // min -429496.7295 A, max 429496.7295 A 
-	float raw_power   = static_cast<float>(jsy194_get_32bit(8));
+    float raw_power   = static_cast<float>(jsy194_get_32bit(8));
     float power1 = ((1.0f - sign1)*raw_power - sign1*raw_power)/10000.0f;  // min -429496.7295 W, max 429496.7295 W  
     float pos_energy1 = static_cast<float>(jsy194_get_32bit(12))/10000.0f; // max 429496.7295 kWh
     float power_factor1 = static_cast<float>(jsy194_get_32bit(16))/1000.0f;   // max 4294967.295
@@ -55,9 +55,8 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
     float pos_energy2 = static_cast<float>(jsy194_get_32bit(44))/10000.0f; // max 429496.7295 kWh
     float power_factor2 = static_cast<float>(jsy194_get_32bit(48))/1000.0f;   // max 4294967.295
     float neg_energy2 = static_cast<float>(jsy194_get_32bit(52))/10000.0f; // max 42 949 673 kWh  
-	float frequency2 = frequency1;  // max 655.35 Hz
-	
-	ESP_LOGD(TAG, "V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh, E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh, E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
+    float frequency2 = frequency1;  // max 655.35 Hz
+    ESP_LOGVV(TAG, "V1=%.1f V, I1=%.3f A, P1=%.1f W, E1+=%.1f kWh, E1-=%.1f kWh, F1=%.1f Hz, PF1=%.2f , V2=%.1f V, I2=%.3f A, P2=%.1f W, E2+=%.1f kWh, E2-=%.1f kWh, F2=%.1f Hz, PF2=%.2f", voltage1, current1, power1,
              pos_energy1, neg_energy1, frequency1, power_factor1, voltage2, current2, power2, pos_energy2, neg_energy2, frequency2, power_factor2);
 
     if (this->voltage1_sensor_ != nullptr)
@@ -74,7 +73,6 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
       this->frequency1_sensor_->publish_state(frequency1);
     if (this->power_factor1_sensor_ != nullptr)
       this->power_factor1_sensor_->publish_state(power_factor1);
-  
     if (this->voltage2_sensor_ != nullptr)
       this->voltage2_sensor_->publish_state(voltage2);
     if (this->current2_sensor_ != nullptr)
