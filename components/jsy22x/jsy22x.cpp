@@ -217,13 +217,13 @@ void JSY22X::write_register04(uint8_t new_address , uint8_t new_baudrate) {
 void JSY22X::reset_energy() {
   this->read_data_ = 4;	
   std::vector<uint8_t> cmd;
-  cmd.push_back(this->address_);
-  cmd.push_back(JSY22X_CMD_WRITE_IN_REGISTERS);
-  cmd.push_back(0x00);  
-  cmd.push_back(JSY22X_RESET_RESET_ENERGY_LB);
-  cmd.push_back(0x00);
-  cmd.push_back(0x02);   // 0x04
-  cmd.push_back(0x04);   // 0x08
+  cmd.push_back(this->address_);                   // modbus address 02
+  cmd.push_back(JSY22X_CMD_WRITE_IN_REGISTERS);    // 0x10
+  cmd.push_back(0x00);                             // 0x00
+  cmd.push_back(JSY22X_RESET_RESET_ENERGY_LB);     // 0x0C
+  cmd.push_back(0x00);                             // 0x00
+  cmd.push_back(0x02);                             // 0x04
+  cmd.push_back(0x04);                             // 0x08
   
   cmd.push_back(0x00);
   cmd.push_back(0x00);
