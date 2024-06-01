@@ -122,7 +122,7 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
 	  ESP_LOGD(TAG, "JSY22X: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
     }
     else{
-	  ESP_LOGD(TAG, "JSY22X: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->address_ , this->current_baudrate_);
+	  ESP_LOGD(TAG, "JSY22X: Read bad values from 0x04 : address=%d, baudrate = %d, keep current address =%d, baudrate %d", data[0], data[1] , this->current_address_ , this->current_baudrate_);
     }	
     this->read_data_ = 1;
   }
@@ -183,12 +183,12 @@ void JSY22X::dump_config() {
 void JSY22X::read_register04() {
   this->read_data_ = 2;
   std::vector<uint8_t> cmd;
-  cmd.push_back(0x00);  //this->address_
-  cmd.push_back(JSY22X_CMD_READ_IN_REGISTERS);
-  cmd.push_back(0x00);  
-  cmd.push_back(JSY22X_REGISTER_SETTINGS_START);
-  cmd.push_back(0x00);
-  cmd.push_back(JSY22X_REGISTER_SETTINGS_COUNT);
+  cmd.push_back(0x00);  //this->address_                        0x00
+  cmd.push_back(JSY22X_CMD_READ_IN_REGISTERS);  //              0x03
+  cmd.push_back(0x00);                          //              0x00
+  cmd.push_back(JSY22X_REGISTER_SETTINGS_START);//              0x04
+  cmd.push_back(0x00);                          //              0x00
+  cmd.push_back(JSY22X_REGISTER_SETTINGS_COUNT);//              0x01
   ESP_LOGD(TAG, "JSY22X: reading values from 0x04 register"); 
   this->send_raw(cmd);
 }
@@ -197,15 +197,15 @@ void JSY22X::write_register04(uint8_t new_address , uint8_t new_baudrate) {
   if ((new_address>=1) & (new_address <= 255) & (new_baudrate>=3) & (new_baudrate <= 8)){
     this->read_data_ = 3;
     std::vector<uint8_t> cmd;
-    cmd.push_back(0x00);  // broadcast address
-    cmd.push_back(JSY22X_CMD_WRITE_IN_REGISTERS);
-    cmd.push_back(0x00);  
-    cmd.push_back(JSY22X_REGISTER_SETTINGS_START);
-    cmd.push_back(0x00);
-    cmd.push_back(0x01); 
-    cmd.push_back(0x02);
-    cmd.push_back(new_address);
-    cmd.push_back(new_baudrate);
+    cmd.push_back(0x00);  // broadcast address                 0x00
+    cmd.push_back(JSY22X_CMD_WRITE_IN_REGISTERS); //           0x10
+    cmd.push_back(0x00);                          //           0x00
+    cmd.push_back(JSY22X_REGISTER_SETTINGS_START);//           0x04
+    cmd.push_back(0x00);                          //           0x00
+    cmd.push_back(0x01);                          //           0x01
+    cmd.push_back(0x02);                          //           0x02
+    cmd.push_back(new_address);                   //           new_adress
+    cmd.push_back(new_baudrate);                  //           new_baudrate
     ESP_LOGD(TAG, "JSY22X: writing values into 0x04 register: address=%d, baudrate = %d", new_address_, new_baudrate); 
     this->send_raw(cmd);
   } 
