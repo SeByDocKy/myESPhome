@@ -150,7 +150,7 @@ void SX1509Component::pin_mode(uint8_t pin, gpio::Flags flags) {
 void SX1509Component::setup_led_driver(uint8_t pin) {
   uint16_t temp_word = 0;
   uint8_t temp_byte = 0;
-  uint8_t temp_reg_misc = 0x40;
+  uint8_t temp_reg_misc = 0x20;
 
   this->read_byte_16(REG_INPUT_DISABLE_B, &temp_word);
   temp_word |= (1 << pin);
