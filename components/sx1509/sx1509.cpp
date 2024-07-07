@@ -150,7 +150,7 @@ void SX1509Component::pin_mode(uint8_t pin, gpio::Flags flags) {
 void SX1509Component::setup_led_driver(uint8_t pin) {
   uint16_t temp_word = 0;
   uint8_t temp_byte = 0;
-  uint8_t temp_reg_misc = 0x70;
+  uint8_t temp_reg_misc = 0x40;
 
   this->read_byte_16(REG_INPUT_DISABLE_B, &temp_word);
   temp_word |= (1 << pin);
@@ -167,7 +167,7 @@ void SX1509Component::setup_led_driver(uint8_t pin) {
   this->read_byte(REG_MISC, &temp_byte);
   temp_byte &= ~(1 << 7);  // set linear mode bank B
   temp_byte &= ~(1 << 3);  // set linear mode bank A
-  temp_byte |=  temp_reg_misc      // Frequency of the LED Driver clock ClkX of all IOs: 0x70 = 128 as divider 0x20;
+  temp_byte |=  temp_reg_misc;      // Frequency of the LED Driver clock ClkX of all IOs: 0x70 = 128 as divider 0x20;
   this->write_byte(REG_MISC, temp_byte);
   ESP_LOGV(TAG, "  wrote into REG_MISC: %d" , temp_reg_misc);
 
