@@ -79,7 +79,7 @@ class SX1509Component : public Component, public i2c::I2CDevice {
   void set_debounce_pin_(uint8_t pin);
   void set_debounce_enable_(uint8_t pin);
   void set_debounce_keypad_(uint8_t time, uint8_t num_rows, uint8_t num_cols);
-  void clock_(uint8_t osc_source = 2, uint8_t osc_pin_function = 1, uint8_t osc_freq_out = 0, uint8_t osc_divider = 2);
+  void clock_(uint8_t osc_source = 2, uint8_t osc_pin_function = 1, uint8_t osc_freq_out = 0, uint8_t osc_divider = 0);
 };
 
 }  // namespace sx1509
