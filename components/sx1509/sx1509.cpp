@@ -26,7 +26,9 @@ void SX1509Component::setup() {
     this->mark_failed();
     return;
   }
-  clock_(INTERNAL_CLOCK_2MHZ ,  1,  0, 2);
+  clock_(INTERNAL_CLOCK_2MHZ);
+  //clock_(INTERNAL_CLOCK_2MHZ ,  1,  0, 2);
+  
   delayMicroseconds(500);
   if (this->has_keypad_)
     this->setup_keypad_();
