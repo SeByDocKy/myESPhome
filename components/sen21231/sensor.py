@@ -10,7 +10,7 @@ from esphome.const import (
 	ICON_RULER,
 )
 
-CODEOWNERS                = ["@shreyaskarnik"]
+CODEOWNERS                = ["@SeByDocKy"]
 DEPENDENCIES              = ["i2c"]
 
 CONF_SEN21231_NFACES      = "nfaces"
