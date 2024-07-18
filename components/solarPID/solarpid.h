@@ -131,7 +131,7 @@ class PidUpdateAction : public Action<Ts...> {
   void play(Ts... x) override { this->parent_->pid_update(); }  
 
  protected:
-  JSY193 *parent_;
+  SOLARPID *parent_;
 };
 
 
