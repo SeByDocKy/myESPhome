@@ -10,19 +10,16 @@
 namespace esphome {
 namespace solarpid {
 
-
-class SOLARPIDComponent : public sensor::Sensor, public Component {
+class SOLARPIDComponent : public PollingComponent {
+# class SOLARPIDComponent : public sensor::Sensor, public Component {
  public:
-  void set_restore(bool restore) { restore_ = restore; }
-  void set_time(time::RealTimeClock *time) { time_ = time; }
-  void set_parent(Sensor *parent) { parent_ = parent; }
-  void set_method(statistics_method method) { method_ = method; }
+  void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
+  void set_pwm_output(sensor::Sensor *pwm_output_sensor) { pwm_output_sensor_ = pwm_output_sensor; }
   
   void setup() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
   void loop() override;
-
 
  protected:
   void process_new_state_(float state);
