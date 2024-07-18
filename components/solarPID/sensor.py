@@ -112,7 +112,7 @@ async def to_code(config):
 
     if CONF_PWM_OUTPUT in config:
 	sens = await sensor.new_sensor(config[CONF_PWM_OUTPUT])
-        cg.add(var.set_error(sens))		
+        cg.add(var.set_pwm_output(sens))		
 
 @automation.register_action(
     "solarpid.set_point",
