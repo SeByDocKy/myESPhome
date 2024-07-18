@@ -4,7 +4,7 @@ from esphome import automation
 from esphome.components import sensor, output, time
 from esphome.const import (
     CONF_ID,
-	STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_MEASUREMENT,
 )
 CONF_INPUT_ID = 'input_id'
 CONF_SETPOINT = 'setpoint'
@@ -47,47 +47,47 @@ PidUpdate = solarpid_ns.class_('PidUpdateAction', automation.Action)
 CONFIG_SCHEMA = (
     cv.Schema(
         {
-		     cv.GenerateID(): cv.declare_id(SOLARPID),
-			 cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
-			 cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
-			 cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
-			 cv.Optional(CONF_KP, default=0.1): cv.float_,
-			 cv.Optional(CONF_KI, default=0.0): cv.float_,
-			 cv.Optional(CONF_KD, default=0.0): cv.float_,
-			 cv.Optional(CONF_OUTPUT_MIN, default=0.0):  cv.float_range(min=0.0, max=1.0),
-			 cv.Optional(CONF_OUTPUT_MAX, default=1.0): cv.float_range(min=0.0, max=1.0),
-			 cv.Optional(CONF_POWER_ID): cv.use_id(output.FloatOutput),
-			 cv.Optional(CONF_PWM_RESTART, default=0.0): cv.float_range(min=0.0, max=1.0),
-			 cv.Optional(CONF_ERROR): sensor.sensor_schema(
+	    cv.GenerateID(): cv.declare_id(SOLARPID),
+	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
+	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
+	    cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
+	    cv.Optional(CONF_KP, default=0.1): cv.float_,
+	    cv.Optional(CONF_KI, default=0.0): cv.float_,
+	    cv.Optional(CONF_KD, default=0.0): cv.float_,
+	    cv.Optional(CONF_OUTPUT_MIN, default=0.0):  cv.float_range(min=0.0, max=1.0),
+	    cv.Optional(CONF_OUTPUT_MAX, default=1.0): cv.float_range(min=0.0, max=1.0),
+	    cv.Optional(CONF_POWER_ID): cv.use_id(output.FloatOutput),
+	    cv.Optional(CONF_PWM_RESTART, default=0.0): cv.float_range(min=0.0, max=1.0),
+	    cv.Optional(CONF_ERROR): sensor.sensor_schema(
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
-			 cv.Optional(CONF_PWM_OUTPUT): sensor.sensor_schema(
+	    cv.Optional(CONF_PWM_OUTPUT): sensor.sensor_schema(
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
-		}
-	)
+	}
+     )
     .extend(cv.polling_component_schema("60s"))
-  )
+)
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 	
-	sens = await cg.get_variable(config[CONF_INPUT_ID])
+    sens = await cg.get_variable(config[CONF_INPUT_ID])
     cg.add(var.set_input_sensor(sens))
 	
-	out = await cg.get_variable(config[CONF_OUTPUT_ID])
+    out = await cg.get_variable(config[CONF_OUTPUT_ID])
     cg.add(var.set_output(out))
 	
-	if CONF_SETPOINT in config:
+    if CONF_SETPOINT in config:
         cg.add(var.set_setpoint(config[CONF_SETPOINT]))
 	
-	if CONF_KP in config:
+    if CONF_KP in config:
         cg.add(var.set_kp(config[CONF_KP]))
-		
-	if CONF_KI in config:
+	    
+    if CONF_KI in config:
         cg.add(var.set_ki(config[CONF_KI]))
 
     if CONF_KD in config:
@@ -100,18 +100,18 @@ async def to_code(config):
         cg.add(var.set_output_max(config[CONF_OUTPUT_MAX]))
 
     if CONF_POWER_ID in config:
-	   sens = await cg.get_variable(config[CONF_POWER_ID])
-       cg.add(var.set_power_sensor(sens))
+        sens = await cg.get_variable(config[CONF_POWER_ID])
+        cg.add(var.set_power_sensor(sens))
 	   
-	if CONF_PWM_RESTART in config:
-	   cg.add(var.set_pwm_restart(config[CONF_PWM_RESTART]))
+    if CONF_PWM_RESTART in config:
+	cg.add(var.set_pwm_restart(config[CONF_PWM_RESTART]))
 		
-	if CONF_ERROR in config:
-	    sens = await sensor.new_sensor(config[CONF_ERROR])
+    if CONF_ERROR in config:
+	sens = await sensor.new_sensor(config[CONF_ERROR])
         cg.add(var.set_error(sens))
 
     if CONF_PWM_OUTPUT in config:
-	    sens = await sensor.new_sensor(config[CONF_PWM_OUTPUT])
+	sens = await sensor.new_sensor(config[CONF_PWM_OUTPUT])
         cg.add(var.set_error(sens))		
 
 @automation.register_action(
