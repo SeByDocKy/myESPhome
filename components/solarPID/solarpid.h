@@ -48,16 +48,93 @@ class SOLARPIDComponent : public PollingComponent {
 
 };
 
-/*
-template<typename... Ts> class STATISTICSresetaction : public Action<Ts...> {
+template<typename... Ts> 
+class SetPointAction : public Action<Ts...> {
  public:
-  STATISTICSresetaction(STATISTICSComponent *parent) : parent_(parent) {}
+  SetPointAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_setpoint)
+  void play(Ts... x) override { this->parent_->set_setpoint(this->new_setpoint_.value(x...) ); }
+  
+  protected:
+    SOLARPID *parent_;
+};
 
-  void play(Ts... x) override { this->parent_->reset(); }
+template<typename... Ts> 
+class SetKpAction : public Action<Ts...> {
+ public:
+  SetKpAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_kp)
+  void play(Ts... x) override { this->parent_->set_kp(this->new_kp_.value(x...) ); }
+  
+  protected:
+    SOLARPID *parent_;
+};
+
+template<typename... Ts> 
+class SetKiAction : public Action<Ts...> {
+ public:
+  SetKiAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_ki)
+  void play(Ts... x) override { this->parent_->set_ki(this->new_ki_.value(x...) ); }
+  
+  protected:
+    SOLARPID *parent_;
+};
+
+template<typename... Ts> 
+class SetKdAction : public Action<Ts...> {
+ public:
+  SetKiAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_kd)
+  void play(Ts... x) override { this->parent_->set_kd(this->new_kd_.value(x...) ); }
+  
+  protected:
+    SOLARPID *parent_;
+};
+
+template<typename... Ts> 
+class SetOutputMinAction : public Action<Ts...> {
+ public:
+  SetOutputMinAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_output_min)
+  void play(Ts... x) override { this->parent_->set_output_min(this->new_output_min_.value(x...) ); }
+  
+  protected:
+    SOLARPID *parent_;
+};
+
+template<typename... Ts> 
+class SetOutputMaxAction : public Action<Ts...> {
+ public:
+  SetOutputMaxAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_output_max)
+  void play(Ts... x) override { this->parent_->set_output_max(this->new_output_max_.value(x...) ); }
+  
+  protected:
+    SOLARPID *parent_;
+};
+
+template<typename... Ts> 
+class SetPwmRestartAction : public Action<Ts...> {
+ public:
+  SetPwmRestartAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_pwm_restart)
+  void play(Ts... x) override { this->parent_->set_pwm_restart(this->new_pwm_restart_.value(x...) ); }
+  
+  protected:
+    SOLARPID *parent_;
+};
+
+class PidUpdateAction : public Action<Ts...> {
+ public:
+  PidUpdateAction(SOLARPID *parent) : parent_(parent) {}
+  void play(Ts... x) override { this->parent_->pid_update(); }  
 
  protected:
-  STATISTICSComponent *parent_;
+  JSY193 *parent_;
 };
-*/
+
+
+
 }  // namespace solarpid
 }  // namespace esphome
