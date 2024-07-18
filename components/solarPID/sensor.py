@@ -19,6 +19,14 @@ CONF_PWM_RESTART = 'pwm_restart'
 CONF_ERROR = 'error'
 CONF_PWM_OUTPUT = 'pwm_output'
 
+CONF_SETPOINT = 'new_setpoint'
+CONF_NEW_KP = 'new_kp'
+CONF_NEW_KI = 'new_ki'
+CONF_NEW_KD = 'new_kd'
+CONF_NEW_OUTPUT_MIN = 'new_output_min'
+CONF_NEW_OUTPUT_MAX = 'new_output_max'
+CONF_NEW_PWM_RESTART = 'new_pwm_restart'
+
 # from esphome.core.entity_helpers import inherit_property_from
 
 CODEOWNERS = ["@SeByDocKy"]
@@ -120,6 +128,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_SETPOINT): cv.templatable(cv.float_range(min=0.0, max=1.0)),
         }
     ),
 )
@@ -130,6 +139,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_KP): cv.templatable(cv.float_),
         }
     ),
 )
@@ -140,6 +150,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_KI): cv.templatable(cv.float_),
         }
     ),
 ) 
@@ -150,6 +161,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_KD): cv.templatable(cv.float_),
         }
     ),
 )   
@@ -161,6 +173,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_OUTPUT_MIN): cv.templatable(cv.float_range(min=0.0, max=1.0)),
         }
     ),
 ) 
@@ -171,6 +184,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_OUTPUT_MAX): cv.templatable(cv.float_range(min=0.0, max=1.0)),
         }
     ),
 )
@@ -181,6 +195,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_PWM_RESTART): cv.templatable(cv.float_range(min=0.0, max=1.0)),
         }
     ),
 ) 
