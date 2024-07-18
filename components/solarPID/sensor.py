@@ -50,7 +50,7 @@ SetOutputMaxAction = solarpid_ns.class_('SetOutputMaxAction', automation.Action)
 
 SetPwmRestartAction = solarpid_ns.class_('SetPwmRestartAction', automation.Action)
 
-PidUpdate = solarpid_ns.class_('PidUpdateAction', automation.Action)
+PidUpdateAction = solarpid_ns.class_('PidUpdateAction', automation.Action)
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -251,7 +251,7 @@ async def set_pwm_restart_to_code(config, action_id, template_arg, args):
 
 @automation.register_action(
     "solarpid.pid_update",
-    PidUpdate,
+    PidUpdateAction,
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
