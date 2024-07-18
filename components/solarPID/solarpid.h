@@ -32,6 +32,7 @@ class SOLARPIDComponent : public PollingComponent {
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
   void set_pwm_output(sensor::Sensor *pwm_output_sensor) { pwm_output_sensor_ = pwm_output_sensor; }
 
+  void pid_update();
 
   void setup() override;
   void dump_config() override;
