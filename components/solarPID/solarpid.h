@@ -40,7 +40,7 @@ class SOLARPIDComponent : public PollingComponent {
 
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
-  ESPPreferenceObject pref_;
+  // ESPPreferenceObject pref_;
   time::RealTimeClock *time_;
   sensor::Sensor *input_sensor_{nullptr};
   sensor::Sensor *power_sensor_{nullptr};
