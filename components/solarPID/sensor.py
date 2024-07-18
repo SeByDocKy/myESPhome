@@ -132,6 +132,13 @@ async def to_code(config):
         }
     ),
 )
+async def set_point_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_set_point = await cg.templatable(config[CONF_NEW_SETPOINT], args, float_) 
+    cg.add(var.set_setpoint(template_new_set_point))	
+    return var
+
 
 @automation.register_action(
     "solarpid.set_kp",
@@ -144,6 +151,14 @@ async def to_code(config):
     ),
 )
 
+async def set_kp_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_kp = await cg.templatable(config[CONF_NEW_KP], args, float_) 
+    cg.add(var.set_kp(template_new_kp))	
+    return var
+
+
 @automation.register_action(
     "solarpid.set_ki",
     SetKiAction,
@@ -155,6 +170,14 @@ async def to_code(config):
     ),
 ) 
 
+async def set_ki_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_ki = await cg.templatable(config[CONF_NEW_KI], args, float_) 
+    cg.add(var.set_ki(template_new_ki))	
+    return var
+
+
 @automation.register_action(
     "solarpid.set_kd",
     SetKdAction,
@@ -164,7 +187,13 @@ async def to_code(config):
 	    cv.Required(CONF_NEW_KD): cv.templatable(cv.float_),
         }
     ),
-)   
+)
+async def set_kd_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_kd = await cg.templatable(config[CONF_NEW_KD], args, float_) 
+    cg.add(var.set_kd(template_new_kd))	
+    return var
 
 
 @automation.register_action(
@@ -176,7 +205,14 @@ async def to_code(config):
 	    cv.Required(CONF_NEW_OUTPUT_MIN): cv.templatable(cv.float_range(min=0.0, max=1.0)),
         }
     ),
-) 
+)
+async def set_output_min_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_output_min = await cg.templatable(config[CONF_NEW_OUTPUT_MIN], args, float_) 
+    cg.add(var.set_output_min(template_new_output_min))	
+    return var
+
 
 @automation.register_action(
     "solarpid.set_output_max",
@@ -188,6 +224,12 @@ async def to_code(config):
         }
     ),
 )
+async def set_output_max_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_output_max = await cg.templatable(config[CONF_NEW_OUTPUT_MAX], args, float_) 
+    cg.add(var.set_output_max(template_new_output_max))	
+    return var
 
 @automation.register_action(
     "solarpid.set_pwm_restart",
@@ -198,7 +240,14 @@ async def to_code(config):
 	    cv.Required(CONF_NEW_PWM_RESTART): cv.templatable(cv.float_range(min=0.0, max=1.0)),
         }
     ),
-) 
+)
+async def set_pwm_restart_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_pwm_restart = await cg.templatable(config[CONF_PWM_RESTART], args, float_) 
+    cg.add(var.set_pwm_restart(template_new_pwm_restart))	
+    return var
+
 
 @automation.register_action(
     "solarpid.pid_update",
@@ -209,10 +258,6 @@ async def to_code(config):
         }
     ),
 ) 
-
-async def actions_to_code(config, action_id, template_arg, args):
-    parent = await cg.get_variable(config[CONF_ID])
-    return cg.new_Pvariable(action_id, template_arg, parent)
 
 
 
