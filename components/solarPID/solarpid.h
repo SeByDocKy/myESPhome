@@ -5,12 +5,13 @@
 #include "esphome/core/preferences.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/time/real_time_clock.h"
 
 namespace esphome {
 namespace solarpid {
 
-class SOLARPIDComponent : public PollingComponent , public sensor::Sensor, public binarysensor::BinarySensor {
+class SOLARPIDComponent : public PollingComponent  {
 // class SOLARPIDComponent : public sensor::Sensor, public binarysensor::BinarySensor, public Component {
  public:
 
