@@ -1,11 +1,12 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import sensor, output, time
+from esphome.components import binary_sensor, sensor, output, time
 from esphome.const import (
     CONF_ID,
     STATE_CLASS_MEASUREMENT,
 )
+CONF_ACTIVATION_ID = 'activation_id'
 CONF_INPUT_ID = 'input_id'
 CONF_SETPOINT = 'setpoint'
 CONF_KP = 'kp'
@@ -56,6 +57,7 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
 	    cv.GenerateID(): cv.declare_id(SOLARPID),
+	    cv.Required(CONF_ACTIVATION_ID): cv.use_id(binarysensor.BinarySensor),
 	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
 	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
 	    cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
@@ -82,6 +84,9 @@ CONFIG_SCHEMA = (
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
+
+    bin_sens = await cg.get_variable(config[CONF_ACTIVATION_ID])
+    cg.add(var.set_activation_binary_sensor(bin_sens))
 	
     sens = await cg.get_variable(config[CONF_INPUT_ID])
     cg.add(var.set_input_sensor(sens))
