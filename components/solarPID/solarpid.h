@@ -11,7 +11,7 @@ namespace esphome {
 namespace solarpid {
 
 class SOLARPIDComponent : public PollingComponent {
-// class SOLARPIDComponent : public sensor::Sensor, public Component {
+// class SOLARPIDComponent : public sensor::Sensor, public binarysensor::BinarySensor, public Component {
  public:
 
  
