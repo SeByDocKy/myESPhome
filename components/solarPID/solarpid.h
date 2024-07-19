@@ -22,7 +22,8 @@ class SOLARPIDComponent : public PollingComponent {
   void set_output_min(float output_min) { output_min_ = output_min; }
   void set_output_max(float output_max) { output_max_ = output_max; }
   void set_pwm_restart(float pwm_restart) { pwm_restart_ = pwm_restart; }
-
+  
+  vois set_activation_binary_sensor(binary_sensor::BinarySensor *activation_binary_sensor) {activation_binary_sensor_ = activation_binary_sensor;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
 
@@ -43,6 +44,7 @@ class SOLARPIDComponent : public PollingComponent {
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   // ESPPreferenceObject pref_;
   time::RealTimeClock *time_;
+  binarysensor::BinarySensor *activation_binary_sensor_{false};
   sensor::Sensor *input_sensor_{nullptr};
   sensor::Sensor *power_sensor_{nullptr};
   output::FloatOutput *output_{nullptr};
