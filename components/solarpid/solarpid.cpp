@@ -42,7 +42,8 @@ void SOLARPID::dump_config() {
 void SOLARPID::pid_update() {
   //double now = millis();
   if (this->current_activation){
-    double dt = (millis() - this->last_time)/1000.00;
+    double now = millis();
+    double dt = (now - this->last_time)/1000.00;
     double error = (this->currentpoint - this->current_input);
     this->integral += error * dt;
     this->derivative = (error - this->previous_error) / dt;
@@ -54,6 +55,7 @@ void SOLARPID::pid_update() {
     if (this->pwm_output_sensor_ != nullptr){
       this->pwm_output_sensor_->publish_state(pwm_output);
     }
+    this->last_time = now;
 
   }
 
