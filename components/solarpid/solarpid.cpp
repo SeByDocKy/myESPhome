@@ -6,8 +6,16 @@ namespace solarpid {
 
 void SOLARPID::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
-  last_time =  millis();
-  this->parent_->add_on_state_callback([this](float state) { this->process_new_state_(state); });
+  
+  this->last_time =  millis();
+  
+  if (this->input_sensor_ != nullptr) {
+    this->input_sensor_->add_on_state_callback([this](float state) {
+      this->current_input = state;
+      this->publish_state();
+    });
+    this->current_input = this->input_sensor_->state;
+  }
 }
 
 void SOLARPID::dump_config() {
