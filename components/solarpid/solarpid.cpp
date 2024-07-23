@@ -43,8 +43,7 @@ void SOLARPID::pid_update() {
   //double now = millis();
   if (this->current_activation){
     double dt = (millis() - this->last_time)/1000.00;
-    double error = (this->currentpoint - actual);
-    //double proportional = error;
+    double error = (this->currentpoint - this->current_input);
     this->integral += error * dt;
     this->derivative = (error - this->previous_error) / dt;
     this->previous_error = error;
@@ -56,7 +55,6 @@ void SOLARPID::pid_update() {
       this->pwm_output_sensor_->publish_state(pwm_output);
     }
 
-    
   }
 
 }
