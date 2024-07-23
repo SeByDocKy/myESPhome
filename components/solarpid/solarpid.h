@@ -45,6 +45,7 @@ class SOLARPIDComponent : public PollingComponent  {
 
   double last_time = 0.0;
   double previous_error;
+  double integral= 0.0 , derivative = 0.0: 
   //float current_point;
   float current_input;
   float current_power;
