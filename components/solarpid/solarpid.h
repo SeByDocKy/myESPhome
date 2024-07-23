@@ -14,8 +14,6 @@ namespace solarpid {
 class SOLARPIDComponent : public PollingComponent  {
 // class SOLARPIDComponent : public sensor::Sensor, public binarysensor::BinarySensor, public Component {
  public:
-
- 
   void set_setpoint(float setpoint) { setpoint_ = setpoint; }
   void set_kp(float kp) { kp_ = kp; }
   void set_ki(float ki) { ki_ = ki; }
@@ -30,7 +28,6 @@ class SOLARPIDComponent : public PollingComponent  {
 
   void set_output(output::FloatOutput *output) { output_ = output; }
   
-
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
   void set_pwm_output(sensor::Sensor *pwm_output_sensor) { pwm_output_sensor_ = pwm_output_sensor; }
 
@@ -44,7 +41,9 @@ class SOLARPIDComponent : public PollingComponent  {
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   // ESPPreferenceObject pref_;
-  time::RealTimeClock *time_;
+  // time::RealTimeClock *time_;
+
+  float last_time = 0;
   binarysensor::BinarySensor *activation_binary_sensor_{false};
   sensor::Sensor *input_sensor_{nullptr};
   sensor::Sensor *power_sensor_{nullptr};
