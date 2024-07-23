@@ -44,7 +44,8 @@ class SOLARPIDComponent : public PollingComponent  {
   // time::RealTimeClock *time_;
 
   double last_time = 0.0;
-  float current_point;
+  double previous_error;
+  //float current_point;
   float current_input;
   float current_power;
   bool current_activation;
