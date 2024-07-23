@@ -40,6 +40,14 @@ void SOLARPID::dump_config() {
 }
 
 void SOLARPID::pid_update() {
+  //double now = millis();
+  double dt = (millis() - this->last_time)/1000.00;
+  this->error_ = (this->currentpoint - actual);
+  //double proportional = error;
+  this->integral += this->error_ * dt;
+  double derivative = (this->error_ - this->previous) / dt;
+  this->previous = this->error_;
+  double output = (kp * this->error_) + (ki * this->integral) + (kd * this->derivative);
 
 }
 
