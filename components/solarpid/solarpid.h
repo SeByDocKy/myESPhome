@@ -43,7 +43,7 @@ class SOLARPIDComponent : public PollingComponent  {
   // ESPPreferenceObject pref_;
   // time::RealTimeClock *time_;
 
-  float last_time = 0;
+  double last_time = 0.0;
   float current_point;
   float current_input;
   float current_power;
