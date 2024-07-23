@@ -39,7 +39,7 @@ class SOLARPIDComponent : public PollingComponent  {
   void setup() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
-  void loop() override;
+  // void loop() override;
 
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
