@@ -4,6 +4,8 @@
 namespace esphome {
 namespace solarpid {
 
+static const char *const TAG = "solarpid";
+
 void SOLARPID::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
   
