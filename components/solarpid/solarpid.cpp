@@ -42,13 +42,13 @@ void SOLARPID::dump_config() {
 void SOLARPID::pid_update() {
   //double now = millis();
   if (this->current_activation){
-    double now = millis();
-    double dt = (now - this->last_time)/1000.00;
-    double error = (this->currentpoint - this->current_input);
+    uint32_t now = millis();
+    float dt = (now - this->last_time)/1000.0f;
+    float error = (this->currentpoint - this->current_input);
     this->integral += error * dt;
     this->derivative = (error - this->previous_error) / dt;
     this->previous_error = error;
-    double pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral) + (this->kd_ * this->derivative) , this->output_min_  ) , this->output_max_);
+    float pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral) + (this->kd_ * this->derivative) , this->output_min_  ) , this->output_max_);
     if (this->error_ != nullptr){
       this->error_->publish_state(error);
     }
@@ -56,6 +56,7 @@ void SOLARPID::pid_update() {
       this->pwm_output_sensor_->publish_state(pwm_output);
     }
     this->last_time = now;
+    this->output_->set_level(pwm_output);
 
   }
 
