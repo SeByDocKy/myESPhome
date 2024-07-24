@@ -47,10 +47,16 @@ class SOLARPIDComponent : public PollingComponent  {
   float current_power_;
   bool current_activation_;
  
-  switch_::Switch *activation_switch_{nullptr};
-  sensor::Sensor *input_sensor_{nullptr};
-  sensor::Sensor *power_sensor_{nullptr};
-  output::FloatOutput *output_{nullptr};
+  switch_::Switch *activation_switch_;
+  sensor::Sensor *input_sensor_;
+  sensor::Sensor *power_sensor_;
+  output::FloatOutput *output_;
+
+
+  sensor::Sensor *error_sensor_{nullptr};
+  sensor::Sensor *pwm_output_sensor_{nullptr};
+
+
 
 };
 
