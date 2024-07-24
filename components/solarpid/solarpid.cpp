@@ -30,7 +30,7 @@ void SOLARPID::setup() {
       this->current_activation_ = state;
       //this->publish_state();
     });
-    this->current_activation_ = this->activation_binary_sensor_->state;
+    this->current_activation_ = this->activation_switch_->state;
   }
 
 }
