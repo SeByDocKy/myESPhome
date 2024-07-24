@@ -39,7 +39,7 @@ void SOLARPID::dump_config() {
 }
 
 
-void SOLARPID::write_output_(float value) {
+void SOLARPID::write_output(float value) {
    this->output_->set_level(value);
 }
 
