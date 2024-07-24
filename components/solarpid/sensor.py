@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import binary_sensor, sensor, switch_, output, time
+from esphome.components import binary_sensor, sensor, switch, output, time
 from esphome.const import (
     CONF_ID,
     STATE_CLASS_MEASUREMENT,
@@ -36,7 +36,7 @@ DEPENDENCIES = ["time"]
 ### Sensor component ####
 solarpid_ns = cg.esphome_ns.namespace("solarpid")
 SOLARPID = solarpid_ns.class_(
-    "SOLARPID", sensor.Sensor, switch_.Switch, binary_sensor.BinarySensor, cg.Component
+    "SOLARPID", sensor.Sensor, switch.Switch, binary_sensor.BinarySensor, cg.Component
 )
 
 ### Actions ###
@@ -58,7 +58,7 @@ CONFIG_SCHEMA = (
         {
 	    cv.GenerateID(): cv.declare_id(SOLARPID),
 	    # cv.Required(CONF_ACTIVATION_ID): cv.use_id(binary_sensor.BinarySensor),
-            cv.Required(CONF_ACTIVATION_ID): cv.use_id(switch_.Switch), 	  	
+            cv.Required(CONF_ACTIVATION_ID): cv.use_id(switch.Switch), 	  	
 	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
 	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
 	    cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
