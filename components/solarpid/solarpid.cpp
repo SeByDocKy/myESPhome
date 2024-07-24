@@ -62,6 +62,9 @@ void SOLARPID::pid_update() {
     this->last_time_ = now;
     this->output_->set_level(pwm_output);
     //this->write_output(pwm_output);
+   
+    ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, pwm_output = %3.2f , error = %3.2f, integral = %3.2f , derivative = %3.2f", this->setpoint_ , this->Kp_ , this->Ki_ , this->Kd_ , pwm_output , error , this->integral_ , this->derivative_);
+    
   }
 }
 
