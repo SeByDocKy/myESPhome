@@ -22,7 +22,7 @@ class SOLARPIDComponent : public PollingComponent  {
   void set_output_max(float output_max) { output_max_ = output_max; }
   void set_pwm_restart(float pwm_restart) { pwm_restart_ = pwm_restart; }
   
-  void set_activation_binary_sensor(binary_sensor::BinarySensor *activation_binary_sensor) {activation_binary_sensor_ = activation_binary_sensor;}
+  void set_activation_binary_sensor(switch::Switch *activation_switch) {activation_switch_ = activation_switch;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
 
