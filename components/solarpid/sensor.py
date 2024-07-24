@@ -20,7 +20,7 @@ CONF_PWM_RESTART = 'pwm_restart'
 CONF_ERROR = 'error'
 CONF_PWM_OUTPUT = 'pwm_output'
 
-CONF_SETPOINT = 'new_setpoint'
+CONF_NEW_SETPOINT = 'new_setpoint'
 CONF_NEW_KP = 'new_kp'
 CONF_NEW_KI = 'new_ki'
 CONF_NEW_KD = 'new_kd'
