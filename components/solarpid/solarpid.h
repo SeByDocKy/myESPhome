@@ -6,13 +6,13 @@
 #include "esphome/core/hal.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/binary_sensor/binarysensor.h"
+#include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 
 namespace esphome {
 namespace solarpid {
 
 class SOLARPIDComponent : public PollingComponent  {
-// class SOLARPIDComponent : public sensor::Sensor, public binarysensor::BinarySensor, public Component {
  public:
   void set_setpoint(float setpoint) { setpoint_ = setpoint; }
   void set_kp(float kp) { kp_ = kp; }
@@ -22,7 +22,7 @@ class SOLARPIDComponent : public PollingComponent  {
   void set_output_max(float output_max) { output_max_ = output_max; }
   void set_pwm_restart(float pwm_restart) { pwm_restart_ = pwm_restart; }
   
-  void set_activation_binary_sensor(switch::Switch *activation_switch) {activation_switch_ = activation_switch;}
+  void set_activation_switch(switch::Switch *activation_switch) {activation_switch_ = activation_switch;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
 
