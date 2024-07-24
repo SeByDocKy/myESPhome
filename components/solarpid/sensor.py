@@ -67,7 +67,7 @@ CONFIG_SCHEMA = (
 	    cv.Optional(CONF_KD, default=0.0): cv.float_,
 	    cv.Optional(CONF_OUTPUT_MIN, default=0.0):  cv.float_range(min=0.0, max=1.0),
 	    cv.Optional(CONF_OUTPUT_MAX, default=1.0): cv.float_range(min=0.0, max=1.0),
-	    cv.Optional(CONF_POWER_ID): cv.use_id(output.FloatOutput),
+	    cv.Optional(CONF_POWER_ID): cv.use_id(sensor.Sensor),
 	    cv.Optional(CONF_PWM_RESTART, default=0.0): cv.float_range(min=0.0, max=1.0),
 	    cv.Optional(CONF_ERROR): sensor.sensor_schema(
                 accuracy_decimals=2,
