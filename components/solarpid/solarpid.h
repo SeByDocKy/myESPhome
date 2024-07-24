@@ -5,7 +5,6 @@
 #include "esphome/core/preferences.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/sensor/sensor.h"
-// #include "esphome/components/binary_sensor/binarysensor.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 
@@ -21,18 +20,13 @@ class SOLARPIDComponent : public PollingComponent  {
   void set_output_min(float output_min) { output_min_ = output_min; }
   void set_output_max(float output_max) { output_max_ = output_max; }
   void set_pwm_restart(float pwm_restart) { pwm_restart_ = pwm_restart; }
-  
   void set_activation_switch(switch::Switch *activation_switch) {activation_switch_ = activation_switch;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
-
   void set_output(output::FloatOutput *output) { output_ = output; }
-  
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
   void set_pwm_output(sensor::Sensor *pwm_output_sensor) { pwm_output_sensor_ = pwm_output_sensor; }
-
   void pid_update();
-
   void setup() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
