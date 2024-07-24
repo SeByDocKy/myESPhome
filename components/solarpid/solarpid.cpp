@@ -53,7 +53,12 @@ void SOLARPID::pid_update() {
     this->integral_ += error * dt;
     this->derivative_ = (error - this->previous_error_) / dt;
     this->previous_error_ = error;
-    pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
+    if( (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
+      pwm_output = this->pwm_restart_;
+    }
+    else{
+      pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
+    }
     if (this->error_sensor_ != nullptr){
       this->error_sensor_->publish_state(error);
     }
