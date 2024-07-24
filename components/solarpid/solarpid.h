@@ -70,7 +70,7 @@ class SetPointAction : public Action<Ts...> {
   SOLARPID *parent_;
 };
 
-/*
+// /*
 
 template<typename... Ts> 
 class SetKpAction : public Action<Ts...> {
@@ -146,7 +146,7 @@ class PidUpdateAction : public Action<Ts...> {
  protected:
   SOLARPID *parent_;
 };
-*/
+// */
 
 
 }  // namespace solarpid
