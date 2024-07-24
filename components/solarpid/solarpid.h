@@ -95,7 +95,7 @@ class SetKiAction : public Action<Ts...> {
     SOLARPID *parent_;
 };
 
-/*
+
 
 template<typename... Ts> 
 class SetKdAction : public Action<Ts...> {
@@ -104,10 +104,11 @@ class SetKdAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(float, new_kd)
   void play(Ts... x) override { this->parent_->set_kd(this->new_kd_.value(x...) ); }
   
-  protected:
+ protected:
     SOLARPID *parent_;
 };
 
+/*
 template<typename... Ts> 
 class SetOutputMinAction : public Action<Ts...> {
  public:
@@ -115,8 +116,8 @@ class SetOutputMinAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(float, new_output_min)
   void play(Ts... x) override { this->parent_->set_output_min(this->new_output_min_.value(x...) ); }
   
-  protected:
-    SOLARPID *parent_;
+ protected:
+   SOLARPID *parent_;
 };
 
 template<typename... Ts> 
@@ -126,8 +127,8 @@ class SetOutputMaxAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(float, new_output_max)
   void play(Ts... x) override { this->parent_->set_output_max(this->new_output_max_.value(x...) ); }
   
-  protected:
-    SOLARPID *parent_;
+ protected:
+   SOLARPID *parent_;
 };
 
 template<typename... Ts> 
@@ -137,8 +138,8 @@ class SetPwmRestartAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(float, new_pwm_restart)
   void play(Ts... x) override { this->parent_->set_pwm_restart(this->new_pwm_restart_.value(x...) ); }
   
-  protected:
-    SOLARPID *parent_;
+ protected:
+   SOLARPID *parent_;
 };
 
 class PidUpdateAction : public Action<Ts...> {
