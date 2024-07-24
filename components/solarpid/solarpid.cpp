@@ -28,7 +28,7 @@ void SOLARPID::setup() {
   if (this->activation_switch_ != nullptr) {
     this->activation_switch_->add_on_state_callback([this](bool state) {
       this->current_activation_ = state;
-      t//his->publish_state();
+      //this->publish_state();
     });
     this->current_activation_ = this->activation_binary_sensor_->state;
   }
