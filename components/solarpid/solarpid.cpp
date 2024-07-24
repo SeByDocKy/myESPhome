@@ -46,8 +46,8 @@ void SOLARPID::write_output(float value) {
 
 void SOLARPID::pid_update() {
   float pwm_output = 0.0f;
+  uint32_t now = millis();
   if (this->current_activation_){
-    uint32_t now = millis();
     float dt = (now - this->last_time_)/1000.0f;
     float error = (this->setpoint_ - this->current_input_);
     this->integral_ += error * dt;
