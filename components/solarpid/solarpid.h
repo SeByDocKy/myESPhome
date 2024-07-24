@@ -37,10 +37,8 @@ class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::F
  protected:
   
   void pid_update();
+  
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
-  // ESPPreferenceObject pref_;
-  // time::RealTimeClock *time_;
-
   uint32_t last_time_ = 0;
   float previous_error_;
   float integral_= 0.0f; 
@@ -147,10 +145,6 @@ class PidUpdateAction : public Action<Ts...> {
  protected:
   SOLARPID *parent_;
 };
-
-/*
-*/
-
 
 }  // namespace solarpid
 }  // namespace esphome
