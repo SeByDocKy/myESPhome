@@ -57,7 +57,7 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
 	    cv.GenerateID(): cv.declare_id(SOLARPID),
-	    cv.Required(CONF_ACTIVATION_ID): cv.use_id(binarysensor.BinarySensor),
+	    cv.Required(CONF_ACTIVATION_ID): cv.use_id(binary_sensor.BinarySensor),
 	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
 	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
 	    cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
