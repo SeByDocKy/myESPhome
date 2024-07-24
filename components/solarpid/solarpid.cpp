@@ -38,6 +38,11 @@ void SOLARPID::dump_config() {
   LOG_SENSOR("", "PWM output", this->pwm_output_sensor_);
 }
 
+
+void SOLARPID::write_output_(float value) {
+   this->output_->set_level(value);
+}
+
 void SOLARPID::pid_update() {
   if (this->current_activation_){
     uint32_t now = millis();
@@ -54,7 +59,8 @@ void SOLARPID::pid_update() {
       this->pwm_output_sensor_->publish_state(pwm_output);
     }
     this->last_time_ = now;
-    this->output_->set_level(pwm_output);
+    //this->output_->set_level(pwm_output);
+    this->write_output_(pwm_output);
   }
 }
 
