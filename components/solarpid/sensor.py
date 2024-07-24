@@ -160,7 +160,7 @@ async def set_point_to_code(config, action_id, template_arg, args):
 async def set_kp_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_kp = await cg.templatable(config[CONF_NEW_KP], args, float_) 
+    template_new_kp = await cg.templatable(config[CONF_NEW_KP], args, float) 
     cg.add(var.set_new_kp(template_new_kp))	
     return var
 
@@ -179,7 +179,7 @@ async def set_kp_to_code(config, action_id, template_arg, args):
 async def set_ki_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_ki = await cg.templatable(config[CONF_NEW_KI], args, float_) 
+    template_new_ki = await cg.templatable(config[CONF_NEW_KI], args, float) 
     cg.add(var.set_new_ki(template_new_ki))	
     return var
 
@@ -197,7 +197,7 @@ async def set_ki_to_code(config, action_id, template_arg, args):
 async def set_kd_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_kd = await cg.templatable(config[CONF_NEW_KD], args, float_) 
+    template_new_kd = await cg.templatable(config[CONF_NEW_KD], args, float) 
     cg.add(var.set_new_kd(template_new_kd))	
     return var
 
@@ -215,7 +215,7 @@ async def set_kd_to_code(config, action_id, template_arg, args):
 async def set_output_min_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_output_min = await cg.templatable(config[CONF_NEW_OUTPUT_MIN], args, float_) 
+    template_new_output_min = await cg.templatable(config[CONF_NEW_OUTPUT_MIN], args, float) 
     cg.add(var.set_new_output_min(template_new_output_min))	
     return var
 
@@ -233,7 +233,7 @@ async def set_output_min_to_code(config, action_id, template_arg, args):
 async def set_output_max_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_output_max = await cg.templatable(config[CONF_NEW_OUTPUT_MAX], args, float_) 
+    template_new_output_max = await cg.templatable(config[CONF_NEW_OUTPUT_MAX], args, float) 
     cg.add(var.set_new_output_max(template_new_output_max))	
     return var
 
@@ -250,7 +250,7 @@ async def set_output_max_to_code(config, action_id, template_arg, args):
 async def set_pwm_restart_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_pwm_restart = await cg.templatable(config[CONF_PWM_RESTART], args, float_) 
+    template_new_pwm_restart = await cg.templatable(config[CONF_PWM_RESTART], args, float) 
     cg.add(var.set_new_pwm_restart(template_new_pwm_restart))	
     return var
 
