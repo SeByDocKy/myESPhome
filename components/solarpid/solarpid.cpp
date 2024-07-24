@@ -39,7 +39,6 @@ void SOLARPID::dump_config() {
 }
 
 void SOLARPID::pid_update() {
-  //double now = millis();
   if (this->current_activation_){
     uint32_t now = millis();
     float dt = (now - this->last_time_)/1000.0f;
@@ -56,9 +55,7 @@ void SOLARPID::pid_update() {
     }
     this->last_time_ = now;
     this->output_->set_level(pwm_output);
-
   }
-
 }
 
 
