@@ -137,6 +137,8 @@ class SetPwmRestartAction : public Action<Ts...> {
    SOLARPID *parent_;
 };
 
+/*
+template<typename... Ts> 
 class PidUpdateAction : public Action<Ts...> {
  public:
   PidUpdateAction(SOLARPID *parent) : parent_(parent) {}
@@ -145,7 +147,7 @@ class PidUpdateAction : public Action<Ts...> {
  protected:
   SOLARPID *parent_;
 };
-/*
+
 */
 
 
