@@ -27,13 +27,15 @@ class SOLARPID : public PollingComponent  {
   void set_output(output::FloatOutput *output) { output_ = output; }
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
   void set_pwm_output(sensor::Sensor *pwm_output_sensor) { pwm_output_sensor_ = pwm_output_sensor; }
-  void pid_update();
+  
   void setup() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
   // void loop() override;
 
  protected:
+
+  void pid_update();
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   // ESPPreferenceObject pref_;
   // time::RealTimeClock *time_;
