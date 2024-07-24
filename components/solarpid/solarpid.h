@@ -41,13 +41,13 @@ class SOLARPIDComponent : public PollingComponent  {
   uint32_t last_time_ = 0;
   float previous_error_;
   float integral_= 0.0f; 
-  float derivative_ = 0.0f: 
+  float derivative_ = 0.0f;
   //float current_point;
   float current_input_;
   float current_power_;
   bool current_activation_;
  
-  switch_::Switch *activation_switch_{false};
+  switch_::Switch *activation_switch_{nullptr};
   sensor::Sensor *input_sensor_{nullptr};
   sensor::Sensor *power_sensor_{nullptr};
   output::FloatOutput *output_{nullptr};
