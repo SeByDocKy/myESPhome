@@ -12,7 +12,7 @@
 namespace esphome {
 namespace solarpid {
 
-class SOLARPIDComponent : public PollingComponent  {
+class SOLARPID : public PollingComponent  {
  public:
   void set_setpoint(float setpoint) { setpoint_ = setpoint; }
   void set_kp(float kp) { kp_ = kp; }
