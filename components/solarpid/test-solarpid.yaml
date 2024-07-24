@@ -16,12 +16,8 @@ external_components:
     refresh: 0s
 
 esphome:
-  name: test-wk2168spi-s3
-  # friendly_name: test-wk2168spi-s3
-  # platformio_options:
-  #   build_flags:
-  #     - -DTEST_COMPONENT
-    # build_type: debug
+  name: test_solarpid
+
 esp32:
   board: esp32dev
   framework:
@@ -33,9 +29,7 @@ esp32:
 logger:
     baud_rate : 0
    # level : verbose
-    level: very_verbose
-# Enable Home Assistant API
-# Enable Home Assistant API
+   # level: very_verbose
 
 # Enable Home Assistant API
 api:
