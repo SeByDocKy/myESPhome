@@ -81,7 +81,6 @@ class SetKpAction : public Action<Ts...> {
    SOLARPID *parent_;
 };
 
-
 template<typename... Ts> 
 class SetKiAction : public Action<Ts...> {
  public:
@@ -93,11 +92,10 @@ class SetKiAction : public Action<Ts...> {
     SOLARPID *parent_;
 };
 
-
 template<typename... Ts> 
 class SetKdAction : public Action<Ts...> {
  public:
-  SetKiAction(SOLARPID *parent) : parent_(parent) {}
+  SetKdAction(SOLARPID *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(float, new_kd)
   void play(Ts... x) override { this->parent_->set_kd(this->new_kd_.value(x...) ); }
   
