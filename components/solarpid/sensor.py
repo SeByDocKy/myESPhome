@@ -134,14 +134,14 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
-	    cv.Required(CONF_NEW_SETPOINT): cv.templatable(cv.float_range(min=0.0, max=1.0)),
+	    cv.Required(CONF_NEW_SETPOINT): cv.templatable(cv.float_range(min=-20.0, max=20.0)),
         }
     ),
 )
 async def set_point_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_set_point = await cg.templatable(config[CONF_NEW_SETPOINT], args, float_) 
+    template_new_set_point = await cg.templatable(config[CONF_NEW_SETPOINT], args, float) 
     cg.add(var.set_new_setpoint(template_new_set_point))	
     return var
 
