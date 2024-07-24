@@ -9,7 +9,7 @@ static const char *const TAG = "solarpid";
 void SOLARPID::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
   
-  this->last_time =  millis();
+  this->last_time_ =  millis();
   
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
