@@ -5,7 +5,7 @@
 #include "esphome/core/preferences.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/sensor/sensor.h"
-#include "esphome/components/binary_sensor/binarysensor.h"
+// #include "esphome/components/binary_sensor/binarysensor.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 
