@@ -52,12 +52,8 @@ class SOLARPIDComponent : public PollingComponent  {
   sensor::Sensor *power_sensor_;
   output::FloatOutput *output_;
 
-
   sensor::Sensor *error_sensor_{nullptr};
   sensor::Sensor *pwm_output_sensor_{nullptr};
-
-
-
 };
 
 template<typename... Ts> 
@@ -67,9 +63,10 @@ class SetPointAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(float, new_setpoint)
   void play(Ts... x) override { this->parent_->set_setpoint(this->new_setpoint_.value(x...) ); }
   
-  protected:
-    SOLARPID *parent_;
+ protected:
+  SOLARPID *parent_;
 };
+
 
 template<typename... Ts> 
 class SetKpAction : public Action<Ts...> {
