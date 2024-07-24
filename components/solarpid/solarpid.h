@@ -34,10 +34,10 @@ class SOLARPID : public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
   // void loop() override;
-
+  void pid_update();
  protected:
   
-  void pid_update();
+ 
 
   //void write_output(float);
   
