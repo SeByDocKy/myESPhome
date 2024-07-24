@@ -43,7 +43,8 @@ class SOLARPID : public Component {
   
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   uint32_t last_time_ = 0;
-  float previous_error_;
+  float previous_error_ = 0.0f;
+  float previous_pwm_output_ = 0.0f;
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
   float current_point;
