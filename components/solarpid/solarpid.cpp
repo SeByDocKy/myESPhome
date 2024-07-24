@@ -45,6 +45,7 @@ void SOLARPID::write_output(float value) {
 */
 
 void SOLARPID::pid_update() {
+  float pwm_output = 0.0f;
   if (this->current_activation_){
     uint32_t now = millis();
     float dt = (now - this->last_time_)/1000.0f;
@@ -52,7 +53,7 @@ void SOLARPID::pid_update() {
     this->integral_ += error * dt;
     this->derivative_ = (error - this->previous_error_) / dt;
     this->previous_error_ = error;
-    float pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
+    pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
     if (this->error_sensor_ != nullptr){
       this->error_sensor_->publish_state(error);
     }
@@ -63,16 +64,13 @@ void SOLARPID::pid_update() {
     //this->write_output(pwm_output);
     }
   else{
-    pwm_output = 0.0f;
     ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, previous_pwm_output , pwm_output = %3.2f ", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->previous_pwm_output_ , pwm_output);
   }
 
   this->last_time_ = now;
   this->output_->set_level(pwm_output);
-  
   this->previous_pwm_output_ = pwm_output;
     
-  
 }
 
 
