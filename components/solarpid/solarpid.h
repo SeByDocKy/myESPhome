@@ -83,7 +83,7 @@ class SetKpAction : public Action<Ts...> {
     SOLARPID *parent_;
 };
 
-/*
+
 template<typename... Ts> 
 class SetKiAction : public Action<Ts...> {
  public:
@@ -94,6 +94,8 @@ class SetKiAction : public Action<Ts...> {
   protected:
     SOLARPID *parent_;
 };
+
+/*
 
 template<typename... Ts> 
 class SetKdAction : public Action<Ts...> {
