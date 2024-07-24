@@ -13,7 +13,8 @@ namespace esphome {
 namespace solarpid {
 
 //class SOLARPID : public PollingComponent  {
-class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::FloatOutput, public Component {
+//class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::FloatOutput, public Component {
+class SOLARPID : public Component {
  public:
   void set_setpoint(float setpoint) { setpoint_ = setpoint; }
   void set_kp(float kp) { kp_ = kp; }
@@ -38,7 +39,7 @@ class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::F
   
   void pid_update();
 
-  void write_output(float);
+  //void write_output(float);
   
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   uint32_t last_time_ = 0;
