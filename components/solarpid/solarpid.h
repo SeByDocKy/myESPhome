@@ -43,14 +43,14 @@ class SOLARPIDComponent : public PollingComponent  {
   // ESPPreferenceObject pref_;
   // time::RealTimeClock *time_;
 
-  uint32_t last_time = 0;
-  float previous_error;
-  float integral= 0.0f; 
-  float derivative = 0.0f: 
+  uint32_t last_time_ = 0;
+  float previous_error_;
+  float integral_= 0.0f; 
+  float derivative_ = 0.0f: 
   //float current_point;
-  float current_input;
-  float current_power;
-  bool current_activation;
+  float current_input_;
+  float current_power_;
+  bool current_activation_;
  
   binarysensor::BinarySensor *activation_binary_sensor_{false};
   sensor::Sensor *input_sensor_{nullptr};
