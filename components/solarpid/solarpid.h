@@ -35,7 +35,7 @@ class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::F
   // void loop() override;
 
  protected:
-
+  
   void pid_update();
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   // ESPPreferenceObject pref_;
