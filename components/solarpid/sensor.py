@@ -262,11 +262,4 @@ async def set_pwm_restart_to_code(config, action_id, template_arg, args):
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
         }
     ),
-) 
-
-
-
-
-
-		
-
+)
