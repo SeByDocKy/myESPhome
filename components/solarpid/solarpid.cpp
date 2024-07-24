@@ -60,7 +60,7 @@ void SOLARPID::pid_update() {
     }
     this->last_time_ = now;
     //this->output_->set_level(pwm_output);
-    this->write_output_(pwm_output);
+    this->write_output(pwm_output);
   }
 }
 
