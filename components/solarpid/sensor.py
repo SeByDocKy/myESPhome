@@ -35,8 +35,8 @@ DEPENDENCIES = ["time"]
 
 ### Sensor component ####
 solarpid_ns = cg.esphome_ns.namespace("solarpid")
-SOLARPIDComponent = solarpid_ns.class_(
-    "SOLARPIDComponent", sensor.Sensor, cg.Component
+SOLARPID = solarpid_ns.class_(
+    "SOLARPID", sensor.Sensor, cg.Component
 )
 
 ### Actions ###
