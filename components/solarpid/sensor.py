@@ -43,7 +43,7 @@ SOLARPID = solarpid_ns.class_(
 ### Actions ###
 SetPointAction = solarpid_ns.class_('SetPointAction', automation.Action)
 
-# SetKpAction = solarpid_ns.class_('SetKpAction', automation.Action)
+SetKpAction = solarpid_ns.class_('SetKpAction', automation.Action)
 # SetKiAction = solarpid_ns.class_('SetKiAction', automation.Action)
 # SetKdAction = solarpid_ns.class_('SetKdAction', automation.Action)
 
@@ -58,7 +58,6 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
 	    cv.GenerateID(): cv.declare_id(SOLARPID),
-	    # cv.Required(CONF_ACTIVATION_ID): cv.use_id(binary_sensor.BinarySensor),
             cv.Required(CONF_ACTIVATION_ID): cv.use_id(switch.Switch), 	  	
 	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
 	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
@@ -147,23 +146,23 @@ async def set_point_to_code(config, action_id, template_arg, args):
     return var
 
 
-# @automation.register_action(
-#     "solarpid.set_kp",
-#     SetKpAction,
-#     maybe_simple_id(
-#         {
-#             cv.Required(CONF_ID): cv.use_id(SOLARPID),
-# 	    cv.Required(CONF_NEW_KP): cv.templatable(cv.float_),
-#         }
-#     ),
-# )
+@automation.register_action(
+    "solarpid.set_kp",
+    SetKpAction,
+    maybe_simple_id(
+        {
+            cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_KP): cv.templatable(cv.float_),
+        }
+    ),
+)
 
-# async def set_kp_to_code(config, action_id, template_arg, args):
-#     parent = await cg.get_variable(config[CONF_ID])
-#     var = cg.new_Pvariable(action_id, template_arg , parent)
-#     template_new_kp = await cg.templatable(config[CONF_NEW_KP], args, float_) 
-#     cg.add(var.set_new_kp(template_new_kp))	
-#     return var
+async def set_kp_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_kp = await cg.templatable(config[CONF_NEW_KP], args, float_) 
+    cg.add(var.set_new_kp(template_new_kp))	
+    return var
 
 
 # @automation.register_action(
