@@ -14,21 +14,21 @@ void SOLARPID::setup() {
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
       this->current_input_ = state;
-      this->publish_state();
+      //this->publish_state();
     });
     this->current_input_ = this->input_sensor_->state;
   }
   if (this->power_sensor_ != nullptr) {
     this->power_sensor_->add_on_state_callback([this](float state) {
       this->current_power_ = state;
-      this->publish_state();
+      //this->publish_state();
     });
     this->current_power_ = this->power_sensor_->state;
   }
-  if (this->activation_binary_sensor_ != nullptr) {
-    this->activation_binary_sensor_->add_on_state_callback([this](bool state) {
+  if (this->activation_switch_ != nullptr) {
+    this->activation_switch_->add_on_state_callback([this](bool state) {
       this->current_activation_ = state;
-      this->publish_state();
+      t//his->publish_state();
     });
     this->current_activation_ = this->activation_binary_sensor_->state;
   }
