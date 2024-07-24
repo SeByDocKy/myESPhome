@@ -37,6 +37,8 @@ class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::F
  protected:
   
   void pid_update();
+
+  void write_state_();
   
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   uint32_t last_time_ = 0;
