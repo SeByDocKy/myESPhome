@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import binary_sensor, sensor, switch, output, time
+from esphome.components import sensor, switch, output, time
 from esphome.const import (
     CONF_ID,
     STATE_CLASS_MEASUREMENT,
@@ -86,8 +86,8 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    bin_sens = await cg.get_variable(config[CONF_ACTIVATION_ID])
-    cg.add(var.set_activation_binary_sensor(bin_sens))
+    switch_sens = await cg.get_variable(config[CONF_ACTIVATION_ID])
+    cg.add(var.set_activation_switch(switch_sens))
 	
     sens = await cg.get_variable(config[CONF_INPUT_ID])
     cg.add(var.set_input_sensor(sens))
