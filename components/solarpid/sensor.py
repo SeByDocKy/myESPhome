@@ -120,11 +120,11 @@ async def to_code(config):
         cg.add(var.set_pwm_restart(config[CONF_PWM_RESTART]))
 		
     if CONF_ERROR in config:
-	sens = await sensor.new_sensor(config[CONF_ERROR])
+        sens = await sensor.new_sensor(config[CONF_ERROR])
         cg.add(var.set_error(sens))
 
     if CONF_PWM_OUTPUT in config:
-	sens = await sensor.new_sensor(config[CONF_PWM_OUTPUT])
+        sens = await sensor.new_sensor(config[CONF_PWM_OUTPUT])
         cg.add(var.set_pwm_output(sens))		
 
 @automation.register_action(
