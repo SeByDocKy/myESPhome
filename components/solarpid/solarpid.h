@@ -34,12 +34,12 @@ class SOLARPID : public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
   // void loop() override;
-  void pid_update();
+  void pid_update()
  protected:
-  
+  void pid_update()
  
 
-  //void write_output(float);
+  //void write_output(float)
   
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
   uint32_t last_time_ = 0;
