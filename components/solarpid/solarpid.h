@@ -12,7 +12,8 @@
 namespace esphome {
 namespace solarpid {
 
-class SOLARPID : public PollingComponent  {
+//class SOLARPID : public PollingComponent  {
+class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::FloatOutput, public Component {
  public:
   void set_setpoint(float setpoint) { setpoint_ = setpoint; }
   void set_kp(float kp) { kp_ = kp; }
