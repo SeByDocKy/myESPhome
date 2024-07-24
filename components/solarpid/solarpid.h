@@ -125,7 +125,7 @@ class SetOutputMaxAction : public Action<Ts...> {
  protected:
    SOLARPID *parent_;
 };
-/*
+
 template<typename... Ts> 
 class SetPwmRestartAction : public Action<Ts...> {
  public:
@@ -145,6 +145,7 @@ class PidUpdateAction : public Action<Ts...> {
  protected:
   SOLARPID *parent_;
 };
+/*
 */
 
 
