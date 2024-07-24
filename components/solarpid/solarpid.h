@@ -103,7 +103,7 @@ class SetKdAction : public Action<Ts...> {
     SOLARPID *parent_;
 };
 
-/*
+
 template<typename... Ts> 
 class SetOutputMinAction : public Action<Ts...> {
  public:
@@ -125,7 +125,7 @@ class SetOutputMaxAction : public Action<Ts...> {
  protected:
    SOLARPID *parent_;
 };
-
+/*
 template<typename... Ts> 
 class SetPwmRestartAction : public Action<Ts...> {
  public:
