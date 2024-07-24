@@ -46,7 +46,7 @@ void SOLARPID::pid_update() {
   if (this->current_activation_){
     uint32_t now = millis();
     float dt = (now - this->last_time_)/1000.0f;
-    float error = (this->currentpoint_ - this->current_input_);
+    float error = (this->setpoint_ - this->current_input_);
     this->integral_ += error * dt;
     this->derivative_ = (error - this->previous_error_) / dt;
     this->previous_error_ = error;
