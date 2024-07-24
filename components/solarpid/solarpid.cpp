@@ -10,7 +10,7 @@ void SOLARPID::setup() {
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
   
   this->last_time_ =  millis();
-/*  
+// /*  
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
       this->current_input_ = state;
@@ -29,7 +29,7 @@ void SOLARPID::setup() {
     });
     this->current_activation_ = this->activation_switch_->state;
   }
-*/
+// */
 }
 
 void SOLARPID::dump_config() {
