@@ -76,6 +76,7 @@ void SOLARPID::pid_update() {
     //this->write_output(pwm_output);
     }
   else{
+    pwm_output = 0.0f;
     ESP_LOGI(TAG, "activation OFF");
     ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, previous_pwm_output = %3.2f , pwm_output = %3.2f ", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->previous_pwm_output_ , pwm_output);
   }
