@@ -17,7 +17,10 @@ external_components:
 
 esphome:
   name: test_solarpid
-
+  # platformio_options:
+  #   build_flags:
+  #     - -DTEST_COMPONENT
+    # build_type: debug
 esp32:
   board: esp32dev
   framework:
@@ -29,7 +32,7 @@ esp32:
 logger:
     baud_rate : 0
    # level : verbose
-   # level: very_verbose
+    level: info
 
 # Enable Home Assistant API
 api:
@@ -46,7 +49,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Test-Wk2168Spi-S3"
+    ssid: "Test-solar-pid"
     password: "xVNFwrutRmyc"
 
 # spi:
@@ -58,8 +61,6 @@ wifi:
 time:
   - platform: homeassistant
     id: homeassistant_time  
-
-
 
 uart:
   - id: uart_2
@@ -102,6 +103,141 @@ output:
     id: output_sx1509_id
     pin: 0
     inverted: true
+
+
+
+number:
+
+    ##### Electrovanne potager ####  
+    
+  - platform: template
+    name: setpoint_number  
+    id: setpoint_number
+    optimistic: true
+    unit_of_measurement: 'A'
+    icon: mdi:current-dc
+    min_value: -20
+    max_value: 20
+    step: 0.1
+    mode: 'slider'
+    initial_value: 0
+    restore_value: true
+    on_value:
+       then:
+         - solarpid.set_point: 
+            id: my_pid1
+            new_setpoint: !lambda |-
+              return (float(id(setpoint_number).state));
+         - solarpid.pid_update:
+            id: my_pid1    
+
+  - platform: template
+    name: setkp_number  
+    id: setkp_number
+    optimistic: true
+    # unit_of_measurement: 'A'
+    # icon: mdi:current-dc
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.05
+    mode: 'slider'
+    initial_value: 0.1
+    restore_value: true
+    on_value:
+       then:
+         - solarpid.set_kp: 
+            id: my_pid1
+            new_kp: !lambda |-
+              return (float(id(setkp_number).state));
+         - solarpid.pid_update:
+            id: my_pid1    
+
+  - platform: template
+    name: setki_number  
+    id: setki_number
+    optimistic: true
+    # unit_of_measurement: 'A'
+    # icon: mdi:current-dc
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.05
+    mode: 'slider'
+    initial_value: 0.1
+    restore_value: true
+    on_value:
+       then:
+         - solarpid.set_ki: 
+            id: my_pid1
+            new_ki: !lambda |-
+              return (float(id(setki_number).state));
+         - solarpid.pid_update:
+            id: my_pid1   
+
+  - platform: template
+    name: setkd_number  
+    id: setkd_number
+    optimistic: true
+    # unit_of_measurement: 'A'
+    # icon: mdi:current-dc
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.05
+    mode: 'slider'
+    initial_value: 0.1
+    restore_value: true
+    on_value:
+       then:
+         - solarpid.set_kd: 
+            id: my_pid1
+            new_kd: !lambda |-
+              return (float(id(setkd_number).state));                                   
+         - solarpid.pid_update:
+            id: my_pid1
+
+
+  - platform: template
+    name: setoutputmin_number  
+    id: setoutputmin_number
+    optimistic: true
+    # unit_of_measurement: 'A'
+    # icon: mdi:current-dc
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.01
+    mode: 'slider'
+    initial_value: 0.14
+    restore_value: true
+    on_value:
+       then:
+         - solarpid.set_output_min: 
+            id: my_pid1
+            new_output_min: !lambda |-
+              return (float(id(setoutputmin_number).state));                                   
+         - solarpid.pid_update:
+            id: my_pid1
+
+
+  - platform: template
+    name: setoutputmax_number  
+    id: setoutputmax_number
+    optimistic: true
+    # unit_of_measurement: 'A'
+    # icon: mdi:current-dc
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.01
+    mode: 'slider'
+    initial_value: 0.85
+    restore_value: true
+    on_value:
+       then:
+         - solarpid.set_output_max: 
+            id: my_pid1
+            new_output_max: !lambda |-
+              return (float(id(setoutputmax_number).state));                                   
+         - solarpid.pid_update:
+            id: my_pid1          
+
 
 
 switch:
@@ -158,18 +294,6 @@ sensor:
       accuracy_decimals: 2
     
 
-# solarpid: 
-#   - id: my_pid1
-#     input_id: 'smartshunt_current_id'
-#     setpoint: 0
-#     kp: 0.8
-#     Ki : 0.01
-#     kd: 0.05
-#     output_id: 'esc_output_id'
-#     pid_value: 'pid_output'
-
-
-
 ############ Power diverter controlled by SSR with a fan or light object #########"
     
     
@@ -184,29 +308,3 @@ fan:
     id: command
     name: command
     output: output_sx1509_id
-
-
-# wk2168_i2c:
-# wk2168_spi:
-#   # - address: 0x50
-#   id: uart_bridge0
-#   data_rate: 1MHz
-#   cs_pin: GPIO05
-#     # i2c_id: bus_i2c
-#   test_mode: 1
-#     # test_mode: 2
-#   uart:
-#     - id: uart_00
-#       channel: 0
-#       baud_rate: 9600
-#         #parity: even
-#     - id: uart_01
-#       channel: 1
-#       baud_rate: 38400
-#     - id: uart_02
-#       channel: 2
-#       baud_rate: 115200
-#         #parity: even
-#     - id: uart_03
-#       channel: 3
-#       baud_rate: 115200
