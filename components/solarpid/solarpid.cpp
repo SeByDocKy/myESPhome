@@ -54,6 +54,7 @@ void SOLARPID::pid_update() {
     this->integral_ += error * dt;
     this->derivative_ = (error - this->previous_error_) / dt;
     this->previous_error_ = error;
+    ESP_LOGI(TAG, "current_power_ == nan = %d" , std::isnan(this->current_power_)));
     if( (!std::isnan(this->current_power_)) ) {
       if ((this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
          pwm_output = this->pwm_restart_;
