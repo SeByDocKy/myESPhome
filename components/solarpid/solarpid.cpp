@@ -53,7 +53,7 @@ void SOLARPID::pid_update() {
     this->integral_ += error * dt;
     this->derivative_ = (error - this->previous_error_) / dt;
     this->previous_error_ = error;
-    if( ((this->current_power_ != nullptr) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
+    if( (this->current_power_ != nullptr) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
       pwm_output = this->pwm_restart_;
       ESP_LOGI(TAG, "restart branch");
     }
