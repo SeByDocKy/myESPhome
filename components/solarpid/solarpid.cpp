@@ -49,32 +49,32 @@ void SOLARPID::pid_update() {
   uint32_t now = millis();
   // if (this->current_activation_){
   //  ESP_LOGI(TAG, "activation ON");
-    float dt = (now - this->last_time_)/1000.0f;
-    float error = (this->setpoint_ - this->current_input_);
-    this->integral_ += (error * dt);
-    this->derivative_ = (error - this->previous_error_) / dt;
-    this->previous_error_ = error;
-    if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
-         pwm_output = this->pwm_restart_;
-         ESP_LOGI(TAG, "restart branch");
-    }
-    else{
+  float dt = (now - this->last_time_)/1000.0f;
+  float error = (this->setpoint_ - this->current_input_);
+  this->integral_ += (error * dt);
+  this->derivative_ = (error - this->previous_error_) / dt;
+  this->previous_error_ = error;
+  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
+      pwm_output = this->pwm_restart_;
+      ESP_LOGI(TAG, "restart branch");
+  }
+  else{
       pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
       ESP_LOGI(TAG, "full pid update branch");
-    }
-    if (this->error_sensor_ != nullptr){
+  }
+  if (this->error_sensor_ != nullptr){
       this->error_sensor_->publish_state(error);
-    }
-    if (this->pwm_output_sensor_ != nullptr){
+  }
+  if (this->pwm_output_sensor_ != nullptr){
       this->pwm_output_sensor_->publish_state(pwm_output);
-    }
-    ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_pwm_output = %3.2f , pwm_output = %3.2f , error = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->output_min_ , this->output_max_ , this->previous_pwm_output_ , pwm_output , error , this->integral_ , this->derivative_ , this->current_power_);
+  }
+  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_pwm_output = %3.2f , pwm_output = %3.2f , error = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->output_min_ , this->output_max_ , this->previous_pwm_output_ , pwm_output , error , this->integral_ , this->derivative_ , this->current_power_);
     //this->write_output(pwm_output);
-    }
+ //   }
   // else{
     // pwm_output = 0.0f;
    // ESP_LOGI(TAG, "activation OFF");
-    ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, previous_pwm_output = %3.2f , pwm_output = %3.2f ", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->previous_pwm_output_ , pwm_output);
+  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, previous_pwm_output = %3.2f , pwm_output = %3.2f ", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->previous_pwm_output_ , pwm_output);
   // }
 
   this->last_time_ = now;
