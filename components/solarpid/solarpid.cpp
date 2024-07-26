@@ -52,7 +52,7 @@ void SOLARPID::pid_update() {
   
   float dt = float(now - this->last_time_)/1000.0f;
   float error = (this->setpoint_ - this->current_input_);
-  current_integral = this->integral_  + error * dt:
+  current_integral = this->integral_  + error * dt;
   //this->integral_ = float(this->integral_  + float(error * dt)) ; // 
   this->derivative_ = (error - this->previous_error_) / dt;
   this->previous_error_ = error;
