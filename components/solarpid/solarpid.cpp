@@ -62,14 +62,7 @@ void SOLARPID::pid_update() {
       pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
       ESP_LOGI(TAG, "full pid update branch");
   }
-  if (this->error_sensor_ != nullptr){
-      this->error_sensor_->publish_state(error);
-  }
-  if (this->pwm_output_sensor_ != nullptr){
-      this->pwm_output_sensor_->publish_state(pwm_output);
-  }
-  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_pwm_output = %3.2f , pwm_output = %3.2f , error = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->output_min_ , this->output_max_ , this->previous_pwm_output_ , pwm_output , error , this->integral_ , this->derivative_ , this->current_power_);
-    //this->write_output(pwm_output);
+      //this->write_output(pwm_output);
  //   }
   // else{
     // pwm_output = 0.0f;
@@ -79,9 +72,18 @@ void SOLARPID::pid_update() {
 
   this->last_time_ = now;
   this->previous_pwm_output_ = pwm_output;
-  if (this->current_activation_){
-    this->output_->set_level(pwm_output);
+  if (!this->current_activation_){
+    pwm_output = 0.0f;
   }
+  this->output_->set_level(pwm_output);
+  if (this->error_sensor_ != nullptr){
+      this->error_sensor_->publish_state(error);
+  }
+  if (this->pwm_output_sensor_ != nullptr){
+      this->pwm_output_sensor_->publish_state(pwm_output);
+  }
+  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_pwm_output = %3.2f , pwm_output = %3.2f , error = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->output_min_ , this->output_max_ , this->previous_pwm_output_ , pwm_output , error , this->integral_ , this->derivative_ , this->current_power_);
+
     
 }
 
