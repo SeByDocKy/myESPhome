@@ -51,7 +51,7 @@ void SOLARPID::pid_update() {
   
   float dt = float(now - this->last_time_)/1000.0f;
   float error = (this->setpoint_ - this->current_input_);
-  this->integral_ = float(error * dt);
+  this->integral_ = this->integral_  + float(error * dt);
   this->derivative_ = (error - this->previous_error_) / dt;
   this->previous_error_ = error;
   if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
