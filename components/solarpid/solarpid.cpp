@@ -60,7 +60,7 @@ void SOLARPID::pid_update() {
   }
   else{
       //pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
-      pwm_output = (this->kp_ * error) + (this->ki_ * this->integral_); //+ (this->kd_ * this->derivative_);
+      pwm_output = (this->kp_ * error) + (this->kd_ * this->derivative_); //+ (this->ki_ * this->integral_) ;
       ESP_LOGI(TAG, "full pid update branch");
   }
   //this->write_output(pwm_output);
