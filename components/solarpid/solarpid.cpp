@@ -49,7 +49,7 @@ void SOLARPID::pid_update() {
   uint32_t now = millis();
   // if (this->current_activation_){
   //  ESP_LOGI(TAG, "activation ON");
-  float dt = (now - this->last_time_)/1000.0f;
+  float dt = float(now - this->last_time_)/1000.0f;
   float error = (this->setpoint_ - this->current_input_);
   this->integral_ += (error * dt);
   this->derivative_ = (error - this->previous_error_) / dt;
