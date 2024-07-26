@@ -10,6 +10,7 @@ void SOLARPID::setup() {
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
   
   this->last_time_ =  millis();
+  this->integral_  = 0.0f;
 
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
@@ -60,7 +61,7 @@ void SOLARPID::pid_update() {
   }
   else{
       //pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
-      pwm_output = (this->kp_ * error) + (this->kd_ * this->derivative_); //+ (this->ki_ * this->integral_) ;
+      pwm_output = (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_); // ;
       ESP_LOGI(TAG, "full pid update branch");
   }
   //this->write_output(pwm_output);
