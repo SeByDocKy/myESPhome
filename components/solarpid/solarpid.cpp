@@ -48,11 +48,10 @@ void SOLARPID::write_output(float value) {
 void SOLARPID::pid_update() {
   float pwm_output = 0.0f;
   uint32_t now = millis();
-  // if (this->current_activation_){
-  //  ESP_LOGI(TAG, "activation ON");
+  
   float dt = float(now - this->last_time_)/1000.0f;
   float error = (this->setpoint_ - this->current_input_);
-  this->integral_ += (error * dt);
+  this->integral_ = float(error * dt);
   this->derivative_ = (error - this->previous_error_) / dt;
   this->previous_error_ = error;
   if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
@@ -61,7 +60,7 @@ void SOLARPID::pid_update() {
   }
   else{
       //pwm_output = std::min(std::max( (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_) , this->output_min_  ) , this->output_max_);
-      pwm_output = (this->kp_ * error) + (this->ki_ * this->integral_) + (this->kd_ * this->derivative_); // ;
+      pwm_output = (this->kd_ * this->derivative_); // ; (this->kp_ * error) + (this->ki_ * this->integral_) + 
       ESP_LOGI(TAG, "full pid update branch");
   }
   //this->write_output(pwm_output);
