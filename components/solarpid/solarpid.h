@@ -46,6 +46,7 @@ class SOLARPID : public Component {
   float dt_;
   float error_t;
   float previous_error_ = 0.0f;
+  float pwm_output_;
   float previous_pwm_output_ = 0.0f;
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
