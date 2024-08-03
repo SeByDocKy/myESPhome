@@ -9,8 +9,8 @@ static const char *const TAG = "solarpid";
 void SOLARPID::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
   
-  this->last_time_ =  millis();
-  this->integral_  = 0.0f;
+  last_time_ =  millis();
+  integral_  = 0.0f;
 
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
@@ -58,7 +58,7 @@ void SOLARPID::pid_update() {
       ESP_LOGI(TAG, "restart branch");
   }
   else{
-      pwm_output_ = std::min(std::max( (this->kp_ * error_) + (this->ki_ * integral_) + (this->kd_ * derivative_) , this->output_min_  ) , this->output_max_);
+      pwm_output_ = std::min(std::max( (this->kp_ * error_)  + (this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //+ (this->ki_ * integral_)
       ESP_LOGI(TAG, "full pid update branch");
   }
   //this->write_output(pwm_output);
