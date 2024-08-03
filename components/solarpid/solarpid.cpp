@@ -47,10 +47,14 @@ void SOLARPID::write_output(float value) {
 
 void SOLARPID::pid_update() {
   uint32_t now = millis();
+  float tmp;
   
   dt_ = float(now - this->last_time_)/1000.0f;
   error_ = (this->setpoint_ - this->current_input_);
-  integral_ += (error_ * dt_);
+  tmp = (error_ * dt_);
+  if (!std::isnan(tmp)){
+    integral_ += tmp;
+  }
   derivative_ = (error_ - previous_error_) / dt_;
   
   if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
@@ -71,7 +75,7 @@ void SOLARPID::pid_update() {
   }
   this->output_->set_level(pwm_output_);
   if (this->error_sensor_ != nullptr){
-      this->error_sensor_->publish_state(dt_); //error_
+      this->error_sensor_->publish_state(error_); //error_
   }
   if (this->pwm_output_sensor_ != nullptr){
       this->pwm_output_sensor_->publish_state(pwm_output_);
