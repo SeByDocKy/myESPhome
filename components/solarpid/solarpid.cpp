@@ -62,7 +62,7 @@ void SOLARPID::pid_update() {
       ESP_LOGI(TAG, "restart branch");
   }
   else{
-      pwm_output_ = std::min(std::max( (this->kp_ * error_)  + (this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //+ (this->ki_ * integral_)
+      pwm_output_ = std::min(std::max( (this->kp_ * error_) + (this->ki_ * integral_) + (this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
       ESP_LOGI(TAG, "full pid update branch");
   }
   //this->write_output(pwm_output);
