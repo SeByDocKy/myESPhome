@@ -71,7 +71,7 @@ void SOLARPID::pid_update() {
   }
   this->output_->set_level(pwm_output_);
   if (this->error_sensor_ != nullptr){
-      this->error_sensor_->publish_state(error_);
+      this->error_sensor_->publish_state(integral_ ); //error_
   }
   if (this->pwm_output_sensor_ != nullptr){
       this->pwm_output_sensor_->publish_state(pwm_output_);
