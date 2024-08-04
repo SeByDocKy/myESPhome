@@ -50,7 +50,7 @@ void SOLARPID::pid_update() {
   float tmp;
   
   dt_ = float(now - this->last_time_)/1000.0f;
-  error_ = (this->setpoint_ - this->current_input_);
+  error_ = -(this->setpoint_ - this->current_input_);
   tmp = (error_ * dt_);
   if (!std::isnan(tmp)){
     integral_ += tmp;
