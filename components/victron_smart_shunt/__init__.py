@@ -5,6 +5,7 @@ from esphome.const import CONF_ID
 
 DEPENDENCIES = ["uart"]
 AUTO_LOAD = ["sensor", "text_sensor"]
+MULTI_CONF = True
 
 victron_smart_shunt_ns = cg.esphome_ns.namespace("victron_smart_shunt")
 VictronSmartShuntComponent = victron_smart_shunt_ns.class_(
