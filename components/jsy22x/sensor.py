@@ -51,7 +51,7 @@ ICON_NUMERIC = "mdi:numeric"
 
 CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = ["modbus"]
-MULTI_CONF = True
+
 
 jsy22x_ns = cg.esphome_ns.namespace("jsy22x")
 JSY22X = jsy22x_ns.class_("JSY22X", cg.PollingComponent, modbus.ModbusDevice)
