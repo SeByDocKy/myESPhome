@@ -5,6 +5,7 @@ namespace esphome {
 namespace solarpid {
 
 static const char *const TAG = "solarpid";
+static const float coeff = 0.001;
 
 void SOLARPID::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
@@ -62,7 +63,7 @@ void SOLARPID::pid_update() {
       ESP_LOGI(TAG, "restart branch");
   }
   else{
-      pwm_output_ = std::min(std::max( (this->kp_ * error_) + (this->ki_ * integral_) + (this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
+      pwm_output_ = std::min(std::max( (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
       ESP_LOGI(TAG, "full pid update branch");
   }
   //this->write_output(pwm_output);
@@ -80,7 +81,7 @@ void SOLARPID::pid_update() {
   if (this->pwm_output_sensor_ != nullptr){
       this->pwm_output_sensor_->publish_state(pwm_output_);
   }
-  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_pwm_output_ = %3.2f , pwm_output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , this->kp_ , this->ki_ , this->kd_ , this->output_min_ , this->output_max_ , previous_pwm_output_ , pwm_output_ , error_ , integral_ , derivative_ , this->current_power_);  
+  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_pwm_output_ = %3.2f , pwm_output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , coeff*this->kp_ , coeff*this->ki_ , coeff*this->kd_ , this->output_min_ , this->output_max_ , previous_pwm_output_ , pwm_output_ , error_ , integral_ , derivative_ , this->current_power_);  
 }
 
 
