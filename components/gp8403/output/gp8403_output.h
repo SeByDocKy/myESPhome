@@ -12,10 +12,9 @@ class GP8403Output : public Component, public output::FloatOutput, public Parent
  public:
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA - 1; }
-
   void set_channel(uint8_t channel) { this->channel_ = channel; }
-
   void write_state(float state) override;
+  
 
  protected:
   uint8_t channel_;
