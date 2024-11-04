@@ -16,11 +16,12 @@ class GP8403 : public Component, public i2c::I2CDevice {
   void setup() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
-
+  void set_gp8413(bool gp8413) { gp8413_ = gp8413; }
   void set_voltage(gp8403::GP8403Voltage voltage) { this->voltage_ = voltage; }
 
  protected:
   GP8403Voltage voltage_;
+  bool gp8413_; 
 };
 
 }  // namespace gp8403
