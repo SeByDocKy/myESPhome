@@ -15,8 +15,8 @@ void GP8403Output::dump_config() {
 }
 
 void GP8403Output::write_state(float state) {
-  uint16_t coeff = get_gp8413() ? 4095 : 32767;
-  //uint16_t coeff = this->parent_->gp8413_ ? 4095 : 32767;
+  //uint16_t coeff = get_gp8413() ? 4095 : 32767;
+  uint16_t coeff = this->parent_->gp8413_ ? 4095 : 32767;
   uint16_t value = ((uint16_t) (state * coeff)) << 4;
   i2c::ErrorCode err = this->parent_->write_register(OUTPUT_REGISTER + (2 * this->channel_), (uint8_t *) &value, 2);
   if (err != i2c::ERROR_OK) {
