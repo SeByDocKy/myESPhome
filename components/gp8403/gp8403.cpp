@@ -14,6 +14,7 @@ void GP8403::setup() { this->write_register(RANGE_REGISTER, (uint8_t *) (&this->
 void GP8403::dump_config() {
   ESP_LOGCONFIG(TAG, "GP8403:");
   ESP_LOGCONFIG(TAG, "  Voltage: %dV", this->voltage_ == GP8403_VOLTAGE_5V ? 5 : 10);
+  ESP_LOGCONFIG(TAG, "  Is GP8413 ?: %s", YESNO(this->gp8413_));
   LOG_I2C_DEVICE(this);
 }
 
