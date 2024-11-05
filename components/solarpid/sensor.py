@@ -19,7 +19,7 @@ CONF_OUTPUT_MAX = 'output_max'
 CONF_POWER_ID = 'power_id'
 CONF_OUTPUT_RESTART = 'output_restart'
 CONF_ERROR = 'error'
-CONF_PWM_OUTPUT = 'pwm_output'
+CONF_OUTPUT = 'output'
 CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
 CONF_STARTING_BATTERY_VOLTAGE = 'starting_battery_voltage'
 
@@ -79,7 +79,7 @@ CONFIG_SCHEMA = (
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
-	    cv.Optional(CONF_PWM_OUTPUT): sensor.sensor_schema(
+	    cv.Optional(CONF_OUTPUT): sensor.sensor_schema(
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
@@ -137,9 +137,9 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_ERROR])
         cg.add(var.set_error(sens))
 
-    if CONF_PWM_OUTPUT in config:
-        sens = await sensor.new_sensor(config[CONF_PWM_OUTPUT])
-        cg.add(var.set_pwm_output(sens))		
+    if CONF_OUTPUT in config:
+        sens = await sensor.new_sensor(config[CONF_OUTPUT])
+        cg.add(var.set_output(sens))		
 
 @automation.register_action(
     "solarpid.set_point",
@@ -147,7 +147,7 @@ async def to_code(config):
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
-	    cv.Required(CONF_NEW_SETPOINT): cv.templatable(cv.float_range(min=-20.0, max=20.0)),
+	    cv.Required(CONF_NEW_SETPOINT): cv.templatable(cv.float_range(min=-80.0, max=80.0)),
         }
     ),
 )
@@ -175,7 +175,6 @@ async def set_kp_to_code(config, action_id, template_arg, args):
     template_new_kp = await cg.templatable(config[CONF_NEW_KP], args, float) 
     cg.add(var.set_new_kp(template_new_kp))	
     return var
-
 
 @automation.register_action(
     "solarpid.set_ki",
@@ -230,7 +229,6 @@ async def set_output_min_to_code(config, action_id, template_arg, args):
     template_new_output_min = await cg.templatable(config[CONF_NEW_OUTPUT_MIN], args, float) 
     cg.add(var.set_new_output_min(template_new_output_min))	
     return var
-
 
 @automation.register_action(
     "solarpid.set_output_max",
