@@ -124,7 +124,7 @@ async def to_code(config):
         cg.add(var.set_power_sensor(sens))
 	   
     if CONF_OUTPUT_RESTART in config:
-        cg.add(var.set_pwm_restart(config[CONF_OUTPUT_RESTART]))
+        cg.add(var.set_output_restart(config[CONF_OUTPUT_RESTART]))
 
     if CONF_BATTERY_VOLTAGE_ID in config:
         sens = await cg.get_variable(config[CONF_BATTERY_VOLTAGE_ID])
