@@ -268,7 +268,7 @@ async def set_pwm_restart_to_code(config, action_id, template_arg, args):
 
 @automation.register_action(
     "solarpid.set_starting_battery_voltage",
-    SetBatteryVoltageAction,
+    SetStartingBatteryVoltageAction,
     maybe_simple_id(
         {
             cv.Required(CONF_ID): cv.use_id(SOLARPID),
