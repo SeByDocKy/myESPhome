@@ -262,7 +262,7 @@ async def set_output_max_to_code(config, action_id, template_arg, args):
 async def set_pwm_restart_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_pwm_restart = await cg.templatable(config[CONF_PWM_RESTART], args, float) 
+    template_new_pwm_restart = await cg.templatable(config[CONF_NEW_PWM_RESTART], args, float) 
     cg.add(var.set_new_pwm_restart(template_new_pwm_restart))	
     return var
 
@@ -279,10 +279,9 @@ async def set_pwm_restart_to_code(config, action_id, template_arg, args):
 async def set_starting_battery_voltage_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
-    template_new_starting_battery_voltage = await cg.templatable(config[CONF_STARTING_BATTERY_VOLTAGE], args, float) 
+    template_new_starting_battery_voltage = await cg.templatable(config[CONF_NEW_STARTING_BATTERY_VOLTAGE], args, float) 
     cg.add(var.set_new_starting_battery_voltage(template_new_starting_battery_voltage))	
     return var
-
 
 @automation.register_action(
     "solarpid.pid_update",
