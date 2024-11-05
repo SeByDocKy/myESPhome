@@ -25,9 +25,9 @@ class SOLARPID : public Component {
   void set_activation_switch(switch_::Switch *activation_switch) {activation_switch_ = activation_switch;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
-  void set_output(output::FloatOutput *output) { output_ = output; }
+  void set_device_output(output::FloatOutput *output) { output_ = output; }
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
-  void set_pwm_output(sensor::Sensor *pwm_output_sensor) { pwm_output_sensor_ = pwm_output_sensor; }
+  void set_output(sensor::Sensor *output_sensor) { output_sensor_ = output_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
   
   void setup() override;
@@ -36,18 +36,14 @@ class SOLARPID : public Component {
   // void loop() override;
   void pid_update();
  protected:
-  //void pid_update();
  
-
-  //void write_output(float)
-  
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;
   float dt_;
   float error_;
   float previous_error_ = 0.0f;
-  float pwm_output_;
-  float previous_pwm_output_ = 0.0f;
+  float output_;
+  float previous_output_ = 0.0f;
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
   float current_point;
@@ -60,10 +56,11 @@ class SOLARPID : public Component {
   sensor::Sensor *input_sensor_;
   sensor::Sensor *power_sensor_;
   sensor::Sensor *battery_voltage_sensor_;
-  output::FloatOutput *output_;
+  output::FloatOutput *device_output_;
 
   sensor::Sensor *error_sensor_{nullptr};
-  sensor::Sensor *pwm_output_sensor_{nullptr};
+  sensor::Sensor *output_sensor_{nullptr};
+
 };
 
 template<typename... Ts> 
