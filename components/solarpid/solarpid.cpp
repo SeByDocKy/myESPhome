@@ -44,7 +44,7 @@ void SOLARPID::setup() {
 void SOLARPID::dump_config() {
   ESP_LOGCONFIG(TAG, "SOLARPID:");
   LOG_SENSOR("", "Error", this->error_sensor_);
-  LOG_SENSOR("", "PWM output", this->pwm_output_sensor_);
+  LOG_SENSOR("", "output", this->output_sensor_);
 }
 
 /*
