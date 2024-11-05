@@ -20,6 +20,8 @@ CONF_POWER_ID = 'power_id'
 CONF_PWM_RESTART = 'pwm_restart'
 CONF_ERROR = 'error'
 CONF_PWM_OUTPUT = 'pwm_output'
+CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
+CONF_STARTING_BATTERY_VOLTAGE = 'starting_battery_voltage'
 
 CONF_NEW_SETPOINT = 'new_setpoint'
 CONF_NEW_KP = 'new_kp'
@@ -28,6 +30,7 @@ CONF_NEW_KD = 'new_kd'
 CONF_NEW_OUTPUT_MIN = 'new_output_min'
 CONF_NEW_OUTPUT_MAX = 'new_output_max'
 CONF_NEW_PWM_RESTART = 'new_pwm_restart'
+CONF_NEW_STARTING_BATTERY_VOLTAGE = 'new_starting_battery_voltage'
 
 # from esphome.core.entity_helpers import inherit_property_from
 
@@ -51,6 +54,7 @@ SetOutputMinAction = solarpid_ns.class_('SetOutputMinAction', automation.Action)
 SetOutputMaxAction = solarpid_ns.class_('SetOutputMaxAction', automation.Action)
 
 SetPwmRestartAction = solarpid_ns.class_('SetPwmRestartAction', automation.Action)
+SetBatteryVoltageAction = solarpid_ns.class_('SetBatteryVoltageAction', automation.Action)
 
 PidUpdateAction = solarpid_ns.class_('PidUpdateAction', automation.Action)
 
@@ -69,6 +73,8 @@ CONFIG_SCHEMA = (
 	    cv.Optional(CONF_OUTPUT_MAX, default=1.0): cv.float_range(min=0.0, max=1.0),
 	    cv.Optional(CONF_POWER_ID): cv.use_id(sensor.Sensor),
 	    cv.Optional(CONF_PWM_RESTART, default=0.0): cv.float_range(min=0.0, max=1.0),
+	    cv.Ooptional(CONF_BATTERY_VOLTAGE_ID): cv.use_id(sensor.Sensor),
+	    cv.Optional(CONF_STARTING_BATTERY_VOLTAGE, default=54.0): cv.float_range(min=50, max=56),
 	    cv.Optional(CONF_ERROR): sensor.sensor_schema(
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
@@ -119,6 +125,13 @@ async def to_code(config):
 	   
     if CONF_PWM_RESTART in config:
         cg.add(var.set_pwm_restart(config[CONF_PWM_RESTART]))
+
+    if CONF_BATTERY_VOLTAGE_ID in config:
+        sens = await cg.get_variable(config[CONF_BATTERY_VOLTAGE_ID])
+        cg.add(var.set_battery_voltage_sensor(sens))
+	    
+    if CONF_STARTING_BATTERY_VOLTAGE in config:
+        cg.add(var.set_starting_battery_voltage(config[CONF_STARTING_BATTERY_VOLTAGE]))
 		
     if CONF_ERROR in config:
         sens = await sensor.new_sensor(config[CONF_ERROR])
@@ -253,6 +266,24 @@ async def set_pwm_restart_to_code(config, action_id, template_arg, args):
     template_new_pwm_restart = await cg.templatable(config[CONF_PWM_RESTART], args, float) 
     cg.add(var.set_new_pwm_restart(template_new_pwm_restart))	
     return var
+
+@automation.register_action(
+    "solarpid.set_starting_battery_voltage",
+    SetBatteryVoltageAction,
+    maybe_simple_id(
+        {
+            cv.Required(CONF_ID): cv.use_id(SOLARPID),
+	    cv.Required(CONF_NEW_STARTING_BATTERY_VOLTAGE): cv.templatable(cv.float_range(min=50.0, max=56.0)),
+        }
+    ),
+)
+async def set_starting_battery_voltage_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg , parent)
+    template_new_starting_battery_voltage = await cg.templatable(config[CONF_STARTING_BATTERY_VOLTAGE], args, float) 
+    cg.add(var.set_new_pwm_restart(template_new_starting_battery_voltage))	
+    return var
+
 
 @automation.register_action(
     "solarpid.pid_update",
