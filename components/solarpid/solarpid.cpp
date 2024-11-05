@@ -12,6 +12,7 @@ void SOLARPID::setup() {
   
   last_time_ =  millis();
   integral_  = 0.0f;
+  previous_pwm_output_ = 0.0f;
 
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
