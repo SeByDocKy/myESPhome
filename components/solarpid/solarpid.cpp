@@ -65,9 +65,9 @@ void SOLARPID::pid_update() {
   }
   derivative_ = (error_ - previous_error_) / dt_;
   
-  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->pwm_restart_) ) {
-      pwm_output_ = this->pwm_restart_;
-      ESP_LOGI(TAG, "restart branch");
+  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->output_restart_) ) {
+      pwm_output_ = this->output_restart_;
+      ESP_LOGI(TAG, "restart  output");
   }
   else{
       tmp = 0.0f;
@@ -76,7 +76,7 @@ void SOLARPID::pid_update() {
         tmp = previous_pwm_output_;
       }
       pwm_output_ = std::min(std::max( tmp + (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
-      ESP_LOGI(TAG, "full pid update branch");
+      ESP_LOGI(TAG, "full pid update");
   }
   //this->write_output(pwm_output);
 
@@ -88,7 +88,7 @@ void SOLARPID::pid_update() {
   }
   this->output_->set_level(pwm_output_);
   if (this->error_sensor_ != nullptr){
-      this->error_sensor_->publish_state(error_); //error_
+      this->error_sensor_->publish_state(error_); 
   }
   if (this->pwm_output_sensor_ != nullptr){
       this->pwm_output_sensor_->publish_state(pwm_output_);
