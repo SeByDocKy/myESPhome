@@ -12,8 +12,6 @@
 namespace esphome {
 namespace solarpid {
 
-//class SOLARPID : public PollingComponent  {
-//class SOLARPID : public sensor::Sensor, public switch_::Switch, public output::FloatOutput, public Component {
 class SOLARPID : public Component {
  public:
   void set_setpoint(float setpoint) { setpoint_ = setpoint; }
@@ -23,12 +21,14 @@ class SOLARPID : public Component {
   void set_output_min(float output_min) { output_min_ = output_min; }
   void set_output_max(float output_max) { output_max_ = output_max; }
   void set_pwm_restart(float pwm_restart) { pwm_restart_ = pwm_restart; }
+  void set_starting_battery_voltage (float starting_battery_voltage) { starting_battery_voltage_ = starting_battery_voltage    ;}
   void set_activation_switch(switch_::Switch *activation_switch) {activation_switch_ = activation_switch;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
   void set_output(output::FloatOutput *output) { output_ = output; }
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
   void set_pwm_output(sensor::Sensor *pwm_output_sensor) { pwm_output_sensor_ = pwm_output_sensor; }
+  void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
   
   void setup() override;
   void dump_config() override;
@@ -41,7 +41,7 @@ class SOLARPID : public Component {
 
   //void write_output(float)
   
-  float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_; 
+  float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;
   float dt_;
   float error_;
@@ -53,11 +53,13 @@ class SOLARPID : public Component {
   float current_point;
   float current_input_;
   float current_power_;
+  float current_battery_voltage_;
   bool current_activation_;
  
   switch_::Switch *activation_switch_;
   sensor::Sensor *input_sensor_;
   sensor::Sensor *power_sensor_;
+  sensir::Sensor *battery_voltage_sensor_;
   output::FloatOutput *output_;
 
   sensor::Sensor *error_sensor_{nullptr};
@@ -137,6 +139,17 @@ class SetPwmRestartAction : public Action<Ts...> {
   SetPwmRestartAction(SOLARPID *parent) : parent_(parent) {}
   TEMPLATABLE_VALUE(float, new_pwm_restart)
   void play(Ts... x) override { this->parent_->set_pwm_restart(this->new_pwm_restart_.value(x...) ); }
+  
+ protected:
+   SOLARPID *parent_;
+};
+
+template<typename... Ts> 
+class SetStartingBatteryVoltagetAction : public Action<Ts...> {
+ public:
+  SetPwmRestartAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_pwm_restart)
+  void play(Ts... x) override { this->parent_->set_starting_battery_voltage(this->new_starting_battery_voltage_.value(x...) ); }
   
  protected:
    SOLARPID *parent_;
