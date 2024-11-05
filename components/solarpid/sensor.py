@@ -99,7 +99,7 @@ async def to_code(config):
     cg.add(var.set_input_sensor(sens))
 	
     out = await cg.get_variable(config[CONF_OUTPUT_ID])
-    cg.add(var.set_output(out))
+    cg.add(var.set_device_output(out))
 	
     if CONF_SETPOINT in config:
         cg.add(var.set_setpoint(config[CONF_SETPOINT]))
