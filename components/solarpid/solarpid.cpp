@@ -12,7 +12,7 @@ void SOLARPID::setup() {
   
   last_time_ =  millis();
   integral_  = 0.0f;
-  previous_pwm_output_ = 0.0f;
+  previous_output_ = 0.0f;
 
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
@@ -65,35 +65,35 @@ void SOLARPID::pid_update() {
   }
   derivative_ = (error_ - previous_error_) / dt_;
   
-  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_pwm_output_ > this->output_restart_) ) {
-      pwm_output_ = this->output_restart_;
+  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_output_ > this->output_restart_) ) {
+      output_ = this->output_restart_;
       ESP_LOGI(TAG, "restart  output");
   }
   else{
       tmp = 0.0f;
-      if( !std::isnan(previous_pwm_output_))
+      if( !std::isnan(previous_output_))
       {
-        tmp = previous_pwm_output_;
+        tmp = previous_output_;
       }
-      pwm_output_ = std::min(std::max( tmp + (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
+      output_ = std::min(std::max( tmp + (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
       ESP_LOGI(TAG, "full pid update");
   }
-  //this->write_output(pwm_output);
+  //this->write_output(output);
 
   last_time_ = now;
   previous_error_ = error_;
-  previous_pwm_output_ = pwm_output_;
+  previous_output_ = output_;
   if ((!this->current_activation_) || (this->current_battery_voltage_ < this->starting_battery_voltage_) ){
-    pwm_output_ = 0.0f;
+    output_ = 0.0f;
   }
-  this->output_->set_level(pwm_output_);
+  this->device_output_->set_level(output_);
   if (this->error_sensor_ != nullptr){
       this->error_sensor_->publish_state(error_); 
   }
-  if (this->pwm_output_sensor_ != nullptr){
-      this->pwm_output_sensor_->publish_state(pwm_output_);
+  if (this->output_sensor_ != nullptr){
+      this->output_sensor_->publish_state(output_);
   }
-  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_pwm_output_ = %3.2f , pwm_output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , coeff*this->kp_ , coeff*this->ki_ , coeff*this->kd_ , this->output_min_ , this->output_max_ , previous_pwm_output_ , pwm_output_ , error_ , integral_ , derivative_ , this->current_power_);  
+  ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , coeff*this->kp_ , coeff*this->ki_ , coeff*this->kd_ , this->output_min_ , this->output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
 }
 
 
