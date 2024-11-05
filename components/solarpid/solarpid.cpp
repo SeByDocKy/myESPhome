@@ -5,7 +5,7 @@ namespace esphome {
 namespace solarpid {
 
 static const char *const TAG = "solarpid";
-static const float coeff = 0.001;
+static const float coeff = 0.01;
 
 void SOLARPID::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
