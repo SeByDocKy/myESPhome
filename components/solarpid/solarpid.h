@@ -145,10 +145,10 @@ class SetPwmRestartAction : public Action<Ts...> {
 };
 
 template<typename... Ts> 
-class SetStartingBatteryVoltagetAction : public Action<Ts...> {
+class SetStartingBatteryVoltageAction : public Action<Ts...> {
  public:
-  SetPwmRestartAction(SOLARPID *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(float, new_pwm_restart)
+  SetStartingBatteryVoltageAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_starting_battery_voltage)
   void play(Ts... x) override { this->parent_->set_starting_battery_voltage(this->new_starting_battery_voltage_.value(x...) ); }
   
  protected:
