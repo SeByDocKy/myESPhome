@@ -59,7 +59,7 @@ class SOLARPID : public Component {
   switch_::Switch *activation_switch_;
   sensor::Sensor *input_sensor_;
   sensor::Sensor *power_sensor_;
-  sensir::Sensor *battery_voltage_sensor_;
+  sensor::Sensor *battery_voltage_sensor_;
   output::FloatOutput *output_;
 
   sensor::Sensor *error_sensor_{nullptr};
