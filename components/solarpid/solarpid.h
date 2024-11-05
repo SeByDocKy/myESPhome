@@ -20,7 +20,7 @@ class SOLARPID : public Component {
   void set_kd(float kd) { kd_ = kd; }
   void set_output_min(float output_min) { output_min_ = output_min; }
   void set_output_max(float output_max) { output_max_ = output_max; }
-  void set_pwm_restart(float pwm_restart) { pwm_restart_ = pwm_restart; }
+  void set_output_restart(float output_restart) { output_restart_ = output_restart; }
   void set_starting_battery_voltage(float starting_battery_voltage) { starting_battery_voltage_ = starting_battery_voltage; }
   void set_activation_switch(switch_::Switch *activation_switch) {activation_switch_ = activation_switch;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
@@ -41,7 +41,7 @@ class SOLARPID : public Component {
 
   //void write_output(float)
   
-  float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , pwm_restart_ , starting_battery_voltage_; 
+  float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;
   float dt_;
   float error_;
@@ -134,11 +134,11 @@ class SetOutputMaxAction : public Action<Ts...> {
 };
 
 template<typename... Ts> 
-class SetPwmRestartAction : public Action<Ts...> {
+class SetOutputRestartAction : public Action<Ts...> {
  public:
-  SetPwmRestartAction(SOLARPID *parent) : parent_(parent) {}
-  TEMPLATABLE_VALUE(float, new_pwm_restart)
-  void play(Ts... x) override { this->parent_->set_pwm_restart(this->new_pwm_restart_.value(x...) ); }
+  SetOutputRestartAction(SOLARPID *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(float, new_output_restart)
+  void play(Ts... x) override { this->parent_->set_output_restart(this->new_output_restart_.value(x...) ); }
   
  protected:
    SOLARPID *parent_;
@@ -154,7 +154,6 @@ class SetStartingBatteryVoltageAction : public Action<Ts...> {
  protected:
    SOLARPID *parent_;
 };
-
 
 template<typename... Ts> 
 class PidUpdateAction : public Action<Ts...> {
