@@ -54,7 +54,7 @@ SetOutputMinAction = solarpid_ns.class_('SetOutputMinAction', automation.Action)
 SetOutputMaxAction = solarpid_ns.class_('SetOutputMaxAction', automation.Action)
 
 SetPwmRestartAction = solarpid_ns.class_('SetPwmRestartAction', automation.Action)
-SetBatteryVoltageAction = solarpid_ns.class_('SetBatteryVoltageAction', automation.Action)
+SetStartingBatteryVoltageAction = solarpid_ns.class_('SetStartingBatteryVoltageAction', automation.Action)
 
 PidUpdateAction = solarpid_ns.class_('PidUpdateAction', automation.Action)
 
@@ -157,7 +157,6 @@ async def set_point_to_code(config, action_id, template_arg, args):
     template_new_set_point = await cg.templatable(config[CONF_NEW_SETPOINT], args, float) 
     cg.add(var.set_new_setpoint(template_new_set_point))	
     return var
-
 
 @automation.register_action(
     "solarpid.set_kp",
@@ -281,7 +280,7 @@ async def set_starting_battery_voltage_to_code(config, action_id, template_arg, 
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)
     template_new_starting_battery_voltage = await cg.templatable(config[CONF_STARTING_BATTERY_VOLTAGE], args, float) 
-    cg.add(var.set_new_pwm_restart(template_new_starting_battery_voltage))	
+    cg.add(var.set_new_starting_battery_voltage(template_new_starting_battery_voltage))	
     return var
 
 
