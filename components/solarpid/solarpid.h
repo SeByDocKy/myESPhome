@@ -25,7 +25,7 @@ class SOLARPID : public Component {
   void set_activation_switch(switch_::Switch *activation_switch) {activation_switch_ = activation_switch;}
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
-  void set_device_output(output::FloatOutput *output) { output_ = output; }
+  void set_device_output(output::FloatOutput *device_output) { device_output_ = device_output; }
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
   void set_output(sensor::Sensor *output_sensor) { output_sensor_ = output_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
