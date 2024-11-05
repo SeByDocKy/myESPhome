@@ -83,7 +83,7 @@ void SOLARPID::pid_update() {
   last_time_ = now;
   previous_error_ = error_;
   previous_pwm_output_ = pwm_output_;
-  if ((!this->current_activation_) && (this->current_battery_voltage_ > this->starting_battery_voltage_) ){
+  if ((!this->current_activation_) || (this->current_battery_voltage_ < this->starting_battery_voltage_) ){
     pwm_output_ = 0.0f;
   }
   this->output_->set_level(pwm_output_);
