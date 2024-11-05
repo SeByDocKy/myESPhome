@@ -66,7 +66,7 @@ CONFIG_SCHEMA = (
 	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
 	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
 	    cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
-	    cv.Optional(CONF_KP, default=0.1): cv.float_,
+	    cv.Optional(CONF_KP, default=10.0): cv.float_,
 	    cv.Optional(CONF_KI, default=0.0): cv.float_,
 	    cv.Optional(CONF_KD, default=0.0): cv.float_,
 	    cv.Optional(CONF_OUTPUT_MIN, default=0.0):  cv.float_range(min=0.0, max=1.0),
