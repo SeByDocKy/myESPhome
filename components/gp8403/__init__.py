@@ -4,7 +4,7 @@ import esphome.codegen as cg
 from esphome.components import i2c
 from esphome.const import CONF_ID, CONF_VOLTAGE
 
-CODEOWNERS = ["@jesserockz"]
+CODEOWNERS = ["@jesserockz","@sebydocky"]
 DEPENDENCIES = ["i2c"]
 MULTI_CONF = True
 
