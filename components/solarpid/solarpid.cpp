@@ -38,7 +38,6 @@ void SOLARPID::setup() {
     });
     this->current_activation_ = this->activation_switch_->state;
   }
-
 }
 
 void SOLARPID::dump_config() {
@@ -46,12 +45,6 @@ void SOLARPID::dump_config() {
   LOG_SENSOR("", "Error", this->error_sensor_);
   LOG_SENSOR("", "output", this->output_sensor_);
 }
-
-/*
-void SOLARPID::write_output(float value) {
-   this->output_->set_level(value);
-}
-*/
 
 void SOLARPID::pid_update() {
   uint32_t now = millis();
@@ -78,8 +71,7 @@ void SOLARPID::pid_update() {
       output_ = std::min(std::max( tmp + (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
       ESP_LOGI(TAG, "full pid update");
   }
-  //this->write_output(output);
-
+  
   last_time_ = now;
   previous_error_ = error_;
   previous_output_ = output_;
