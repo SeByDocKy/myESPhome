@@ -83,9 +83,15 @@ void SOLARPID::pid_update() {
   last_time_ = now;
   previous_error_ = error_;
   previous_output_ = output_;
-  if ((!this->current_activation_) || (this->current_battery_voltage_ < this->starting_battery_voltage_) ){
+  if (!this->current_activation_ ){
     output_ = 0.0f;
   }
+  if (!std::isnan(this->current_battery_voltage_)){
+    if (this->current_battery_voltage_ < this->starting_battery_voltage_){
+      output_ = 0.0f;
+    }
+  }
+  
   this->device_output_->set_level(output_);
   if (this->error_sensor_ != nullptr){
       this->error_sensor_->publish_state(error_); 
