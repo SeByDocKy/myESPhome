@@ -90,7 +90,7 @@ void SOLARPID::pid_update() {
       this->error_sensor_->publish_state(error_); 
   }
   if (this->output_sensor_ != nullptr){
-      this->output_sensor_->publish_state(this->starting_battery_voltage_); // output_
+      this->output_sensor_->publish_state(output_);  
   }
   ESP_LOGI(TAG, "setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , coeff*this->kp_ , coeff*this->ki_ , coeff*this->kd_ , this->output_min_ , this->output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
 }
