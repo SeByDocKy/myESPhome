@@ -53,6 +53,7 @@ class SOLARPID : public Component {
   float current_power_;
   float current_battery_voltage_;
   bool current_activation_;
+  bool thermostat_cut_ = false;
  
   switch_::Switch *activation_switch_;
   sensor::Sensor *input_sensor_;
