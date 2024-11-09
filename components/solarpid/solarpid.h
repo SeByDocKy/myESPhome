@@ -29,6 +29,7 @@ class SOLARPID : public Component {
   void set_error(sensor::Sensor *error_sensor) { error_sensor_ = error_sensor; }
   void set_output(sensor::Sensor *output_sensor) { output_sensor_ = output_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
+  void set_thermostat_cut_binary_sensor(binary_sensor::BinarySensor *thermostant_cut_sensor) { this->thermostant_cut_sensor_ = thermostant_cut_sensor; }
   
   void setup() override;
   void dump_config() override;
