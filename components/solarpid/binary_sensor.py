@@ -9,22 +9,16 @@ from esphome.const import (
 CONF_SOLARPID_ID = "solarpid_id"
 CONF_THERMOSTAT_CUT = "thermostat_cut"
 
-HydreonRGxxBinarySensor = hydreon_rgxx_ns.class_(
-    "HydreonRGxxBinaryComponent", cg.Component
+SOLARPIDBinarySensor = solarpid_ns.class_(
+    "SOLARPIDBinarySensor", binary_sensor::BinarySensor
 )
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(HydreonRGxxBinarySensor),
-        cv.GenerateID(CONF_HYDREON_RGXX_ID): cv.use_id(HydreonRGxxComponent),
-        cv.Optional(CONF_TOO_COLD): binary_sensor.binary_sensor_schema(
-            device_class=DEVICE_CLASS_COLD
-        ),
-        cv.Optional(CONF_LENS_BAD): binary_sensor.binary_sensor_schema(
-            device_class=DEVICE_CLASS_PROBLEM,
-        ),
-        cv.Optional(CONF_EM_SAT): binary_sensor.binary_sensor_schema(
-            device_class=DEVICE_CLASS_PROBLEM,
+        cv.GenerateID(CONF_SOLARPID_ID): cv.use_id(HydreonRGxxComponent),
+        cv.Optional(CONF_THERMOSTAT_CUT): binary_sensor.binary_sensor_schema(
+            device_class=DEVICE_CLASS_HEAT
         ),
     }
 )
