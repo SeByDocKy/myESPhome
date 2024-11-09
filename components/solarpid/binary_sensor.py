@@ -26,9 +26,7 @@ CONFIG_SCHEMA = cv.Schema(
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    
-    bin_sens = await cg.get_variable(config[CONF_THERMOSTAT_CUT])
-    cg.add(var.set_thermostat_cut_binary_sensor(bin_sens))
 
-
-
+    if CONF_THERMOSTAT_CUT in config:
+      bin_sens = await cg.get_variable(config[CONF_THERMOSTAT_CUT])
+      cg.add(var.set_thermostat_cut_binary_sensor(bin_sens))
