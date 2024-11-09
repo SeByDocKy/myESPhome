@@ -5,7 +5,8 @@ namespace esphome {
 namespace solarpid {
 
 static const char *const TAG = "solarpid";
-static const float coeff = 0.001;
+static const float coeff = 0.001f;
+static const float power_mini = 2.0f;
 
 void SOLARPID::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up SOLARPID...");
@@ -64,7 +65,7 @@ void SOLARPID::pid_update() {
   }
   output_ = std::min(std::max( tmp + (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
   
-  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < 2.0f) &&  (this->previous_output_ >= this->output_restart_) ) {
+  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->output_restart_) ) {
       output_ = this->output_restart_;
       ESP_LOGVV(TAG, "restart  output");
    }
