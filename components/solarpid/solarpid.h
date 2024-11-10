@@ -54,6 +54,7 @@ class SOLARPID : public Component {
   float current_power_;
   float current_battery_voltage_;
   bool current_activation_;
+  bool current_thermostat_cut_;
   
  
   switch_::Switch *activation_switch_;
