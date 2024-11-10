@@ -15,8 +15,8 @@ SOLARPIDBinarySensor = solarpid_ns.class_(
 
 CONFIG_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(HydreonRGxxBinarySensor),
-        cv.GenerateID(CONF_SOLARPID_ID): cv.use_id(HydreonRGxxComponent),
+        cv.GenerateID(): cv.declare_id(SOLARPIDBinarySensor),
+        cv.GenerateID(CONF_SOLARPID_ID): cv.use_id(SOLARPID),
         cv.Optional(CONF_THERMOSTAT_CUT): binary_sensor.binary_sensor_schema(
             device_class=DEVICE_CLASS_HEAT
         ),
