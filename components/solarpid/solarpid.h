@@ -62,7 +62,7 @@ class SOLARPID : public Component {
   sensor::Sensor *power_sensor_;
   sensor::Sensor *battery_voltage_sensor_;
   output::FloatOutput *device_output_;
-  bool thermostat_cut_sensor_ = false;
+  binary_sensor::BinarySensor *thermostat_cut_sensor_{nullptr};
 
   sensor::Sensor *error_sensor_{nullptr};
   sensor::Sensor *output_sensor_{nullptr};
