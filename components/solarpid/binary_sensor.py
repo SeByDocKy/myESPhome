@@ -10,7 +10,7 @@ CONF_SOLARPID_ID = "solarpid_id"
 CONF_THERMOSTAT_CUT = "thermostat_cut"
 
 SOLARPIDBinarySensor = solarpid_ns.class_(
-    "SOLARPIDBinarySensor", binary_sensor::BinarySensor
+    "SOLARPIDBinarySensor", binary_sensor::Binary_Sensor
 )
 
 CONFIG_SCHEMA = cv.Schema(
