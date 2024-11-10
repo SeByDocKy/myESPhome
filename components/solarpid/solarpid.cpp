@@ -67,11 +67,11 @@ void SOLARPID::pid_update() {
   
   if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->output_restart_) ) {
       output_ = this->output_restart_;
-      this->thermostat_cut_sensor_= true;
+      this->current_thermostat_cut_= true;
       ESP_LOGVV(TAG, "restart  output");
    }
   else{
-    this->thermostat_cut_sensor_ = false;
+    this->current_thermostat_cut_ = false;
     ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , coeff*this->kp_ , coeff*this->ki_ , coeff*this->kd_ , this->output_min_ , this->output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
   }
   
@@ -95,7 +95,7 @@ void SOLARPID::pid_update() {
       this->output_sensor_->publish_state(output_);  
   }
   if (this->thermostat_cut_sensor_ != nullptr) {
-         this->thermostat_cut_sensor_->publish_state(this->thermostat_cut_);
+         this->thermostat_cut_sensor_->publish_state(this->current_thermostat_cut_);
   }
 }
 
