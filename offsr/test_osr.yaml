@@ -1,0 +1,39 @@
+offsr:
+  - id: my_offsr1
+    battery_current_id: my_battery_current_id
+    battery_voltage_id: my_battery_voltage_id
+    output_id: my_output_id
+    power_id: my_power_id
+    pid: false
+    
+binary_sensor:
+  - platform: offsr
+    offsr_id: my_offsr1
+    thermostat_cut: thermostat_cut
+      
+sensor:
+  - platform: offsr
+    osr_id: my_offsr1
+    output: output_lsa
+    error: error_regulation
+      
+switch:
+  - platform: offsr
+    osr_id: my_offsr1
+    activation: activation_osr
+      
+number:
+  - platform: offsr
+    osr_id: my_offsr1
+    charging_setpoint: charging_setpoint
+    floating_setpoint: floating_setpoint
+    starting_voltage: starting_voltage
+    fullcharged_battery_voltage: fullcharged_battery_voltage
+    discharged_battery_voltage: discharged_battery_voltage
+    kp: kp
+    ki: ki
+    kd: kd
+    outputmin: outputmin
+    outputmax: outputmax
+    outputrestart: outputrestart    
+    
