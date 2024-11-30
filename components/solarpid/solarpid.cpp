@@ -50,49 +50,50 @@ void SOLARPID::setup() {
 
 void SOLARPID::dump_config() {
   ESP_LOGCONFIG(TAG, "SOLARPID:");
-  LOG_SENSOR("", "Error", this->error_sensor_);
+  LOG_SENSOR("", "error", this->error_sensor_);
   LOG_SENSOR("", "output", this->output_sensor_);
 }
 
 void SOLARPID::pid_update() {
   uint32_t now = millis();
   float tmp;
+
+  if (!this->current_manual_override_){
+    dt_ = float(now - this->last_time_)/1000.0f;
+    error_ = -(this->setpoint_ - this->current_input_);
+    tmp = (error_ * dt_);
+    if (!std::isnan(tmp)){
+      integral_ += tmp;
+    }
+    derivative_ = (error_ - previous_error_) / dt_;
+    tmp = 0.0f;
+    if( !std::isnan(previous_output_)){
+      tmp = previous_output_;
+    }
+    output_ = std::min(std::max( tmp + (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
   
-  dt_ = float(now - this->last_time_)/1000.0f;
-  error_ = -(this->setpoint_ - this->current_input_);
-  tmp = (error_ * dt_);
-  if (!std::isnan(tmp)){
-    integral_ += tmp;
-  }
-  derivative_ = (error_ - previous_error_) / dt_;
-  tmp = 0.0f;
-  if( !std::isnan(previous_output_)){
-        tmp = previous_output_;
-  }
-  output_ = std::min(std::max( tmp + (coeff*this->kp_ * error_) + (coeff*this->ki_ * integral_) + (coeff*this->kd_ * derivative_) , this->output_min_  ) , this->output_max_); //
-  
-  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->output_restart_) ) {
+    if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->output_restart_) ) {
       output_ = this->output_restart_;
       this->current_thermostat_cut_= true;
       ESP_LOGVV(TAG, "restart  output");
-   }
-  else{
-    this->current_thermostat_cut_ = false;
-    ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , coeff*this->kp_ , coeff*this->ki_ , coeff*this->kd_ , this->output_min_ , this->output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
-  }
+    }
+    else{
+      this->current_thermostat_cut_ = false;
+      ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->setpoint_ , coeff*this->kp_ , coeff*this->ki_ , coeff*this->kd_ , this->output_min_ , this->output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
+    }
   
-  last_time_ = now;
-  previous_error_ = error_;
-  previous_output_ = output_;
-  if (!this->current_activation_ ){
-    output_ = 0.0f;
-  }
-  if (!std::isnan(this->current_battery_voltage_)){
-    if (this->current_battery_voltage_ < this->starting_battery_voltage_){
+    last_time_ = now;
+    previous_error_ = error_;
+    previous_output_ = output_;
+    if (!this->current_activation_ ){
       output_ = 0.0f;
     }
-  }
-  if (!this->current_manual_override_){
+    if (!std::isnan(this->current_battery_voltage_)){
+      if (this->current_battery_voltage_ < this->starting_battery_voltage_){
+        output_ = 0.0f;
+      }
+    }
+  
     this->device_output_->set_level(output_);
   }
   if (this->error_sensor_ != nullptr){
