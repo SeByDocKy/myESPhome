@@ -40,6 +40,12 @@ void SOLARPID::setup() {
     });
     this->current_activation_ = this->activation_switch_->state;
   }
+  if (this->manual_override_switch_ != nullptr) {
+    this->manual_override_switch_->add_on_state_callback([this](bool state) {
+      this->current_manual_override_ = state;
+    });
+    this->current_manual_override_ = this->manual_override_switch_->state;
+  }
 }
 
 void SOLARPID::dump_config() {
@@ -86,8 +92,9 @@ void SOLARPID::pid_update() {
       output_ = 0.0f;
     }
   }
-  
-  this->device_output_->set_level(output_);
+  if (!this->current_manual_override_){
+    this->device_output_->set_level(output_);
+  }
   if (this->error_sensor_ != nullptr){
       this->error_sensor_->publish_state(error_); 
   }
