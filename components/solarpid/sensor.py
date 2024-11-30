@@ -8,6 +8,7 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
 )
 CONF_ACTIVATION_ID = 'activation_id'
+CONF_MANUAL_OVERRIDE_ID ='manual_override_id'
 CONF_INPUT_ID = 'input_id'
 CONF_SETPOINT = 'setpoint'
 CONF_KP = 'kp'
@@ -62,7 +63,8 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
 	    cv.GenerateID(): cv.declare_id(SOLARPID),
-            cv.Required(CONF_ACTIVATION_ID): cv.use_id(switch.Switch), 	  	
+            cv.Required(CONF_ACTIVATION_ID): cv.use_id(switch.Switch),
+	    cv.Required(CONF_MANUAL_OVERRIDE_ID): cv.use_id(switch.Switch),
 	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
 	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
 	    cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
@@ -94,6 +96,9 @@ async def to_code(config):
 
     switch_sens = await cg.get_variable(config[CONF_ACTIVATION_ID])
     cg.add(var.set_activation_switch(switch_sens))
+
+    switch_sens = await cg.get_variable(config[CONF_MANUAL_OVERRIDE_ID])
+    cg.add(var.set_manual_override_switch(switch_sens))	
 	
     sens = await cg.get_variable(config[CONF_INPUT_ID])
     cg.add(var.set_input_sensor(sens))
