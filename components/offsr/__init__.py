@@ -10,6 +10,7 @@ MULTI_CONF = True
 
 offsr_ns = cg.esphome_ns.namespace("offsr")
 OFFSRComponent = offsr_ns.class_("OFFSRComponent", cg.Component)
+# OFFSRComponent = offsr_ns.class_("OFFSRComponent")
 
 from esphome.const import (
     CONF_ID,
@@ -22,6 +23,15 @@ CONF_POWER_ID = 'power_id'
 CONF_PID = 'pid'
 
 PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
+
+
+OFFSRComponent_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
+        # cv.Required(CONF_TAG_NAME): cv.string,
+    }
+)
+
 
 CONFIG_SCHEMA = (
     cv.Schema(
