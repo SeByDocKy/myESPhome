@@ -18,7 +18,7 @@ class OFFSRComponent : public Component{
 SUB_SWITCH(activation)
 #endif
  public:
-  OFFSRComponent();
+  // OFFSRComponent();
   void setup() override;
   void dump_config() override;
   void loop() override;
