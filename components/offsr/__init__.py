@@ -19,7 +19,7 @@ CONF_BATTERY_CURRENT_ID = 'battery_current_id'
 CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
 CONF_OUTPUT_ID = 'output_id'
 CONF_POWER_ID = 'power_id'
-CONF_PID: 'pid'
+CONF_PID = 'pid'
 
 PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 
@@ -53,6 +53,10 @@ async def to_code(config):
         sens = await cg.get_variable(config[CONF_POWER_ID])
         cg.add(var.set_power_sensor(sens))
         
+    if CONF_PID in config:
+        cg.add(var.set_pid_option(config[CONF_PID]))
+ 
+              
 @automation.register_action(
     "offsr.pid_update",
     PidUpdateAction,
