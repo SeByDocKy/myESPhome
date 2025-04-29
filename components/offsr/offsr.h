@@ -61,6 +61,7 @@ SUB_SWITCH(activation)
    
 };
 	
+/*	
 template<typename... Ts> 
 class PidUpdateAction : public Action<Ts...> {
  public:
@@ -70,7 +71,7 @@ class PidUpdateAction : public Action<Ts...> {
  protected:
   OFFSRComponent *parent_;
 };	
-	
+*/	
 	
  }  // namespace offsr
 }  // namespace esphome
