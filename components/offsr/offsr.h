@@ -1,4 +1,5 @@
 #pragma once
+
 #include "esphome/core/defines.h"
 #include "esphome/core/component.h"
 #ifdef USE_SWITCH
@@ -22,6 +23,7 @@ SUB_SWITCH(activation)
   void setup() override;
   void dump_config() override;
   void loop() override;
+  
   void set_pid_option(bool pid) { pid_ = pid; }
   
   void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
@@ -57,6 +59,15 @@ SUB_SWITCH(activation)
    
 };
 	
+template<typename... Ts> 
+class PidUpdateAction : public Action<Ts...> {
+ public:
+  PidUpdateAction(OFFSRComponent *parent) : parent_(parent) {}
+  void play(Ts... x) override { this->parent_->pid_update(); }  
+
+ protected:
+  OFFSRComponent *parent_;
+};	
 	
 	
  }  // namespace offsr
