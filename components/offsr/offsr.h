@@ -22,9 +22,8 @@ class OFFSRComponent : public Component{
 SUB_SWITCH(activation)
 #endif
  public:
-  // OFFSRComponent();
   void setup() override;
- // void dump_config() override;
+  void dump_config() override;
  // void loop() override;
   
   void set_pid_mode(bool pid_mode) { pid_mode_ = pid_mode; }

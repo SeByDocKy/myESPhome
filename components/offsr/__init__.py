@@ -10,7 +10,6 @@ MULTI_CONF = True
 
 offsr_ns = cg.esphome_ns.namespace("offsr")
 OFFSRComponent = offsr_ns.class_("OFFSRComponent", cg.Component)
-# OFFSRComponent = offsr_ns.class_("OFFSRComponent")
 
 from esphome.const import (
     CONF_ID,
