@@ -37,11 +37,18 @@ void OFFSRComponent::setup() {
 // */
 
 /*
-void SOLARPID::dump_config() {
+void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
   LOG_SENSOR("", "device output", this->device_output_);
 }
 */
+
+
+void OFFSRComponent::pid_update() {
+	uint32_t now = millis();
+	
+}
+
 
  }  // namespace offsr
 }  // namespace esphome

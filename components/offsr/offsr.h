@@ -1,12 +1,15 @@
 #pragma once
 
 #include "esphome/core/defines.h"
-#include "esphome/core/component.h"
+#include "esphome/core/component.h
+#include "esphome/core/preferences.h"
+#include "esphome/core/hal.h"
 #ifdef USE_SWITCH
 #include "esphome/components/switch/switch.h"
 #endif
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
+#include "esphome/components/sensor/sensor.h"
 #include "esphome/components/output/float_output.h"
 #include "esphome/components/time/real_time_clock.h"
 
