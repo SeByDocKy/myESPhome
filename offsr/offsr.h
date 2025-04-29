@@ -20,6 +20,7 @@ SUB_SWITCH(activation)
   void setup() override;
   void dump_config() override;
   void loop() override;
+  void set_pid_option(bool pid) { pid_ = pid; }
 #ifdef USE_SWITCH
   void set_activation(bool enable);
 #endif
