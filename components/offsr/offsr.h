@@ -26,7 +26,7 @@ SUB_SWITCH(activation)
   
   void set_pid_option(bool pid) { pid_ = pid; }
   
-  void set_input_sensor(sensor::Sensor *input_sensor) { input_sensor_ = input_sensor; }
+  void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) { battery_current_sensor_ = battery_current_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
   
@@ -54,9 +54,9 @@ SUB_SWITCH(activation)
   bool current_thermostat_cut_;
   bool pid_;
   
-  sensor::Sensor *input_sensor_;
-  sensor::Sensor *power_sensor_;
   sensor::Sensor *battery_voltage_sensor_;
+  sensor::Sensor *battery_current_sensor_;
+  sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
    
 };

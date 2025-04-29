@@ -51,7 +51,7 @@ async def to_code(config):
     await cg.register_component(var, config)
 	
     sens = await cg.get_variable(config[CONF_BATTERY_CURRENT_ID])
-    cg.add(var.set_input_sensor(sens))
+    cg.add(var.set_battery_current_sensor(sens))
 
     sens = await cg.get_variable(config[CONF_BATTERY_VOLTAGE_ID])
     cg.add(var.set_battery_voltage_sensor(sens))
