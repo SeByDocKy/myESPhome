@@ -63,8 +63,8 @@ async def to_code(config):
         sens = await cg.get_variable(config[CONF_POWER_ID])
         cg.add(var.set_power_sensor(sens))
         
-    if CONF_PID in config:
-        cg.add(var.set_pid_mode(config[CONF_PID]))
+    if CONF_PID_MODE in config:
+        cg.add(var.set_pid_mode(config[CONF_PID_MODE]))
               
 @automation.register_action(
     "offsr.pid_update",
