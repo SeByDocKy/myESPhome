@@ -21,8 +21,8 @@ SUB_SWITCH(activation)
  public:
   // OFFSRComponent();
   void setup() override;
-  void dump_config() override;
-  void loop() override;
+ // void dump_config() override;
+ // void loop() override;
   
   void set_pid_mode(bool pid_mode) { pid_mode_ = pid_mode; }
   
@@ -47,9 +47,12 @@ SUB_SWITCH(activation)
   float previous_output_ = 0.0f;
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
-  float current_input_;
+  
+  float current_battery_current_;
   float current_power_;
   float current_battery_voltage_;
+  float current_output_;
+  
   bool current_activation_;
   bool current_thermostat_cut_;
   bool pid_mode_;
