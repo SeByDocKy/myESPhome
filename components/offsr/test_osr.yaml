@@ -1,39 +1,146 @@
+substitutions:
+  name: testosr
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: 4.4.8
+    platform_version: 5.4.0
+    
+logger:
+  baud_rate: 0
+  # level: verbose    
+  
+ota:
+  # - platform: http_request
+  - platform: esphome  
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [offsr]
+    refresh: 0s
+    
+  - source: github://KinDR007/VictronSmartShunt-ESPHOME@main
+    components: [victron_smart_shunt]
+    refresh: 0s  
+
+api:
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time  
+
+uart:
+  - id: uart_2
+    tx_pin: GPIO18
+    rx_pin: GPIO19
+    baud_rate: 9600
+    stop_bits: 2 
+
+  - id: uart_0
+    tx_pin: GPIO01
+    rx_pin: GPIO03
+    baud_rate: 19200
+    stop_bits: 1
+    rx_buffer_size: 256
+
+modbus:
+   id: modbus2
+   uart_id: uart_2
+
+victron_smart_shunt:
+  uart_id: uart_0
+
+i2c:
+  - id: bus_i2c
+    sda: GPIO22
+    scl: GPIO21
+    scan: true
+    frequency: 800kHz
+
+sx1509:
+  - id: sx1509_hub0
+    address: 0x3E
+    i2c_id: bus_i2c
+
+output:
+  - platform: sx1509
+    sx1509_id: sx1509_hub0
+    id: output_sx1509
+    pin: 0
+    inverted: true
+
+
 offsr:
   - id: my_offsr1
-    battery_current_id: my_battery_current_id
-    battery_voltage_id: my_battery_voltage_id
-    output_id: my_output_id
-    power_id: my_power_id
-    pid: false
+    battery_current_id: smartshunt_battery_current
+    battery_voltage_id: smartshunt_battery_voltage
+    output_id: output_sx1509
+    power_id: pzem_power
+    pid_mode: false
     
-binary_sensor:
-  - platform: offsr
-    offsr_id: my_offsr1
-    thermostat_cut: thermostat_cut
+# binary_sensor:
+  # - platform: offsr
+    # offsr_id: my_offsr1
+    # thermostat_cut: thermostat_cut
       
 sensor:
-  - platform: offsr
-    osr_id: my_offsr1
-    output: output_lsa
-    error: error_regulation
+
+  - platform: pzemac
+    address: 1
+    power:
+      name: puissance
+      unit_of_measurement: W
+      accuracy_decimals: 1
+      id: pzem_power
+    id: pzem_id
+    modbus_id: modbus2
+
+  - platform: victron_smart_shunt
+    battery_voltage:
+      name: smartshunt_battery_voltage
+      id: smartshunt_battery_voltage
       
-switch:
-  - platform: offsr
-    osr_id: my_offsr1
-    activation: activation_osr
+    battery_current:
+      name: smartshunt_battery_current
+      id: smartshunt_battery_current
       
-number:
-  - platform: offsr
-    osr_id: my_offsr1
-    charging_setpoint: charging_setpoint
-    floating_setpoint: floating_setpoint
-    starting_voltage: starting_voltage
-    fullcharged_battery_voltage: fullcharged_battery_voltage
-    discharged_battery_voltage: discharged_battery_voltage
-    kp: kp
-    ki: ki
-    kd: kd
-    outputmin: outputmin
-    outputmax: outputmax
-    outputrestart: outputrestart    
+  # - platform: offsr
+    # osr_id: my_offsr1
+    # output: output_lsa
+    # error: error_regulation
+      
+# switch:
+  # - platform: offsr
+    # osr_id: my_offsr1
+    # activation: activation_osr
+    
+  # - platform: offsr
+    # osr_id: my_offsr1
+    # manual_override: manual_override_osr
+      
+# number:
+  # - platform: offsr
+    # osr_id: my_offsr1
+    # charging_setpoint: charging_setpoint
+    # absorbing_setpoint: absorbing_setpoint
+    # floating_setpoint: floating_setpoint
+    # starting_battery_voltage: starting_battery_voltage
+    # charged_battery_voltage: charged_battery_voltage
+    # discharged_battery_voltage: discharged_battery_voltage
+    # kp: kp
+    # ki: ki
+    # kd: kd
+    # outputmin: outputmin
+    # outputmax: outputmax
+    # outputrestart: outputrestart    
     
