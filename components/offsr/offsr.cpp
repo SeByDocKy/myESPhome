@@ -6,7 +6,7 @@ namespace offsr {
 
 static const char *const TAG = "offsr";
 
-/*
+// /*
 void OFFSRComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up OFFSRComponent...");
   if (this->battery_current_sensor_ != nullptr) {
@@ -34,7 +34,7 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
 }
-*/
+// */
 
 /*
 void SOLARPID::dump_config() {

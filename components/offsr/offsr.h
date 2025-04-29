@@ -20,7 +20,7 @@ SUB_SWITCH(activation)
 #endif
  public:
   // OFFSRComponent();
-  // void setup() override;
+  void setup() override;
  // void dump_config() override;
  // void loop() override;
   
