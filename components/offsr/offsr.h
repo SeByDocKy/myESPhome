@@ -6,6 +6,8 @@
 #endif
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
+#include "esphome/components/output/float_output.h"
+#include "esphome/components/time/real_time_clock.h"
 
 
 namespace esphome {
@@ -26,7 +28,7 @@ SUB_SWITCH(activation)
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
   
-  void set_device_output(sensor::Sensor *device_output) { device_output_ = device_output; }
+  void set_device_output(output::FloatOutput *device_output) { device_output_ = device_output; }
   
 #ifdef USE_SWITCH
   void set_activation(bool enable);
