@@ -55,7 +55,7 @@ SUB_SWITCH(activation)
   sensor::Sensor *battery_voltage_sensor_;
   output::FloatOutput *device_output_;
    
-}
+};
 	
 	
 	
