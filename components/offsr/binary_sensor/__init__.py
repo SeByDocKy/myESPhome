@@ -6,11 +6,13 @@ from esphome.const import (
     DEVICE_CLASS_OCCUPANCY,
 )
 
+DEPENDENCIES = ["offsr"]
+CONF_THERMOSTAT_CUT = "thermostat_cut"
+
 from .. import CONF_OFFSR_ID, OFFSRComponent
 
-DEPENDENCIES = ["offsr"]
-
-CONF_THERMOSTAT_CUT = "thermostat_cut"
+ThermostatcutBinarySensor = offsr_ns.class_("ThermostatcutBinarySensor", binary_sensor.BinarySensor, cg.Component
+)
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
@@ -22,5 +24,5 @@ CONFIG_SCHEMA = {
 async def to_code(config):
     offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
     if thermostat_cut_config := config.get(CONF_THERMOSTAT_CUT):
-        sens = await binary_sensor.new_binary_sensor(thermostat_cut_config)
-        cg.add(offsr_component.set_thermostat_cut_binary_sensor(sens))
+        bsens = await binary_sensor.new_binary_sensor(thermostat_cut_config)
+        cg.add(offsr_component.set_thermostat_cut_binary_sensor(bsens))
