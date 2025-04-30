@@ -43,22 +43,21 @@ void OFFSRComponent::pid_update() {
  }
 
 #ifdef USE_SWITCH
-
 void OFFSRComponent::set_activation(bool enable) {
 	this->current_activation_ = enable; 
 }
 void OFFSRComponent::set_manual_override(bool enable) {
 	this->current_manual_override_ = enable;
 }
-
 #endif
 
+/*
 #ifdef USE_BINARY_SENSOR
 
 void OFFSRComponent::set_thermostat_cut(binary_sensor::BinarySensor bs) {
 	this->current_thermostat_cut_ = bs; 
 }
-
+*/
 
 #endif
 
