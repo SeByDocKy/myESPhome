@@ -95,6 +95,12 @@ void set_output(sensor::Sensor *output_sensor);
   sensor::Sensor *battery_current_sensor_;
   sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
+  
+/*  
+#ifdef USE_BINARY_SENSOR
+  binary_sensor::BinarySensor *thermostat_cut_binary_sensor_{nullptr};
+#endif  
+*/
    
 };
 	

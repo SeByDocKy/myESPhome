@@ -88,10 +88,11 @@ offsr:
     power_id: pzem_power
     pid_mode: false
     
-# binary_sensor:
-  # - platform: offsr
-    # offsr_id: my_offsr1
-    # thermostat_cut: thermostat_cut
+binary_sensor:
+  - platform: offsr
+    offsr_id: my_offsr1
+    thermostat_cut: 
+      name: thermostat_cut
       
 sensor:
 
@@ -116,18 +117,19 @@ sensor:
       
   # - platform: offsr
     # osr_id: my_offsr1
-    # output: output_lsa
-    # error: error_regulation
+    # output: 
+      # name: output_lsa
+    # error: 
+      # name: error_regulation
       
-# switch:
-  # - platform: offsr
-    # osr_id: my_offsr1
-    # activation: activation_osr
-    
-  # - platform: offsr
-    # osr_id: my_offsr1
-    # manual_override: manual_override_osr
-      
+switch:
+  - platform: offsr
+    offsr_id: my_offsr1
+    activation: 
+      name: activation_osr
+    manual_override: 
+      name: manual_override_osr
+          
 # number:
   # - platform: offsr
     # osr_id: my_offsr1
