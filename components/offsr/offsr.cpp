@@ -53,7 +53,7 @@ void OFFSRComponent::set_manual_override(bool enable) {
 
 // /*
 #ifdef USE_BINARY_SENSOR
-void OFFSRComponent::set_thermostat_cut(binary_sensor::BinarySensor bs) {
+void OFFSRComponent::set_thermostat_cut(binary_sensor::BinarySensor *bs) {
 	this->current_thermostat_cut_ = bs; 
 }
 #endif
