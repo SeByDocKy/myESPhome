@@ -55,7 +55,7 @@ SUB_BINARY_SENSOR(thermostat_cut)
 #endif
 
 #ifdef USE_BINARY_SENSOR
-void set_thermostat_cut_binary_sensor(binary_sensor::BinarySensor *thermostat_cut_binary_sensor);
+void set_thermostat_cut(binary_sensor::BinarySensor *thermostat_cut_binary_sensor);
 #endif
 
 
