@@ -4,7 +4,7 @@
 #include "../offsr.h"
 
 namespace esphome {
-namespace osr {
+namespace offsr {
 
 class ActivationSwitch : public switch_::Switch, public Parented<OFFSRComponent> {
  public:

@@ -4,7 +4,7 @@
 #include "../offsr.h"
 
 namespace esphome {
-namespace osr {
+namespace offsr {
 
 class ManualOverrideSwitch : public switch_::Switch, public Parented<OFFSRComponent> {
  public:
