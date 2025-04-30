@@ -1,0 +1,20 @@
+#pragma once
+
+#include "esphome/components/sensor/sensor.h"
+#include "../offsr.h"
+
+namespace esphome {
+namespace offsr {
+	
+class ErrorSensor : public Component, sensor::Sensor {
+ public:
+  void dump_config() override;
+  void set_error_sensor(sensor::Sensor *error_sensor) { this->error_sensor_ = error_sensor; };
+
+ protected:
+  sensor::Sensor *error_sensor_{nullptr};
+  
+};	
+	
+ }
+}

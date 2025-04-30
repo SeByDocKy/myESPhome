@@ -13,6 +13,8 @@
 #ifdef USE_BINARY_SENSOR
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #endif
+
+
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
@@ -32,6 +34,11 @@ SUB_SWITCH(manual_override)
 
 #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
+#endif
+
+#ifdef USE_SENSOR
+SUB_SENSOR(error)
+SUB_SENSOR(output)
 #endif
 
  public:
@@ -58,7 +65,10 @@ SUB_BINARY_SENSOR(thermostat_cut)
 void set_thermostat_cut(binary_sensor::BinarySensor *thermostat_cut_binary_sensor);
 #endif
 
-
+#ifdef USE_SENSOR
+void set_error(sensor::Sensor *error_sensor);
+void set_output(sensor::Sensor *output_sensor);
+#endif
 
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
