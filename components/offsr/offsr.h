@@ -38,6 +38,7 @@ SUB_SWITCH(activation)
   
 #ifdef USE_SWITCH
   void set_activation(bool enable);
+  void set_manual_override(bool enable);
 #endif
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
