@@ -20,6 +20,7 @@ namespace offsr {
 class OFFSRComponent : public Component{
 #ifdef USE_SWITCH
 SUB_SWITCH(activation)
+SUB_SWITCH(manual_override)
 #endif
  public:
   void setup() override;
@@ -57,6 +58,7 @@ SUB_SWITCH(activation)
   float current_output_;
   
   bool current_activation_;
+  bool current_manual_override_;
   bool current_thermostat_cut_;
   bool pid_mode_;
   
