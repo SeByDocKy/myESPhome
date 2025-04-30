@@ -31,7 +31,7 @@ SUB_SWITCH(manual_override)
 #endif
 
 #ifdef USE_BINARY_SENSOR
-SUB_BINARY_SENSOR()
+SUB_BINARY_SENSOR(thermostat_cut)
 #endif
 
  public:
