@@ -9,7 +9,7 @@ from esphome.const import (
 DEPENDENCIES = ["offsr"]
 CONF_THERMOSTAT_CUT = "thermostat_cut"
 
-from .. import CONF_OFFSR_ID, OFFSRComponent
+from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
 ThermostatcutBinarySensor = offsr_ns.class_("ThermostatcutBinarySensor", binary_sensor.BinarySensor, cg.Component
 )
