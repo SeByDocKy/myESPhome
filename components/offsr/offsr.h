@@ -32,9 +32,11 @@ SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 #endif
 
+/*
 #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
 #endif
+*/
 
 #ifdef USE_SENSOR
 SUB_SENSOR(error)
@@ -98,7 +100,7 @@ void set_output(sensor::Sensor *output_sensor);
   
 // /*  
 #ifdef USE_BINARY_SENSOR
-  binary_sensor::BinarySensor *thermostat_cut_binary_sensor_{nullptr};
+  binary_sensor::BinarySensor *thermostat_cut_binary_sensor_;
 #endif  
 // */
    
