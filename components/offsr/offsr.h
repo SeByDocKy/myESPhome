@@ -7,6 +7,12 @@
 #ifdef USE_SWITCH
 #include "esphome/components/switch/switch.h"
 #endif
+#ifdef USE_NUMBER
+#include "esphome/components/number/number.h"
+#endif
+#ifdef USE_BINARY_SENSOR
+#include "esphome/components/binary_sensor/binary_sensor.h"
+#endif
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
@@ -18,10 +24,16 @@ namespace esphome {
 namespace offsr {
 	
 class OFFSRComponent : public Component{
+
 #ifdef USE_SWITCH
 SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 #endif
+
+/* #ifdef USE_BINARY_SENSOR
+SUB_BINARY_SENSOR()
+#endif
+ */
  public:
   void setup() override;
   void dump_config() override;
@@ -41,6 +53,9 @@ SUB_SWITCH(manual_override)
   void set_activation(bool enable);
   void set_manual_override(bool enable);
 #endif
+
+
+
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;

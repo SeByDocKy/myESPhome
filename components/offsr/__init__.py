@@ -30,7 +30,6 @@ OFFSRComponent_SCHEMA = cv.Schema(
     }
 )
 
-
 CONFIG_SCHEMA = (
     cv.Schema(
         {

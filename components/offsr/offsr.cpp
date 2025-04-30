@@ -45,13 +45,10 @@ void OFFSRComponent::pid_update() {
 #ifdef USE_SWITCH
 
 void OFFSRComponent::set_activation(bool enable) {
-	this->current_activation_ = enable;
- 
+	this->current_activation_ = enable; 
 }
-
 void OFFSRComponent::set_manual_override(bool enable) {
 	this->current_manual_override_ = enable;
- 
 }
 
 #endif
