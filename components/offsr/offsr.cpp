@@ -29,23 +29,13 @@ void OFFSRComponent::setup() {
     });
     this->current_power_ = this->power_sensor_->state;
   }
-/*  
-  if (this->device_output_ != nullptr) {
-    this->device_output_->add_on_state_callback([this](float state) {
-      this->current_output_ = state;
-    });
-    this->current_output_ = this->device_output_->state;
-  }
-*/  
+  
 }
-// */
 
-// /*
 void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
   // LOG_SENSOR("", "device output", this->device_output_);
 }
-// */
 
 
 void OFFSRComponent::pid_update() {
@@ -53,11 +43,14 @@ void OFFSRComponent::pid_update() {
  }
 
 #ifdef USE_SWITCH
+
 void OFFSRComponent::set_activation(bool enable) {
+	this->current_activation_ = enable;
  
 }
 
 void OFFSRComponent::set_manual_override(bool enable) {
+	this->current_manual_override_ = enable;
  
 }
 
