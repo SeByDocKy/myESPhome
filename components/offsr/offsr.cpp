@@ -49,9 +49,19 @@ void OFFSRComponent::dump_config() {
 
 
 void OFFSRComponent::pid_update() {
-	uint32_t now = millis();
-	
+	uint32_t now = millis();	
+ }
+
+#ifdef USE_SWITCH
+void OFFSRComponent::set_activation(bool enable) {
+ 
 }
+
+void OFFSRComponent::set_manual_override(bool enable) {
+ 
+}
+
+#endif
 
 
  }  // namespace offsr
