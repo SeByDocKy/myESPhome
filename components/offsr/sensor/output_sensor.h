@@ -6,6 +6,15 @@
 namespace esphome {
 namespace offsr {
 	
+class OutputSensor : public sensor::Sensor, public Parented<OFFSRComponent> {
+ public:
+  OutputSensor() = default;
+
+ protected:
+  void write_state(sensor::Sensor *output_sensor); // override
+};	
+	
+/*	
 class OutputSensor : public Component, sensor::Sensor {
  public:
   void dump_config() override;
@@ -13,8 +22,8 @@ class OutputSensor : public Component, sensor::Sensor {
 
  protected:
   sensor::Sensor *output_sensor_{nullptr};
-  
 };	
+*/
 	
  }
 }

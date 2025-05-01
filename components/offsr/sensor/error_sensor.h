@@ -5,7 +5,16 @@
 
 namespace esphome {
 namespace offsr {
+
+class ErrorSensor : public sensor::Sensor, public Parented<OFFSRComponent> {
+ public:
+  ErrorSensor() = default;
+
+ protected:
+  void write_state(sensor::Sensor *error_sensor); // override
+};	
 	
+/*	
 class ErrorSensor : public Component, sensor::Sensor {
  public:
   void dump_config() override;
@@ -13,8 +22,8 @@ class ErrorSensor : public Component, sensor::Sensor {
 
  protected:
   sensor::Sensor *error_sensor_{nullptr};
-  
 };	
+*/
 	
  }
 }
