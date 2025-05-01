@@ -87,22 +87,24 @@ void set_output(sensor::Sensor *output_sensor);
   float current_power_;
   float current_battery_voltage_;
   float current_output_;
-  
-  bool current_activation_;
-  bool current_manual_override_;
-  bool current_thermostat_cut_;
   bool pid_mode_;
   
   sensor::Sensor *battery_voltage_sensor_;
   sensor::Sensor *battery_current_sensor_;
   sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
-  
-/*  
-#ifdef USE_BINARY_SENSOR
-  binary_sensor::BinarySensor *thermostat_cut_binary_sensor_;
+#ifdef USE_SWITCH  
+  bool current_activation_;
+  bool current_manual_override_;
 #endif  
-*/
+  // bool current_thermostat_cut_;
+  
+  
+// /*  
+#ifdef USE_BINARY_SENSOR
+  binary_sensor::BinarySensor *current_thermostat_cut_;
+#endif  
+// */
    
 };
 	
