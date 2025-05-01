@@ -49,14 +49,11 @@ SUB_SENSOR(output)
  // void loop() override;
   
   void set_pid_mode(bool pid_mode) { pid_mode_ = pid_mode; }
-  
   void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) { battery_current_sensor_ = battery_current_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
-  
   void set_device_output(output::FloatOutput *device_output) { device_output_ = device_output; }
   void pid_update();
-  
   
 #ifdef USE_SWITCH
   void set_activation(bool enable);
@@ -100,15 +97,18 @@ void set_output(sensor::Sensor *output_sensor);
   // bool current_thermostat_cut_;
   
   
-// /*  
+
 #ifdef USE_BINARY_SENSOR
-  binary_sensor::BinarySensor *current_thermostat_cut_{nullptr};
+  bool current_thermostat_cut_;
+  // binary_sensor::BinarySensor *current_thermostat_cut_{nullptr};
 #endif  
-// */
-// #ifdef USE_SENSOR
-  sensor::Sensor *current_error_{nullptr};
-  sensor::Sensor *current_output_{nullptr};
-// #endif   
+
+#ifdef USE_SENSOR
+  float current_error_ = 0.0f;
+  float current_output = 0.0f;
+//  sensor::Sensor *current_error_{nullptr};
+//  sensor::Sensor *current_output_{nullptr};
+#endif   
 };
 	
 	
