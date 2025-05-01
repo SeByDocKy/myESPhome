@@ -86,7 +86,7 @@ void set_output(sensor::Sensor *output_sensor);
   float current_battery_current_;
   float current_power_;
   float current_battery_voltage_;
-  float current_output_;
+  float current_device_output_;
   bool pid_mode_;
   
   sensor::Sensor *battery_voltage_sensor_;
@@ -102,10 +102,13 @@ void set_output(sensor::Sensor *output_sensor);
   
 // /*  
 #ifdef USE_BINARY_SENSOR
-  binary_sensor::BinarySensor *current_thermostat_cut_;
+  binary_sensor::BinarySensor *current_thermostat_cut_{nullptr};
 #endif  
 // */
-   
+#ifdef USE_SENSOR
+  sensor::Sensor *current_error_{nullptr};
+  sensor::Sensor *current_output_{nullptr};
+#endif   
 };
 	
 	
