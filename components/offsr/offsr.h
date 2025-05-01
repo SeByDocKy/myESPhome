@@ -105,10 +105,10 @@ void set_output(sensor::Sensor *output_sensor);
   binary_sensor::BinarySensor *current_thermostat_cut_{nullptr};
 #endif  
 // */
-#ifdef USE_SENSOR
+// #ifdef USE_SENSOR
   sensor::Sensor *current_error_{nullptr};
   sensor::Sensor *current_output_{nullptr};
-#endif   
+// #endif   
 };
 	
 	
