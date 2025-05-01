@@ -63,12 +63,21 @@ void OFFSRComponent::set_thermostat_cut(bool state) {
 // */
 
 #ifdef USE_SENSOR	
+
+void set_error(float error) {
+	this->current_error_ = error
+}
+void set_output(float output) {
+	this->current_output_ = output
+}
+/*
 void set_error(sensor::Sensor *error_sensor) {
 	this->current_error_ = error_sensor
 }
 void set_output(sensor::Sensor *output_sensor) {
 	this->current_output_ = output_sensor
-}	
+}
+*/
 #endif
 
  }  // namespace offsr
