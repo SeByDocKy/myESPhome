@@ -1,0 +1,1041 @@
+substitutions:
+  name: raspiaudio-radio
+  friendly_name: Raspiaudio Radio
+  st1_url: http://icecast.radiofrance.fr/fip-midfi.mp3
+#  st1_url: http://icecast.radiofrance.fr/fip-midfi.aac
+#  st2_url: http://live02.rfi.fr/rfimonde-96k.mp3
+  st2_url: http://radioclassique.ice.infomaniak.ch/radioclassique-high.mp3
+  st3_url: http://icecast.radiofrance.fr/franceinter-lofi.mp3
+  st4_url: http://icecast.radiofrance.fr/francemusique-midfi.mp3
+  st1_name: FIP
+#  st2_name: RFI
+  st2_name: RADIO CLASSIQUE
+  st3_name: FRANCE INTER
+  st4_name: FRANCE MUSIQUE
+
+ 
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}  
+  min_version: 2025.2.0
+  name_add_mac_suffix: false
+  project:
+     name: raspiaudio.voice-assistant
+     version: "1.10"
+  
+  on_boot:
+    priority: -100
+    then:
+      - lambda: |-
+          auto call = id(st1_url_id).make_call();
+          call.set_value(id(st1_url_global));
+          call.perform();
+      - lambda: |-    
+          auto call = id(st2_url_id).make_call();
+          call.set_value(id(st2_url_global));
+          call.perform();
+      - lambda: |-    
+          auto call = id(st3_url_id).make_call();
+          call.set_value(id(st3_url_global));
+          call.perform();
+      - lambda: |-    
+          auto call = id(st4_url_id).make_call();
+          call.set_value(id(st4_url_global));
+          call.perform();
+      - lambda: |-    
+          auto call = id(st1_name_id).make_call();
+          call.set_value(id(st1_name_global));
+          call.perform();
+      - lambda: |-    
+          auto call = id(st2_name_id).make_call();
+          call.set_value(id(st2_name_global));
+          call.perform();
+      - lambda: |-    
+          auto call = id(st3_name_id).make_call();
+          call.set_value(id(st3_name_global));
+          call.perform();
+      - lambda: |-    
+          auto call = id(st4_name_id).make_call();
+          call.set_value(id(st4_name_global));
+          call.perform();
+      
+      - output.turn_off: dac_mute
+      - light.turn_on:
+          id: screen_backlight
+          brightness: 100%
+      - lambda: |-
+              id(lightTO) = 0;
+              id(phase) = 0;
+      - media_player.volume_set: 
+              id: speaker_media_player        
+              volume: !lambda return id(Vol);                 
+      - script.execute: reset_display
+      - lambda: id(my_es8388).set_volume(0.7);       
+      - micro_wake_word.start:       
+    
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+    version: 4.4.8
+    platform_version: 5.4.0
+    # version: 5.4.1
+    # release: "250407"
+    # platform_version: 54.03.20
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+      
+psram:
+  mode: octal
+  speed: 80MHz          
+      
+external_components:
+  - source: github://RASPIAUDIO/esphomeRadio@main
+    components: [es8388]
+    refresh: 0s
+  # - source: "github://SeByDocKy/myESPhome/"
+    # components: [psram]
+    # refresh: 0s  
+
+api:
+# on_client_connected:
+#    - script.execute: reset_display
+#  on_client_disconnected:
+#    - script.execute: reset_display
+
+logger:
+  logs:
+    level: NONE
+    
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+#  power_save_mode: none
+  ap:
+     ssid: "Raspiaudio-radio"
+     password: "12345678"    
+          
+text:
+  - platform: template
+    id: st1_url_id
+    name: ${name}_st1_url
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st1_url_global
+              value: !lambda return ( id(st1_url_global) =  id(st1_url_id).state );
+
+  - platform: template
+    id: st2_url_id
+    name: ${name}_st2_url
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st2_url_global
+              value: !lambda return ( id(st2_url_global) =  id(st2_url_id).state );
+
+  - platform: template
+    id: st3_url_id
+    name: ${name}_st3_url
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st3_url_global
+              value: !lambda return ( id(st3_url_global) =  id(st3_url_id).state );
+
+  - platform: template
+    id: st4_url_id
+    name: ${name}_st4_url
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st4_url_global
+              value: !lambda return ( id(st4_url_global) =  id(st4_url_id).state );
+
+
+  - platform: template
+    id: st1_name_id
+    name: ${name}_st1_name
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st1_name_global
+              value: !lambda return ( id(st1_name_global) =  id(st1_name_id).state );
+
+  - platform: template
+    id: st2_name_id
+    name: ${name}_st2_name
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st2_name_global
+              value: !lambda return ( id(st2_name_global) =  id(st2_name_id).state );
+
+  - platform: template
+    id: st3_name_id
+    name: ${name}_st3_name
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st3_name_global
+              value: !lambda return ( id(st3_name_global) =  id(st3_name_id).state );
+
+  - platform: template
+    id: st4_name_id
+    name: ${name}_st4_name
+    mode: text
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+              id: st4_name_global
+              value: !lambda return ( id(st4_name_global) =  id(st4_name_id).state );                                                                     
+
+ota:
+  platform: esphome
+  
+captive_portal:
+
+es8388:
+  id: my_es8388
+  
+i2c:
+  scl: GPIO11
+  sda: GPIO18
+
+spi:
+  - id: spi_bus0
+    clk_pin: GPIO12
+    mosi_pin: GPIO8
+    # miso_pin: GPIOXX
+    interface: hardware
+    
+i2s_audio:
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO16
+    i2s_bclk_pin: GPIO5
+    i2s_mclk_pin: GPIO0  
+  
+microphone:
+  - platform: i2s_audio
+    id: radio_mic
+    sample_rate: 16000
+    i2s_din_pin: GPIO4
+    bits_per_sample: 16bit
+    adc_type: external  
+    
+speaker:
+  - platform: i2s_audio
+    id: radio_speaker
+    i2s_dout_pin: GPIO17
+    dac_type: external
+    sample_rate: 48000
+    bits_per_sample: 16bit
+    channel: left
+    buffer_duration: 100ms   
+
+  - platform: mixer
+    id: mixer_speaker_id
+    output_speaker: radio_speaker
+    source_speakers:
+      - id: announcement_spk_mixer_input
+      - id: media_spk_mixer_input
+
+  - platform: resampler
+    id: media_spk_resampling_input
+    output_speaker: media_spk_mixer_input
+
+  - platform: resampler
+    id: announcement_spk_resampling_input
+    output_speaker: announcement_spk_mixer_input  
+  
+  
+media_player:
+  - platform: speaker
+    name: None
+    id: speaker_media_player
+#    volume_min: 0.5
+#    volume_max: 0.8
+    announcement_pipeline:
+      speaker: radio_speaker
+      format: WAV
+      sample_rate: 48000
+      num_channels: 1  # S3 Box only has one output channel
+#    files:
+#      - id: sound1
+#        file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/timer_finished.flac
+#        file: sound1.flac
+    # files:
+       # - id: sound
+         # file: sounds/awake.mp3 #bt16000.wav 
+    on_announcement: 
+      - if:
+           condition:
+                lambda: 'return(id(phase) != 2);'
+           then:            
+              - lambda: |-
+                   id(lightTO) = 0; 
+                   id(media_state) = true;
+                   if(id(phase) == 1) id(phase) = 2;     
+              - script.execute: mute_off         
+              - micro_wake_word.stop:
+              - script.execute: reset_display
+
+    on_idle:
+      - wait_until:
+         and:
+          - not:
+              media_player.is_announcing:
+          - not:
+              voice_assistant.is_running:    
+      - lambda: id(station) = 0;
+      - if:
+          condition:             
+              lambda: 'return(id(phase) == 4);'
+          then:
+            - if:
+                 condition:
+                     lambda: 'return(id(player_int));'
+                 then:    
+                   - lambda: |-
+                         id(phase) = 2;
+                         id(player_int) = false;
+                   - media_player.play:
+                   - script.execute: reset_display                      
+                 else:
+                   - lambda: |-
+                         id(phase) = 1;
+                   - script.execute: reset_display                            
+          else:
+             - if:
+                 condition:
+                      lambda: 'return(id(phase) == 2);'
+                 then:
+                    - lambda: |-
+                          id(phase) = 1;                                              
+                    - script.execute: reset_display      
+  
+micro_wake_word:
+  vad: 
+    probability_cutoff: '40%'
+  models:
+    - model: hey_jarvis
+      probability_cutoff: '45%' #'40%'
+    - model: okay_nabu
+      probability_cutoff: '45%' #'40%'
+    # - hey_jarvis
+    # - okay_nabu
+  on_wake_word_detected:
+    - voice_assistant.start:
+        wake_word: !lambda return wake_word;
+
+voice_assistant:
+  id: va
+  microphone: radio_mic
+  media_player: speaker_media_player
+  noise_suppression_level: 2
+  auto_gain: 31dBFS
+  volume_multiplier: 5.0 #4.0
+  on_listening:
+    - logger.log: "listening 3 => phase"
+    - micro_wake_word.stop:
+    - light.turn_on:
+        id: screen_backlight
+        brightness: 100%
+        effect: none
+    - lambda: |-
+        id(phase) = 3;  
+#    - media_player.play_media:
+#              media_url: 'https://github.com/RASPIAUDIO/esphomeRadio/raw/main/sounds/tong32000.mp3'  
+#    - delay: 2s
+    # - media_player.speaker.play_on_device_media_file:
+           # media_file: sound
+           # announcement: false        
+    # - media_player.speaker.play_on_device_media_file:
+           # media_file: sound
+           # announcement: false                     
+    - script.execute: reset_display    
+
+  on_stt_end:
+    - text_sensor.template.publish:
+        id: text_request
+        state: !lambda return x;
+
+  on_tts_start:
+    - logger.log: "answering  4 => phase"
+    - text_sensor.template.publish: 
+        id: text_response
+        state: !lambda return x;
+    - light.turn_on:
+        id: screen_backlight
+        brightness: 100%
+        effect: none                     
+    - lambda: |-
+        id(phase) = 4;
+    - script.execute: reset_display  
+
+  on_end:
+    - wait_until:
+        and:
+          - not:
+              media_player.is_announcing:
+          - not:
+              voice_assistant.is_running:
+    - if:
+          condition:
+              lambda: 'return(id(player_int) && (id(phase) == 4));'
+          then:
+            - delay: 5s
+            - lambda: |-
+                   id(phase) = 2;
+                   id(player_int) = false;
+            - media_player.play:        
+            - script.execute: reset_display                
+              
+  on_error:
+    - logger.log: "ERROR!!!!!!!!!!!!!!!!"  
+    - light.turn_on:
+        id: screen_backlight
+        brightness: 100%
+        effect: none
+    - delay: 1s
+    - lambda: id(phase) = 1;    
+    - script.execute: reset_display
+
+#    - lambda: |-
+#        if (code == "wake-provider-missing" || code == "wake-engine-missing") {
+#          id(use_wake_word).turn_off();
+#        }
+
+  
+#####################
+# Internal Components
+output:
+  - platform: gpio
+    id: dac_mute
+    pin:
+      number: GPIO46
+      inverted: true
+      mode:
+        output: true
+      ignore_strapping_warning: true       
+       
+  - platform: ledc
+    pin:
+      number: GPIO41
+      mode:
+        output: true
+    id: screen_backlight_pin
+    
+light:
+  - platform: monochromatic
+    output: screen_backlight_pin
+    id: screen_backlight
+    name: Screen Backlight
+    restore_mode: ALWAYS_ON
+          
+globals:
+  - id: lightTO
+    type: int
+    initial_value: '0'
+  - id: Vol
+    type: float
+    initial_value: '0.6'    
+  - id: phase
+    type: int
+    initial_value: '0'
+  - id: media_state
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: mute  
+    type: bool
+    initial_value: 'false'
+  - id: player_int
+    type: bool
+    initial_value: 'false'
+  - id: station
+    type: int
+    initial_value: '0'
+
+  - id: st1_url_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st1_url}"'
+  - id: st2_url_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st2_url}"'
+  - id: st3_url_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st3_url}"'
+  - id: st4_url_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st4_url}"'
+
+  - id: st1_name_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st1_name}"'
+  - id: st2_name_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st2_name}"'
+  - id: st3_name_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st3_name}"'
+  - id: st4_name_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${st4_name}"'      
+        
+interval:
+  - interval: 1sec
+    then:
+      - if:
+          condition:  
+            and:
+              - light.is_on: screen_backlight
+              - lambda: 'return id(lightTO) < 60;'              
+          then:
+            - lambda: |-
+                id(lightTO)++;
+          else:
+            - lambda: |-
+                id(lightTO) = 0;
+            - light.turn_off: screen_backlight  
+      - if:
+          condition:
+              lambda: 'return(id(phase) == 0);'
+          then:
+             - light.turn_on: screen_backlight                       
+                 
+image:
+  - file: "https://github.com/RASPIAUDIO/esphomeRadio/raw/main/images/Raspiaudio.png"
+    id: raspiIm
+    resize: 320x240
+    type: RGB
+  - file:  "https://github.com/RASPIAUDIO/esphomeRadio/raw/main/images/WFWW.png" 
+    id: WFWWIm
+    resize: 320x240
+    type: RGB
+  - file:  "https://github.com/RASPIAUDIO/esphomeRadio/raw/main/images/W.png" 
+    id: WIm
+    resize: 320x240
+    type: RGB
+  - file:  "https://github.com/RASPIAUDIO/esphomeRadio/raw/main/images/LISTEN.png" 
+    id: LIm
+    resize: 320x240
+    type: RGB
+  - file:  "https://github.com/RASPIAUDIO/esphomeRadio/raw/main/images/ANSWER.png" 
+    id: AIm
+    resize: 320x240
+    type: RGB  
+       
+font:
+  - file:
+      type: gfonts
+      family: Figtree
+      weight: 300
+      italic: true
+    id: font_request
+    size: 15 
+  - file:
+      type: gfonts
+      family: Figtree
+      weight: 300
+    id: font_response
+    size: 15 
+  - file:
+      type: gfonts
+      family: Figtree
+      weight: 300
+    id: font_station
+    size: 25             
+    
+color:
+  - id: green
+    hex: '75D15F'
+  - id: red
+    hex: 'FF3131'
+  - id: blue
+    hex: '47B7E9'
+  - id: blue_drk
+    hex: '085296'
+  - id: amber
+    hex: 'FBAB35'
+  - id: lime
+    hex: '20FC30'
+  - id: pink
+    hex: 'D92BBC'
+  - id: yellow
+    hex: 'FFC000'
+  - id: black
+    hex: '000000'
+  - id: white
+    hex: 'ffffff'
+  - id: purple
+    hex: '73264D'
+  - id: light_blue
+    hex: 'CFE2F3'
+  - id: bg_blue
+    hex: '032341'
+  - id: bg_purple
+    hex: '301020'
+  - id: bg_green
+    hex: '05350B'
+  - id: bg_red
+    hex: '3C0000'
+  - id: bg_pink
+    hex: '61034D'
+  - id: bg_charcoal
+    hex: '323232'
+  - id: bg_brown
+    hex: '41220D'
+  - id: bg_grey
+    hex: '4F4F4F'
+    
+display:
+  - id: myDisplay
+    platform: ili9xxx
+    model: ST7789V
+    cs_pin: GPIO40
+    dc_pin: GPIO39
+    reset_pin: GPIO9
+    invert_colors: true
+    rotation: 90   
+    update_interval: never
+    auto_clear_enabled: false
+    pages:
+        - id: logoP  # id(st3_url_global)
+          lambda: |-
+            it.image(0, 0, id(raspiIm));        
+        - id: waitingP
+          lambda: |-
+            it.image(0, 0, id(WFWWIm));        
+        - id: waitingBP
+          # lambda: |-
+          #   it.image(0, 0, id(WIm));    
+          #   if(id(station) == 1)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, "${st1_name}"); 
+          #   if(id(station) == 2)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, "${st2_name}");               
+          #   if(id(station) == 3)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, "${st3_name}");
+          #   if(id(station) == 4)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, "${st4_name}");         
+
+          lambda: |-
+            it.image(0, 0, id(WIm));    
+            if(id(station) == 1)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, id(st1_name_global).c_str());
+            if(id(station) == 2)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, id(st2_name_global).c_str());               
+            if(id(station) == 3)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, id(st3_name_global).c_str());
+            if(id(station) == 4)it.printf(160, 220, id(font_station), blue_drk, TextAlign::CENTER, id(st4_name_global).c_str());                  
+           
+        - id: listeningP
+          lambda: |-
+              it.image(0, 0, id(LIm));            
+        - id: answeringP
+          lambda: |-
+              it.image(0, 0, id(AIm));    
+              it.rectangle(20 , 20 , 280 , 30 , Color::BLACK );
+              it.printf(30, 25, id(font_request), Color::BLACK, "%s", id(text_request).state.c_str());
+              it.rectangle(20 , 190 , 280 , 30 , Color::BLACK );
+              it.printf(30, 195, id(font_response), Color::BLACK, "%s", id(text_response).state.c_str());
+             
+
+# Home Assistant Components            
+sensor:
+  - platform: rotary_encoder
+    name: "Volume"
+    id: volume_encoder
+    pin_a:
+      number: GPIO42
+      mode:
+        input: true
+        pullup: true
+    pin_b:
+      number: GPIO3
+      mode:
+        input: true
+        pullup: true
+    on_anticlockwise:
+      then:      
+        - light.turn_on: screen_backlight      
+        - lambda: |-
+                id(lightTO) = 0;       
+                id(Vol) -= 0.02;
+                if(id(Vol) < 0) id(Vol) = 0;        
+        - media_player.volume_set: 
+                id: speaker_media_player
+                volume: !lambda return id(Vol);
+    on_clockwise:
+      then:
+        - light.turn_on: screen_backlight
+        - lambda: |-
+                id(lightTO) = 0;        
+                id(Vol) += 0.02;
+                if(id(Vol) > 1) id(Vol) = 1;               
+        - media_player.volume_set: 
+                id: speaker_media_player        
+                volume: !lambda return id(Vol);                
+                
+  - platform: rotary_encoder
+    name: "dummy"
+    id: function_encoder
+    pin_a:
+      number: GPIO7
+      mode:
+        input: true
+        pullup: true
+    pin_b:
+      number: GPIO6
+      mode:
+        input: true
+        pullup: true
+    on_anticlockwise:
+      then:
+        - light.turn_on: screen_backlight      
+        - lambda: |-
+                id(lightTO) = 0;                     
+    on_clockwise:
+      then:
+        - light.turn_on: screen_backlight
+        - lambda: |-
+                id(lightTO) = 0;  
+                
+  - platform: adc 
+    id: button_adc
+    pin: GPIO1
+    attenuation: auto
+    update_interval: .1s
+    on_value_range:
+      - above: 3.0
+        then: 
+          - binary_sensor.template.publish:
+              id: btn_confirm
+              state: OFF
+          - binary_sensor.template.publish:
+              id: btn_1
+              state: OFF
+          - binary_sensor.template.publish:
+              id: btn_2
+              state: OFF
+          - binary_sensor.template.publish:
+              id: btn_3
+              state: OFF
+      - above: 0.41
+        below: 0.45
+        then:
+          - binary_sensor.template.publish:
+              id: btn_3
+              state: ON
+      - above: 0.8
+        below: 0.84
+        then:
+          - binary_sensor.template.publish:
+              id: btn_confirm
+              state: ON
+      - above: 1.50
+        below: 1.61
+        then:
+          - binary_sensor.template.publish:
+              id: btn_1
+              state: ON
+      - above: 1.98
+        below: 2.03
+        then:
+          - binary_sensor.template.publish:
+              id: btn_2
+              state: ON
+                 
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO48
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    id: click_vol
+    name: "Mute"
+#    disabled_by_default: true
+    on_press:
+      then:
+        - light.turn_on: screen_backlight      
+        - lambda: |-
+                id(lightTO) = 0;        
+        - if:
+            condition: 
+               lambda: 'return (id(mute));' 
+            then: 
+               - logger.log: "unmute!"
+               - media_player.volume_set: 
+                   volume: !lambda return(id(Vol));
+               - lambda: id(mute) = false;
+            else:
+               - logger.log: "mute!"
+               - media_player.volume_set: 
+                   volume: '0'
+               - lambda: id(mute) = true;  
+                    
+  - platform: gpio
+    pin:
+      number: GPIO45
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    id: click_sta
+    name: Stop
+    disabled_by_default: true
+    on_click:
+      then: 
+        - if:
+              condition:
+                 lambda: 'return(id(phase) == 2);'
+              then:           
+                 - media_player.stop:
+                 - delay: 2sec                                              
+                 - micro_wake_word.start:    
+                 - light.turn_on: screen_backlight  
+                 - lambda: |-
+                     id(phase) = 1;
+                     id(station) = 0;  
+                     id(lightTO) = 0;  
+                     id(player_int) = false;                   
+                     id(myDisplay).show_page(waitingBP);          
+                     id(myDisplay).update();                                              
+                 - micro_wake_word.start:                     
+                 - script.execute: reset_display
+     
+  - platform: template 
+    name: "Radio 1"
+    id: btn_1
+    on_press:
+       then:
+          - if:
+               condition:
+                  lambda: 'return((id(phase) == 1) || (id(phase) == 2));'                   
+               then: 
+                  - media_player.stop:   
+                  - delay: 500ms  # "${st1_url}"  id(st1_str_global)  # media_url: "${st1_url}"  .c_str()
+                  - media_player.play_media:
+                      # media_url: "${st1_url}"
+                      media_url: !lambda |-
+                        return id(st1_url_id).state.c_str();  
+                  # - delay: 200ms      
+                  - light.turn_on: screen_backlight                         
+                  - lambda: |-
+                      id(station) = 1;    
+                      id(lightTO) = 0;
+                      id(player_int) = true;                                                
+                      id(myDisplay).show_page(waitingBP);          
+                      id(myDisplay).update(); 
+ #                         id(station) = 0;
+                 
+  - platform: template 
+    name: "Radio 2"
+    id: btn_2
+    on_press:
+       then:
+          - if:
+               condition:
+                  lambda: 'return((id(phase) == 1) || (id(phase) == 2));'
+               then: 
+                  - media_player.stop:   
+                  - delay: 500ms               
+                  - media_player.play_media:  #"${st2_url}"      
+                      # media_url: !lambda (return id(st2_str_global)); id(st2_url_global).c_str();
+                      # media_url: "${st2_url}"
+                      media_url: !lambda |-
+                        return (id(st2_url_id).state).c_str();
+                  # - delay: 200ms          
+                  - light.turn_on: screen_backlight                                       
+                  - lambda: |-
+                      id(station) = 2;  
+                      id(lightTO) = 0;  
+                      id(player_int) = true;                                                
+                      id(myDisplay).show_page(waitingBP);          
+                      id(myDisplay).update(); 
+ #                         id(station) = 0;
+                                                                                   
+  - platform: template 
+    name: "Radio 3"
+    id: btn_3   
+    on_press:
+       then:
+          - if:
+               condition:
+                  lambda: 'return((id(phase) == 1) || (id(phase) == 2));'                   
+               then:
+                  - media_player.stop:   
+                  - delay: 500ms
+                  - media_player.play_media: #"${st3_url}"  
+                      # media_url: !lambda (return id(st3_str_global));  
+                      # media_url: "${st3_url}"
+                      media_url: !lambda |-
+                        return (id(st3_url_id).state).c_str();
+                  # - delay: 200ms      
+                  - light.turn_on: screen_backlight                       
+                  - lambda: |-
+                      id(station) = 3;  
+                      id(lightTO) = 0;  
+                      id(player_int) = false;                                                
+                      id(myDisplay).show_page(waitingBP);          
+                      id(myDisplay).update();
+
+  - platform: template 
+    name: "Radio 4"
+    id: btn_confirm
+    on_press:
+       then:
+          - if:
+               condition:
+                  lambda: 'return((id(phase) == 1) || (id(phase) == 2));'                   
+               then: 
+                  - media_player.stop:   
+                  - delay: 500ms
+                  - media_player.play_media:  #"${st4_url}" 
+                      # media_url: !lambda (return id(st4_str_global));
+                      # media_url: "${st4_url}"
+                      media_url: !lambda |-
+                        return (id(st4_url_id).state).c_str();
+                  # - delay: 200ms      
+                  - light.turn_on: screen_backlight                         
+                  - lambda: |-
+                      id(station) = 4;    
+                      id(lightTO) = 0;
+                      id(player_int) = true;                                                
+                      id(myDisplay).show_page(waitingBP);          
+                      id(myDisplay).update();                                                       
+                  
+text_sensor:
+  - id: text_request
+    platform: template
+    on_value:
+      lambda: |-
+        if(id(text_request).state.length()>40) {
+          std::string name = id(text_request).state.c_str();  //http://croonerradio.ice.infomaniak.ch/croonerradio-midfi.mp3
+          std::string truncated = esphome::str_truncate(name.c_str(),39);
+          id(text_request).state = (truncated+"...").c_str();
+        }
+
+  - id: text_response
+    platform: template
+    on_value:
+      lambda: |-
+        if(id(text_response).state.length()>32) {
+          std::string name = id(text_response).state.c_str();
+          std::string truncated = esphome::str_truncate(name.c_str(),31);
+          id(text_response).state = (truncated+"...").c_str();
+        }
+     
+#########
+# Scripts
+
+script:
+  - id: reset_display
+    then:  
+       - logger.log: "===> reset_display" 
+       - lambda: |-
+             id(lightTO) = 0;
+             if(id(phase) == 0)id(logo).execute();
+             if(id(phase) == 1)id(waiting).execute();  
+             if(id(phase) == 2)id(external_player).execute();                      
+             if(id(phase) == 3)id(listening).execute();
+             if(id(phase) == 4)id(answering).execute();
+
+  - id: logo
+    then:
+       - logger.log: "===> logo"
+       - lambda: |-
+           id(myDisplay).show_page(logoP);
+           id(myDisplay).update();         
+           id(lightTO) = 0;
+       - light.turn_on: screen_backlight   
+       - delay: 8sec
+       - lambda: id(phase) = 1;        
+       - script.execute: reset_display       
+
+  - id: waiting
+    then:     
+               - if:
+                   condition:
+                         voice_assistant.is_running:
+                   then:
+                      - delay: 1s  
+                      - voice_assistant.stop: 
+               - script.execute: mute_on                                                                      
+               - micro_wake_word.start: 
+               - logger.log: "===> wakeword"                      
+               - lambda: |-
+                   id(myDisplay).show_page(waitingP);
+                   id(myDisplay).update();
+                   id(lightTO) = 0;
+               - light.turn_on: screen_backlight
+          
+                                                       
+  - id: listening
+    then: 
+       - logger.log: "===> listening"  
+       - script.execute: mute_on     
+       - lambda: |-
+            id(myDisplay).show_page(listeningP);  
+            id(myDisplay).update();     
+            id(lightTO) = 0;
+#       - media_player.speaker.play_on_device_media_file:
+#                    media_file: sound1
+#                    announcement: true            
+       - light.turn_on: screen_backlight   
+  
+                                                                                        
+  - id: answering
+    then:
+       - logger.log: "===> answering"  
+       - script.execute: mute_off    
+       - lambda: |-
+            id(myDisplay).show_page(answeringP);          
+            id(myDisplay).update();          
+            id(lightTO) = 0;
+       - light.turn_on: screen_backlight  
+       - delay: 10s
+     
+  - id: external_player
+    then:
+       - logger.log: "===> front end player"  
+#       - script.execute: mute_off
+       - lambda: |-
+            id(myDisplay).show_page(waitingBP);          
+            id(myDisplay).update();          
+            id(lightTO) = 0;
+       - light.turn_on: screen_backlight                
+       
+  - id: mute_on
+    then:
+       - media_player.volume_set:
+            volume: '0'
+       - lambda: id(mute) = true;
+       
+  - id: mute_off
+    then:
+       - media_player.volume_set:
+            volume: !lambda return(id(Vol));
+       - lambda: id(mute) = false;                                
