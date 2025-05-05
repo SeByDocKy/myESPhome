@@ -32,18 +32,18 @@ SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 #endif
 
-// /*
+/*
 #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
 #endif
-// */
+*/
 
-// /*
+/*
 #ifdef USE_SENSOR
 SUB_SENSOR(error)
 SUB_SENSOR(output)
 #endif
-// */
+*/
  public:
   void setup() override;
   void dump_config() override;
