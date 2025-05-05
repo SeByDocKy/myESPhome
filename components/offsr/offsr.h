@@ -61,14 +61,15 @@ SUB_SENSOR(output)
   void set_manual_override(bool enable);
 #endif
 
-/*
+// /*
 
 #ifdef USE_BINARY_SENSOR
 // void set_thermostat_cut(binary_sensor::BinarySensor *thermostat_cut_binary_sensor);
 // void set_thermostat_cut(bool state);
-void get_thermostat_cut(bool state);
+// void get_thermostat_cut(bool state);
+bool get_thermostat_cut(void){return current_thermostat_cut_;}
 #endif
-*/
+// */
 /*
 #ifdef USE_SENSOR
 // void set_error(sensor::Sensor *error_sensor);
