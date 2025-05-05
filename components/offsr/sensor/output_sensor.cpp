@@ -13,7 +13,7 @@ void OutputSensor::write_state(float output) {
 */
 // /*
 void OutputSensor::write_state(sensor::Sensor *output_sensor) {
-  this->publish_state(output_sensor);
+  // this->publish_state(output_sensor);
   this->parent_->set_output(output_sensor);
 }
 // */	

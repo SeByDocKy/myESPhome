@@ -12,7 +12,7 @@ void ErrorSensor::write_state(float error) {
 */	
 // /*	
 void ErrorSensor::write_state(sensor::Sensor *error_sensor) {
-  this->publish_state(error_sensor);
+  // this->publish_state(error_sensor);
   this->parent_->set_error(error_sensor);
 }	
 // */
