@@ -8,7 +8,8 @@ namespace offsr {
 // /*
 void OutputSensor::write_state(float output) {
   //this->publish_state(output);
-  this->parent_->set_output(output);
+  //this->parent_->set_output(output);
+  this->parent_->get_output(output);
 }
 // */
 /*

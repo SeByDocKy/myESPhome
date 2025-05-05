@@ -70,8 +70,11 @@ void get_thermostat_cut(bool state);
 // void set_error(sensor::Sensor *error_sensor);
 // void set_output(sensor::Sensor *output_sensor);
 
-void set_error(float error);
-void set_output(float output);
+// void set_error(float error);
+// void set_output(float output);
+
+void get_error(float error);
+void get_output(float output);
 #endif
 
  protected:

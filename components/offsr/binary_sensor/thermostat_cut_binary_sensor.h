@@ -23,8 +23,7 @@ class ThermostatcutBinarySensor : public Component, binary_sensor::BinarySensor,
  
  protected:
   void write_state(bool state);
-  binary_sensor::BinarySensor *thermostat_cut_binary_sensor_{nullptr};
-  
+  binary_sensor::BinarySensor *thermostat_cut_binary_sensor_{nullptr};  
 };	
 	
 // */	

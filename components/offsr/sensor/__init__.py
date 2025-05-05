@@ -33,9 +33,9 @@ async def to_code(config):
     offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
     if CONF_ERROR in config:
         sens = await sensor.new_sensor(config[CONF_ERROR])
-        cg.add(offsr_component.set_error(sens))
+        cg.add(offsr_component.set_error_sensor(sens))
 
     if CONF_OUTPUT in config:
         sens = await sensor.new_sensor(config[CONF_OUTPUT])
-        cg.add(offsr_component.set_output(sens))
+        cg.add(offsr_component.set_output_sensor(sens))
         
