@@ -19,13 +19,13 @@ void OutputSensor::write_state(sensor::Sensor *output_sensor) {
 }
 */	
 	
-/*	
+// /*	
 static const char *const TAG = "offsr.sensor";
 void ErrorSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "OFFSR ErrorSensor:");
   LOG_SENSOR("", "Output", this->output_sensor_);
  }	
-*/	
+// */	
 	
  }
 }
