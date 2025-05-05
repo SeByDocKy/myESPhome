@@ -70,7 +70,7 @@ SUB_SENSOR(output)
 bool get_thermostat_cut(void){return current_thermostat_cut_;}
 #endif
 // */
-/*
+// /*
 #ifdef USE_SENSOR
 // void set_error(sensor::Sensor *error_sensor);
 // void set_output(sensor::Sensor *output_sensor);
@@ -78,10 +78,14 @@ bool get_thermostat_cut(void){return current_thermostat_cut_;}
 // void set_error(float error);
 // void set_output(float output);
 
-void get_error(float error);
-void get_output(float output);
+// void get_error(float error);
+// void get_output(float output);
+
+float get_error(void){return current_error_;}
+float get_output(void){return current_output_;}
+
 #endif
-*/
+// */
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;

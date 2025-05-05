@@ -6,7 +6,8 @@ namespace esphome {
 namespace offsr {
 
 
-void OutputSensor::update() { this->publish_state(this->parent_->current_output_); }
+// void OutputSensor::update() { this->publish_state(this->parent_->current_output_); }
+void OutputSensor::update() { this->publish_state(this->parent_->get_output(); }
 /*
 void OutputSensor::write_state(float output) {
   //this->publish_state(output);
