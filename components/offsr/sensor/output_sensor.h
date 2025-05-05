@@ -21,6 +21,7 @@ class OutputSensor : public sensor::Sensor, public Parented<OFFSRComponent> {
 class OutputSensor : public Component, sensor::Sensor, public Parented<OFFSRComponent> {
  public:
   void dump_config() override;
+  void update(); //override
   void set_output_sensor(sensor::Sensor *output_sensor) { this->output_sensor_ = output_sensor; };
 
  protected:
