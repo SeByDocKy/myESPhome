@@ -19,7 +19,7 @@ class ThermostatcutBinarySensor : public binary_sensor::BinarySensor, public Par
 class ThermostatcutBinarySensor : public Component, binary_sensor::BinarySensor, public Parented<OFFSRComponent> {
  public:
   void dump_config() override;
-  void update() override;;
+  void update() override;
   void set_thermostat_cut_binary_sensor(binary_sensor::BinarySensor *thermostat_cut_binary_sensor) { this->thermostat_cut_binary_sensor_ = thermostat_cut_binary_sensor; };
  
  protected:
