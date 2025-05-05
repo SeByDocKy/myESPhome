@@ -12,13 +12,15 @@ void ThermostatcutBinarySensor::write_state(binary_sensor::BinarySensor *thermos
 }
 */
 
-// /*
+void ThermostatcutBinarySensor::update() { this->publish_state(this->parent_->current_thermostat_cut_); }
+
+/*
 void ThermostatcutBinarySensor::write_state(bool state) {
   // this->publish_state(state);
   // this->parent_->set_thermostat_cut(state);
   this->parent_->get_thermostat_cut(state);
 }
-// */	
+*/	
 	
 /*	
 static const char *const TAG = "offsr.binary_sensor";

@@ -32,17 +32,18 @@ SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 #endif
 
-
+/*
 #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
 #endif
+*/
 
-
+/*
 #ifdef USE_SENSOR
 SUB_SENSOR(error)
 SUB_SENSOR(output)
 #endif
-
+*/
  public:
   void setup() override;
   void dump_config() override;
@@ -60,12 +61,15 @@ SUB_SENSOR(output)
   void set_manual_override(bool enable);
 #endif
 
+/*
+
 #ifdef USE_BINARY_SENSOR
 // void set_thermostat_cut(binary_sensor::BinarySensor *thermostat_cut_binary_sensor);
 // void set_thermostat_cut(bool state);
 void get_thermostat_cut(bool state);
 #endif
-
+*/
+/*
 #ifdef USE_SENSOR
 // void set_error(sensor::Sensor *error_sensor);
 // void set_output(sensor::Sensor *output_sensor);
@@ -76,7 +80,7 @@ void get_thermostat_cut(bool state);
 void get_error(float error);
 void get_output(float output);
 #endif
-
+*/
  protected:
   float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;

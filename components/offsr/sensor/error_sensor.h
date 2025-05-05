@@ -25,7 +25,7 @@ class ErrorSensor : public Component, sensor::Sensor, public Parented<OFFSRCompo
   void set_error_sensor(sensor::Sensor *error_sensor) { this->error_sensor_ = error_sensor; };
 
  protected:
-  void write_state(float error);
+  // void write_state(float error);
   sensor::Sensor *error_sensor_{nullptr};
 };	
 // */

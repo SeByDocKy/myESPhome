@@ -29,7 +29,6 @@ void OFFSRComponent::setup() {
     });
     this->current_power_ = this->power_sensor_->state;
   }
-  
 }
 
 void OFFSRComponent::dump_config() {
@@ -51,7 +50,7 @@ void OFFSRComponent::set_manual_override(bool enable) {
 }
 #endif
 
-// /*
+/*
 #ifdef USE_BINARY_SENSOR
 void OFFSRComponent::get_thermostat_cut(bool state) {
 // void OFFSRComponent::set_thermostat_cut(bool state) {
@@ -61,8 +60,9 @@ void OFFSRComponent::get_thermostat_cut(bool state) {
 	// this->thermostat_cut_binary_sensor_ = bs;
 }
 #endif
-// */
+*/
 
+/*
 #ifdef USE_SENSOR	
 
 void OFFSRComponent::get_error(float error) {
@@ -71,7 +71,7 @@ void OFFSRComponent::get_error(float error) {
 void OFFSRComponent::get_output(float output) {
 	this->current_output_ = output;
 }
-
+*/
 /*
 void OFFSRComponent::set_error(float error) {
 	this->current_error_ = error;
@@ -87,8 +87,8 @@ void OFFSRComponent::set_error(sensor::Sensor *error_sensor) {
 void OFFSRComponent::set_output(sensor::Sensor *output_sensor) {
 	this->current_output_ = output_sensor;
 }
-*/
-#endif
 
+#endif
+*/
  }  // namespace offsr
 }  // namespace esphome

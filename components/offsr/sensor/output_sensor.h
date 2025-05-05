@@ -25,7 +25,7 @@ class OutputSensor : public Component, sensor::Sensor, public Parented<OFFSRComp
   void set_output_sensor(sensor::Sensor *output_sensor) { this->output_sensor_ = output_sensor; };
 
  protected:
-  void write_state(float output);
+  // void write_state(float output);
   sensor::Sensor *output_sensor_{nullptr};
 };	
 // */
