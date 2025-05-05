@@ -11,8 +11,8 @@ class ErrorSensor : public sensor::Sensor, public Parented<OFFSRComponent> {
   ErrorSensor() = default;
 
  protected:
-  //void write_state(sensor::Sensor *error_sensor); // override
-  void write_state(float error);
+  void write_state(sensor::Sensor *error_sensor); // override
+  // void write_state(float error);
 };	
 	
 /*	

@@ -11,8 +11,8 @@ class OutputSensor : public sensor::Sensor, public Parented<OFFSRComponent> {
   OutputSensor() = default;
 
  protected:
-  // void write_state(sensor::Sensor *output_sensor); // override
-  void write_state(float output);
+  void write_state(sensor::Sensor *output_sensor); // override
+  // void write_state(float output);
 };	
 	
 /*	
