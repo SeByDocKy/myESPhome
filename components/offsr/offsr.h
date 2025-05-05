@@ -107,6 +107,7 @@ float get_output(void){return current_output_;}
   sensor::Sensor *battery_current_sensor_;
   sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
+  
 #ifdef USE_SWITCH  
   bool current_activation_;
   bool current_manual_override_;
