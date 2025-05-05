@@ -5,6 +5,8 @@
 namespace esphome {
 namespace offsr {
 // /*	
+
+void ErrorSensor::update() { this->publish_state(this->parent_->current_error_); }
 void ErrorSensor::write_state(float error) {
   // this->publish_state(error);
   // this->parent_->set_error(error);
