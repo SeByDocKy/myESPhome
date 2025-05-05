@@ -5,19 +5,19 @@
 namespace esphome {
 namespace offsr {
 
-// /*	
+/*	
 void ThermostatcutBinarySensor::write_state(binary_sensor::BinarySensor *thermostat_cut_binary_sensor) {
   this->publish_state(thermostat_cut_binary_sensor);
   this->parent_->set_thermostat_cut(thermostat_cut_binary_sensor);
 }
-// */
+*/
 
-/*
+// /*
 void ThermostatcutBinarySensor::write_state(bool state) {
-  this->publish_state(state);
+  // this->publish_state(state);
   this->parent_->set_thermostat_cut(state);
 }
-*/	
+// */	
 	
 /*	
 static const char *const TAG = "offsr.binary_sensor";

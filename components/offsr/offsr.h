@@ -100,18 +100,16 @@ void set_output(sensor::Sensor *output_sensor);
 #endif  
   // bool current_thermostat_cut_;
   
-  
-
 #ifdef USE_BINARY_SENSOR
-  // bool current_thermostat_cut_;
-  binary_sensor::BinarySensor *current_thermostat_cut_{nullptr};
+  bool current_thermostat_cut_;
+  // binary_sensor::BinarySensor *current_thermostat_cut_{nullptr};
 #endif  
 
 #ifdef USE_SENSOR
-  // float current_error_ = 0.0f;
-  // float current_output_ = 0.0f;
-  sensor::Sensor *current_error_{nullptr};
-  sensor::Sensor *current_output_{nullptr};
+  float current_error_ = 0.0f;
+  float current_output_ = 0.0f;
+  // sensor::Sensor *current_error_{nullptr};
+  // sensor::Sensor *current_output_{nullptr};
 #endif   
 };
 	
