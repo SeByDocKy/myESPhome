@@ -28,7 +28,7 @@ void ThermostatcutBinarySensor::dump_config() {
   ESP_LOGCONFIG(TAG, "OFFSR Thermostat cut:");
   LOG_BINARY_SENSOR("  ", "Cut", this->thermostat_cut_binary_sensor_);
  }	
-/ */ 
+// */ 
 	
 	
  }
