@@ -72,10 +72,10 @@ void OFFSRComponent::set_output(float output) {
 }
 */
 // /*
-void set_error(sensor::Sensor *error_sensor) {
+void OFFSRComponent::set_error(sensor::Sensor *error_sensor) {
 	this->current_error_ = error_sensor
 }
-void set_output(sensor::Sensor *output_sensor) {
+void OFFSRComponent::set_output(sensor::Sensor *output_sensor) {
 	this->current_output_ = output_sensor
 }
 // */
