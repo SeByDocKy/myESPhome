@@ -15,7 +15,6 @@ void ThermostatcutBinarySensor::write_state(binary_sensor::BinarySensor *thermos
 //void ThermostatcutBinarySensor::update() { this->publish_state(this->parent_->current_thermostat_cut_); }
 void ThermostatcutBinarySensor::update() { this->publish_state(this->parent_->get_thermostat_cut()); }
 
-get_thermostat_cut
 
 /*
 void ThermostatcutBinarySensor::write_state(bool state) {
