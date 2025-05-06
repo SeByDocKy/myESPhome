@@ -40,8 +40,8 @@ void OFFSRComponent::setup() {
 void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
 #ifdef USE_SENSOR  
-  LOG_SENSOR("", "Error", this->current_error_);
-  LOG_SENSOR("", "output", this->current_output_);
+//  LOG_SENSOR("", "Error", this->current_error_);
+//  LOG_SENSOR("", "output", this->current_output_);
 #endif
 }
 
