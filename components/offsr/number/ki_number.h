@@ -6,9 +6,9 @@
 namespace esphome {
 namespace offsr {
 
-class StartingBatteryVoltageNumber : public number::Number, public Parented<OFFSRComponent> {
+class KiNumber : public number::Number, public Parented<OFFSRComponent> {
  public:
-  StartingBatteryVoltageNumber() = default;
+  KiNumber() = default;
 
  protected:
   void control(float value) override;
