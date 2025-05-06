@@ -75,8 +75,8 @@ void OFFSRComponent::pid_update() {
   }
   output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
   
-  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->output_restart_) ) {
-      output_ = this->output_restart_;
+  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
+      output_ = this->current_output_restart_;
       this->current_thermostat_cut_= true;
       ESP_LOGVV(TAG, "restart  output");
    }
