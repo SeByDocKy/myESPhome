@@ -1,4 +1,4 @@
-#include "charged_battery_voltage_number"
+#include "charged_battery_voltage_number.h"
 
 namespace esphome {
 namespace offsr {
