@@ -5,10 +5,17 @@ namespace esphome {
 namespace offsr {
 
 static const char *const TAG = "offsr";
+static const float coeff = 0.001f;
+static const float power_mini = 2.0f;
 
 // /*
 void OFFSRComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up OFFSRComponent...");
+  
+  last_time_ =  millis();
+  integral_  = 0.0f;
+  previous_output_ = 0.0f;
+  previous_error_ = 0.0f;
   
   if (this->battery_current_sensor_ != nullptr) {
     this->battery_current_sensor_->add_on_state_callback([this](float state) {
@@ -32,12 +39,33 @@ void OFFSRComponent::setup() {
 
 void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
-  // LOG_SENSOR("", "device output", this->device_output_);
+#ifdef USE_SENSOR  
+  LOG_SENSOR("", "Error", this->current_error_);
+  LOG_SENSOR("", "output", this->current_output_);
+#endif
 }
 
 
 void OFFSRComponent::pid_update() {
-	uint32_t now = millis();	
+  uint32_t now = millis();
+  float tmp;
+  
+  dt_ = float(now - this->last_time_)/1000.0f;
+  error_ = -(this->current_charging_setpoint_ - this->current_battery_current_);
+  tmp = (error_ * dt_);
+  if (!std::isnan(tmp)){
+    integral_ += tmp;
+  }
+  derivative_ = (error_ - previous_error_) / dt_;
+  tmp = 0.0f;
+  if( !std::isnan(previous_output_)){
+        tmp = previous_output_;
+  }
+  output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
+  
+  
+  
+  
  }
 
 #ifdef USE_SWITCH

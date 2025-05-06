@@ -63,7 +63,6 @@ SUB_SENSOR(output)
 #endif
 // */
 
-
  public:
   void setup() override;
   void dump_config() override;
