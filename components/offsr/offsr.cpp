@@ -49,21 +49,21 @@ void OFFSRComponent::dump_config() {
 void OFFSRComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
-  float target_current_setpoint;
+  // float target_current_setpoint;
   
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
-	  target_current_setpoint = this->current_charging_setpoint_;
+	  this->current_target_ = this->current_charging_setpoint_;
   }
-  else if((this->current_battery_voltage_ > this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ <= this->current_discharged_battery_voltage_)){
-	  target_current_setpoint = this->current_absorbing_setpoint_;
+  else if((this->current_battery_voltage_ > this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ <= this->current_charged_battery_voltage_)){
+	  this->current_target_ = this->current_absorbing_setpoint_;
   }
   else{
-      target_current_setpoint = this->current_floating_setpoint_;
+      this->current_target_ = this->current_floating_setpoint_;
   }
   
   
   dt_ = float(now - this->last_time_)/1000.0f;
-  error_ = -(this->current_charging_setpoint_ - this->current_battery_current_);
+  error_ = -(this->current_target_ - this->current_battery_current_);
   tmp = (error_ * dt_);
   if (!std::isnan(tmp)){
     integral_ += tmp;
@@ -74,6 +74,17 @@ void OFFSRComponent::pid_update() {
         tmp = previous_output_;
   }
   output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
+  
+  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->output_restart_) ) {
+      output_ = this->output_restart_;
+      this->current_thermostat_cut_= true;
+      ESP_LOGVV(TAG, "restart  output");
+   }
+  else{
+    this->current_thermostat_cut_ = false;
+    ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->current_target_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
+  }
+  
   
   
   
