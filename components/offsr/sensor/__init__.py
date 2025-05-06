@@ -5,7 +5,6 @@ from esphome.const import (
     CONF_ID,
     STATE_CLASS_MEASUREMENT,
     DEVICE_CLASS_CURRENT,
-    ICON_CURRENT_DC,
     UNIT_AMPERE,
 )
 
@@ -13,6 +12,7 @@ DEPENDENCIES = ["offsr"]
 CONF_OUTPUT = "output"
 CONF_ERROR  = "error"
 CONF_TARGET = "target"
+ICON_CURRENT_DC = "mdi:current-dc"
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
