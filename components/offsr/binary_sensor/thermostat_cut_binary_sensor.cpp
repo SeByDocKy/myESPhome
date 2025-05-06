@@ -5,6 +5,8 @@
 namespace esphome {
 namespace offsr {
 
+static const char *const TAG = "offsr.binary_sensor";
+
 /*	
 void ThermostatcutBinarySensor::write_state(binary_sensor::BinarySensor *thermostat_cut_binary_sensor) {
   this->publish_state(thermostat_cut_binary_sensor);
@@ -25,7 +27,7 @@ void ThermostatcutBinarySensor::write_state(bool state) {
 */	
 	
 // /*	
-static const char *const TAG = "offsr.binary_sensor";
+
 void ThermostatcutBinarySensor::dump_config() {
   ESP_LOGCONFIG(TAG, "OFFSR Thermostat cut:");
   LOG_BINARY_SENSOR("  ", "Cut", this->thermostat_cut_binary_sensor_);
