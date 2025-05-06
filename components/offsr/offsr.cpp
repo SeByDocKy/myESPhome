@@ -92,7 +92,7 @@ void OFFSRComponent::pid_update() {
     output_ = 0.0f;
   }
   if (!std::isnan(this->current_battery_voltage_)){
-    if (this->current_battery_voltage_ < this->starting_battery_voltage_){
+    if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
       output_ = 0.0f;
     }
   }
