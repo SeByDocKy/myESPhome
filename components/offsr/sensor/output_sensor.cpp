@@ -5,9 +5,10 @@
 namespace esphome {
 namespace offsr {
 
+static const char *const TAG = "offsr.sensor";
 
 // void OutputSensor::update() { this->publish_state(this->parent_->current_output_); }
-void OutputSensor::update() { this->publish_state(this->parent_->get_output(); }
+void OutputSensor::update() { this->publish_state(this->parent_->get_output()); }
 /*
 void OutputSensor::write_state(float output) {
   //this->publish_state(output);
@@ -23,7 +24,7 @@ void OutputSensor::write_state(sensor::Sensor *output_sensor) {
 */	
 	
 // /*	
-static const char *const TAG = "offsr.sensor";
+
 void ErrorSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "OFFSR ErrorSensor:");
   LOG_SENSOR("", "Output", this->output_sensor_);
