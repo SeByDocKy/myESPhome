@@ -31,12 +31,15 @@ OutputRestartNumber = offsr_ns.class_("OutputRestartNumber", number.Number)
 CONF_CHARGING_SETPOINT = "charging_setpoint"
 CONF_ABSORBING_SETPOINT = "absorbing_setpoint"
 CONF_FLOATING_SETPOINT = "floating_setpoint"
+
 CONF_STARTING_BATTERY_VOLTAGE = "starting_battery_voltage"
 CONF_CHARGED_BATTERY_VOLTAGE = "charged_battery_voltage"
 CONF_DISCHARGED_BATTERY_VOLTAGE = "discharged_battery_voltage"
+
 CONF_KP = "kp"
 CONF_KI = "ki"
 CONF_KD = "kd"
+
 CONF_OUTPUT_MIN = "output_min"
 CONF_OUTPUT_MAX = "output_max"
 CONF_OUTPUT_RESTART = "output_restart"

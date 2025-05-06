@@ -4,7 +4,7 @@
 #include "../offsr.h"
 
 namespace esphome {
-namespace osr {
+namespace offsr {
 
 class ChargingSetpointNumber : public number::Number, public Parented<OFFSRComponent> {
  public:

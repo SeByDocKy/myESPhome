@@ -31,6 +31,25 @@ SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 #endif
 
+#ifdef USE_NUMBER
+SUB_NUMBER(charging_setpoint)
+SUB_NUMBER(absorbing_setpoint)
+SUB_NUMBER(floating_setpoint)
+
+SUB_NUMBER(starting_battery_voltage)
+SUB_NUMBER(charged_battery_voltage)
+SUB_NUMBER(discharged_battery_voltage)
+
+SUB_NUMBER(kp)
+SUB_NUMBER(ki)
+SUB_NUMBER(kd)
+
+SUB_NUMBER(output_min)
+SUB_NUMBER(output_max)
+SUB_NUMBER(output_restart)
+
+#endif
+
 // /*
 #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
@@ -43,10 +62,6 @@ SUB_SENSOR(error)
 SUB_SENSOR(output)
 #endif
 // */
-
-#ifdef USE_NUMBER
-SUB_NUMBER(charging_setpoint)
-#endif
 
 
  public:
@@ -65,6 +80,25 @@ SUB_NUMBER(charging_setpoint)
   void set_activation(bool enable);
   void set_manual_override(bool enable);
 #endif
+
+#ifdef USE_NUMBER
+  void set_charging_setpoint(float value);
+  void set_absorbing_setpoint(float value);
+  void set_floating_setpoint(float value);
+
+  void set_starting_battery_voltage(float value);
+  void set_charged_battery_voltage(float value);
+  void set_discharged_battery_voltage(float value);
+  
+  void set_kp(float value);
+  void set_ki(float value);
+  void set_kd(float value);
+  
+  void set_output_min(float value);
+  void set_output_max(float value);
+  void set_output_restart(float value);
+#endif
+
 
 // /*
 
@@ -91,23 +125,7 @@ float get_output(void){return current_output_;}
 
 #endif
 // */
-#ifdef USE_NUMBER
-  void set_charging_setpoint(float value);
-  void set_absorbing_setpoint(float value);
-  void set_floating_setpoint(float value);
 
-  void set_starting_battery_voltage(float value);
-  void set_charged_battery_voltage(float value);
-  void set_discharged_battery_voltage(float value);
-  
-  void set_kp(float value);
-  void set_ki(float value);
-  void set_kd(float value);
-  
-  void set_output_min(float value);
-  void set_output_max(float value);
-  void set_output_restart(float value);
-#endif
 
  protected:
   // float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
@@ -124,6 +142,7 @@ float get_output(void){return current_output_;}
   float current_power_;
   float current_battery_voltage_;
   float current_device_output_;
+  
   bool pid_mode_;
   
   sensor::Sensor *battery_voltage_sensor_;
