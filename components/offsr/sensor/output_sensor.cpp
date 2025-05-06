@@ -25,8 +25,8 @@ void OutputSensor::write_state(sensor::Sensor *output_sensor) {
 	
 // /*	
 
-void ErrorSensor::dump_config() {
-  ESP_LOGCONFIG(TAG, "OFFSR ErrorSensor:");
+void OutputSensor::dump_config() {
+  ESP_LOGCONFIG(TAG, "OutputSensor:");
   LOG_SENSOR("", "Output", this->output_sensor_);
  }	
 // */	
