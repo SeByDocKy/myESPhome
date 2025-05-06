@@ -1,4 +1,4 @@
-#include "charging_setpoint_number.h"
+#include "absorbing_setpoint_number.h"
 
 namespace esphome {
 namespace offsr {
