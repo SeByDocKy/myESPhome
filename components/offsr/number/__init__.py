@@ -11,6 +11,8 @@ from esphome.const import (
     UNIT_VOLT,
 )
 
+DEPENDENCIES = ["offsr"]
+
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
 ChargingSetpointNumber = offsr_ns.class_("ChargingSetpointNumber", number.Number)
@@ -127,7 +129,7 @@ async def to_code(config):
         cg.add(offsr_component.set_floating_setpoint_number(n))     
         
 
-  if starting_battery_voltage_config := config.get(CONF_STARTING_VOLTAGE):
+  if starting_battery_voltage_config := config.get(CONF_STARTING_BATTERY_VOLTAGE):
         n = await number.new_number(
             starting_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.2
         )
