@@ -69,7 +69,7 @@ SUB_SENSOR(output)
   void dump_config() override;
  // void loop() override;
   
-  void set_pid_mode(bool pid_mode) { pid_mode_ = pid_mode; }
+  void set_pid_mode(bool pid_mode) { current_pid_mode_ = pid_mode; }
   void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) { battery_current_sensor_ = battery_current_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
@@ -143,7 +143,7 @@ float get_output(void){return current_output_;}
   float current_battery_voltage_;
   float current_device_output_;
   
-  bool pid_mode_;
+  bool current_pid_mode_;
   
   sensor::Sensor *battery_voltage_sensor_;
   sensor::Sensor *battery_current_sensor_;
@@ -171,12 +171,15 @@ float get_output(void){return current_output_;}
   float current_charging_setpoint_;
   float current_absorbing_setpoint_;
   float current_floating_setpoint_;
+  
   float current_starting_battery_voltage_;
   float current_charged_battery_voltage_;
   float current_discharged_battery_voltage_;
+  
   float current_kp_;
   float current_ki_;
   float current_kd_;
+  
   float current_output_max_;
   float current_output_min_;
   float current_output_restart_;

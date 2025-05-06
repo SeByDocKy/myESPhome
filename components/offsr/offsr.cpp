@@ -22,7 +22,6 @@ void OFFSRComponent::setup() {
     });
     this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
   }
-  
   if (this->power_sensor_ != nullptr) {
     this->power_sensor_->add_on_state_callback([this](float state) {
       this->current_power_ = state;
