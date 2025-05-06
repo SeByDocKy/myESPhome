@@ -50,6 +50,52 @@ void OFFSRComponent::set_manual_override(bool enable) {
 }
 #endif
 
+
+#ifdef USE_NUMBER
+void OFFSRComponent::set_charging_setpoint(float value) {
+	this->current_charging_setpoint_ = value; 
+}
+void OFFSRComponent::set_absorbing_setpoint(float value) {
+	this->current_absorbing_setpoint_ = value;
+}
+void OFFSRComponent::set_floating_setpoint(float value) {
+	this->current_floating_setpoint_ = value;
+}
+
+void OFFSRComponent::set_starting_battery_voltage(float value) {
+	this->current_starting_battery_voltage_ = value;
+}
+void OFFSRComponent::set_charged_battery_voltage(float value) {
+	this->current_charged_battery_voltage_ = value;
+}
+void OFFSRComponent::set_discharged_battery_voltage(float value) {
+	this->current_discharged_battery_voltage_ = value;
+}
+
+void OFFSRComponent::set_kp(float value) {
+	this->current_kp_ = value;
+}
+void OFFSRComponent::set_ki(float value) {
+	this->current_ki_ = value;
+}
+void OFFSRComponent::set_kd(float value) {
+	this->current_kd_ = value;
+}
+
+void OFFSRComponent::set_output_min(float value) {
+	this->current_output_min_ = value;
+}
+void OFFSRComponent::set_output_max(float value) {
+	this->current_output_max_ = value;
+}
+void OFFSRComponent::set_output_restart(float value) {
+	this->current_output_restart_ = value;
+}
+
+#endif
+
+
+
 /*
 #ifdef USE_BINARY_SENSOR
 void OFFSRComponent::get_thermostat_cut(bool state) {

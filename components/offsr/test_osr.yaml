@@ -130,31 +130,31 @@ switch:
     manual_override: 
       name: manual_override_osr
           
-# number:
-  # - platform: offsr
-    # offsr_id: my_offsr1
-    # charging_setpoint: 
-      # name: charging_setpoint
-    # absorbing_setpoint: 
-      # name: absorbing_setpoint
-    # floating_setpoint: 
-      # name: floating_setpoint
-    # starting_battery_voltage: 
-      # name: starting_battery_voltage
-    # charged_battery_voltage: 
-      # name: charged_battery_voltage
-    # discharged_battery_voltage: 
-      # name: discharged_battery_voltage
-    # kp: 
-      # name: kp
-    # ki: 
-      # name: ki
-    # kd: 
-      # name: kd
-    # output_min: 
-      # name: output_min
-    # output_max: 
-      # name: output_max
-    # output_restart: 
-      # name: output_restart    
+number:
+  - platform: offsr
+    offsr_id: my_offsr1
+    charging_setpoint: 
+      name: charging_setpoint
+    absorbing_setpoint: 
+      name: absorbing_setpoint
+    floating_setpoint: 
+      name: floating_setpoint
+    starting_battery_voltage: 
+      name: starting_battery_voltage
+    charged_battery_voltage: 
+      name: charged_battery_voltage
+    discharged_battery_voltage: 
+      name: discharged_battery_voltage
+    kp: 
+      name: kp
+    ki: 
+      name: ki
+    kd: 
+      name: kd
+    output_min: 
+      name: output_min
+    output_max: 
+      name: output_max
+    output_restart: 
+      name: output_restart    
     

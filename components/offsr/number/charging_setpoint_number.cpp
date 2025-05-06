@@ -5,7 +5,7 @@ namespace offsr {
 
 void ChargingSetpointNumber::control(float value) {
   this->publish_state(value);
-  this->parent_->set_activation(state);
+  this->parent_->set_charging_setpoint(value);
 }
 
 }  // namespace offsr

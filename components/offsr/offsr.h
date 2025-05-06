@@ -14,7 +14,6 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #endif
 
-
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
@@ -44,6 +43,12 @@ SUB_SENSOR(error)
 SUB_SENSOR(output)
 #endif
 // */
+
+#ifdef USE_NUMBER
+SUB_NUMBER(charging_setpoint)
+#endif
+
+
  public:
   void setup() override;
   void dump_config() override;
@@ -86,8 +91,26 @@ float get_output(void){return current_output_;}
 
 #endif
 // */
+#ifdef USE_NUMBER
+  void set_charging_setpoint(float value);
+  void set_absorbing_setpoint(float value);
+  void set_floating_setpoint(float value);
+
+  void set_starting_battery_voltage(float value);
+  void set_charged_battery_voltage(float value);
+  void set_discharged_battery_voltage(float value);
+  
+  void set_kp(float value);
+  void set_ki(float value);
+  void set_kd(float value);
+  
+  void set_output_min(float value);
+  void set_output_max(float value);
+  void set_output_restart(float value);
+#endif
+
  protected:
-  float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
+  // float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;
   float dt_;
   float error_;
@@ -124,10 +147,25 @@ float get_output(void){return current_output_;}
   float current_output_ = 0.0f;
   // sensor::Sensor *current_error_{nullptr};
   // sensor::Sensor *current_output_{nullptr};
-#endif   
+#endif
+#ifdef USE_NUMBER
+  float current_charging_setpoint_;
+  float current_absorbing_setpoint_;
+  float current_floating_setpoint_;
+  float current_starting_battery_voltage_;
+  float current_charged_battery_voltage_;
+  float current_discharged_battery_voltage_;
+  float current_kp_;
+  float current_ki_;
+  float current_kd_;
+  float current_output_max_;
+  float current_output_min_;
+  float current_output_restart_;
+  
+#endif
+
 };
-	
-	
+		
 template<typename... Ts> 
 class PidUpdateAction : public Action<Ts...> {
  public:
@@ -138,7 +176,6 @@ class PidUpdateAction : public Action<Ts...> {
   OFFSRComponent *parent_;
 };	
 
-	
  }  // namespace offsr
 }  // namespace esphome
 
