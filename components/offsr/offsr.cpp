@@ -54,7 +54,7 @@ void OFFSRComponent::pid_update() {
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
 	  target_current_setpoint = this->current_charging_setpoint_;
   }
-  else if((this->current_battery_voltage_ > this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
+  else if((this->current_battery_voltage_ > this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ <= this->current_discharged_battery_voltage_)){
 	  target_current_setpoint = this->current_absorbing_setpoint_;
   }
   else{
