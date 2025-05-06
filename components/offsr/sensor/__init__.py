@@ -4,16 +4,21 @@ import esphome.config_validation as cv
 from esphome.const import (
     CONF_ID,
     STATE_CLASS_MEASUREMENT,
+    DEVICE_CLASS_CURRENT,
+    ICON_CURRENT_DC,
+    UNIT_AMPERE,
 )
 
 DEPENDENCIES = ["offsr"]
 CONF_OUTPUT = "output"
 CONF_ERROR  = "error"
+CONF_TARGET = "target"
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
 ErrorSensor = offsr_ns.class_("ErrorSensor", sensor.Sensor , cg.Component)
 OutputSensor = offsr_ns.class_("OutputSensor", sensor.Sensor , cg.Component)
+TargetSensor = offsr_ns.class_("TargetSensor", sensor.Sensor , cg.Component)
 
 
 CONFIG_SCHEMA = {
@@ -25,6 +30,13 @@ CONFIG_SCHEMA = {
              ),
     cv.Optional(CONF_OUTPUT): sensor.sensor_schema(
                 accuracy_decimals=2,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
+    cv.Optional(CONF_TARGET): sensor.sensor_schema(
+                unit_of_measurement=UNIT_AMPERE,
+                icon=ICON_CURRENT_DC,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_CURRENT,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),         
 }
@@ -38,4 +50,8 @@ async def to_code(config):
     if CONF_OUTPUT in config:
         sens = await sensor.new_sensor(config[CONF_OUTPUT])
         cg.add(offsr_component.set_output_sensor(sens))
+        
+    if CONF_TARGET in config:
+        sens = await sensor.new_sensor(config[CONF_TARGET])
+        cg.add(offsr_component.set_target_sensor(sens))    
         

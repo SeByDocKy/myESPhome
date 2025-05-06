@@ -26,7 +26,6 @@ PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 OFFSRComponent_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
-        # cv.Required(CONF_TAG_NAME): cv.string,
     }
 )
 

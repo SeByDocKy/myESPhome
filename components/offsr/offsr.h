@@ -60,6 +60,7 @@ SUB_BINARY_SENSOR(thermostat_cut)
 #ifdef USE_SENSOR
 SUB_SENSOR(error)
 SUB_SENSOR(output)
+SUB_SENSOR(target)
 #endif
 // */
 
@@ -121,6 +122,7 @@ bool get_thermostat_cut(void){return current_thermostat_cut_;}
 
 float get_error(void){return current_error_;}
 float get_output(void){return current_output_;}
+float get_target(void){return current_target_;}
 
 #endif
 // */
@@ -163,6 +165,7 @@ float get_output(void){return current_output_;}
 #ifdef USE_SENSOR
   float current_error_ = 0.0f;
   float current_output_ = 0.0f;
+  float current_target_ = 0.0f;
   // sensor::Sensor *current_error_{nullptr};
   // sensor::Sensor *current_output_{nullptr};
 #endif

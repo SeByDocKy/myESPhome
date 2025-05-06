@@ -49,6 +49,18 @@ void OFFSRComponent::dump_config() {
 void OFFSRComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
+  float target_current_setpoint;
+  
+  if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
+	  target_current_setpoint = this->current_charging_setpoint_;
+  }
+  else if((this->current_battery_voltage_ > this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
+	  target_current_setpoint = this->current_absorbing_setpoint_;
+  }
+  else{
+      target_current_setpoint = this->current_floating_setpoint_;
+  }
+  
   
   dt_ = float(now - this->last_time_)/1000.0f;
   error_ = -(this->current_charging_setpoint_ - this->current_battery_current_);
@@ -58,7 +70,7 @@ void OFFSRComponent::pid_update() {
   }
   derivative_ = (error_ - previous_error_) / dt_;
   tmp = 0.0f;
-  if( !std::isnan(previous_output_)){
+  if( !std::isnan(previous_output_) && this->current_pid_mode_){
         tmp = previous_output_;
   }
   output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
