@@ -24,7 +24,7 @@ class ErrorSensor : public Component, sensor::Sensor, public Parented<OFFSRCompo
   // void update(); //override
   void setup() override;
   
-  void set_parent(OFFSRComponent *parent) { parent_ = parent; }
+  // void set_parent(OFFSRComponent *parent) { parent_ = parent; }
   
   void set_error_sensor(sensor::Sensor *error_sensor) { this->error_sensor_ = error_sensor; };
 
