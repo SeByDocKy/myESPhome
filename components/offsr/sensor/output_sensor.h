@@ -32,7 +32,7 @@ class OutputSensor : public Component, sensor::Sensor, public Parented<OFFSRComp
   // void write_state(float output);
   sensor::Sensor *output_sensor_{nullptr};
   OFFSRComponent *parent_;
-  void update_from_parent_();
+  // void update_from_parent_();
 };	
 // */
 	
