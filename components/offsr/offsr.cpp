@@ -49,8 +49,7 @@ void OFFSRComponent::dump_config() {
 void OFFSRComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
-  // float target_current_setpoint;
-  
+    
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
 	  this->current_target_ = this->current_charging_setpoint_;
   }
@@ -98,10 +97,6 @@ void OFFSRComponent::pid_update() {
   }
   
   this->device_output_->set_level(output_);
-  
-  
-  
-  
   
  }
 
@@ -158,47 +153,5 @@ void OFFSRComponent::set_output_restart(float value) {
 
 #endif
 
-
-
-/*
-#ifdef USE_BINARY_SENSOR
-void OFFSRComponent::get_thermostat_cut(bool state) {
-// void OFFSRComponent::set_thermostat_cut(bool state) {
-// void OFFSRComponent::set_thermostat_cut(binary_sensor::BinarySensor *bs) {
-	// this->current_thermostat_cut_ = bs; 
-	this->current_thermostat_cut_ = state; 
-	// this->thermostat_cut_binary_sensor_ = bs;
-}
-#endif
-*/
-
-/*
-#ifdef USE_SENSOR	
-
-void OFFSRComponent::get_error(float error) {
-	this->current_error_ = error;
-}
-void OFFSRComponent::get_output(float output) {
-	this->current_output_ = output;
-}
-*/
-/*
-void OFFSRComponent::set_error(float error) {
-	this->current_error_ = error;
-}
-void OFFSRComponent::set_output(float output) {
-	this->current_output_ = output;
-}
-*/
-/*
-void OFFSRComponent::set_error(sensor::Sensor *error_sensor) {
-	this->current_error_ = error_sensor;
-}
-void OFFSRComponent::set_output(sensor::Sensor *output_sensor) {
-	this->current_output_ = output_sensor;
-}
-
-#endif
-*/
  }  // namespace offsr
 }  // namespace esphome

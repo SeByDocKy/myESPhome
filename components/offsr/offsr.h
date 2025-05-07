@@ -50,19 +50,16 @@ SUB_NUMBER(output_restart)
 
 #endif
 
-// /*
+
 #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
 #endif
-// */
 
-// /*
 #ifdef USE_SENSOR
 SUB_SENSOR(error)
 SUB_SENSOR(output)
 SUB_SENSOR(target)
 #endif
-// */
 
  public:
   
@@ -70,7 +67,6 @@ SUB_SENSOR(target)
   
   void setup() override;
   void dump_config() override;
- // void loop() override;
   
   void set_pid_mode(bool pid_mode) { current_pid_mode_ = pid_mode; }
   void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) { battery_current_sensor_ = battery_current_sensor; }
@@ -106,37 +102,17 @@ SUB_SENSOR(target)
   void set_output_restart(float value);
 #endif
 
-
-// /*
-
 #ifdef USE_BINARY_SENSOR
-// void set_thermostat_cut(binary_sensor::BinarySensor *thermostat_cut_binary_sensor);
-// void set_thermostat_cut(bool state);
-// void get_thermostat_cut(bool state);
 bool get_thermostat_cut(void){return current_thermostat_cut_;}
 #endif
-// */
-// /*
+
 #ifdef USE_SENSOR
-// void set_error(sensor::Sensor *error_sensor);
-// void set_output(sensor::Sensor *output_sensor);
-
-// void set_error(float error);
-// void set_output(float output);
-
-// void get_error(float error);
-// void get_output(float output);
-
 float get_error(void){return current_error_;}
 float get_output(void){return current_output_;}
 float get_target(void){return current_target_;}
-
 #endif
-// */
-
 
  protected:
-  // float setpoint_ , kp_ , ki_ , kd_ , output_min_ , output_max_ , output_restart_ , starting_battery_voltage_; 
   uint32_t last_time_ = 0;
   float dt_;
   float error_;
@@ -164,7 +140,6 @@ float get_target(void){return current_target_;}
   bool current_activation_;
   bool current_manual_override_;
 #endif  
-  // bool current_thermostat_cut_;
   
 #ifdef USE_BINARY_SENSOR
   bool current_thermostat_cut_;
