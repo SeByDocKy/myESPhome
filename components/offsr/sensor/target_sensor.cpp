@@ -1,4 +1,4 @@
-#include "output_sensor.h"
+#include "target_sensor.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
