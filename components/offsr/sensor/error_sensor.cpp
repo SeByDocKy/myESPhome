@@ -15,6 +15,7 @@ void ErrorSensor::update_from_parent_() {
   float value;
   value = this->parent_->get_error();
   this->publish_state(value);
+}
 
 
 // void ErrorSensor::update() { this->publish_state(this->parent_->get_error()); }
