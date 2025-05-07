@@ -10,7 +10,14 @@ static const char *const TAG = "offsr.sensor";
 // void OutputSensor::update() { this->publish_state(this->parent_->current_output_); }
 
 void OutputSensor::setup() {
-  this->parent_->add_on_pid_computed_callback([this]() { this->parent_->get_output(); });
+  // this->parent_->add_on_pid_computed_callback([this]() { this->parent_->get_output(); });
+  this->parent_->add_on_pid_computed_callback([this]() { this->update_from_parent_(); });
+}
+
+void OutputSensor::update_from_parent_() {
+  float value;
+  value = this->parent_->get_output();
+  this->publish_state(value);
 }
 
 

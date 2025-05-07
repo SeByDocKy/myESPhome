@@ -30,6 +30,7 @@ class TargetSensor : public Component, sensor::Sensor, public Parented<OFFSRComp
  protected:
   sensor::Sensor *target_sensor_{nullptr};
   OFFSRComponent *parent_;
+  void update_from_parent_();
 };	
 // */
 	
