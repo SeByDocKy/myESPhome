@@ -76,6 +76,10 @@ SUB_SENSOR(target)
   void set_device_output(output::FloatOutput *device_output) { device_output_ = device_output; }
   void pid_update();
   
+  void add_on_pid_computed_callback(std::function<void()> &&callback) {
+    pid_computed_callback_.add(std::move(callback));
+  }
+  
 #ifdef USE_SWITCH
   void set_activation(bool enable);
   void set_manual_override(bool enable);
@@ -150,6 +154,8 @@ float get_target(void){return current_target_;}
   sensor::Sensor *battery_current_sensor_;
   sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
+  
+  CallbackManager<void()> pid_computed_callback_;
   
 #ifdef USE_SWITCH  
   bool current_activation_;
