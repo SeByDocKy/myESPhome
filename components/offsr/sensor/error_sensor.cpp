@@ -6,8 +6,15 @@ namespace esphome {
 namespace offsr {
 	
 static const char *const TAG = "offsr.sensor";
-// void ErrorSensor::update() { this->publish_state(this->parent_->current_error_); }
-void ErrorSensor::update() { this->publish_state(this->parent_->get_error()); }
+
+void ErrorSensor::setup() {
+  this->parent_->add_on_pid_computed_callback([this]() { this->parent_->get_error(); });
+}
+
+
+// void ErrorSensor::update() { this->publish_state(this->parent_->get_error()); }
+
+
 /*
 void ErrorSensor::write_state(float error) {
   // this->publish_state(error);

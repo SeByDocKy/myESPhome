@@ -21,12 +21,21 @@ class ErrorSensor : public sensor::Sensor, public Parented<OFFSRComponent> {
 class ErrorSensor : public Component, sensor::Sensor, public Parented<OFFSRComponent> {
  public:
   void dump_config() override;
-  void update(); //override
+  // void update(); //override
+  void setup() override;
+  
+  void set_parent(OFFSRComponent *parent) { parent_ = parent; }
+  
   void set_error_sensor(sensor::Sensor *error_sensor) { this->error_sensor_ = error_sensor; };
+
+
 
  protected:
   // void write_state(float error);
   sensor::Sensor *error_sensor_{nullptr};
+  
+  OFFSRComponent *parent_;
+  
 };	
 // */
 	

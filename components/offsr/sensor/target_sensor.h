@@ -22,10 +22,13 @@ class TargetSensor : public Component, sensor::Sensor, public Parented<OFFSRComp
  public:
   void dump_config() override;
   void update(); //override
+  void set_parent(OFFSRComponent *parent) { parent_ = parent; }
+
   void set_target_sensor(sensor::Sensor *target_sensor) { this->target_sensor_ = target_sensor; };
 
  protected:
   sensor::Sensor *target_sensor_{nullptr};
+  OFFSRComponent *parent_;
 };	
 // */
 	

@@ -65,6 +65,7 @@ SUB_SENSOR(target)
 // */
 
  public:
+  OFFSRComponent() = default;
   void setup() override;
   void dump_config() override;
  // void loop() override;
