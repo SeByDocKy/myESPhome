@@ -14,31 +14,6 @@ void OutputSensor::setup() {
   // this->parent_->add_on_pid_computed_callback([this]() { this->parent_->get_output(); });
   // this->parent_->add_on_pid_computed_callback([this]() { this->update_from_parent_(); });
 }
-/*
-void OutputSensor::update_from_parent_() {
-  float value;
-  value = this->parent_->get_output();
-  this->publish_state(value);
-}
-*/
-
-// void OutputSensor::update() { this->publish_state(this->parent_->get_output()); }
-
-/*
-void OutputSensor::write_state(float output) {
-  //this->publish_state(output);
-  //this->parent_->set_output(output);
-  this->parent_->get_output(output);
-}
-*/
-/*
-void OutputSensor::write_state(sensor::Sensor *output_sensor) {
-  // this->publish_state(output_sensor);
-  this->parent_->set_output(output_sensor);
-}
-*/	
-	
-// /*	
 
 void OutputSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "OutputSensor:");

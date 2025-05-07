@@ -34,7 +34,6 @@ class ErrorSensor : public Component, sensor::Sensor, public Parented<OFFSRCompo
   // void write_state(float error);
   sensor::Sensor *error_sensor_{nullptr};
   OFFSRComponent *parent_;
-  // void update_from_parent_();
   
 };	
 // */
