@@ -12,10 +12,6 @@ void ThermostatcutBinarySensor::setup() {
   // this->parent_->add_on_pid_computed_callback([this]() { this->parent_->get_thermostat_cut(); });
 }
 
-// void ThermostatcutBinarySensor::update() { this->publish_state(this->parent_->get_thermostat_cut()); }
-
-
-
 void ThermostatcutBinarySensor::dump_config() {
   ESP_LOGCONFIG(TAG, "OFFSR Thermostat cut:");
   LOG_BINARY_SENSOR("  ", "Cut", this->thermostat_cut_binary_sensor_);

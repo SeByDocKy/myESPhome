@@ -8,7 +8,6 @@ static const char *const TAG = "offsr";
 static const float coeff = 0.001f;
 static const float power_mini = 2.0f;
 
-// /*
 void OFFSRComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up OFFSRComponent...");
   
