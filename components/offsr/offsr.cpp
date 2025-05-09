@@ -42,6 +42,9 @@ void OFFSRComponent::setup() {
 void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
   ESP_LOGV(TAG, "setup import part: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);
+  
+  ESP_LOGV(TAG, "setup numbers: manual_level=%3.2f, charging_setpoint=%3.2f, absorbing_setpoint=%3.2f, floating_setpoint = %d", this->current_manual_level_ , this->current_charging_setpoint_ , this->current_absorbing_setpoint_ , this->current_floating_setpoint_);
+  
 #ifdef USE_SENSOR
 
  /*  LOG_SENSOR(TAG, "Error", current_error_);
