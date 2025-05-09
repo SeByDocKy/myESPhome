@@ -13,10 +13,10 @@ class OutputSensor : public Component, sensor::Sensor, public Parented<OFFSRComp
   
   // void update(); //override
   
-  void set_output_sensor(sensor::Sensor *output_sensor) { this->output_sensor_ = output_sensor; };
+/*   void set_output_sensor(sensor::Sensor *output_sensor) { this->output_sensor_ = output_sensor; }; */
 
  protected:
-  sensor::Sensor *output_sensor_{nullptr};
+/*   sensor::Sensor *output_sensor_{nullptr}; */
   OFFSRComponent *parent_;
 };	
 

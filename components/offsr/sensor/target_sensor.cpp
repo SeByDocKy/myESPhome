@@ -14,7 +14,8 @@ void TargetSensor::setup() {
 
 void TargetSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "TargetSensor:");
-  LOG_SENSOR("", "Target", this->target_sensor_);
+  LOG_SENSOR("", "Error", this);
+/*   LOG_SENSOR("", "Target", this->target_sensor_); */
  }	
 	
  }

@@ -13,7 +13,8 @@ void ErrorSensor::setup() {
 
 void ErrorSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "ErrorSensor:");
-  LOG_SENSOR("", "Error", this->error_sensor_);
+  LOG_SENSOR("", "Error", this);
+/*   LOG_SENSOR("", "Error", this->error_sensor_); */
  }	
 	
  }

@@ -13,7 +13,8 @@ void OutputSensor::setup() {
 
 void OutputSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "OutputSensor:");
-  LOG_SENSOR("", "Output", this->output_sensor_);
+/*   LOG_SENSOR("", "Output", this->output_sensor_); */
+  LOG_SENSOR("", "Error", this);
  }	
 	
  }
