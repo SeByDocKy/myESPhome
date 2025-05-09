@@ -76,8 +76,12 @@ SUB_SENSOR(target)
   void set_device_output(output::FloatOutput *device_output) { device_output_ = device_output; }
   void pid_update();
   
-  void add_on_pid_computed_callback(std::function<void()> &&callback) {
+/*   void add_on_pid_computed_callback(std::function<void()> &&callback) {
     pid_computed_callback_.add(std::move(callback));
+  } */
+  
+  void add_on_output_callback(std::function<void()> &&callback) {
+    output_callback_.add(std::move(callback));
   }
   
 #ifdef USE_SWITCH
@@ -143,7 +147,7 @@ float get_target(void){return current_target_;}
  protected:
   uint32_t last_time_ = 0;
   float dt_;
-  float error_;
+  float error_ = 0.0f;
   float previous_error_ = 0.0f;
   float output_;
   float previous_output_ = 0.0f;
@@ -162,7 +166,8 @@ float get_target(void){return current_target_;}
   sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
   
-  CallbackManager<void()> pid_computed_callback_;
+  // CallbackManager<void()> pid_computed_callback_;
+  CallbackManager<void()> output_callback_;
   
 #ifdef USE_SWITCH  
   bool current_activation_;
@@ -185,17 +190,17 @@ float get_target(void){return current_target_;}
   float current_absorbing_setpoint_ = 5.0f;
   float current_floating_setpoint_ = 0.0f;
   
-  float current_starting_battery_voltage_ = 53.5;
-  float current_charged_battery_voltage_ = 55.9;
-  float current_discharged_battery_voltage_ = 55.8;
+  float current_starting_battery_voltage_ = 53.5f;
+  float current_charged_battery_voltage_ = 55.9f;
+  float current_discharged_battery_voltage_ = 55.8f;
   
-  float current_kp_;
-  float current_ki_;
-  float current_kd_;
+  float current_kp_ = 4.0f;
+  float current_ki_ = 0.1f;
+  float current_kd_ = 0.5f;
   
-  float current_output_max_;
-  float current_output_min_;
-  float current_output_restart_;
+  float current_output_max_ = 0.85f;
+  float current_output_min_ = 0.19f;
+  float current_output_restart_ = = 0.4f;
   
 #endif
 
