@@ -17,6 +17,7 @@ ThermostatcutBinarySensor = offsr_ns.class_("ThermostatcutBinarySensor", binary_
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
     cv.Optional(CONF_THERMOSTAT_CUT): binary_sensor.binary_sensor_schema(
+        ThermostatcutBinarySensor,
         device_class=DEVICE_CLASS_OCCUPANCY,
     ),
 }
