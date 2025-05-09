@@ -36,6 +36,9 @@ void OFFSRComponent::setup() {
   }
   
   this->current_error_ = this->error_;
+  this->thermostat_cut = false;
+  
+  this->pid_computed_callback_.call();
   
   ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);  
   
@@ -65,7 +68,7 @@ void OFFSRComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
   
-   ESP_LOGV(TAG, "Entered in pid_update()");
+  ESP_LOGV(TAG, "Entered in pid_update()");
     
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
 	  this->current_target_ = this->current_charging_setpoint_;
@@ -96,8 +99,6 @@ void OFFSRComponent::pid_update() {
     }
 	
 	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
-	
-
 	
     output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
 	

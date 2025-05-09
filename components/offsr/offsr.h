@@ -182,12 +182,12 @@ float get_target(void){return current_target_;}
   CallbackManager<void()> thermostat_cut_callback_; */
   
 #ifdef USE_SWITCH  
-  bool current_activation_;
-  bool current_manual_override_;
+  bool current_activation_ = false;
+  bool current_manual_override_ = false;
 #endif  
   
 #ifdef USE_BINARY_SENSOR
-  bool current_thermostat_cut_;
+  bool current_thermostat_cut_ = false;
 #endif  
 
 #ifdef USE_SENSOR
