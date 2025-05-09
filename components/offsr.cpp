@@ -35,7 +35,7 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
   
-  this->current_error_ = error_;
+  this->current_error_ = this->error_;
   
   ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);  
   
@@ -47,7 +47,10 @@ void OFFSRComponent::dump_config() {
   
   ESP_LOGV(TAG, "setup numbers: manual_level=%3.2f, charging_setpoint=%3.2f, absorbing_setpoint=%3.2f, floating_setpoint = %3.2f", this->current_manual_level_ , this->current_charging_setpoint_ , this->current_absorbing_setpoint_ , this->current_floating_setpoint_);
   
+  ESP_LOGV(TAG, "setup switches: activation=%d, overide=%d", this->current_activation_ , this->current_manual_override_);  
+  
   ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f", this->current_error_ , this->current_output_ , this->current_target_);
+  
   
 #ifdef USE_SENSOR
 
@@ -61,6 +64,8 @@ void OFFSRComponent::dump_config() {
 void OFFSRComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
+  
+   ESP_LOGV(TAG, "Entered in pid_update()");
     
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
 	  this->current_target_ = this->current_charging_setpoint_;
@@ -78,6 +83,8 @@ void OFFSRComponent::pid_update() {
     error_ = -(this->current_target_ - this->current_battery_current_);
 	this->current_error_ = error_;
 	
+	// ESP_LOGV(TAG, "Initial error=%3.2f" , error_);
+	
     tmp = (error_ * dt_);
     if (!std::isnan(tmp)){
       integral_ += tmp;
@@ -87,7 +94,23 @@ void OFFSRComponent::pid_update() {
     if( !std::isnan(previous_output_) && this->current_pid_mode_){
         tmp = previous_output_;
     }
+	
+	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
+	
+
+	
     output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
+	
+    ESP_LOGV(TAG, "Pcoeff = %3.8f" , coeff*this->current_kp_ * error_ );
+	ESP_LOGV(TAG, "Icoeff = %3.8f" , (coeff*this->current_ki_ * integral_) );
+	ESP_LOGV(TAG, "Dcoeff = %3.8f" , (coeff*this->current_kd_ * derivative_) );
+	
+	ESP_LOGV(TAG, "output_min = %1.2f" , this->current_output_min_  );
+	ESP_LOGV(TAG, "output_max = %1.2f" , this->current_output_max_  );
+	
+	ESP_LOGV(TAG, "PIDcoeff = %3.8f" , tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) );
+	
+	ESP_LOGV(TAG, "Intermediate computed output=%1.6f" , output_);
   
     if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
       output_ = this->current_output_restart_;
@@ -114,6 +137,7 @@ void OFFSRComponent::pid_update() {
 #endif  
 
     if (!std::isnan(this->current_battery_voltage_)){
+	  ESP_LOGV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         output_ = 0.0f;
       }
@@ -125,6 +149,10 @@ void OFFSRComponent::pid_update() {
   // this->device_output_->set_level(get_manual_level());	
 #endif  
   this->device_output_->set_level(output_);
+  // this->pid_computed_callback_.call();
+  this->output_callback_.call();
+  
+  ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
   
  }
 
