@@ -58,51 +58,54 @@ void OFFSRComponent::pid_update() {
   else{
       this->current_target_ = this->current_floating_setpoint_;
   }
-  
-  
-  dt_ = float(now - this->last_time_)/1000.0f;
-  error_ = -(this->current_target_ - this->current_battery_current_);
-  tmp = (error_ * dt_);
-  if (!std::isnan(tmp)){
-    integral_ += tmp;
-  }
-  derivative_ = (error_ - previous_error_) / dt_;
-  tmp = 0.0f;
-  if( !std::isnan(previous_output_) && this->current_pid_mode_){
+#ifdef USE_SWITCH  
+  if (!this->current_manual_override_){
+#endif
+    dt_ = float(now - this->last_time_)/1000.0f;
+    error_ = -(this->current_target_ - this->current_battery_current_);
+    tmp = (error_ * dt_);
+    if (!std::isnan(tmp)){
+      integral_ += tmp;
+    }
+    derivative_ = (error_ - previous_error_) / dt_;
+    tmp = 0.0f;
+    if( !std::isnan(previous_output_) && this->current_pid_mode_){
         tmp = previous_output_;
-  }
-  output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
+    }
+    output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
   
-  if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
+    if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
       output_ = this->current_output_restart_;
 #ifdef USE_BINARY_SENSOR 	  
       this->current_thermostat_cut_= true;
 #endif
       ESP_LOGVV(TAG, "restart  output");
-   }
-  else{
+    }
+    else{
 #ifdef USE_BINARY_SENSOR 	  
-    this->current_thermostat_cut_ = false;
+      this->current_thermostat_cut_ = false;
 #endif	
-    ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->current_target_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
-  }
+      ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->current_target_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
+    }
   
-  last_time_ = now;
-  previous_error_ = error_;
-  previous_output_ = output_;
+    last_time_ = now;
+    previous_error_ = error_;
+    previous_output_ = output_;
   
 #ifdef USE_SWITCH  
-  if (!this->current_activation_ ){
-    output_ = 0.0f;
-  }
-#endif  
-
-  if (!std::isnan(this->current_battery_voltage_)){
-    if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
+    if (!this->current_activation_ ){
       output_ = 0.0f;
     }
+#endif  
+
+    if (!std::isnan(this->current_battery_voltage_)){
+      if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
+        output_ = 0.0f;
+      }
+    }
+#ifdef USE_SWITCH	
   }
-  
+#endif  
   this->device_output_->set_level(output_);
   
  }
