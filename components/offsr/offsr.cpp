@@ -151,6 +151,8 @@ void OFFSRComponent::pid_update() {
   ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
    
   this->device_output_->set_level(output_);
+  
+  current_output_ = output_;
   this->pid_computed_callback_.call();
   // this->output_callback_.call();
   
