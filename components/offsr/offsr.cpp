@@ -137,6 +137,7 @@ void OFFSRComponent::pid_update() {
 #endif  
 
     if (!std::isnan(this->current_battery_voltage_)){
+	  ESP_LOGV(TAG, "starting battery voltage = %2.2f" , this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         output_ = 0.0f;
       }
