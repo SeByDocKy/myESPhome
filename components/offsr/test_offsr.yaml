@@ -13,7 +13,7 @@ esp32:
     
 logger:
   # baud_rate: 0
-  # level: verbose    
+  level: verbose    
   
 ota:
   # - platform: http_request
@@ -64,47 +64,45 @@ time:
 # victron_smart_shunt:
   # uart_id: uart_0
 
-i2c:
-  - id: bus_i2c
-    sda: GPIO22
-    scl: GPIO21
-    scan: true
-    frequency: 800kHz
+# i2c:
+  # - id: bus_i2c
+    # sda: GPIO22
+    # scl: GPIO21
+    # scan: true
+    # frequency: 800kHz
 
-sx1509:
-  - id: sx1509_hub0
-    address: 0x3E
-    i2c_id: bus_i2c
+# sx1509:
+  # - id: sx1509_hub0
+    # address: 0x3E
+    # i2c_id: bus_i2c
 
 output:
-  - platform: sx1509
-    sx1509_id: sx1509_hub0
-    id: output_sx1509
-    pin: 0
-    inverted: true
+  # - platform: sx1509
+    # sx1509_id: sx1509_hub0
+    # id: output_sx1509
+    # pin: 0
+    # inverted: true
     
-  # - platform: template
-    # id: fakeoutput
-    # type: float
-    # write_action:
-      # - output.set_level:
-          # id: fakeoutput
-          # level: !lambda return state;  
+  - platform: template
+    id: fakeoutput
+    type: float
+    write_action:
+      - lambda: 'return;'
 
-# fan:
-  # - platform: speed
-    # id: fakeoutput_command
-    # name: ${name}_fakeoutput_command
-    # output: fakeoutput
+fan:
+  - platform: speed
+    id: fakeoutput_command
+    name: ${name}_fakeoutput_command
+    output: fakeoutput
 
 
 offsr:
   - id: my_offsr1
-    battery_current_id: fake_battery_voltage #smartshunt_battery_current
-    battery_voltage_id: fake_battery_current #smartshunt_battery_voltage
-    output_id: output_sx1509 # fakeoutput
+    battery_current_id: fake_battery_current #smartshunt_battery_current
+    battery_voltage_id: fake_battery_voltage #smartshunt_battery_voltage
+    output_id: fakeoutput #output_sx1509 # fakeoutput
     power_id: fake_power_feedback #pzem_power
-    pid_mode: false
+    pid_mode: true
     
 # binary_sensor:
   # - platform: offsr
@@ -125,14 +123,26 @@ sensor:
   - platform: template
     name: ${name}_fake_battery_voltage
     id: fake_battery_voltage
+    on_value: 
+      then:
+         - offsr.pid_update:
+            id: my_offsr1
     
   - platform: template
     name: ${name}_fake_battery_current
     id: fake_battery_current
+    on_value: 
+      then:
+         - offsr.pid_update:
+            id: my_offsr1
     
   - platform: template
     name: ${name}_fake_power_feedback
-    id: fake_power_feedback  
+    id: fake_power_feedback
+    on_value: 
+      then:
+         - offsr.pid_update:
+            id: my_offsr1    
 
   # - platform: pzemac
     # address: 1
@@ -155,41 +165,41 @@ sensor:
   
 
   
-  # - platform: offsr
-    # offsr_id: my_offsr1
-    # output: 
-      # name: ${name}_output_lsa
+  - platform: offsr
+    offsr_id: my_offsr1
     # error: 
-      # name: ${name}_regulation_error
+      # name: ${name}_regulation_error    
+    output: 
+      name: ${name}_output_lsa
     # target:
       # name: ${name}_target_current
       
-# switch:
-  # - platform: offsr
-    # offsr_id: my_offsr1
-    # activation: 
-      # name: ${name}_activation_osr
-    # manual_override: 
-      # name: ${name}_manual_override_osr
+switch:
+  - platform: offsr
+    offsr_id: my_offsr1
+    activation: 
+      name: ${name}_activation_offsr
+    manual_override: 
+      name: ${name}_manual_override_offsr
           
 number:
 
-  # - platform: template
-    # name: ${name}_fake_output_number  
-    # id: fake_output_number
-    # optimistic: true
-    # icon: mdi:numeric
-    # min_value: 0.0
-    # max_value: 1.0
-    # step: 0.05
-    # mode: 'slider'
-    # initial_value: 0.0
-    # restore_value: true
-    # on_value:
-       # then:
-         # - output.set_level:
-             # id: fakeoutput
-             # level: !lambda 'return id(fake_output_number).state;'
+  - platform: template
+    name: ${name}_fake_output_number  
+    id: fake_output_number
+    optimistic: true
+    icon: mdi:numeric
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.05
+    mode: 'slider'
+    initial_value: 0.0
+    restore_value: true
+    on_value:
+       then:
+         - output.set_level:
+             id: fakeoutput
+             level: !lambda 'return id(fake_output_number).state;'
 
   - platform: template
     name: ${name}_fake_battery_current_number  

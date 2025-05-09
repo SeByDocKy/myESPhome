@@ -10,6 +10,7 @@ class OutputSensor : public Component, public sensor::Sensor, public Parented<OF
  public:
   void dump_config() override;
   void setup() override;
+  void set_parent(OFFSRComponent *parent) { parent_ = parent; }
   
   // void update(); //override
   

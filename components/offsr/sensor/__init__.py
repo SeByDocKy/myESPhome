@@ -49,16 +49,18 @@ async def to_code(config):
     if CONF_ERROR in config:
         sens = await sensor.new_sensor(config[CONF_ERROR])
         await cg.register_component(sens, config)
-        # cg.add(sens.set_parent(offsr_component))
-        cg.add(offsr_component.set_error_sensor(sens))
+        cg.add(sens.set_parent(offsr_component))
+        # cg.add(offsr_component.set_error_sensor(sens))
 
     if CONF_OUTPUT in config:
         sens = await sensor.new_sensor(config[CONF_OUTPUT])
         await cg.register_component(sens, config)
-        cg.add(offsr_component.set_output_sensor(sens))
+        cg.add(sens.set_parent(offsr_component))
+        # cg.add(offsr_component.set_output_sensor(sens))
         
     if CONF_TARGET in config:
         sens = await sensor.new_sensor(config[CONF_TARGET])
         await cg.register_component(sens, config)
-        cg.add(offsr_component.set_target_sensor(sens))    
+        cg.add(sens.set_parent(offsr_component))
+        # cg.add(offsr_component.set_target_sensor(sens))    
         

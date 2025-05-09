@@ -9,6 +9,7 @@ namespace offsr {
 class ThermostatcutBinarySensor : public Component, public binary_sensor::BinarySensor, public Parented<OFFSRComponent> {
  public:
   void dump_config() override;
+  void set_parent(OFFSRComponent *parent) { parent_ = parent; }
   // void update();
   
   void setup() override;
