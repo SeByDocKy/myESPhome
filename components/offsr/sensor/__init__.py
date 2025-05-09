@@ -25,14 +25,17 @@ CONFIG_SCHEMA = {
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
                 
     cv.Optional(CONF_ERROR): sensor.sensor_schema(
+                ErrorSensor,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_OUTPUT): sensor.sensor_schema(
+                OutputSensor,
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_TARGET): sensor.sensor_schema(
+                TargetSensor,
                 unit_of_measurement=UNIT_AMPERE,
                 icon=ICON_CURRENT_DC,
                 accuracy_decimals=2,
