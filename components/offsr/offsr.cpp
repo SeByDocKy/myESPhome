@@ -41,10 +41,12 @@ void OFFSRComponent::setup() {
 
 void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
-#ifdef USE_SENSOR  
-  LOG_SENSOR(TAG, "Error", this->current_error_);
-  LOG_SENSOR(TAG, "output", this->current_output_);
-  LOG_SENSOR(TAG, "output", this->current_target_);
+  ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_);
+#ifdef USE_SENSOR
+
+ /*  LOG_SENSOR(TAG, "Error", current_error_);
+  LOG_SENSOR(TAG, "output", current_output_);
+  LOG_SENSOR(TAG, "output", current_target_); */
 #endif
 }
 
