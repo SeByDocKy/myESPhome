@@ -83,7 +83,7 @@ void OFFSRComponent::pid_update() {
     error_ = -(this->current_target_ - this->current_battery_current_);
 	this->current_error_ = error_;
 	
-	ESP_LOGV(TAG, "Initial error=%3.2f" , error_);
+	// ESP_LOGV(TAG, "Initial error=%3.2f" , error_);
 	
     tmp = (error_ * dt_);
     if (!std::isnan(tmp)){
@@ -94,6 +94,9 @@ void OFFSRComponent::pid_update() {
     if( !std::isnan(previous_output_) && this->current_pid_mode_){
         tmp = previous_output_;
     }
+	
+	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f" , error_ , integral_ , derivative_);
+	
     output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
 	
 	ESP_LOGV(TAG, "Intermediate computed output=%3.2f" , output_);
