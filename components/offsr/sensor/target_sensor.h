@@ -6,7 +6,7 @@
 namespace esphome {
 namespace offsr {
 		
-class TargetSensor : public Component, sensor::Sensor, public Parented<OFFSRComponent> {
+class TargetSensor : public Component, public sensor::Sensor, public Parented<OFFSRComponent> {
  public:
   void dump_config() override;
   // void update(); //override
