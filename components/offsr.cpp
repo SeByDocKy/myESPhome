@@ -35,6 +35,8 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
   
+  this->current_error_ = error_;
+  
   ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);  
   
 }
@@ -74,6 +76,8 @@ void OFFSRComponent::pid_update() {
 #endif
     dt_ = float(now - this->last_time_)/1000.0f;
     error_ = -(this->current_target_ - this->current_battery_current_);
+	this->current_error_ = error_;
+	
     tmp = (error_ * dt_);
     if (!std::isnan(tmp)){
       integral_ += tmp;
