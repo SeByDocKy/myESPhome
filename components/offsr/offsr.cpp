@@ -123,6 +123,11 @@ void OFFSRComponent::set_manual_override(bool enable) {
 
 
 #ifdef USE_NUMBER
+
+void OFFSRComponent::set_manual_level(float value) {
+	this->current_manual_level_ = value; 
+}
+
 void OFFSRComponent::set_charging_setpoint(float value) {
 	this->current_charging_setpoint_ = value; 
 }
