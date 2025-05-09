@@ -35,8 +35,8 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
   
-  this->current_error_ = this->error_;
-  this->thermostat_cut = false;
+/*   this->current_error_ = this->error_;
+  this->current_thermostat_cut = false; */
   
   this->pid_computed_callback_.call();
   
