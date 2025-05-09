@@ -83,6 +83,15 @@ SUB_SENSOR(target)
   void add_on_output_callback(std::function<void()> &&callback) {
     output_callback_.add(std::move(callback));
   }
+  void add_on_error_callback(std::function<void()> &&callback) {
+    error_callback_.add(std::move(callback));
+  }
+  void add_on_target_callback(std::function<void()> &&callback) {
+    target_callback_.add(std::move(callback));
+  }
+  void add_on_thermostat_cut_callback(std::function<void()> &&callback) {
+    thermostat_cut_callback_.add(std::move(callback));
+  }
   
 #ifdef USE_SWITCH
   
@@ -168,6 +177,9 @@ float get_target(void){return current_target_;}
   
   // CallbackManager<void()> pid_computed_callback_;
   CallbackManager<void()> output_callback_;
+  CallbackManager<void()> error_callback_;
+  CallbackManager<void()> target_callback_;
+  CallbackManager<void()> thermostat_cut_callback_;
   
 #ifdef USE_SWITCH  
   bool current_activation_;
