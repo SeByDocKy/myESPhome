@@ -200,7 +200,7 @@ float get_target(void){return current_target_;}
   
   float current_output_max_ = 0.85f;
   float current_output_min_ = 0.19f;
-  float current_output_restart_ = = 0.4f;
+  float current_output_restart_ = 0.4f;
   
 #endif
 
