@@ -106,6 +106,8 @@ void OFFSRComponent::pid_update() {
 	ESP_LOGV(TAG, "Icoeff = %3.8f" , (coeff*this->current_ki_ * integral_) );
 	ESP_LOGV(TAG, "Dcoeff = %3.8f" , (coeff*this->current_kd_ * derivative_) );
 	
+	ESP_LOGV(TAG, "previous output = %2.8f" , tmp );
+	
 	ESP_LOGV(TAG, "output_min = %1.2f" , this->current_output_min_  );
 	ESP_LOGV(TAG, "output_max = %1.2f" , this->current_output_max_  );
 	
