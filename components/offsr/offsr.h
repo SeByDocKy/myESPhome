@@ -82,14 +82,16 @@ SUB_SENSOR(target)
   
 #ifdef USE_SWITCH
   
-  void set_activation(bool enable) {current_activation_ = enable;}
-  void set_manual_override(bool enable) {current_manual_override_ = enable;}
+/*   void set_activation(bool enable) {current_activation_ = enable;}
+  void set_manual_override(bool enable) {current_manual_override_ = enable;} */
  
-/*   void set_activation(bool enable);
-  void set_manual_override(bool enable); */
+  void set_activation(bool enable);
+  void set_manual_override(bool enable);
 #endif
 
 #ifdef USE_NUMBER
+
+/*
   void set_manual_level(float value) {current_manual_level_ = value; }
   
   void set_charging_setpoint(float value) {current_charging_setpoint_ = value;}
@@ -107,9 +109,9 @@ SUB_SENSOR(target)
   void set_output_min(float value) {current_output_min_ = value;}
   void set_output_max(float value) {current_output_max_ = value;}
   void set_output_restart(float value) {current_output_restart_ = value;}
+*/  
   
-  
-/*   void set_manual_level(float value);
+  void set_manual_level(float value);
   
   void set_charging_setpoint(float value);
   void set_absorbing_setpoint(float value);
@@ -125,7 +127,7 @@ SUB_SENSOR(target)
   
   void set_output_min(float value);
   void set_output_max(float value);
-  void set_output_restart(float value); */
+  void set_output_restart(float value);
 #endif
 
 #ifdef USE_BINARY_SENSOR
