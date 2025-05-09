@@ -8,8 +8,8 @@ namespace offsr {
 static const char *const TAG = "offsr.sensor";
 
 void TargetSensor::setup() {
-  // this->parent_->add_on_pid_computed_callback([this]() { this->publish_state(this->parent_->get_target()); });
-  this->parent_->add_on_target_callback([this]() { this->publish_state(this->parent_->get_target()); });
+  this->parent_->add_on_pid_computed_callback([this]() { this->publish_state(this->parent_->get_target()); });
+  // this->parent_->add_on_target_callback([this]() { this->publish_state(this->parent_->get_target()); });
 }
 
 

@@ -76,11 +76,11 @@ SUB_SENSOR(target)
   void set_device_output(output::FloatOutput *device_output) { device_output_ = device_output; }
   void pid_update();
   
-/*   void add_on_pid_computed_callback(std::function<void()> &&callback) {
+  void add_on_pid_computed_callback(std::function<void()> &&callback) {
     pid_computed_callback_.add(std::move(callback));
-  } */
+  }
   
-  void add_on_output_callback(std::function<void()> &&callback) {
+/*   void add_on_output_callback(std::function<void()> &&callback) {
     output_callback_.add(std::move(callback));
   }
   void add_on_error_callback(std::function<void()> &&callback) {
@@ -91,7 +91,7 @@ SUB_SENSOR(target)
   }
   void add_on_thermostat_cut_callback(std::function<void()> &&callback) {
     thermostat_cut_callback_.add(std::move(callback));
-  }
+  } */
   
 #ifdef USE_SWITCH
   
@@ -175,11 +175,11 @@ float get_target(void){return current_target_;}
   sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
   
-  // CallbackManager<void()> pid_computed_callback_;
-  CallbackManager<void()> output_callback_;
+  CallbackManager<void()> pid_computed_callback_;
+/*   CallbackManager<void()> output_callback_;
   CallbackManager<void()> error_callback_;
   CallbackManager<void()> target_callback_;
-  CallbackManager<void()> thermostat_cut_callback_;
+  CallbackManager<void()> thermostat_cut_callback_; */
   
 #ifdef USE_SWITCH  
   bool current_activation_;

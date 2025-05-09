@@ -8,8 +8,8 @@ namespace offsr {
 static const char *const TAG = "offsr.sensor";
 
 void ErrorSensor::setup() {	
-  this->parent_->add_on_error_callback([this]() { this->publish_state(this->parent_->get_error()); });
-  // this->parent_->add_on_pid_computed_callback([this]() { this->publish_state(this->parent_->get_error()); });
+  // this->parent_->add_on_error_callback([this]() { this->publish_state(this->parent_->get_error()); });
+  this->parent_->add_on_pid_computed_callback([this]() { this->publish_state(this->parent_->get_error()); });
 }
 
 void ErrorSensor::dump_config() {
