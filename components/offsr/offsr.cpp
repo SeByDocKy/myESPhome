@@ -64,6 +64,8 @@ void OFFSRComponent::dump_config() {
 void OFFSRComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
+  
+   ESP_LOGV(TAG, "Entered in pid_update()");
     
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
 	  this->current_target_ = this->current_charging_setpoint_;
