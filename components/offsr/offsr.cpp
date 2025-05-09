@@ -45,6 +45,8 @@ void OFFSRComponent::dump_config() {
   
   ESP_LOGV(TAG, "setup numbers: manual_level=%3.2f, charging_setpoint=%3.2f, absorbing_setpoint=%3.2f, floating_setpoint = %3.2f", this->current_manual_level_ , this->current_charging_setpoint_ , this->current_absorbing_setpoint_ , this->current_floating_setpoint_);
   
+  ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f, floating_setpoint = %3.2f", this->current_error_ , this->current_output_ , this->current_target_);
+  
 #ifdef USE_SENSOR
 
  /*  LOG_SENSOR(TAG, "Error", current_error_);
