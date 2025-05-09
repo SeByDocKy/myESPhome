@@ -32,6 +32,8 @@ SUB_SWITCH(manual_override)
 #endif
 
 #ifdef USE_NUMBER
+SUB_NUMBER(manual_level)
+
 SUB_NUMBER(charging_setpoint)
 SUB_NUMBER(absorbing_setpoint)
 SUB_NUMBER(floating_setpoint)
@@ -47,7 +49,6 @@ SUB_NUMBER(kd)
 SUB_NUMBER(output_min)
 SUB_NUMBER(output_max)
 SUB_NUMBER(output_restart)
-
 #endif
 
 
@@ -80,11 +81,36 @@ SUB_SENSOR(target)
   }
   
 #ifdef USE_SWITCH
-  void set_activation(bool enable);
-  void set_manual_override(bool enable);
+  
+  void set_activation(bool enable) {current_activation_ = enable;}
+  void set_manual_override(bool enable) {current_manual_override_ = enable;}
+ 
+/*   void set_activation(bool enable);
+  void set_manual_override(bool enable); */
 #endif
 
 #ifdef USE_NUMBER
+  void set_manual_level(float value) {current_manual_level_ = value; }
+  
+  void set_charging_setpoint(float value) {current_charging_setpoint_ = value;}
+  void set_absorbing_setpoint(float value) {current_absorbing_setpoint_ = value;}
+  void set_floating_setpoint(float value) {current_floating_setpoint_ = value;}
+
+  void set_starting_battery_voltage(float value) {current_starting_battery_voltage_ = value;}
+  void set_charged_battery_voltage(float value) {current_charged_battery_voltage_ = value;}
+  void set_discharged_battery_voltage(float value) {current_discharged_battery_voltage_ = value;}
+  
+  void set_kp(float value) {current_kp_ = value;}
+  void set_ki(float value) {current_ki_ = value;}
+  void set_kd(float value) {current_kd_ = value;}
+  
+  void set_output_min(float value) {current_output_min_ = value;}
+  void set_output_max(float value) {current_output_max_ = value;}
+  void set_output_restart(float value) {current_output_restart_ = value;}
+  
+  
+/*   void set_manual_level(float value);
+  
   void set_charging_setpoint(float value);
   void set_absorbing_setpoint(float value);
   void set_floating_setpoint(float value);
@@ -99,7 +125,7 @@ SUB_SENSOR(target)
   
   void set_output_min(float value);
   void set_output_max(float value);
-  void set_output_restart(float value);
+  void set_output_restart(float value); */
 #endif
 
 #ifdef USE_BINARY_SENSOR
@@ -151,13 +177,15 @@ float get_target(void){return current_target_;}
   float current_target_ = 0.0f;
 #endif
 #ifdef USE_NUMBER
-  float current_charging_setpoint_;
-  float current_absorbing_setpoint_;
-  float current_floating_setpoint_;
+  float current_manual_level_ = 0.0f;
   
-  float current_starting_battery_voltage_;
-  float current_charged_battery_voltage_;
-  float current_discharged_battery_voltage_;
+  float current_charging_setpoint_ = 20.0f;
+  float current_absorbing_setpoint_ = 5.0f;
+  float current_floating_setpoint_ = 0.0f;
+  
+  float current_starting_battery_voltage_ = 53.5;
+  float current_charged_battery_voltage_ = 55.9;
+  float current_discharged_battery_voltage_ = 55.8;
   
   float current_kp_;
   float current_ki_;

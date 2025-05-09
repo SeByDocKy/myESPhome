@@ -105,6 +105,8 @@ void OFFSRComponent::pid_update() {
     }
 #ifdef USE_SWITCH	
   }
+#else 
+  // this->device_output_->set_level(get_manual_level());	
 #endif  
   this->device_output_->set_level(output_);
   
