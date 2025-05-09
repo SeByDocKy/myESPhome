@@ -34,6 +34,9 @@ void OFFSRComponent::setup() {
     });
     this->current_power_ = this->power_sensor_->state;
   }
+  
+  ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_);  
+  
 }
 
 void OFFSRComponent::dump_config() {
