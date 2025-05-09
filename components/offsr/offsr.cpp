@@ -83,6 +83,8 @@ void OFFSRComponent::pid_update() {
     error_ = -(this->current_target_ - this->current_battery_current_);
 	this->current_error_ = error_;
 	
+	ESP_LOGV(TAG, "Initial error=%3.2f" , error_);
+	
     tmp = (error_ * dt_);
     if (!std::isnan(tmp)){
       integral_ += tmp;
