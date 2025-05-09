@@ -75,20 +75,28 @@ void OFFSRComponent::pid_update() {
   
   if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
       output_ = this->current_output_restart_;
+#ifdef USE_BINARY_SENSOR 	  
       this->current_thermostat_cut_= true;
+#endif
       ESP_LOGVV(TAG, "restart  output");
    }
   else{
+#ifdef USE_BINARY_SENSOR 	  
     this->current_thermostat_cut_ = false;
+#endif	
     ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->current_target_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
   }
   
   last_time_ = now;
   previous_error_ = error_;
   previous_output_ = output_;
+  
+#ifdef USE_SWITCH  
   if (!this->current_activation_ ){
     output_ = 0.0f;
   }
+#endif  
+
   if (!std::isnan(this->current_battery_voltage_)){
     if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
       output_ = 0.0f;
