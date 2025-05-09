@@ -99,7 +99,7 @@ void OFFSRComponent::pid_update() {
 	
     output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
 	
-	ESP_LOGV(TAG, "Intermediate computed output=%3.2f" , output_);
+	ESP_LOGV(TAG, "Intermediate computed output=%1.6f" , output_);
   
     if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
       output_ = this->current_output_restart_;
@@ -139,7 +139,7 @@ void OFFSRComponent::pid_update() {
   this->device_output_->set_level(output_);
   this->pid_computed_callback_.call();
   
-  ESP_LOGV(TAG, "Final computed output=%3.2f" , output_);
+  ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
   
  }
 
