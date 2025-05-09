@@ -95,7 +95,7 @@ void OFFSRComponent::pid_update() {
         tmp = previous_output_;
     }
 	
-	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f" , error_ , integral_ , derivative_);
+	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
 	
     output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
 	
