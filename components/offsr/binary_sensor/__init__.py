@@ -27,6 +27,6 @@ async def to_code(config):
     if thermostat_cut_config := config.get(CONF_THERMOSTAT_CUT):
         bsens = await binary_sensor.new_binary_sensor(thermostat_cut_config)
         await cg.register_component(bsens, config)
-        cg.add(sens.set_parent(offsr_component))
+        cg.add(bsens.set_parent(offsr_component))
         # cg.add(offsr_component.set_thermostat_cut_binary_sensor(bsens))
         
