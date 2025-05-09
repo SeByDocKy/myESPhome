@@ -112,6 +112,7 @@ void OFFSRComponent::pid_update() {
   
  }
 
+/*
 #ifdef USE_SWITCH
 void OFFSRComponent::set_activation(bool enable) {
 	this->current_activation_ = enable; 
@@ -120,8 +121,8 @@ void OFFSRComponent::set_manual_override(bool enable) {
 	this->current_manual_override_ = enable;
 }
 #endif
-
-
+*/
+/*
 #ifdef USE_NUMBER
 
 void OFFSRComponent::set_manual_level(float value) {
@@ -169,6 +170,7 @@ void OFFSRComponent::set_output_restart(float value) {
 }
 
 #endif
+*/
 
  }  // namespace offsr
 }  // namespace esphome
