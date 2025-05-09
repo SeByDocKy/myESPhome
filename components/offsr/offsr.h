@@ -16,8 +16,8 @@
 
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
-#include "esphome/components/sensor/sensor.h"
 #include "esphome/components/output/float_output.h"
+#include "esphome/components/sensor/sensor.h"
 #include "esphome/components/time/real_time_clock.h"
 
 
@@ -54,12 +54,6 @@ SUB_NUMBER(output_restart)
 
 #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
-#endif
-
-#ifdef USE_SENSOR
-SUB_SENSOR(error)
-SUB_SENSOR(output)
-SUB_SENSOR(target)
 #endif
 
  public:
@@ -147,11 +141,9 @@ SUB_SENSOR(target)
 bool get_thermostat_cut(void){return current_thermostat_cut_;}
 #endif
 
-#ifdef USE_SENSOR
-float get_error(void){return current_error_;}
-float get_output(void){return current_output_;}
-float get_target(void){return current_target_;}
-#endif
+  float get_error(void) { return this->current_error_; }
+  float get_output(void) { return this->current_output_; }
+  float get_target(void) { return this->current_target_; }
 
  protected:
   uint32_t last_time_ = 0;
@@ -190,11 +182,10 @@ float get_target(void){return current_target_;}
   bool current_thermostat_cut_ = false;
 #endif  
 
-#ifdef USE_SENSOR
   float current_error_ = 0.0f;
   float current_output_ = 0.0f;
   float current_target_ = 0.0f;
-#endif
+
 #ifdef USE_NUMBER
   float current_manual_level_ = 0.0f;
   

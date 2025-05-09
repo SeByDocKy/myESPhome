@@ -123,26 +123,14 @@ sensor:
   - platform: template
     name: ${name}_fake_battery_voltage
     id: fake_battery_voltage
-    on_value: 
-      then:
-         - offsr.pid_update:
-            id: my_offsr1
-    
+
   - platform: template
     name: ${name}_fake_battery_current
     id: fake_battery_current
-    on_value: 
-      then:
-         - offsr.pid_update:
-            id: my_offsr1
-    
+
   - platform: template
     name: ${name}_fake_power_feedback
     id: fake_power_feedback
-    on_value: 
-      then:
-         - offsr.pid_update:
-            id: my_offsr1    
 
   # - platform: pzemac
     # address: 1
@@ -199,7 +187,7 @@ number:
        then:
          - output.set_level:
              id: fakeoutput
-             level: !lambda 'return id(fake_output_number).state;'
+             level: !lambda 'return x;'
 
   - platform: template
     name: ${name}_fake_battery_current_number  
@@ -217,7 +205,7 @@ number:
        then:
          - sensor.template.publish:
              id: fake_battery_current
-             state: !lambda 'return id(fake_battery_current_number).state;'
+             state: !lambda 'return x;'
              
   - platform: template
     name: ${name}_fake_battery_voltage_number  
@@ -235,7 +223,7 @@ number:
        then:
          - sensor.template.publish:
              id: fake_battery_voltage
-             state: !lambda 'return id(fake_battery_voltage_number).state;'
+             state: !lambda 'return x;'
              
   - platform: template
     name: ${name}_fake_power_feedback_number  
@@ -253,7 +241,7 @@ number:
        then:
          - sensor.template.publish:
              id: fake_power_feedback
-             state: !lambda 'return id(fake_power_feedback_number).state;'             
+             state: !lambda 'return x;'
   
 
   - platform: offsr
@@ -284,4 +272,4 @@ number:
       name: ${name}_output_max
     output_restart: 
       name: ${name}_output_restart    
-    
+
