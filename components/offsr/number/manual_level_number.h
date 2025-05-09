@@ -9,6 +9,9 @@ namespace offsr {
 class ManualLevelNumber : public number::Number, public Parented<OFFSRComponent> {
  public:
   ManualLevelNumber() = default;
+  
+/*   void setup() override;
+  void dump_config() override; */
 
  protected:
   void control(float value) override;

@@ -5,7 +5,7 @@ namespace offsr {
 
 void OutputMaxNumber::control(float value) {
   this->publish_state(value);
-  this->parent_->set_output_min(value);
+  this->parent_->set_output_max(value);
 }
 
 }  // namespace offsr
