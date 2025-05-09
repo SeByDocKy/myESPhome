@@ -54,6 +54,7 @@ async def to_code(config):
 
     if CONF_OUTPUT in config:
         sens = await sensor.new_sensor(config[CONF_OUTPUT])
+        await cg.register_component(sens, config)
         cg.add(offsr_component.set_output_sensor(sens))
         
     if CONF_TARGET in config:

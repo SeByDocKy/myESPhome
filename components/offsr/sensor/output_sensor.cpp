@@ -8,7 +8,8 @@ namespace offsr {
 static const char *const TAG = "offsr.sensor";
 
 void OutputSensor::setup() {
-  this->parent_->add_on_pid_computed_callback([this]() { this->publish_state(this->parent_->get_output()); });
+  // this->parent_->add_on_pid_computed_callback([this]() { this->publish_state(this->parent_->get_output()); });
+  this->parent_->add_on_output_callback([this]() { this->publish_state(this->parent_->get_output()); });
 }
 
 void OutputSensor::dump_config() {
