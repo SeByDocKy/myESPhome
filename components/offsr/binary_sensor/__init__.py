@@ -3,6 +3,7 @@ from esphome.components import binary_sensor
 import esphome.config_validation as cv
 
 from esphome.const import (
+    CONF_ID,
     DEVICE_CLASS_OCCUPANCY,
 )
 
