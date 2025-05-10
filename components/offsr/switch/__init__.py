@@ -9,26 +9,26 @@ from esphome.const import (
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
-OFFSRSwitch = offsr_ns.class_("OFFSRSwitch", switch.Switch)
+# OFFSRSwitch = offsr_ns.class_("OFFSRSwitch", switch.Switch)
 
-# ActivationSwitch = offsr_ns.class_("ActivationSwitch", switch.Switch)
-# ManualOverrideSwitch = offsr_ns.class_("ManualOverrideSwitch", switch.Switch)
+ActivationSwitch = offsr_ns.class_("ActivationSwitch", switch.Switch)
+ManualOverrideSwitch = offsr_ns.class_("ManualOverrideSwitch", switch.Switch)
 
 CONF_ACTIVATION = "activation"
 CONF_MANUAL_OVERRIDE = "manual_override"
 
 CONFIG_SCHEMA = {
-    cv.GenerateID(): cv.declare_id(OFFSRSwitch),
+#    cv.GenerateID(): cv.declare_id(OFFSRSwitch),
 
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
     
     cv.Optional(CONF_ACTIVATION): switch.switch_schema(
-        # ActivationSwitch,
+        ActivationSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     cv.Optional(CONF_MANUAL_OVERRIDE): switch.switch_schema(
-        # ManualOverrideSwitch,
+        ManualOverrideSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ),
