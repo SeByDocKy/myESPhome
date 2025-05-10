@@ -26,10 +26,10 @@ namespace offsr {
 	
 class OFFSRComponent : public Component{
 
-#ifdef USE_SWITCH
+/* #ifdef USE_SWITCH
 SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
-#endif
+#endif */
 
 #ifdef USE_NUMBER
 SUB_NUMBER(manual_level)
@@ -51,11 +51,6 @@ SUB_NUMBER(output_max)
 SUB_NUMBER(output_restart)
 #endif
 
-
-/* #ifdef USE_BINARY_SENSOR
-SUB_BINARY_SENSOR(thermostat_cut)
-#endif */
-
  public:
   
   void setup() override;
@@ -72,10 +67,10 @@ SUB_BINARY_SENSOR(thermostat_cut)
     pid_computed_callback_.add(std::move(callback));
   }
   
-#ifdef USE_SWITCH 
+// #ifdef USE_SWITCH 
   void set_activation(bool enable) {this->current_activation_ = enable;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
-#endif
+// #endif
 
 #ifdef USE_NUMBER
 
