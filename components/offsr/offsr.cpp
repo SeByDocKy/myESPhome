@@ -38,9 +38,6 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
   
-/*   this->current_error_ = this->error_;
-  this->current_thermostat_cut = false; */
-  
   this->pid_computed_callback_.call();
   
   ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);  
@@ -145,7 +142,7 @@ void OFFSRComponent::pid_update() {
 #ifdef USE_SWITCH	
   }
 #else 
-  output_ = current_manual_level_;
+  output_ = this->current_manual_level_;
   // this->device_output_->set_level(get_manual_level());	
 #endif  
   //ESP_LOGV(TAG, "Thermostat_cut=%d" , this->current_thermostat_cut_);
@@ -155,71 +152,10 @@ void OFFSRComponent::pid_update() {
   
   current_output_ = output_;
   this->pid_computed_callback_.call();
-  // this->output_callback_.call();
-  
   
   
  }
 
-/*
-#ifdef USE_SWITCH
-void OFFSRComponent::set_activation(bool enable) {
-	this->current_activation_ = enable; 
-}
-void OFFSRComponent::set_manual_override(bool enable) {
-	this->current_manual_override_ = enable;
-}
-#endif
-*/
-/*
-#ifdef USE_NUMBER
-
-void OFFSRComponent::set_manual_level(float value) {
-	this->current_manual_level_ = value; 
-}
-
-void OFFSRComponent::set_charging_setpoint(float value) {
-	this->current_charging_setpoint_ = value; 
-}
-void OFFSRComponent::set_absorbing_setpoint(float value) {
-	this->current_absorbing_setpoint_ = value;
-}
-void OFFSRComponent::set_floating_setpoint(float value) {
-	this->current_floating_setpoint_ = value;
-}
-
-void OFFSRComponent::set_starting_battery_voltage(float value) {
-	this->current_starting_battery_voltage_ = value;
-}
-void OFFSRComponent::set_charged_battery_voltage(float value) {
-	this->current_charged_battery_voltage_ = value;
-}
-void OFFSRComponent::set_discharged_battery_voltage(float value) {
-	this->current_discharged_battery_voltage_ = value;
-}
-
-void OFFSRComponent::set_kp(float value) {
-	this->current_kp_ = value;
-}
-void OFFSRComponent::set_ki(float value) {
-	this->current_ki_ = value;
-}
-void OFFSRComponent::set_kd(float value) {
-	this->current_kd_ = value;
-}
-
-void OFFSRComponent::set_output_min(float value) {
-	this->current_output_min_ = value;
-}
-void OFFSRComponent::set_output_max(float value) {
-	this->current_output_max_ = value;
-}
-void OFFSRComponent::set_output_restart(float value) {
-	this->current_output_restart_ = value;
-}
-
-#endif
-*/
 
  }  // namespace offsr
 }  // namespace esphome
