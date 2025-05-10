@@ -14,7 +14,7 @@ from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 OFFSRBinarySensor = offsr_ns.class_("OFFSRBinarySensor", cg.Component)
 
 # ThermostatcutBinarySensor = offsr_ns.class_("ThermostatcutBinarySensor", binary_sensor.BinarySensor, cg.Component
-)
+# )
 
 CONFIG_SCHEMA = {
     cv.GenerateID(): cv.declare_id(OFFSRBinarySensor),
