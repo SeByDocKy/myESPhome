@@ -10,7 +10,7 @@ class OFFSRSensor : public Component, public Parented<OFFSRComponent> {
  public:
   void dump_config() override;
   void setup() override;
-  void set_parent(OFFSRComponent *parent) { parent_ = parent; }
+  void set_parent(OFFSRComponent *parent) { this->parent_ = parent; }
   
   void set_error_sensor(sensor::Sensor *sensor) { this->error_sensor_ = sensor; }; 
   void set_output_sensor(sensor::Sensor *sensor) { this->output_sensor_ = sensor; }; 
