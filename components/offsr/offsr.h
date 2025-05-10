@@ -117,12 +117,12 @@ SUB_BINARY_SENSOR(thermostat_cut)
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
   
-  float current_battery_current_;
-  float current_power_;
-  float current_battery_voltage_;
+  float current_battery_current_ = 0.0f;
+  float current_power_ = 0.0f;
+  float current_battery_voltage_ = 54.0f;
   float current_device_output_;
   
-  bool current_pid_mode_;
+  bool current_pid_mode_ = true;
   
   sensor::Sensor *battery_voltage_sensor_;
   sensor::Sensor *battery_current_sensor_;
