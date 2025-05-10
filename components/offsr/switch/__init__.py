@@ -25,12 +25,12 @@ CONFIG_SCHEMA = {
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
     
     cv.Optional(CONF_ACTIVATION): switch.switch_schema(
-        ActivationSwitch,
+#        ActivationSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     cv.Optional(CONF_MANUAL_OVERRIDE): switch.switch_schema(
-        ManualOverrideSwitch,
+#        ManualOverrideSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ),
