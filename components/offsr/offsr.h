@@ -61,28 +61,23 @@ SUB_BINARY_SENSOR(thermostat_cut)
   void setup() override;
   void dump_config() override;
   
-  void set_pid_mode(bool pid_mode) { current_pid_mode_ = pid_mode; }
-  void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) { battery_current_sensor_ = battery_current_sensor; }
-  void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) { battery_voltage_sensor_ = battery_voltage_sensor; }
-  void set_power_sensor(sensor::Sensor *power_sensor) { power_sensor_ = power_sensor; }
-  void set_device_output(output::FloatOutput *device_output) { device_output_ = device_output; }
+  void set_pid_mode(bool pid_mode) {this->current_pid_mode_ = pid_mode; }
+  void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) {this->battery_current_sensor_ = battery_current_sensor; }
+  void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) {this->battery_voltage_sensor_ = battery_voltage_sensor; }
+  void set_power_sensor(sensor::Sensor *power_sensor) {this->power_sensor_ = power_sensor; }
+  void set_device_output(output::FloatOutput *device_output) {this->device_output_ = device_output; }
   void pid_update();
   
   void add_on_pid_computed_callback(std::function<void()> &&callback) {
     pid_computed_callback_.add(std::move(callback));
   }
   
-#ifdef USE_SWITCH
-  
+#ifdef USE_SWITCH 
   void set_activation(bool enable) {this->current_activation_ = enable;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
- 
-/*   void set_activation(bool enable);
-  void set_manual_override(bool enable); */
 #endif
 
 #ifdef USE_NUMBER
-
 
   void set_manual_level(float value) {this->current_manual_level_ = value; }
   
@@ -102,24 +97,6 @@ SUB_BINARY_SENSOR(thermostat_cut)
   void set_output_max(float value) {this->current_output_max_ = value;}
   void set_output_restart(float value) {this->current_output_restart_ = value;}
   
-  
-/*   void set_manual_level(float value);
-  
-  void set_charging_setpoint(float value);
-  void set_absorbing_setpoint(float value);
-  void set_floating_setpoint(float value);
-
-  void set_starting_battery_voltage(float value);
-  void set_charged_battery_voltage(float value);
-  void set_discharged_battery_voltage(float value);
-  
-  void set_kp(float value);
-  void set_ki(float value);
-  void set_kd(float value);
-  
-  void set_output_min(float value);
-  void set_output_max(float value);
-  void set_output_restart(float value); */
 #endif
 
 #ifdef USE_BINARY_SENSOR
@@ -153,10 +130,6 @@ SUB_BINARY_SENSOR(thermostat_cut)
   output::FloatOutput *device_output_;
   
   CallbackManager<void()> pid_computed_callback_;
-/*   CallbackManager<void()> output_callback_;
-  CallbackManager<void()> error_callback_;
-  CallbackManager<void()> target_callback_;
-  CallbackManager<void()> thermostat_cut_callback_; */
   
 #ifdef USE_SWITCH  
   bool current_activation_ = false;
