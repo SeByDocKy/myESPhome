@@ -34,10 +34,12 @@ CONFIG_SCHEMA = {
 }
 
 async def to_code(config):
-    var = cg.new_Pvariable(config[CONF_ID])
+    # var = cg.new_Pvariable(config[CONF_ID])
     # await cg.register_component(var, config)
-    offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
+    # offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
     # cg.add(var.set_parent(offsr_component))
+    
+    var = await cg.get_variable(config[CONF_OFFSR_ID])
     if CONF_ACTIVATION in config:
         s = await switch.new_switch(config[CONF_ACTIVATION])
         await cg.register_parented(s, config[CONF_OFFSR_ID])
