@@ -13,7 +13,7 @@ void OFFSRBinarySensor::setup() {
 
 void OFFSRBinarySensor::dump_config() {
   ESP_LOGCONFIG(TAG, "Offsr Binary Sensor:");
-  LOG_BINARYSENSOR("  ", "Thermostat cut", this->thermostat_cut_binary_sensor_);
+  // LOG_BINARY_SENSOR("  ", "Thermostat cut", this->thermostat_cut_binary_sensor_);
 }	
 
 void OFFSRBinarySensor::publish_data_() {
