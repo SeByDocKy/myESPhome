@@ -52,9 +52,9 @@ SUB_NUMBER(output_restart)
 #endif
 
 
-#ifdef USE_BINARY_SENSOR
+/* #ifdef USE_BINARY_SENSOR
 SUB_BINARY_SENSOR(thermostat_cut)
-#endif
+#endif */
 
  public:
   
@@ -99,9 +99,9 @@ SUB_BINARY_SENSOR(thermostat_cut)
   
 #endif
 
-#ifdef USE_BINARY_SENSOR
+// #ifdef USE_BINARY_SENSOR
   bool get_thermostat_cut(void){return this->current_thermostat_cut_;}
-#endif
+// #endif
 
   float get_error(void) { return this->current_error_; }
   float get_output(void) { return this->current_output_; }
