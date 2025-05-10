@@ -58,8 +58,6 @@ SUB_BINARY_SENSOR(thermostat_cut)
 
  public:
   
-  // OFFSRComponent() = default;
-  
   void setup() override;
   void dump_config() override;
   
@@ -73,19 +71,6 @@ SUB_BINARY_SENSOR(thermostat_cut)
   void add_on_pid_computed_callback(std::function<void()> &&callback) {
     pid_computed_callback_.add(std::move(callback));
   }
-  
-/*   void add_on_output_callback(std::function<void()> &&callback) {
-    output_callback_.add(std::move(callback));
-  }
-  void add_on_error_callback(std::function<void()> &&callback) {
-    error_callback_.add(std::move(callback));
-  }
-  void add_on_target_callback(std::function<void()> &&callback) {
-    target_callback_.add(std::move(callback));
-  }
-  void add_on_thermostat_cut_callback(std::function<void()> &&callback) {
-    thermostat_cut_callback_.add(std::move(callback));
-  } */
   
 #ifdef USE_SWITCH
   
@@ -138,7 +123,7 @@ SUB_BINARY_SENSOR(thermostat_cut)
 #endif
 
 #ifdef USE_BINARY_SENSOR
-bool get_thermostat_cut(void){return current_thermostat_cut_;}
+bool get_thermostat_cut(void){return this->current_thermostat_cut_;}
 #endif
 
   float get_error(void) { return this->current_error_; }
