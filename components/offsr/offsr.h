@@ -74,8 +74,8 @@ SUB_BINARY_SENSOR(thermostat_cut)
   
 #ifdef USE_SWITCH
   
-  void set_activation(bool enable) {current_activation_ = enable;}
-  void set_manual_override(bool enable) {current_manual_override_ = enable;}
+  void set_activation(bool enable) {this->current_activation_ = enable;}
+  void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
  
 /*   void set_activation(bool enable);
   void set_manual_override(bool enable); */
@@ -84,23 +84,23 @@ SUB_BINARY_SENSOR(thermostat_cut)
 #ifdef USE_NUMBER
 
 
-  void set_manual_level(float value) {current_manual_level_ = value; }
+  void set_manual_level(float value) {this->current_manual_level_ = value; }
   
-  void set_charging_setpoint(float value) {current_charging_setpoint_ = value;}
-  void set_absorbing_setpoint(float value) {current_absorbing_setpoint_ = value;}
-  void set_floating_setpoint(float value) {current_floating_setpoint_ = value;}
+  void set_charging_setpoint(float value) {this->current_charging_setpoint_ = value;}
+  void set_absorbing_setpoint(float value) {this->current_absorbing_setpoint_ = value;}
+  void set_floating_setpoint(float value) {this->current_floating_setpoint_ = value;}
 
-  void set_starting_battery_voltage(float value) {current_starting_battery_voltage_ = value;}
-  void set_charged_battery_voltage(float value) {current_charged_battery_voltage_ = value;}
-  void set_discharged_battery_voltage(float value) {current_discharged_battery_voltage_ = value;}
+  void set_starting_battery_voltage(float value) {this->current_starting_battery_voltage_ = value;}
+  void set_charged_battery_voltage(float value) {this->current_charged_battery_voltage_ = value;}
+  void set_discharged_battery_voltage(float value) {this->current_discharged_battery_voltage_ = value;}
   
-  void set_kp(float value) {current_kp_ = value;}
-  void set_ki(float value) {current_ki_ = value;}
-  void set_kd(float value) {current_kd_ = value;}
+  void set_kp(float value) {this->current_kp_ = value;}
+  void set_ki(float value) {this->current_ki_ = value;}
+  void set_kd(float value) {this->current_kd_ = value;}
   
-  void set_output_min(float value) {current_output_min_ = value;}
-  void set_output_max(float value) {current_output_max_ = value;}
-  void set_output_restart(float value) {current_output_restart_ = value;}
+  void set_output_min(float value) {this->current_output_min_ = value;}
+  void set_output_max(float value) {this->current_output_max_ = value;}
+  void set_output_restart(float value) {this->current_output_restart_ = value;}
   
   
 /*   void set_manual_level(float value);
@@ -123,7 +123,7 @@ SUB_BINARY_SENSOR(thermostat_cut)
 #endif
 
 #ifdef USE_BINARY_SENSOR
-bool get_thermostat_cut(void){return this->current_thermostat_cut_;}
+  bool get_thermostat_cut(void){return this->current_thermostat_cut_;}
 #endif
 
   float get_error(void) { return this->current_error_; }
