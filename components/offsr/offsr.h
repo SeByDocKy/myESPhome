@@ -26,10 +26,10 @@ namespace offsr {
 	
 class OFFSRComponent : public Component{
 
-#ifdef USE_SWITCH
+/* #ifdef USE_SWITCH
 SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
-#endif
+#endif */
 
 #ifdef USE_NUMBER
 SUB_NUMBER(manual_level)
