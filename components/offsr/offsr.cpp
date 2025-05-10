@@ -19,18 +19,21 @@ void OFFSRComponent::setup() {
   if (this->battery_current_sensor_ != nullptr) {
     this->battery_current_sensor_->add_on_state_callback([this](float state) {
       this->current_battery_current_ = state;
+      this->pid_update();
     });
     this->current_battery_current_ = this->battery_current_sensor_->state;
   }
   if (this->battery_voltage_sensor_ != nullptr) {
     this->battery_voltage_sensor_->add_on_state_callback([this](float state) {
       this->current_battery_voltage_ = state;
+      this->pid_update();
     });
     this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
   }
   if (this->power_sensor_ != nullptr) {
     this->power_sensor_->add_on_state_callback([this](float state) {
       this->current_power_ = state;
+      this->pid_update();
     });
     this->current_power_ = this->power_sensor_->state;
   }
@@ -55,12 +58,6 @@ void OFFSRComponent::dump_config() {
   ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f", this->current_error_ , this->current_output_ , this->current_target_);
   
   
-#ifdef USE_SENSOR
-
- /*  LOG_SENSOR(TAG, "Error", current_error_);
-  LOG_SENSOR(TAG, "output", current_output_);
-  LOG_SENSOR(TAG, "output", current_target_); */
-#endif
 }
 
 
@@ -151,7 +148,7 @@ void OFFSRComponent::pid_update() {
   output_ = current_manual_level_;
   // this->device_output_->set_level(get_manual_level());	
 #endif  
-  ESP_LOGV(TAG, "Thermostat_cut=%d" , this->current_thermostat_cut_);
+  //ESP_LOGV(TAG, "Thermostat_cut=%d" , this->current_thermostat_cut_);
   ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
    
   this->device_output_->set_level(output_);
