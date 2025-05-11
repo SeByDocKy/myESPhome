@@ -9,11 +9,11 @@ static const char *const TAG = "offsr.switch";
 
 void OFFSRSwitch::write_state(bool state) {
   if (this->activation_switch_ != nullptr) {	
-       this->publish_state(state);
+       this->activation_switch_.publish_state(state);
        this->parent_->set_activation(state);
   }
   if (this->manual_override_switch_ != nullptr) {	
-       this->publish_state(state);
+       this->manual_override_switch_.publish_state(state);
        this->parent_->set_manual_override(state);
   }
 }
