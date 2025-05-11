@@ -18,8 +18,9 @@ class OFFSRSwitch : public Component, public Parented<OFFSRComponent> {
   
   switch_::Switch activation_switch_{nullptr};
   switch_::Switch manual_override_switch_{nullptr};
+  OFFSRComponent *parent_;
   
-  void write_state(bool state) override;
+  void write_state(bool state); //  override
   
 }
 
