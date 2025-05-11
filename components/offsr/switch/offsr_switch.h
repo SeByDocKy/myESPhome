@@ -22,7 +22,7 @@ class OFFSRSwitch : public Component, public Parented<OFFSRComponent> {
   
   void write_state(bool state); //  override
   
-}
+};
 
 } // offsr
 } // esphome
