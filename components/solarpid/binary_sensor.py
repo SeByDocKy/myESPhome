@@ -5,13 +5,11 @@ from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_HEAT,
 )
-import SOLARPID, solarpid_ns
+from . import solarpid_ns
 
 DEPENDENCIES = ["solarpid"]
 CONF_SOLARPID_ID = "solarpid_id"
 CONF_THERMOSTAT_CUT = "thermostat_cut"
-
-
 
 
 SOLARPIDBinarySensor = solarpid_ns.class_(
