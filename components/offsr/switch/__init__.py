@@ -11,7 +11,7 @@ DEPENDENCIES = ["offsr"]
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
-OFFSRSwitch = offsr_ns.class_("OFFSRSwitch", switch.Switch)
+OFFSRSwitch = offsr_ns.class_("OFFSRSwitch", switch.Switch, cg.Component)
 
 # ActivationSwitch = offsr_ns.class_("ActivationSwitch", switch.Switch)
 # ManualOverrideSwitch = offsr_ns.class_("ManualOverrideSwitch", switch.Switch)
