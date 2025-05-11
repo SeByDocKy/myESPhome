@@ -5,15 +5,16 @@ from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_HEAT,
 )
-# from . import solarpid_ns
+from . import solarpid_ns
 
 DEPENDENCIES = ["solarpid"]
 CONF_SOLARPID_ID = "solarpid_id"
 CONF_THERMOSTAT_CUT = "thermostat_cut"
 
-
+### Binary Sensor component ####
+# solarpid_ns = cg.esphome_ns.namespace("solarpid")
 SOLARPIDBinarySensor = solarpid_ns.class_(
-    "SOLARPIDBinarySensor", binary_sensor.Binary_Sensor, cg.Component
+    "SOLARPIDBinarySensor", cg.Component
 )
 
 CONFIG_SCHEMA = cv.Schema(
