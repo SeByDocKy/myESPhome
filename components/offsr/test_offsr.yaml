@@ -16,7 +16,6 @@ logger:
   level: verbose    
   
 ota:
-  # - platform: http_request
   - platform: esphome  
 
 external_components:
@@ -104,11 +103,11 @@ offsr:
     power_id: fake_power_feedback #pzem_power
     pid_mode: true
     
-# binary_sensor:
-  # - platform: offsr
-    # offsr_id: my_offsr1
-    # thermostat_cut: 
-      # name: thermostat_cut
+binary_sensor:
+  - platform: offsr
+    offsr_id: my_offsr1
+    thermostat_cut: 
+      name: thermostat_cut
       
 sensor:
    
@@ -155,12 +154,12 @@ sensor:
   
   - platform: offsr
     offsr_id: my_offsr1
-    # error: 
-      # name: ${name}_regulation_error    
+    error: 
+      name: ${name}_regulation_error    
     output: 
       name: ${name}_output_lsa
-    # target:
-      # name: ${name}_target_current
+    target:
+      name: ${name}_target_current
       
 switch:
   - platform: offsr
