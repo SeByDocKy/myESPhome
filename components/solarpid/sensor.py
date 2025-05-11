@@ -42,8 +42,6 @@ solarpid_ns = cg.esphome_ns.namespace("solarpid")
 SOLARPID = solarpid_ns.class_(
     "SOLARPID", sensor.Sensor, switch.Switch, cg.Component
 )
-# SOLARPID_ID = "solarpid_id"
-
 
 ### Actions ###
 SetPointAction = solarpid_ns.class_('SetPointAction', automation.Action)
@@ -64,7 +62,7 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
 	    cv.GenerateID(): cv.declare_id(SOLARPID),
-        cv.Required(CONF_ACTIVATION_ID): cv.use_id(switch.Switch), 	  	
+            cv.Required(CONF_ACTIVATION_ID): cv.use_id(switch.Switch), 	  	
 	    cv.Required(CONF_INPUT_ID): cv.use_id(sensor.Sensor),
 	    cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
 	    cv.Optional(CONF_SETPOINT, default=0.0): cv.float_,
@@ -85,7 +83,7 @@ CONFIG_SCHEMA = (
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
-	   }
+	}
      )
     # .extend(cv.polling_component_schema("60s"))
 )
