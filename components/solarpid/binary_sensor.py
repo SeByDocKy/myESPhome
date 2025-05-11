@@ -6,8 +6,13 @@ from esphome.const import (
     DEVICE_CLASS_HEAT,
 )
 
+
+DEPENDENCIES = ["solarpid"]
 CONF_SOLARPID_ID = "solarpid_id"
 CONF_THERMOSTAT_CUT = "thermostat_cut"
+
+
+from . import SOLARPID, solarpid_ns
 
 SOLARPIDBinarySensor = solarpid_ns.class_(
     "SOLARPIDBinarySensor", binary_sensor.Binary_Sensor, cg.Component
