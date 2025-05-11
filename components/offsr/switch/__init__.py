@@ -41,7 +41,7 @@ async def to_code(config):
     # await cg.register_component(var, config)
     # offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
     # cg.add(var.set_parent(offsr_component))
-    
+  
     var = await cg.get_variable(config[CONF_OFFSR_ID])
     if CONF_ACTIVATION in config:
         s = await switch.new_switch(config[CONF_ACTIVATION])
