@@ -16,8 +16,8 @@ class OFFSRSwitch : public Component, public Parented<OFFSRComponent> {
 
  protected:
   
-  switch_::Switch activation_switch_;
-  switch_::Switch manual_override_switch_;
+  switch_::Switch *activation_switch_;
+  switch_::Switch *manual_override_switch_;
   OFFSRComponent *parent_;
   
   void write_state(bool state); //  override
