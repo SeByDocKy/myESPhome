@@ -5,7 +5,7 @@ from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_HEAT,
 )
-from . import solarpid_ns
+# from . import solarpid_ns
 
 DEPENDENCIES = ["solarpid"]
 CONF_SOLARPID_ID = "solarpid_id"
