@@ -8,6 +8,7 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
 )
 CONF_ACTIVATION_ID = 'activation_id'
+CONF_MANUAL_OVERRIDE_ID ='manual_override_id'
 CONF_INPUT_ID = 'input_id'
 CONF_SETPOINT = 'setpoint'
 CONF_KP = 'kp'
