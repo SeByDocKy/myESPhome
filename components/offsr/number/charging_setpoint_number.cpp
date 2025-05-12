@@ -4,7 +4,7 @@ namespace esphome {
 namespace offsr {
 
 void ChargingSetpointNumber::setup() {
-	NumberCall call = this->make_call();
+	auto call = this->make_call();
 	call.set_value(this->parent_->get_charging_setpoint());
 	call.perform();
 	// this->publish_state(this->parent_->get_charging_setpoint());
