@@ -77,7 +77,7 @@ SUB_NUMBER(output_restart)
   void set_manual_level(float value) {this->current_manual_level_ = value; }
   
   void set_charging_setpoint(float value) {this->current_charging_setpoint_ = value;}
-  void get_charging_setpoint(void){return this->current_charging_setpoint_;}
+  float get_charging_setpoint(void){return this->current_charging_setpoint_;}
   void set_absorbing_setpoint(float value) {this->current_absorbing_setpoint_ = value;}
   void set_floating_setpoint(float value) {this->current_floating_setpoint_ = value;}
 
