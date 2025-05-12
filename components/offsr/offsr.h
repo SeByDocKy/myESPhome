@@ -32,7 +32,7 @@ SUB_SWITCH(manual_override)
 #endif
 
 #ifdef USE_NUMBER
-SUB_NUMBER(manual_level)
+// SUB_NUMBER(manual_level)
 
 SUB_NUMBER(charging_setpoint)
 SUB_NUMBER(absorbing_setpoint)
@@ -152,7 +152,7 @@ SUB_NUMBER(output_restart)
   float current_target_ = 0.0f;
 
 #ifdef USE_NUMBER
-  float current_manual_level_ = 0.0f;
+  // float current_manual_level_ = 0.0f;
   
   float current_charging_setpoint_ = 20.0f;
   float current_absorbing_setpoint_ = 5.0f;
