@@ -10,7 +10,7 @@ void ChargingSetpointNumber::setup() {
 	call.perform();
 	this->publish_state(tmp);
 	// this->parent_->pid_computed_callback_.call();
-	ESP_LOGV(TAG, "setup: charging_setpoint = %3.2f" , tmp);  
+	ESP_LOGV("", "setup: charging_setpoint = %3.2f" , tmp);  
 	
 }
 
