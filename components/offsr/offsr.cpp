@@ -139,19 +139,18 @@ void OFFSRComponent::pid_update() {
         output_ = 0.0f;
       }
     }
+    ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
+    this->device_output_->set_level(output_);
+    current_output_ = output_;
+    this->pid_computed_callback_.call();	
 #ifdef USE_SWITCH	
   }
 #else 
-  output_ = this->current_manual_level_;
+  // output_ = this->current_manual_level_;
   // this->device_output_->set_level(get_manual_level());	
 #endif  
   //ESP_LOGV(TAG, "Thermostat_cut=%d" , this->current_thermostat_cut_);
-  ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
-   
-  this->device_output_->set_level(output_);
   
-  current_output_ = output_;
-  this->pid_computed_callback_.call();
   
   
  }
