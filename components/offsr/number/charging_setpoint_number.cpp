@@ -4,7 +4,7 @@ namespace esphome {
 namespace offsr {
 
 void ChargingSetpointNumber::setup() {
-	this->publish_state(this->parent_->current_charging_setpoint_);
+	this->publish_state(this->parent_->get_charging_setpoint());
 }
 
 void ChargingSetpointNumber::control(float value) {
