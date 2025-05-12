@@ -55,6 +55,8 @@ void OFFSRComponent::dump_config() {
   
   ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f", this->current_error_ , this->current_output_ , this->current_target_);
   
+  this->current_charging_setpoint_ = 20.0f;
+  
   this->pid_computed_callback_.call();
   
   
