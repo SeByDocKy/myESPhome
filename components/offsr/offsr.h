@@ -74,24 +74,35 @@ SUB_NUMBER(output_restart)
 
 #ifdef USE_NUMBER
 
-  void set_manual_level(float value) {this->current_manual_level_ = value; }
+//  void set_manual_level(float value) {this->current_manual_level_ = value; }
   
   void set_charging_setpoint(float value) {this->current_charging_setpoint_ = value;}
   float get_charging_setpoint(void){return this->current_charging_setpoint_;}
   void set_absorbing_setpoint(float value) {this->current_absorbing_setpoint_ = value;}
+  float get_absorbing_setpoint(void){return this->current_absorbing_setpoint_;}
   void set_floating_setpoint(float value) {this->current_floating_setpoint_ = value;}
+  float get_floating_setpoint(void){return this->current_floating_setpoint_;}
 
   void set_starting_battery_voltage(float value) {this->current_starting_battery_voltage_ = value;}
+  float get_starting_battery_voltage(void){return this->current_starting_battery_voltage_;}
   void set_charged_battery_voltage(float value) {this->current_charged_battery_voltage_ = value;}
+  float get_charged_battery_voltage(void){return this->current_charged_battery_voltage_;}
   void set_discharged_battery_voltage(float value) {this->current_discharged_battery_voltage_ = value;}
+  float get_discharged_battery_voltage(void){return this->current_discharged_battery_voltage_;}
   
   void set_kp(float value) {this->current_kp_ = value;}
+  float get_kp(void){return this->current_kp_;}
   void set_ki(float value) {this->current_ki_ = value;}
+  float get_ki(void){return this->current_ki_;}
   void set_kd(float value) {this->current_kd_ = value;}
+  float get_kd(void){return this->current_kd_;}
   
   void set_output_min(float value) {this->current_output_min_ = value;}
+  float get_output_min(void){return this->current_output_min_;}
   void set_output_max(float value) {this->current_output_max_ = value;}
+  float get_output_max(void){return this->current_output_max_;}
   void set_output_restart(float value) {this->current_output_restart_ = value;}
+  float get_output_restart(void){return this->current_output_restart_;}
   
 #endif
 
