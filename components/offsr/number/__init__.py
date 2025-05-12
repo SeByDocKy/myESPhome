@@ -16,7 +16,7 @@ DEPENDENCIES = ["offsr"]
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
 
-ManualLevelNumber = offsr_ns.class_("ManualLevelNumber", number.Number)
+# ManualLevelNumber = offsr_ns.class_("ManualLevelNumber", number.Number)
 ChargingSetpointNumber = offsr_ns.class_("ChargingSetpointNumber", number.Number)
 AbsorbingSetpointNumber = offsr_ns.class_("AbsorbingSetpointNumber", number.Number)
 FloatingSetpointNumber = offsr_ns.class_("FloatingSetpointNumber", number.Number)
@@ -30,7 +30,7 @@ OutputMinNumber = offsr_ns.class_("OutputMinNumber", number.Number)
 OutputMaxNumber = offsr_ns.class_("OutputMaxNumber", number.Number)
 OutputRestartNumber = offsr_ns.class_("OutputRestartNumber", number.Number)
 
-CONF_MANUAL_LEVEL = "manual_level"
+# CONF_MANUAL_LEVEL = "manual_level"
 CONF_CHARGING_SETPOINT = "charging_setpoint"
 CONF_ABSORBING_SETPOINT = "absorbing_setpoint"
 CONF_FLOATING_SETPOINT = "floating_setpoint"
@@ -51,10 +51,10 @@ CONF_OUTPUT_RESTART = "output_restart"
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
     
-    cv.Optional(CONF_MANUAL_LEVEL): number.number_schema(
-        ManualLevelNumber,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    # cv.Optional(CONF_MANUAL_LEVEL): number.number_schema(
+        # ManualLevelNumber,
+        # entity_category=ENTITY_CATEGORY_CONFIG
+    # ),
     cv.Optional(CONF_CHARGING_SETPOINT): number.number_schema(
         ChargingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
@@ -118,12 +118,12 @@ CONFIG_SCHEMA = {
 async def to_code(config):
   offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
   
-  if manual_level_config := config.get(CONF_MANUAL_LEVEL):
-        n = await number.new_number(
-            manual_level_config, min_value=0.0, max_value=1.0, step=0.02
-        )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
-        cg.add(offsr_component.set_manual_level_number(n))  
+  # if manual_level_config := config.get(CONF_MANUAL_LEVEL):
+        # n = await number.new_number(
+            # manual_level_config, min_value=0.0, max_value=1.0, step=0.02
+        # )
+        # await cg.register_parented(n, config[CONF_OFFSR_ID])
+        # cg.add(offsr_component.set_manual_level_number(n))  
   
   if charging_setpoint_config := config.get(CONF_CHARGING_SETPOINT):
         n = await number.new_number(
@@ -156,7 +156,7 @@ async def to_code(config):
 
   if charged_battery_voltage_config := config.get(CONF_CHARGED_BATTERY_VOLTAGE):
         n = await number.new_number(
-            charged_battery_voltage_config, min_value=53.0, max_value=60.0, step=0.2
+            charged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.2
         )
         await cg.register_parented(n, config[CONF_OFFSR_ID])
         cg.add(offsr_component.set_charged_battery_voltage_number(n))
@@ -211,7 +211,3 @@ async def to_code(config):
         )
         await cg.register_parented(n, config[CONF_OFFSR_ID])
         cg.add(offsr_component.set_output_restart_number(n))        
-  
-  
-  
-
