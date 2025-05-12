@@ -39,7 +39,7 @@ void OFFSRComponent::setup() {
   }
   
   this->pid_computed_callback_.call();
-  this->pid_update();
+  // this->pid_update();
   
   ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);  
   
