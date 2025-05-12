@@ -9,6 +9,7 @@ namespace offsr {
 class AbsorbingSetpointNumber : public number::Number, public Parented<OFFSRComponent> {
  public:
   AbsorbingSetpointNumber() = default;
+  void setup();
 
  protected:
   void control(float value) override;
