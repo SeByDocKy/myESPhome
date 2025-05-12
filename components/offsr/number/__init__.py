@@ -126,7 +126,7 @@ async def to_code(config):
   
   if charging_setpoint_config := config.get(CONF_CHARGING_SETPOINT):
         n = await number.new_number(
-            charging_setpoint_config, mode='slider', min_value=0.0, max_value=40.0, step=0.2
+            charging_setpoint_config, min_value=0.0, max_value=40.0, step=0.2
         )
         await cg.register_parented(n, config[CONF_OFFSR_ID])
         cg.add(offsr_component.set_charging_setpoint_number(n))
