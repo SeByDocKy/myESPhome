@@ -9,6 +9,7 @@ void ChargingSetpointNumber::setup() {
 	call.set_value(tmp);
 	call.perform();
 	this->publish_state(tmp);
+	this->parent->pid_computed_callback_.call();
 }
 
 void ChargingSetpointNumber::control(float value) {
