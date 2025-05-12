@@ -13,6 +13,7 @@ class ChargingSetpointNumber : public number::Number, public Parented<OFFSRCompo
 
  protected:
   void control(float value) override;
+  OFFSRComponent *parent_;
 };
 
 }  // namespace offsr
