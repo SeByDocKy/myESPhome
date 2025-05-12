@@ -4,10 +4,11 @@ namespace esphome {
 namespace offsr {
 
 void ChargingSetpointNumber::setup() {
+	float tmp = this->parent_->get_charging_setpoint(); 
 	auto call = this->make_call();
-	call.set_value(this->parent_->get_charging_setpoint());
+	call.set_value(tmp);
 	call.perform();
-	// this->publish_state(this->parent_->get_charging_setpoint());
+	this->publish_state(tmp);
 }
 
 void ChargingSetpointNumber::control(float value) {
