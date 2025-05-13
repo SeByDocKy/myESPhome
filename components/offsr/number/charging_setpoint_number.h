@@ -9,7 +9,7 @@ namespace offsr {
 class ChargingSetpointNumber : public number::Number, public Parented<OFFSRComponent> {
  public:
   ChargingSetpointNumber() = default;
-  void setup() override;
+  void setup();
 
  protected:
   void control(float value) override;
