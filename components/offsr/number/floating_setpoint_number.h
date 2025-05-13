@@ -9,7 +9,7 @@ namespace offsr {
 class FloatingSetpointNumber : public number::Number, public Parented<OFFSRComponent> {
  public:
   FloatingSetpointNumber() = default;
-  void setup();
+  void setup() override;
 
  protected:
   void control(float value) override;
