@@ -108,9 +108,12 @@ CONFIG_SCHEMA = {
 }
 
 async def to_code(config):
-  offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
   var = cg.new_Pvariable(config[CONF_ID])
   await cg.register_component(var, config)
+
+  offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
+  
+
 
   if charging_setpoint_config := config.get(CONF_CHARGING_SETPOINT):
         n = await number.new_number(
