@@ -18,18 +18,18 @@ ICON_SINE_WAVE = "mdi:sine-wave"
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
-ChargingSetpointNumber = offsr_ns.class_("ChargingSetpointNumber", number.Number)
-AbsorbingSetpointNumber = offsr_ns.class_("AbsorbingSetpointNumber", number.Number)
-FloatingSetpointNumber = offsr_ns.class_("FloatingSetpointNumber", number.Number)
-StartingBatteryVoltageNumber = offsr_ns.class_("StartingBatteryVoltageNumber", number.Number)
-ChargedBatteryVoltageNumber = offsr_ns.class_("ChargedBatteryVoltageNumber", number.Number)
-DischargedBatteryVoltageNumber = offsr_ns.class_("DischargedBatteryVoltageNumber", number.Number)
-KpNumber = offsr_ns.class_("KpNumber", number.Number)
-KiNumber = offsr_ns.class_("KiNumber", number.Number)
-KdNumber = offsr_ns.class_("KdNumber", number.Number)
-OutputMinNumber = offsr_ns.class_("OutputMinNumber", number.Number)
-OutputMaxNumber = offsr_ns.class_("OutputMaxNumber", number.Number)
-OutputRestartNumber = offsr_ns.class_("OutputRestartNumber", number.Number)
+ChargingSetpointNumber = offsr_ns.class_("ChargingSetpointNumber", number.Number, cg.Component)
+AbsorbingSetpointNumber = offsr_ns.class_("AbsorbingSetpointNumber", number.Number, cg.Component)
+FloatingSetpointNumber = offsr_ns.class_("FloatingSetpointNumber", number.Number, cg.Component)
+StartingBatteryVoltageNumber = offsr_ns.class_("StartingBatteryVoltageNumber", number.Number, cg.Component)
+ChargedBatteryVoltageNumber = offsr_ns.class_("ChargedBatteryVoltageNumber", number.Number, cg.Component)
+DischargedBatteryVoltageNumber = offsr_ns.class_("DischargedBatteryVoltageNumber", number.Number, cg.Component)
+KpNumber = offsr_ns.class_("KpNumber", number.Number, cg.Component)
+KiNumber = offsr_ns.class_("KiNumber", number.Number, cg.Component)
+KdNumber = offsr_ns.class_("KdNumber", number.Number, cg.Component)
+OutputMinNumber = offsr_ns.class_("OutputMinNumber", number.Number, cg.Component)
+OutputMaxNumber = offsr_ns.class_("OutputMaxNumber", number.Number, cg.Component)
+OutputRestartNumber = offsr_ns.class_("OutputRestartNumber", number.Number, cg.Component)
 
 CONF_CHARGING_SETPOINT = "charging_setpoint"
 CONF_ABSORBING_SETPOINT = "absorbing_setpoint"
