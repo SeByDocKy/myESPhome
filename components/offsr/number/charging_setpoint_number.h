@@ -8,12 +8,14 @@ namespace offsr {
 
 class ChargingSetpointNumber : public number::Number, public Parented<OFFSRComponent> {
  public:
-  ChargingSetpointNumber() = default;
-  // void setup();
+  // ChargingSetpointNumber() = default;
+  void setup() override;
+  void dump_config() override;
 
  protected:
   void control(float value) override;
-  OFFSRComponent *parent_;
+  // OFFSRComponent *parent_;
+   ESPPreferenceObject pref_;
 };
 
 }  // namespace offsr
