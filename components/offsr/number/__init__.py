@@ -132,7 +132,7 @@ async def to_code(config):
         await cg.register_component(n, charging_setpoint_config)
         await cg.register_parented(n, offsr_component)
         # await cg.register_parented(n, config[CONF_OFFSR_ID])
-        cg.add(offsr_component.set_charging_setpoint_number(n))
+        # cg.add(offsr_component.set_charging_setpoint_number(n))
         
   if absorbing_setpoint_config := config.get(CONF_ABSORBING_SETPOINT):
         n = await number.new_number(

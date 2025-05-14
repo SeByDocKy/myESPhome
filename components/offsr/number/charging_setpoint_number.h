@@ -6,7 +6,7 @@
 namespace esphome {
 namespace offsr {
 
-class ChargingSetpointNumber : public number::Number, public Parented<OFFSRComponent> {
+class ChargingSetpointNumber : public number::Number, public Component, public Parented<OFFSRComponent> {
  public:
   // ChargingSetpointNumber() = default;
   void setup() override;
