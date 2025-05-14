@@ -57,21 +57,21 @@ CONFIG_SCHEMA = {
         icon = ICON_CURRENT_DC,
         unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_ABSORBING_SETPOINT): number.number_schema(
         AbsorbingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
         icon = ICON_CURRENT_DC,
         unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_FLOATING_SETPOINT): number.number_schema(
         FloatingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
         icon = ICON_CURRENT_DC,
         unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_STARTING_BATTERY_VOLTAGE): number.number_schema(
         StartingBatteryVoltageNumber,
@@ -79,47 +79,46 @@ CONFIG_SCHEMA = {
         icon = ICON_SINE_WAVE,
         unit_of_measurement=UNIT_VOLT,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_CHARGED_BATTERY_VOLTAGE): number.number_schema(
         ChargedBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
         unit_of_measurement=UNIT_VOLT,
         icon = ICON_SINE_WAVE,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_DISCHARGED_BATTERY_VOLTAGE): number.number_schema(
         DischargedBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
         icon = ICON_SINE_WAVE,
         unit_of_measurement=UNIT_VOLT,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_KP): number.number_schema(
         KpNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_KI): number.number_schema(
         KiNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_KD): number.number_schema(
         KdNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
-    
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_OUTPUT_MIN): number.number_schema(
         OutputMinNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_OUTPUT_MAX): number.number_schema(
         OutputMaxNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_OUTPUT_RESTART): number.number_schema(
         OutputRestartNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),
                                  
 }
 
