@@ -13,7 +13,7 @@ void ChargingSetpointNumber::setup() {
 	
 	float value;
 	this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
-	if (!this->pref_.load(&value)) value= 20.0;
+	if (!this->pref_.load(&value)) value = this->parent_->current_charging_setpoint_;
 	this->publish_state(value);
 	// this->parent_->pid_computed_callback_.call();
     // ESP_LOGV("", "setup: charging_setpoint = %3.2f" , tmp);  
