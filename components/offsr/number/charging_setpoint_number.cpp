@@ -3,6 +3,8 @@
 namespace esphome {
 namespace offsr {
 
+// static const char *const TAG = "OFFSR.number";
+
 void ChargingSetpointNumber::setup() {
  	// float value = this->parent_->get_charging_setpoint(); 
 	// auto call = this->make_call();
@@ -17,6 +19,11 @@ void ChargingSetpointNumber::setup() {
     // ESP_LOGV("", "setup: charging_setpoint = %3.2f" , tmp);  
 	
 }
+
+/* void ChargingSetpointNumber::dump_config() {
+  ESP_LOGCONFIG(TAG, "Charging Setpoint Number", this->get_name().c_str());
+}
+ */
 
 void ChargingSetpointNumber::control(float value) {
   this->publish_state(value);

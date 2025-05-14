@@ -10,7 +10,7 @@ class ChargingSetpointNumber : public number::Number, public Component, public P
  public:
   // ChargingSetpointNumber() = default;
   void setup() override;
-  void dump_config() override;
+  // void dump_config() override;
 
  protected:
   void control(float value) override;
