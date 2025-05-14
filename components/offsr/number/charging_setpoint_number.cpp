@@ -3,7 +3,7 @@
 namespace esphome {
 namespace offsr {
 
-void ChargingSetpointNumber::setup() {
+/* void ChargingSetpointNumber::setup() {
  	float tmp = this->parent_->get_charging_setpoint(); 
 	// auto call = this->make_call();
 	// call.set_value(tmp);
@@ -12,7 +12,7 @@ void ChargingSetpointNumber::setup() {
 	// this->parent_->pid_computed_callback_.call();
 	ESP_LOGV("", "setup: charging_setpoint = %3.2f" , tmp);  
 	
-}
+} */
 
 void ChargingSetpointNumber::control(float value) {
   this->publish_state(value);

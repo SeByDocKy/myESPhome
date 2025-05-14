@@ -13,6 +13,9 @@ from esphome.const import (
 
 DEPENDENCIES = ["offsr"]
 
+ICON_CURRENT_DC = "mdi:current-dc"
+ICON_SINE_WAVE = "mdi:sine-wave"
+
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
 ChargingSetpointNumber = offsr_ns.class_("ChargingSetpointNumber", number.Number)
@@ -51,32 +54,44 @@ CONFIG_SCHEMA = {
     cv.Optional(CONF_CHARGING_SETPOINT): number.number_schema(
         ChargingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
+        icon = ICON_CURRENT_DC,
+        unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     cv.Optional(CONF_ABSORBING_SETPOINT): number.number_schema(
         AbsorbingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
+        icon = ICON_CURRENT_DC,
+        unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     cv.Optional(CONF_FLOATING_SETPOINT): number.number_schema(
         FloatingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
+        icon = ICON_CURRENT_DC,
+        unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     
     cv.Optional(CONF_STARTING_BATTERY_VOLTAGE): number.number_schema(
         StartingBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
+        icon = ICON_SINE_WAVE,
+        unit_of_measurement=UNIT_VOLT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     cv.Optional(CONF_CHARGED_BATTERY_VOLTAGE): number.number_schema(
         ChargedBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
+        unit_of_measurement=UNIT_VOLT,
+        icon = ICON_SINE_WAVE,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     cv.Optional(CONF_DISCHARGED_BATTERY_VOLTAGE): number.number_schema(
         DischargedBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
+        icon = ICON_SINE_WAVE,
+        unit_of_measurement=UNIT_VOLT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ),
     
@@ -115,9 +130,10 @@ async def to_code(config):
         n = await number.new_number(
             charging_setpoint_config, min_value=0.0, max_value=40.0, step=0.2
         )
-        # await cg.register_component(n, charging_setpoint_config)
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
-        cg.add(offsr_component.set_charging_setpoint_number(n))
+        await cg.register_component(n, charging_setpoint_config)
+        await cg.register_parented(n, offsr_component)
+        # await cg.register_parented(n, config[CONF_OFFSR_ID])
+        # cg.add(offsr_component.set_charging_setpoint_number(n))
         
   if absorbing_setpoint_config := config.get(CONF_ABSORBING_SETPOINT):
         n = await number.new_number(
