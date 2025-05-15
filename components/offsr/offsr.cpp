@@ -5,7 +5,9 @@ namespace esphome {
 namespace offsr {
 
 static const char *const TAG = "offsr";
-static const float coeff = 0.001f;
+static const float coeffP = 0.001f;
+static const float coeffI = 0.0001f;
+static const float coeffD = 0.001f;
 static const float power_mini = 2.0f;
 
 void OFFSRComponent::setup() { 
@@ -104,18 +106,18 @@ void OFFSRComponent::pid_update() {
 	
 	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
 	
-    output_ = std::min(std::max( tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
+    output_ = std::min(std::max( tmp + (coeffP*this->current_kp_ * error_) + (coeffI*this->current_ki_ * integral_) + (coeffD*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
 	
-    ESP_LOGV(TAG, "Pcoeff = %3.8f" , coeff*this->current_kp_ * error_ );
-	ESP_LOGV(TAG, "Icoeff = %3.8f" , (coeff*this->current_ki_ * integral_) );
-	ESP_LOGV(TAG, "Dcoeff = %3.8f" , (coeff*this->current_kd_ * derivative_) );
+    ESP_LOGV(TAG, "Pcoeff = %3.8f" , coeffP*this->current_kp_ * error_ );
+	ESP_LOGV(TAG, "Icoeff = %3.8f" , coeffI*this->current_ki_ * integral_ );
+	ESP_LOGV(TAG, "Dcoeff = %3.8f" , coeffD*this->current_kd_ * derivative_ );
 	
 	ESP_LOGV(TAG, "previous output = %2.8f" , tmp );
 	
 	ESP_LOGV(TAG, "output_min = %1.2f" , this->current_output_min_  );
 	ESP_LOGV(TAG, "output_max = %1.2f" , this->current_output_max_  );
 	
-	ESP_LOGV(TAG, "PIDcoeff = %3.8f" , tmp + (coeff*this->current_kp_ * error_) + (coeff*this->current_ki_ * integral_) + (coeff*this->current_kd_ * derivative_) );
+	ESP_LOGV(TAG, "PIDcoeff = %3.8f" , tmp + (coeffP*this->current_kp_ * error_) + (coeffI*this->current_ki_ * integral_) + (coeffD*this->current_kd_ * derivative_) );
 	
 	ESP_LOGV(TAG, "Intermediate computed output=%1.6f" , output_);
   
