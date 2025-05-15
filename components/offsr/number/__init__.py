@@ -185,6 +185,7 @@ async def to_code(config):
         n = await number.new_number(
             kp_config, min_value=0.0, max_value=10.0, step=0.1
         )
+        await cg.register_component(n, kp_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_kp_number(n)) 
   
@@ -192,6 +193,7 @@ async def to_code(config):
         n = await number.new_number(
             ki_config, min_value=0.0, max_value=10.0, step=0.1
         )
+        await cg.register_component(n, ki_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_ki_number(n))
 
@@ -199,6 +201,7 @@ async def to_code(config):
         n = await number.new_number(
             kd_config, min_value=0.0, max_value=10.0, step=0.1
         )
+        await cg.register_component(n, kd_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_kd_number(n))
 
