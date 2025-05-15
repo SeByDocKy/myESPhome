@@ -11,7 +11,8 @@ void ChargingSetpointNumber::setup() {
 	// call.set_value(tmp);
 	// call.perform();
 	
-	float value = 20.0;
+	// float value = 20.0;
+	float value = this->parent_->get_charging_setpoint();
 /* 	this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
 	if (!this->pref_.load(&value)) value = this->parent_->get_charging_setpoint(); */
 	this->publish_state(value);
