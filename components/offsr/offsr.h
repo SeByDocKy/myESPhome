@@ -67,8 +67,11 @@ SUB_NUMBER(output_restart)
   
 #ifdef USE_SWITCH 
   void set_activation(bool enable) {this->current_activation_ = enable;}
+  bool get_activation(void){return this->current_activation_;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
+  bool get_manual_override(void){return this->current_manual_override_;}
   void set_pid_mode(bool enable) {this->current_pid_mode_ = enable;}
+  bool get_pid_mode(void){return this->current_pid_mode_;}
 #endif
 
 #ifdef USE_NUMBER
