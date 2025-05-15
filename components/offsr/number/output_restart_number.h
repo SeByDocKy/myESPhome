@@ -8,7 +8,7 @@ namespace offsr {
 
 class OutputRestartNumber : public number::Number, public Component, public Parented<OFFSRComponent> {
  public:
-  
+  void setup() override;
 
  protected:
   void control(float value) override;
