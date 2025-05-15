@@ -6,12 +6,14 @@
 namespace esphome {
 namespace offsr {
 
-class PidModeSwitch : public switch_::Switch, public Parented<OFFSRComponent> {
+class PidModeSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
  public:
-  PidModeSwitch() = default;
+  // PidModeSwitch() = default;
+  void setup() override;
 
  protected:
   void write_state(bool state) override;
+  ESPPreferenceObject pref_;
 };
 
 }  // namespace offsr

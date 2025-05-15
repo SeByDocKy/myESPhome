@@ -6,12 +6,14 @@
 namespace esphome {
 namespace offsr {
 
-class ActivationSwitch : public switch_::Switch, public Parented<OFFSRComponent> {
+class ActivationSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
  public:
-  ActivationSwitch() = default;
+  // ActivationSwitch() = default;
+  void setup() override;
 
  protected:
   void write_state(bool state) override;
+  ESPPreferenceObject pref_;
 };
 
 }  // namespace offsr
