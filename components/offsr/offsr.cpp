@@ -97,7 +97,8 @@ void OFFSRComponent::pid_update() {
     }
     derivative_ = (error_ - previous_error_) / dt_;
     tmp = 0.0f;
-    if( !std::isnan(previous_output_) && this->current_pid_mode_){
+	ESP_LOGV(TAG, "Current pid mode" , this->current_pid_mode_);
+    if( !std::isnan(previous_output_) && !this->current_pid_mode_){
         tmp = previous_output_;
     }
 	
