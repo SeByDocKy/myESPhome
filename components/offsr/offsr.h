@@ -33,7 +33,6 @@ SUB_SWITCH(pid_mode)
 #endif
 
 #ifdef USE_NUMBER
-
 SUB_NUMBER(charging_setpoint)
 SUB_NUMBER(absorbing_setpoint)
 SUB_NUMBER(floating_setpoint)
@@ -56,7 +55,6 @@ SUB_NUMBER(output_restart)
   void setup() override;
   void dump_config() override;
   
-  // void set_pid_mode(bool pid_mode) {this->current_pid_mode_ = pid_mode; }
   void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) {this->battery_current_sensor_ = battery_current_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) {this->battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) {this->power_sensor_ = power_sensor; }
@@ -74,7 +72,6 @@ SUB_NUMBER(output_restart)
 #endif
 
 #ifdef USE_NUMBER
-
   void set_charging_setpoint(float value) {this->current_charging_setpoint_ = value;}
   float get_charging_setpoint(void){return this->current_charging_setpoint_;}
   void set_absorbing_setpoint(float value) {this->current_absorbing_setpoint_ = value;}
@@ -102,12 +99,11 @@ SUB_NUMBER(output_restart)
   float get_output_max(void){return this->current_output_max_;}
   void set_output_restart(float value) {this->current_output_restart_ = value;}
   float get_output_restart(void){return this->current_output_restart_;}
-  
 #endif
 
-// #ifdef USE_BINARY_SENSOR
+#ifdef USE_BINARY_SENSOR
   bool get_thermostat_cut(void){return this->current_thermostat_cut_;}
-// #endif
+#endif
 
   float get_error(void) { return this->current_error_; }
   float get_output(void) { return this->current_output_; }
@@ -128,14 +124,17 @@ SUB_NUMBER(output_restart)
   float current_battery_voltage_ = 54.0f;
   float current_device_output_ = 0.0f;
   
-  // bool current_pid_mode_ = true;
-  
   sensor::Sensor *battery_voltage_sensor_;
   sensor::Sensor *battery_current_sensor_;
   sensor::Sensor *power_sensor_;
   output::FloatOutput *device_output_;
   
   CallbackManager<void()> pid_computed_callback_;
+
+
+  float current_error_ = 0.0f;
+  float current_output_ = 0.0f;
+  float current_target_ = 0.0f;
   
 #ifdef USE_SWITCH  
   bool current_activation_ = false;
@@ -147,12 +146,7 @@ SUB_NUMBER(output_restart)
   bool current_thermostat_cut_ = false;
 #endif  
 
-  float current_error_ = 0.0f;
-  float current_output_ = 0.0f;
-  float current_target_ = 0.0f;
-
-#ifdef USE_NUMBER
-  
+#ifdef USE_NUMBER  
   float current_charging_setpoint_ = 20.0f;
   float current_absorbing_setpoint_ = 5.0f;
   float current_floating_setpoint_ = 0.0f;
@@ -168,7 +162,6 @@ SUB_NUMBER(output_restart)
   float current_output_max_ = 0.85f;
   float current_output_min_ = 0.19f;
   float current_output_restart_ = 0.4f;
-  
 #endif
 
 };

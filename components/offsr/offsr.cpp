@@ -50,19 +50,19 @@ void OFFSRComponent::setup() {
   this->pid_computed_callback_.call();
   // this->pid_update();
   
-  ESP_LOGV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);  
+  ESP_LOGVV(TAG, "setup: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);  
   
 }
 
 void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
-  ESP_LOGV(TAG, "setup import part: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f, pid_mode = %d", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_ , this->current_pid_mode_);
+  ESP_LOGVV(TAG, "setup import part: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_);
   
-  ESP_LOGV(TAG, "setup numbers: charging_setpoint=%3.2f, absorbing_setpoint=%3.2f, floating_setpoint = %3.2f", this->current_charging_setpoint_ , this->current_absorbing_setpoint_ , this->current_floating_setpoint_);
+/*   ESP_LOGV(TAG, "setup numbers: charging_setpoint=%3.2f, absorbing_setpoint=%3.2f, floating_setpoint = %3.2f", this->current_charging_setpoint_ , this->current_absorbing_setpoint_ , this->current_floating_setpoint_);
   
   ESP_LOGV(TAG, "setup switches: activation=%d, overide=%d", this->current_activation_ , this->current_manual_override_);  
   
-  ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f", this->current_error_ , this->current_output_ , this->current_target_);
+  ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f", this->current_error_ , this->current_output_ , this->current_target_); */
   
   this->pid_computed_callback_.call();
   
@@ -72,8 +72,9 @@ void OFFSRComponent::dump_config() {
 void OFFSRComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
+  float alphaP, alphaI, alphaD, alpha;
   
-  ESP_LOGV(TAG, "Entered in pid_update()");
+  ESP_LOGVV(TAG, "Entered in pid_update()");
     
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
 	  this->current_target_ = this->current_charging_setpoint_;
@@ -99,39 +100,44 @@ void OFFSRComponent::pid_update() {
     }
     derivative_ = (error_ - previous_error_) / dt_;
     tmp = 0.0f;
-	ESP_LOGV(TAG, "Current pid mode %d" , this->current_pid_mode_);
+	ESP_LOGVV(TAG, "Current pid mode %d" , this->current_pid_mode_);
     if( !std::isnan(previous_output_) && !this->current_pid_mode_){
         tmp = previous_output_;
     }
 	
-	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
+	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
 	
-    output_ = std::min(std::max( tmp + (coeffP*this->current_kp_ * error_) + (coeffI*this->current_ki_ * integral_) + (coeffD*this->current_kd_ * derivative_) , this->current_output_min_  ) , this->current_output_max_);
+	alphaP = coeffP*this->current_kp_ * error_;
+	alphaI = coeffI*this->current_ki_ * integral_;
+	alphaD = coeffD*this->current_kd_ * derivative_;
+	alpha  = alphaP + alphaI + alphaD;
 	
-    ESP_LOGV(TAG, "Pcoeff = %3.8f" , coeffP*this->current_kp_ * error_ );
-	ESP_LOGV(TAG, "Icoeff = %3.8f" , coeffI*this->current_ki_ * integral_ );
-	ESP_LOGV(TAG, "Dcoeff = %3.8f" , coeffD*this->current_kd_ * derivative_ );
+    output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
 	
-	ESP_LOGV(TAG, "previous output = %2.8f" , tmp );
+    ESP_LOGVV(TAG, "Pcoeff = %3.8f" , alphaP );
+	ESP_LOGVV(TAG, "Icoeff = %3.8f" , alphaI );
+	ESP_LOGVV(TAG, "Dcoeff = %3.8f" , alphaD );
 	
-	ESP_LOGV(TAG, "output_min = %1.2f" , this->current_output_min_  );
-	ESP_LOGV(TAG, "output_max = %1.2f" , this->current_output_max_  );
+	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
 	
-	ESP_LOGV(TAG, "PIDcoeff = %3.8f" , tmp + (coeffP*this->current_kp_ * error_) + (coeffI*this->current_ki_ * integral_) + (coeffD*this->current_kd_ * derivative_) );
+	ESP_LOGVV(TAG, "output_min = %1.2f" , this->current_output_min_  );
+	ESP_LOGVV(TAG, "output_max = %1.2f" , this->current_output_max_  );
 	
-	ESP_LOGV(TAG, "Intermediate computed output=%1.6f" , output_);
+	ESP_LOGVV(TAG, "PIDcoeff = %3.8f" , alpha );
+	
+	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , output_);
   
     if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
       output_ = this->current_output_restart_;
-// #ifdef USE_BINARY_SENSOR 	  
+#ifdef USE_BINARY_SENSOR 	  
       this->current_thermostat_cut_= true;
-// #endif
+#endif
       ESP_LOGVV(TAG, "restart  output");
     }
     else{
-// #ifdef USE_BINARY_SENSOR 	  
+#ifdef USE_BINARY_SENSOR 	  
       this->current_thermostat_cut_ = false;
-// #endif	
+#endif	
       ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->current_target_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
     }
   
@@ -146,24 +152,22 @@ void OFFSRComponent::pid_update() {
 #endif  
 
     if (!std::isnan(this->current_battery_voltage_)){
-	  ESP_LOGV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
+	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         output_ = 0.0f;
       }
     }
     ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
+	
     this->device_output_->set_level(output_);
-    current_output_ = output_;
-    this->pid_computed_callback_.call();	
+	this->current_output_ = output_;
+	
+    this->pid_computed_callback_.call();
 #ifdef USE_SWITCH	
   }
-#else 
-  // output_ = this->current_manual_level_;
-  // this->device_output_->set_level(get_manual_level());	
+// #else 
+ 
 #endif  
-  //ESP_LOGV(TAG, "Thermostat_cut=%d" , this->current_thermostat_cut_);
-  
-  
   
  }
 
