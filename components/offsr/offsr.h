@@ -29,6 +29,7 @@ class OFFSRComponent : public Component{
 #ifdef USE_SWITCH
 SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
+SUB_SWITCH(pid_mode)
 #endif
 
 #ifdef USE_NUMBER
