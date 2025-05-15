@@ -39,13 +39,6 @@ void OFFSRComponent::setup() {
     });
     this->current_power_ = this->power_sensor_->state;
   }
- /*  if (this->device_output_ != nullptr) {
-    this->device_output_->add_on_state_callback([this](float state) {
-      this->device_output_ = state;
-      // this->pid_update();
-    });
-    this->current_device_output_ = this->device_output_->state;
-  } */
   
   this->pid_computed_callback_.call();
   // this->pid_update();
@@ -57,15 +50,8 @@ void OFFSRComponent::setup() {
 void OFFSRComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
   ESP_LOGVV(TAG, "setup import part: battery_current=%3.2f, battery_voltage=%3.2f, power_sensor=%3.2f", this->current_battery_current_ , this->current_battery_voltage_ , this->current_power_);
-  
-/*   ESP_LOGV(TAG, "setup numbers: charging_setpoint=%3.2f, absorbing_setpoint=%3.2f, floating_setpoint = %3.2f", this->current_charging_setpoint_ , this->current_absorbing_setpoint_ , this->current_floating_setpoint_);
-  
-  ESP_LOGV(TAG, "setup switches: activation=%d, overide=%d", this->current_activation_ , this->current_manual_override_);  
-  
-  ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f", this->current_error_ , this->current_output_ , this->current_target_); */
-  
-  this->pid_computed_callback_.call();
-  
+    
+  this->pid_computed_callback_.call(); 
 }
 
 
@@ -75,6 +61,7 @@ void OFFSRComponent::pid_update() {
   float alphaP, alphaI, alphaD, alpha;
   
   ESP_LOGVV(TAG, "Entered in pid_update()");
+  ESP_LOGVV(TAG, "Current pid mode %d" , this->current_pid_mode_);
     
   if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
 	  this->current_target_ = this->current_charging_setpoint_;
@@ -91,20 +78,19 @@ void OFFSRComponent::pid_update() {
     dt_ = float(now - this->last_time_)/1000.0f;
     error_ = -(this->current_target_ - this->current_battery_current_);
 	this->current_error_ = error_;
-	
-	// ESP_LOGV(TAG, "Initial error=%3.2f" , error_);
-	
+		
     tmp = (error_ * dt_);
     if (!std::isnan(tmp)){
       integral_ += tmp;
     }
     derivative_ = (error_ - previous_error_) / dt_;
+
     tmp = 0.0f;
-	ESP_LOGVV(TAG, "Current pid mode %d" , this->current_pid_mode_);
     if( !std::isnan(previous_output_) && !this->current_pid_mode_){
         tmp = previous_output_;
     }
 	
+	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
 	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
 	
 	alphaP = coeffP*this->current_kp_ * error_;
@@ -117,8 +103,6 @@ void OFFSRComponent::pid_update() {
     ESP_LOGVV(TAG, "Pcoeff = %3.8f" , alphaP );
 	ESP_LOGVV(TAG, "Icoeff = %3.8f" , alphaI );
 	ESP_LOGVV(TAG, "Dcoeff = %3.8f" , alphaD );
-	
-	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
 	
 	ESP_LOGVV(TAG, "output_min = %1.2f" , this->current_output_min_  );
 	ESP_LOGVV(TAG, "output_max = %1.2f" , this->current_output_max_  );
@@ -164,13 +148,10 @@ void OFFSRComponent::pid_update() {
 	
     this->pid_computed_callback_.call();
 #ifdef USE_SWITCH	
-  }
-// #else 
- 
+  } 
 #endif  
   
  }
-
 
  }  // namespace offsr
 }  // namespace esphome
