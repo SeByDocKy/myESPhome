@@ -134,7 +134,7 @@ async def to_code(config):
   offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
   if charging_setpoint_config := config.get(CONF_CHARGING_SETPOINT):
         n = await number.new_number(
-            charging_setpoint_config, min_value=0.0, max_value=40.0, step=0.2
+            charging_setpoint_config, min_value=0.0, max_value=50.0, step=0.2
         )
         await cg.register_component(n, charging_setpoint_config)
         await cg.register_parented(n, offsr_component)
