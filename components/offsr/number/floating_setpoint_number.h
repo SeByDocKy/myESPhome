@@ -6,7 +6,7 @@
 namespace esphome {
 namespace offsr {
 
-class FloatingSetpointNumber : public number::Number, public Parented<OFFSRComponent> {
+class FloatingSetpointNumber : public number::Number, public Component, public Parented<OFFSRComponent> {
  public:
   void setup() override;
 
