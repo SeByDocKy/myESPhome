@@ -58,6 +58,7 @@ CONFIG_SCHEMA = {
         unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_ABSORBING_SETPOINT): number.number_schema(
         AbsorbingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
@@ -65,6 +66,7 @@ CONFIG_SCHEMA = {
         unit_of_measurement=UNIT_AMPERE,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_FLOATING_SETPOINT): number.number_schema(
         FloatingSetpointNumber,
         device_class=DEVICE_CLASS_CURRENT,
@@ -80,6 +82,7 @@ CONFIG_SCHEMA = {
         unit_of_measurement=UNIT_VOLT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_CHARGED_BATTERY_VOLTAGE): number.number_schema(
         ChargedBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
@@ -87,6 +90,7 @@ CONFIG_SCHEMA = {
         icon = ICON_SINE_WAVE,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_DISCHARGED_BATTERY_VOLTAGE): number.number_schema(
         DischargedBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
@@ -99,27 +103,31 @@ CONFIG_SCHEMA = {
         KpNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_KI): number.number_schema(
         KiNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_KD): number.number_schema(
         KdNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_OUTPUT_MIN): number.number_schema(
         OutputMinNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_OUTPUT_MAX): number.number_schema(
         OutputMaxNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+    
     cv.Optional(CONF_OUTPUT_RESTART): number.number_schema(
         OutputRestartNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
-                                 
+    ).extend(cv.COMPONENT_SCHEMA),                
 }
 
 async def to_code(config):
@@ -132,7 +140,7 @@ async def to_code(config):
         await cg.register_component(n, charging_setpoint_config)
         await cg.register_parented(n, offsr_component)
         # await cg.register_parented(n, config[CONF_OFFSR_ID])
-        # cg.add(offsr_component.set_charging_setpoint_number(n))
+        cg.add(offsr_component.set_charging_setpoint_number(n))
         
   if absorbing_setpoint_config := config.get(CONF_ABSORBING_SETPOINT):
         n = await number.new_number(
