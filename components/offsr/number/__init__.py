@@ -156,11 +156,11 @@ async def to_code(config):
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_floating_setpoint_number(n))     
         
-
   if starting_battery_voltage_config := config.get(CONF_STARTING_BATTERY_VOLTAGE):
         n = await number.new_number(
             starting_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.2
         )
+        await cg.register_component(n, starting_battery_voltage_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_starting_battery_voltage_number(n))
 
@@ -168,14 +168,16 @@ async def to_code(config):
         n = await number.new_number(
             charged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.2
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_component(n, charged_battery_voltage_config)
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_charged_battery_voltage_number(n))
 
   if discharged_battery_voltage_config := config.get(CONF_DISCHARGED_BATTERY_VOLTAGE):
         n = await number.new_number(
             discharged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.2
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_component(n, discharged_battery_voltage_config)
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_discharged_battery_voltage_number(n))  
 
 
@@ -183,21 +185,21 @@ async def to_code(config):
         n = await number.new_number(
             kp_config, min_value=0.0, max_value=10.0, step=0.1
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_kp_number(n)) 
   
   if ki_config := config.get(CONF_KI):
         n = await number.new_number(
             ki_config, min_value=0.0, max_value=10.0, step=0.1
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_ki_number(n))
 
   if kd_config := config.get(CONF_KD):
         n = await number.new_number(
             kd_config, min_value=0.0, max_value=10.0, step=0.1
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_kd_number(n))
 
 
@@ -205,19 +207,19 @@ async def to_code(config):
         n = await number.new_number(
             output_min_config, min_value=0.0, max_value=1.0, step=0.01
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_min_number(n))
 
   if output_max_config := config.get(CONF_OUTPUT_MAX):
         n = await number.new_number(
             output_max_config, min_value=0.0, max_value=1.0, step=0.01
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_max_number(n))
 
   if output_restart_config := config.get(CONF_OUTPUT_RESTART):
         n = await number.new_number(
             output_restart_config, min_value=0.0, max_value=1.0, step=0.01
         )
-        await cg.register_parented(n, config[CONF_OFFSR_ID])
+        await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_restart_number(n))        

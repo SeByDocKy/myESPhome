@@ -6,12 +6,13 @@
 namespace esphome {
 namespace offsr {
 
-class ChargedBatteryVoltageNumber : public number::Number, public Parented<OFFSRComponent> {
+class ChargedBatteryVoltageNumber : public number::Number, public Component, public Parented<OFFSRComponent> {
  public:
-  ChargedBatteryVoltageNumber() = default;
+  void setup() override;
 
  protected:
   void control(float value) override;
+  ESPPreferenceObject pref_;
 };
 
 }  // namespace offsr
