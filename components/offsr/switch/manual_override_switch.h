@@ -6,12 +6,14 @@
 namespace esphome {
 namespace offsr {
 
-class ManualOverrideSwitch : public switch_::Switch, public Parented<OFFSRComponent> {
+class ManualOverrideSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
  public:
-  ManualOverrideSwitch() = default;
+  // ManualOverrideSwitch() = default;
+  void setup() override;
 
  protected:
   void write_state(bool state) override;
+  ESPPreferenceObject pref_;
 };
 
 }  // namespace offsr
