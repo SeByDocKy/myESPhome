@@ -14,7 +14,7 @@ class ChargingSetpointNumber : public number::Number, public Component, public P
 
  protected:
   void control(float value) override;
-  OFFSRComponent *parent_;
+  // OFFSRComponent *parent_;
   ESPPreferenceObject pref_;
 };
 
