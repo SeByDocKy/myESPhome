@@ -20,9 +20,9 @@ void ChargingSetpointNumber::setup() {
 	
 }
 
-void ChargingSetpointNumber::dump_config() {
+/* void ChargingSetpointNumber::dump_config() {
   ESP_LOGCONFIG(TAG, "Charging Setpoint Number", this->get_name().c_str());
-}
+} */
 
 
 void ChargingSetpointNumber::control(float value) {
