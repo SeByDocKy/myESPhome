@@ -55,7 +55,7 @@ SUB_NUMBER(output_restart)
   void setup() override;
   void dump_config() override;
   
-  void set_pid_mode(bool pid_mode) {this->current_pid_mode_ = pid_mode; }
+  // void set_pid_mode(bool pid_mode) {this->current_pid_mode_ = pid_mode; }
   void set_battery_current_sensor(sensor::Sensor *battery_current_sensor) {this->battery_current_sensor_ = battery_current_sensor; }
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) {this->battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) {this->power_sensor_ = power_sensor; }
@@ -69,11 +69,11 @@ SUB_NUMBER(output_restart)
 #ifdef USE_SWITCH 
   void set_activation(bool enable) {this->current_activation_ = enable;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
+  void set_pid_mode(bool enable) {this->current_pid_mode_ = enable;}
 #endif
 
 #ifdef USE_NUMBER
 
-  
   void set_charging_setpoint(float value) {this->current_charging_setpoint_ = value;}
   float get_charging_setpoint(void){return this->current_charging_setpoint_;}
   void set_absorbing_setpoint(float value) {this->current_absorbing_setpoint_ = value;}
@@ -127,7 +127,7 @@ SUB_NUMBER(output_restart)
   float current_battery_voltage_ = 54.0f;
   float current_device_output_ = 0.0f;
   
-  bool current_pid_mode_ = true;
+  // bool current_pid_mode_ = true;
   
   sensor::Sensor *battery_voltage_sensor_;
   sensor::Sensor *battery_current_sensor_;
@@ -139,6 +139,7 @@ SUB_NUMBER(output_restart)
 #ifdef USE_SWITCH  
   bool current_activation_ = false;
   bool current_manual_override_ = false;
+  bool current_pid_mode_ = false;
 #endif  
   
 #ifdef USE_BINARY_SENSOR
