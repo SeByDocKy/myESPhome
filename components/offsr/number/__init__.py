@@ -210,6 +210,7 @@ async def to_code(config):
         n = await number.new_number(
             output_min_config, min_value=0.0, max_value=1.0, step=0.01
         )
+        await cg.register_component(n, output_min_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_min_number(n))
 
@@ -217,6 +218,7 @@ async def to_code(config):
         n = await number.new_number(
             output_max_config, min_value=0.0, max_value=1.0, step=0.01
         )
+        await cg.register_component(n, output_max_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_max_number(n))
 
@@ -224,5 +226,6 @@ async def to_code(config):
         n = await number.new_number(
             output_restart_config, min_value=0.0, max_value=1.0, step=0.01
         )
+        await cg.register_component(n, output_restart_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_restart_number(n))        

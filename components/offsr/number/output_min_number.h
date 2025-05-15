@@ -6,12 +6,13 @@
 namespace esphome {
 namespace offsr {
 
-class OutputMinNumber : public number::Number, public Parented<OFFSRComponent> {
+class OutputMinNumber : public number::Number, public Component, public Parented<OFFSRComponent> {
  public:
-  OutputMinNumber() = default;
+  void setup() override;
 
  protected:
   void control(float value) override;
+  ESPPreferenceObject pref_;
 };
 
 }  // namespace offsr
