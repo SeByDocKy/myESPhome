@@ -13,6 +13,7 @@ void KpNumber::setup() {
 void KpNumber::control(float value) {
   this->publish_state(value);
   this->parent_->set_kp(value);
+  this->pref_.save(&value);
 }
 
 }  // namespace offsr

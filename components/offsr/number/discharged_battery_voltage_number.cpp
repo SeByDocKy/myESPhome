@@ -14,6 +14,7 @@ void DischargedBatteryVoltageNumber::setup() {
 void DischargedBatteryVoltageNumber::control(float value) {
   this->publish_state(value);
   this->parent_->set_discharged_battery_voltage(value);
+  this->pref_.save(&value);
 }
 
 }  // namespace offsr

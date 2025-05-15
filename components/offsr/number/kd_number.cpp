@@ -13,6 +13,7 @@ void KdNumber::setup() {
 void KdNumber::control(float value) {
   this->publish_state(value);
   this->parent_->set_kd(value);
+  this->pref_.save(&value);
 }
 
 }  // namespace offsr

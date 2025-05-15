@@ -14,6 +14,7 @@ void FloatingSetpointNumber::setup() {
 void FloatingSetpointNumber::control(float value) {
   this->publish_state(value);
   this->parent_->set_floating_setpoint(value);
+  this->pref_.save(&value);
 }
 
 }  // namespace offsr

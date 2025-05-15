@@ -10,10 +10,10 @@ void StartingBatteryVoltageNumber::setup() {
   this->publish_state(value);
 }
 
-
 void StartingBatteryVoltageNumber::control(float value) {
   this->publish_state(value);
   this->parent_->set_starting_battery_voltage(value);
+  this->pref_.save(&value);
 }
 
 }  // namespace offsr

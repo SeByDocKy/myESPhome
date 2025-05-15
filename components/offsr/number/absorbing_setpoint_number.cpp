@@ -14,6 +14,7 @@ void AbsorbingSetpointNumber::setup() {
 void AbsorbingSetpointNumber::control(float value) {
   this->publish_state(value);
   this->parent_->set_absorbing_setpoint(value);
+  this->pref_.save(&value);
 }
 
 }  // namespace offsr

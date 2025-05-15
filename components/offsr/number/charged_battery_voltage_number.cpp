@@ -13,6 +13,7 @@ void ChargedBatteryVoltageNumber::setup() {
 void ChargedBatteryVoltageNumber::control(float value) {
   this->publish_state(value);
   this->parent_->set_charged_battery_voltage(value);
+  this->pref_.save(&value);
 }
 
 }  // namespace offsr
