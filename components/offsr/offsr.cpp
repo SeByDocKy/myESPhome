@@ -26,16 +26,23 @@ void OFFSRComponent::setup() {
   if (this->battery_voltage_sensor_ != nullptr) {
     this->battery_voltage_sensor_->add_on_state_callback([this](float state) {
       this->current_battery_voltage_ = state;
-      this->pid_update();
+      // this->pid_update();
     });
     this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
   }
   if (this->power_sensor_ != nullptr) {
     this->power_sensor_->add_on_state_callback([this](float state) {
       this->current_power_ = state;
-      this->pid_update();
+      // this->pid_update();
     });
     this->current_power_ = this->power_sensor_->state;
+  }
+  if (this->device_output_ != nullptr) {
+    this->device_output_->add_on_state_callback([this](float state) {
+      this->device_output_ = state;
+      // this->pid_update();
+    });
+    this->current_device_output_ = this->device_output_->state;
   }
   
   this->pid_computed_callback_.call();
@@ -55,10 +62,7 @@ void OFFSRComponent::dump_config() {
   
   ESP_LOGV(TAG, "setup sensors part: error=%3.2f, output=%3.2f, target=%3.2f", this->current_error_ , this->current_output_ , this->current_target_);
   
-  this->current_charging_setpoint_ = 20.0f;
-  
   this->pid_computed_callback_.call();
-  
   
 }
 

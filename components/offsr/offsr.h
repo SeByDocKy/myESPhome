@@ -66,14 +66,13 @@ SUB_NUMBER(output_restart)
     pid_computed_callback_.add(std::move(callback));
   }
   
-// #ifdef USE_SWITCH 
+#ifdef USE_SWITCH 
   void set_activation(bool enable) {this->current_activation_ = enable;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
-// #endif
+#endif
 
 #ifdef USE_NUMBER
 
-//  void set_manual_level(float value) {this->current_manual_level_ = value; }
   
   void set_charging_setpoint(float value) {this->current_charging_setpoint_ = value;}
   float get_charging_setpoint(void){return this->current_charging_setpoint_;}
@@ -126,7 +125,7 @@ SUB_NUMBER(output_restart)
   float current_battery_current_ = 0.0f;
   float current_power_ = 0.0f;
   float current_battery_voltage_ = 54.0f;
-  float current_device_output_ = 54.0f;
+  float current_device_output_ = 0.0f;
   
   bool current_pid_mode_ = true;
   
