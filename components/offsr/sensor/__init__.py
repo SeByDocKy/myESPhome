@@ -13,6 +13,7 @@ CONF_OUTPUT = "output"
 CONF_ERROR  = "error"
 CONF_TARGET = "target"
 ICON_CURRENT_DC = "mdi:current-dc"
+ICON_DELTA = "mdi:delta"
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
@@ -21,10 +22,12 @@ OFFSRSensor = offsr_ns.class_("OFFSRSensor", cg.Component)
 
 CONFIG_SCHEMA = {
     cv.GenerateID(): cv.declare_id(OFFSRSensor),
+    
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
                 
     cv.Optional(CONF_ERROR): sensor.sensor_schema(
                 accuracy_decimals=2,
+                icon = ICON_DELTA,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_OUTPUT): sensor.sensor_schema(
