@@ -37,13 +37,13 @@ void OFFSRComponent::setup() {
     });
     this->current_power_ = this->power_sensor_->state;
   }
-  if (this->device_output_ != nullptr) {
+ /*  if (this->device_output_ != nullptr) {
     this->device_output_->add_on_state_callback([this](float state) {
       this->device_output_ = state;
       // this->pid_update();
     });
     this->current_device_output_ = this->device_output_->state;
-  }
+  } */
   
   this->pid_computed_callback_.call();
   // this->pid_update();
