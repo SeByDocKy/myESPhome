@@ -4,7 +4,11 @@ namespace esphome {
 namespace offsr {
 
 void AbsorbingSetpointNumber::setup() {
-	this->publish_state(this->parent_->get_absorbing_setpoint());
+  float value;
+  this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+  if (!this->pref_.load(&value)) value = this->parent_->get_absorbing_setpoint();
+  this->publish_state(value);
+	
 }
 
 void AbsorbingSetpointNumber::control(float value) {
