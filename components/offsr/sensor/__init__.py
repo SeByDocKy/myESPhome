@@ -9,12 +9,13 @@ from esphome.const import (
 )
 
 DEPENDENCIES = ["offsr"]
+
 CONF_OUTPUT = "output"
 CONF_ERROR  = "error"
 CONF_TARGET = "target"
 
 ICON_EPSILON = "mdi:epsilon"
-ICON_GAUGE = "mdi:gauge"
+ICON_PERCENT = "mdi:percent"
 ICON_TARGET = "mdi:target"
 
 
@@ -35,7 +36,7 @@ CONFIG_SCHEMA = {
              ),
     cv.Optional(CONF_OUTPUT): sensor.sensor_schema(
                 accuracy_decimals=2,
-                icon = ICON_GAUGE,
+                icon = ICON_PERCENT,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_TARGET): sensor.sensor_schema(
