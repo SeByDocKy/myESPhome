@@ -108,10 +108,11 @@ SUB_NUMBER(output_restart)
   bool get_thermostat_cut(void){return this->current_thermostat_cut_;}
 #endif
 
+#ifdef USE_SENSOR
   float get_error(void) { return this->current_error_; }
   float get_output(void) { return this->current_output_; }
   float get_target(void) { return this->current_target_; }
-
+#endif
  protected:
   uint32_t last_time_ = 0;
   float dt_;
@@ -155,15 +156,15 @@ SUB_NUMBER(output_restart)
   float current_floating_setpoint_ = 0.0f;
   
   float current_starting_battery_voltage_ = 53.5f;
-  float current_charged_battery_voltage_ = 55.9f;
-  float current_discharged_battery_voltage_ = 55.8f;
+  float current_charged_battery_voltage_ = 55.8f;
+  float current_discharged_battery_voltage_ = 55.6f;
   
   float current_kp_ = 4.0f;
-  float current_ki_ = 0.1f;
-  float current_kd_ = 0.5f;
+  float current_ki_ = 0.0f;
+  float current_kd_ = 0.0f;
   
   float current_output_max_ = 0.85f;
-  float current_output_min_ = 0.19f;
+  float current_output_min_ = 0.18f;
   float current_output_restart_ = 0.4f;
 #endif
 
