@@ -100,16 +100,16 @@ void OFFSRComponent::pid_update() {
 	
     output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
 	
-    ESP_LOGV(TAG, "Pcoeff = %3.8f" , alphaP );
-	ESP_LOGV(TAG, "Icoeff = %3.8f" , alphaI );
-	ESP_LOGV(TAG, "Dcoeff = %3.8f" , alphaD );
+    ESP_LOGVV(TAG, "Pcoeff = %3.8f" , alphaP );
+	ESP_LOGVV(TAG, "Icoeff = %3.8f" , alphaI );
+	ESP_LOGVV(TAG, "Dcoeff = %3.8f" , alphaD );
 	
-	ESP_LOGV(TAG, "output_min = %1.2f" , this->current_output_min_  );
-	ESP_LOGV(TAG, "output_max = %1.2f" , this->current_output_max_  );
+	ESP_LOGVV(TAG, "output_min = %1.2f" , this->current_output_min_  );
+	ESP_LOGVV(TAG, "output_max = %1.2f" , this->current_output_max_  );
 	
-	ESP_LOGV(TAG, "PIDcoeff = %3.8f" , alpha );
+	ESP_LOGVV(TAG, "PIDcoeff = %3.8f" , alpha );
 	
-	ESP_LOGV(TAG, "Intermediate computed output=%1.6f" , output_);
+	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , output_);
   
     if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
       output_ = this->current_output_restart_;
@@ -129,7 +129,7 @@ void OFFSRComponent::pid_update() {
     previous_error_ = error_;
     previous_output_ = output_;
     
-	ESP_LOGV(TAG, "activation %d", current_activation_);
+	ESP_LOGVV(TAG, "activation %d", current_activation_);
 	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
@@ -138,12 +138,12 @@ void OFFSRComponent::pid_update() {
 #endif  
 
     if (!std::isnan(this->current_battery_voltage_)){
-	  ESP_LOGV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
+	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         output_ = 0.0f;
       }
     }
-    ESP_LOGV(TAG, "Final computed output=%1.6f" , output_);
+    ESP_LOGVV(TAG, "Final computed output=%1.6f" , output_);
 	
     this->device_output_->set_level(output_);
 	this->current_output_ = output_;
