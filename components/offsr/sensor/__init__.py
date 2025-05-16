@@ -12,9 +12,11 @@ DEPENDENCIES = ["offsr"]
 CONF_OUTPUT = "output"
 CONF_ERROR  = "error"
 CONF_TARGET = "target"
-ICON_CURRENT_DC = "mdi:current-dc"
+
 ICON_EPSILON = "mdi:epsilon"
 ICON_GAUGE = "mdi:gauge"
+ICON_TARGET = "mdi:target"
+
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
@@ -38,7 +40,7 @@ CONFIG_SCHEMA = {
              ),
     cv.Optional(CONF_TARGET): sensor.sensor_schema(
                 unit_of_measurement=UNIT_AMPERE,
-                icon=ICON_CURRENT_DC,
+                icon=ICON_TARGET,
                 accuracy_decimals=2,
                 device_class=DEVICE_CLASS_CURRENT,
                 state_class=STATE_CLASS_MEASUREMENT,
