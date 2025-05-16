@@ -100,16 +100,16 @@ void OFFSRComponent::pid_update() {
 	
     output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
 	
-    ESP_LOGVV(TAG, "Pcoeff = %3.8f" , alphaP );
-	ESP_LOGVV(TAG, "Icoeff = %3.8f" , alphaI );
-	ESP_LOGVV(TAG, "Dcoeff = %3.8f" , alphaD );
+    ESP_LOGV(TAG, "Pcoeff = %3.8f" , alphaP );
+	ESP_LOGV(TAG, "Icoeff = %3.8f" , alphaI );
+	ESP_LOGV(TAG, "Dcoeff = %3.8f" , alphaD );
 	
-	ESP_LOGVV(TAG, "output_min = %1.2f" , this->current_output_min_  );
-	ESP_LOGVV(TAG, "output_max = %1.2f" , this->current_output_max_  );
+	ESP_LOGV(TAG, "output_min = %1.2f" , this->current_output_min_  );
+	ESP_LOGV(TAG, "output_max = %1.2f" , this->current_output_max_  );
 	
-	ESP_LOGVV(TAG, "PIDcoeff = %3.8f" , alpha );
+	ESP_LOGV(TAG, "PIDcoeff = %3.8f" , alpha );
 	
-	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , output_);
+	ESP_LOGV(TAG, "Intermediate computed output=%1.6f" , output_);
   
     if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
       output_ = this->current_output_restart_;
