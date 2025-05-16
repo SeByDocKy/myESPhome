@@ -128,7 +128,9 @@ void OFFSRComponent::pid_update() {
     last_time_ = now;
     previous_error_ = error_;
     previous_output_ = output_;
-  
+    
+	ESP_LOGV(TAG, "activation %d", current_activation_);
+	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
       output_ = 0.0f;
@@ -136,7 +138,7 @@ void OFFSRComponent::pid_update() {
 #endif  
 
     if (!std::isnan(this->current_battery_voltage_)){
-	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
+	  ESP_LOGV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         output_ = 0.0f;
       }
