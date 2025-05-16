@@ -90,8 +90,8 @@ void OFFSRComponent::pid_update() {
         tmp = previous_output_;
     }
 	
-	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
-	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
+	ESP_LOGV(TAG, "previous output = %2.8f" , tmp );
+	ESP_LOGV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
 	
 	alphaP = coeffP*this->current_kp_ * error_;
 	alphaI = coeffI*this->current_ki_ * integral_;
