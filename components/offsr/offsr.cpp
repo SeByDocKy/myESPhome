@@ -63,10 +63,10 @@ void OFFSRComponent::pid_update() {
   ESP_LOGVV(TAG, "Entered in pid_update()");
   ESP_LOGVV(TAG, "Current pid mode %d" , this->current_pid_mode_);
     
-  if(this->current_battery_voltage_ <= this->current_discharged_battery_voltage_){
+  if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	  this->current_target_ = this->current_charging_setpoint_;
   }
-  else if((this->current_battery_voltage_ > this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ <= this->current_charged_battery_voltage_)){
+  else if((this->current_battery_voltage_ >= this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ < this->current_charged_battery_voltage_)){
 	  this->current_target_ = this->current_absorbing_setpoint_;
   }
   else{
