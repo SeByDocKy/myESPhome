@@ -135,10 +135,15 @@ SUB_NUMBER(output_restart)
   
   CallbackManager<void()> pid_computed_callback_;
 
-
+#ifdef USE_SENSOR
   float current_error_ = 0.0f;
   float current_output_ = 0.0f;
   float current_target_ = 0.0f;
+#endif   
+
+#ifdef USE_BINARY_SENSOR
+  bool current_thermostat_cut_ = false;
+#endif
   
 #ifdef USE_SWITCH  
   bool current_activation_ = false;
@@ -146,10 +151,6 @@ SUB_NUMBER(output_restart)
   bool current_pid_mode_ = false;
 #endif  
   
-#ifdef USE_BINARY_SENSOR
-  bool current_thermostat_cut_ = false;
-#endif  
-
 #ifdef USE_NUMBER  
   float current_charging_setpoint_ = 20.0f;
   float current_absorbing_setpoint_ = 5.0f;
