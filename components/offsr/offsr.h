@@ -170,7 +170,7 @@ SUB_NUMBER(output_restart)
 
 };
 		
-template<typename... Ts> 
+/* template<typename... Ts> 
 class PidUpdateAction : public Action<Ts...> {
  public:
   PidUpdateAction(OFFSRComponent *parent) : parent_(parent) {}
@@ -178,7 +178,7 @@ class PidUpdateAction : public Action<Ts...> {
 
  protected:
   OFFSRComponent *parent_;
-};	
+};	 */
 
  }  // namespace offsr
 }  // namespace esphome

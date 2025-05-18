@@ -20,7 +20,7 @@ CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
 CONF_OUTPUT_ID = 'output_id'
 CONF_POWER_ID = 'power_id'
 
-PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
+# PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 
 OFFSRComponent_SCHEMA = cv.Schema(
     {
@@ -58,16 +58,16 @@ async def to_code(config):
         cg.add(var.set_power_sensor(sens))
     
     
-@automation.register_action(
-    "offsr.pid_update",
-    PidUpdateAction,
-    maybe_simple_id(
-        {
-            cv.Required(CONF_ID): cv.use_id(OFFSRComponent),
-        }
-    ),
-)
-async def pid_update_to_code(config, action_id, template_arg, args):
-    parent = await cg.get_variable(config[CONF_ID])
-    return cg.new_Pvariable(action_id, template_arg, parent)        
+# @automation.register_action(
+    # "offsr.pid_update",
+    # PidUpdateAction,
+    # maybe_simple_id(
+        # {
+            # cv.Required(CONF_ID): cv.use_id(OFFSRComponent),
+        # }
+    # ),
+# )
+# async def pid_update_to_code(config, action_id, template_arg, args):
+    # parent = await cg.get_variable(config[CONF_ID])
+    # return cg.new_Pvariable(action_id, template_arg, parent)        
  
