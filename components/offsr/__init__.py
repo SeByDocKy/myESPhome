@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome import automation
+# from esphome import automation
 from esphome.components import sensor, output, time
 from esphome.automation import maybe_simple_id
 
