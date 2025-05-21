@@ -1,6 +1,6 @@
 import esphome.codegen as cg
-from esphome.components import binary_sensor
 import esphome.config_validation as cv
+from esphome.components import binary_sensor
 
 from esphome.const import (
     CONF_ID,
@@ -9,7 +9,6 @@ from esphome.const import (
 
 DEPENDENCIES = ["offsr"]
 CONF_THERMOSTAT_CUT = "thermostat_cut"
-
 ICON_HOT_WATER_TANK = "mdi:water-boiler-alert"
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns

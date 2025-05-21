@@ -8,7 +8,6 @@ namespace offsr {
 
 class ActivationSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
  public:
-  // ActivationSwitch() = default;
   void setup() override;
 
  protected:

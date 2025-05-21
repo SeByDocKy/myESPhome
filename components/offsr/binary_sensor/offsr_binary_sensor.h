@@ -10,8 +10,8 @@ class OFFSRBinarySensor : public Component, public Parented<OFFSRComponent> {
  public:
   void dump_config() override;
   void setup() override;
-  void set_parent(OFFSRComponent *parent) { this->parent_ = parent; }
   
+  void set_parent(OFFSRComponent *parent) { this->parent_ = parent; }
   void set_thermostat_cut_binary_sensor(binary_sensor::BinarySensor *thermostat_cut_binary_sensor) { this->thermostat_cut_binary_sensor_ = thermostat_cut_binary_sensor; }; 
 
  protected:

@@ -1,6 +1,6 @@
 import esphome.codegen as cg
-from esphome.components import number
 import esphome.config_validation as cv
+from esphome.components import number
 from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_CURRENT,

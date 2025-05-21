@@ -1,6 +1,6 @@
 import esphome.codegen as cg
-from esphome.components import switch
 import esphome.config_validation as cv
+from esphome.components import switch
 from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_SWITCH,
@@ -47,23 +47,6 @@ CONFIG_SCHEMA = {
 }
 
 async def to_code(config):
-    # var = cg.new_Pvariable(config[CONF_ID])
-    # await cg.register_component(var, config)
-    # offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
-    # cg.add(var.set_parent(offsr_component))
-  
-    # var = await cg.get_variable(config[CONF_OFFSR_ID])
-    # if CONF_ACTIVATION in config:
-        # s = await switch.new_switch(config[CONF_ACTIVATION])
-        # await cg.register_parented(s, config[CONF_OFFSR_ID])
-        # cg.add(var.set_activation_switch(s))
-        
-    # if CONF_MANUAL_OVERRIDE in config:
-        # s = await switch.new_switch(config[CONF_MANUAL_OVERRIDE])
-        # await cg.register_parented(s, config[CONF_OFFSR_ID])
-        # cg.add(var.set_manual_override_switch(s))
-        
-
     offsr_component = await cg.get_variable(config[CONF_OFFSR_ID])
     
     if activation_config := config.get(CONF_ACTIVATION):
@@ -83,5 +66,3 @@ async def to_code(config):
         await cg.register_component(s, pid_mode_config)
         await cg.register_parented(s, offsr_component)
         cg.add(offsr_component.set_pid_mode_switch(s))        
-       
-    
