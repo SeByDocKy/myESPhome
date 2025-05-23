@@ -94,14 +94,16 @@ fan:
     name: ${name}_fakeoutput_command
     output: fakeoutput
 
+button:
+  - platform: restart
+    name: ${name}_restart
 
 offsr:
   - id: my_offsr1
     battery_current_id: fake_battery_current #smartshunt_battery_current
     battery_voltage_id: fake_battery_voltage #smartshunt_battery_voltage
-    output_id: fakeoutput #output_sx1509 # fakeoutput
+    output_id: fakeoutput #output_sx1509
     power_id: fake_power_feedback #pzem_power
-    pid_mode: true
     
 binary_sensor:
   - platform: offsr
@@ -110,6 +112,14 @@ binary_sensor:
       name: thermostat_cut
       
 sensor:
+  - platform: offsr
+    offsr_id: my_offsr1
+    error: 
+      name: ${name}_regulation_error    
+    output: 
+      name: ${name}_output_lsa
+    target:
+      name: ${name}_target_current
    
   - platform: wifi_signal
     name: ${name}_wifi_power
@@ -130,6 +140,21 @@ sensor:
   - platform: template
     name: ${name}_fake_power_feedback
     id: fake_power_feedback
+    
+  # - platform: homeassistant
+    # name: ${name}_fake_battery_voltage
+    # entity_id: sensor.pvbrain2_smartshunt_battery_voltage
+    # id: fake_battery_voltage
+
+  # - platform: homeassistant
+    # name: ${name}_fake_battery_current
+    # entity_id: sensor.pvbrain2_smartshunt_battery_current
+    # id: fake_battery_current
+
+  # - platform: homeassistant
+    # name: ${name}_fake_power_feedback
+    # entity_id: sensor.pvbrain2_pvbrain2_pzem_router_power
+    # id: fake_power_feedback    
 
   # - platform: pzemac
     # address: 1
@@ -151,25 +176,46 @@ sensor:
       # id: smartshunt_battery_current
   
 
-  
-  - platform: offsr
-    offsr_id: my_offsr1
-    error: 
-      name: ${name}_regulation_error    
-    output: 
-      name: ${name}_output_lsa
-    target:
-      name: ${name}_target_current
-      
 switch:
   - platform: offsr
     offsr_id: my_offsr1
     activation: 
-      name: ${name}_activation_offsr
+      name: ${name}_activation
+      id: activation
     manual_override: 
-      name: ${name}_manual_override_offsr
+      name: ${name}_manual_override
+      id: manual_override
+    pid_mode: 
+      name: ${name}_pid_mode
+      id: pid_mode
           
 number:
+  - platform: offsr
+    offsr_id: my_offsr1
+    charging_setpoint: 
+      name: ${name}_charging_setpoint
+    absorbing_setpoint: 
+      name: ${name}_absorbing_setpoint
+    floating_setpoint: 
+      name: ${name}_floating_setpoint
+    starting_battery_voltage: 
+      name: ${name}_starting_battery_voltage
+    charged_battery_voltage: 
+      name: ${name}_charged_battery_voltage
+    discharged_battery_voltage: 
+      name: ${name}_discharged_battery_voltage
+    kp: 
+      name: ${name}_kp
+    ki: 
+      name: ${name}_ki
+    kd: 
+      name: ${name}_kd
+    output_min: 
+      name: ${name}_output_min
+    output_max: 
+      name: ${name}_output_max
+    output_restart: 
+      name: ${name}_output_restart
 
   - platform: template
     name: ${name}_fake_output_number  
@@ -194,7 +240,7 @@ number:
     optimistic: true
     unit_of_measurement: 'A'
     icon: mdi:current-dc
-    min_value: -2
+    min_value: -10
     max_value: 30
     step: 0.4
     mode: 'slider'
@@ -216,7 +262,7 @@ number:
     max_value: 57.0
     step: 0.2
     mode: 'slider'
-    initial_value: 54.4
+    initial_value: 54.0
     restore_value: true
     on_value:
        then:
@@ -241,34 +287,5 @@ number:
          - sensor.template.publish:
              id: fake_power_feedback
              state: !lambda 'return x;'
-  
-
-  - platform: offsr
-    offsr_id: my_offsr1
-    manual_level:
-      name: ${name}_manual_level
-    charging_setpoint: 
-      name: ${name}_charging_setpoint
-    absorbing_setpoint: 
-      name: ${name}_absorbing_setpoint
-    floating_setpoint: 
-      name: ${name}_floating_setpoint
-    starting_battery_voltage: 
-      name: ${name}_starting_battery_voltage
-    charged_battery_voltage: 
-      name: ${name}_charged_battery_voltage
-    discharged_battery_voltage: 
-      name: ${name}_discharged_battery_voltage
-    kp: 
-      name: ${name}_kp
-    ki: 
-      name: ${name}_ki
-    kd: 
-      name: ${name}_kd
-    output_min: 
-      name: ${name}_output_min
-    output_max: 
-      name: ${name}_output_max
-    output_restart: 
-      name: ${name}_output_restart    
+ 
 
