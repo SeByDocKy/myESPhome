@@ -5,6 +5,7 @@ namespace esphome {
 namespace dmtcp {
 	
   static const char *const TAG = "dmtcp.output";
+  static const uint8_t SIZE_RESPONSE = 255;
   
   void DMTCPOutput::dump_config() {
     ESP_LOGCONFIG(TAG, "DMTCP Output:");
