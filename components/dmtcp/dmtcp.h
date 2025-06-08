@@ -30,7 +30,7 @@ class DMTCPComponent : public PollingComponent{
 	uint16_t port_;
 	uint8_t unit_id_;
 	uint16_t start_modbus_address_ = 0x006d;
-	uint16_t nb_bytes_to_read = 0x0001;
+	uint16_t nb_bytes_to_read_ = 0x0001;
 	
   };
  }  // namespace dmtcp
