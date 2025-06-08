@@ -1,0 +1,53 @@
+substitutions:
+  name: test_deye_modbus_tcp
+  host_ip_address: '192.168.1.10'
+  host_port: 8890
+  update_interval: '5s'
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    
+logger:
+  # baud_rate: 0
+  level: verbose    
+  
+ota:
+  - platform: esphome  
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [deye_modbus_tcp]
+    refresh: 0s
+    
+  # - source:
+      # type: local
+      # path: ./components/
+    # refresh: 0s  
+    
+api:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    
+dmtcp:
+  id: my_dmtcp
+  host_ip_address: ${host_ip_address}
+  host_port: ${host_port}
+  update_interval: ${update_interval}
+  
+# sensor:
+  # - platform: dmtcp
+    # dmtcp_id: mydmtcp
+    # pv1_voltage:
+      # name: ${name}_pv1_voltage
+
