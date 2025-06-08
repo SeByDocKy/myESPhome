@@ -8,10 +8,10 @@ namespace dmtcp {
    ESP_LOGCONFIG(TAG, "Setting up DEYE MODBUS TCP...");
   }
   float DMTCPComponent::get_setup_priority() const { return setup_priority::DATA; }
-  void DMTCPComponent::update() { 
-    //this->read_data_(); 
-  }
+  void DMTCPComponent::update() { this->deye_read_data_(); }
   void DMTCPComponent::dump_config() {}
+  
+  void DMTCPComponent::deye_read_data(){}
 	
 	
  }

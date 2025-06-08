@@ -20,6 +20,7 @@ class DMTCPComponent : public PollingComponent{
   
     void set_host_ip_address(std::string ip_address){this->ip_address_ = ip_address; }
     void set_host_port(uint16_t port){this->port_ = port; }
+	void deye_read_data();
   
   protected:
     std::string ip_address_;
