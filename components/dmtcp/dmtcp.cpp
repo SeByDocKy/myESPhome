@@ -23,7 +23,7 @@ namespace dmtcp {
         0x00, 0x00,  // Protocol ID
         0x00, 0x06,  // Length
         this->unit_id_, // Unit ID
-        0x03,        // Function Code (Read Holding Registers)
+        this->fcn_code_,// Function Code (Read Holding Registers)
         (uint8_t)((this->start_modbus_address_ >> 8) & 0xFF),  // Start Address (High Byte)
         (uint8_t)(this->start_modbus_address_ & 0xFF),         // Start Address (Low Byte)
         (uint8_t)((this->nb_bytes_to_read_ >> 8) & 0xFF),  // (High Byte)
