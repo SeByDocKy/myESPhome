@@ -21,7 +21,7 @@ class DMTCPComponent : public PollingComponent{
   
     void set_host_ip_address(std::string ip_address){this->ip_address_ = ip_address; }
     void set_host_port(uint16_t port){this->port_ = port; }
-	void set_unit_id(uint8_t id){this->unit_id_ = id; }
+	void set_unit_id(uint8_t id){this->read_unit_id_ = id; }
 	
 	void deye_read_data();
 	
@@ -31,6 +31,11 @@ class DMTCPComponent : public PollingComponent{
 	
 #ifdef USE_SENSOR
     float get_pv1_voltage(void) { return this->current_pv1_voltage_; }
+#endif
+
+#ifdef USE_OUTPUT
+    std::string get_ip_address(void){return this->ip_address_;}
+	uint16_t get_port(void){return this->port_;}
 #endif
 	
   
