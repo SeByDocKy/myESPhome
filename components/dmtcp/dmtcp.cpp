@@ -11,7 +11,10 @@ namespace dmtcp {
   void DMTCPComponent::update() { this->deye_read_data(); }
   void DMTCPComponent::dump_config() {}
   
-  void DMTCPComponent::deye_read_data(){}
+  void DMTCPComponent::deye_read_data(){
+	  
+	  
+  }
 	
 	
  }

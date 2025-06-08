@@ -6,6 +6,7 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
 #include <string>
+#include <WiFiClient.h>
 
 
 namespace esphome {
