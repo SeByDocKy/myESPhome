@@ -12,8 +12,8 @@ namespace dmtcp {
   void DMTCPOutput::write_state(float state) {
    	WiFiClient client;
 	
-	if (!client.connect((this->parent_->get_get_ip_address()).c_str(), this->parent_->get_port())) {
-      ESP_LOGE("modbus_tcp", "Failed to connect to Modbus server %s:%d", (this->parent_->get_get_ip_address()).c_str(), this->parent_->get_port());
+	if (!client.connect((this->parent_->get_ip_address()).c_str(), this->parent_->get_port())) {
+      ESP_LOGE("modbus_tcp", "Failed to connect to Modbus server %s:%d", (this->parent_->get_ip_address()).c_str(), this->parent_->get_port());
       return;
     }
 	
