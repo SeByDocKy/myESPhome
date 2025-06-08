@@ -11,7 +11,7 @@
 namespace esphome {
 namespace dmtcp {
 	
-class DMTCPomponent : public PollingComponent{
+class DMTCPComponent : public PollingComponent{
   public:
     void setup() override;
     void update() override;
