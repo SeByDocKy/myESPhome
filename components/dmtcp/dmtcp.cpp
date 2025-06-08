@@ -12,7 +12,11 @@ namespace dmtcp {
   void DMTCPComponent::dump_config() {}
   
   void DMTCPComponent::deye_read_data(){
-	  
+	WiFiClient client;
+	if (!client.connect(this->ip_address_.c_str(), this->port_)) {
+      ESP_LOGE("modbus_tcp", "Failed to connect to Modbus server %s:%d", this->ip_address_.c_str(), this->port_);
+      return;
+    }
 	  
   }
 	
