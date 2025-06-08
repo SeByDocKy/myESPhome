@@ -15,6 +15,7 @@ class DMTCPOutput : public Component, public output::FloatOutput, public Parente
 
  protected:
   // uint8_t channel_;
+  DMTCPComponent *parent_;
   uint8_t write_unit_id_ = 0x02;
   uint8_t write_fcn_code_= 0x06;
   uint16_t start_modbus_address_ = 0x0028;
