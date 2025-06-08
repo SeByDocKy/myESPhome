@@ -33,6 +33,8 @@ class DMTCPComponent : public PollingComponent{
 	uint16_t start_modbus_address_ = 0x006d;
 	uint16_t nb_bytes_to_read_ = 0x0001;
 	
+	float current_pv1_voltage_;
+	
   };
  }  // namespace dmtcp
 }  // namespace esphome
