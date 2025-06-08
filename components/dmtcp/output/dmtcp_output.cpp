@@ -8,7 +8,7 @@ namespace dmtcp {
   static const char *const TAG = "dmtcp.output";
   
   void DMTCPOutput::dump_config() {
-    ESP_LOGCONFIG(TAG, "GP8403 Output:");
+    ESP_LOGCONFIG(TAG, "DMTCP Output:");
   }
   void DMTCPOutput::write_state(float state) {
  
