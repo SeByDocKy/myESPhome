@@ -9,7 +9,7 @@ DEPENDENCIES = ["dmtcp"]
 
 from .. import CONF_DMTCP_ID, DMTCPComponent, dmtcp_ns
 
-DMTCPOutput = offsr_ns.class_("DMTCPOutput", output.FloatOutput, cg.Component)
+DMTCPOutput = dmtcp_ns.class_("DMTCPOutput", output.FloatOutput, cg.Component)
 
 
 CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
