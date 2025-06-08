@@ -52,7 +52,7 @@ namespace dmtcp {
     }
 	
 	// Decode value based on byte order
-    float value = ( response[9] << 8) | response[10];
+    float value = static_cast<float>(( response[9] << 8) | response[10])*0.1f;
 
 	
 	
