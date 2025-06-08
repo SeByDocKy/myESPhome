@@ -4,7 +4,7 @@
 namespace esphome {
 namespace dmtcp {
   static const char *const TAG = "dmtcp";
-  static const uint8_t SIZE_RESPONSE = 256;
+  static const uint8_t SIZE_RESPONSE = 255;
   void DMTCPComponent::setup() {
    ESP_LOGCONFIG(TAG, "Setting up DEYE MODBUS TCP...");
   }
