@@ -48,9 +48,14 @@ dmtcp:
   unit_id: ${unit_id}
   update_interval: ${update_interval}
   
-# sensor:
-  # - platform: dmtcp
-    # dmtcp_id: mydmtcp
-    # pv1_voltage:
-      # name: ${name}_pv1_voltage
+sensor:
+  - platform: dmtcp
+    dmtcp_id: my_dmtcp
+    pv1_voltage:
+      name: ${name}_pv1_voltage
+      
+output:
+  - platform: dmtcp
+    dmtcp_id: my_dmtcp
+    id: my_active_power
 
