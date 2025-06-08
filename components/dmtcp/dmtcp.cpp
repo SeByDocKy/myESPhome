@@ -54,8 +54,6 @@ namespace dmtcp {
 	// Decode value based on byte order
     this->current_pv1_voltage_ = static_cast<float>(( response[9] << 8) | response[10])*0.1f;
 
-	
-	
 	  
   }
 	

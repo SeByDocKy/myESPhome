@@ -24,6 +24,15 @@ class DMTCPComponent : public PollingComponent{
 	void set_unit_id(uint8_t id){this->unit_id_ = id; }
 	
 	void deye_read_data();
+	
+	void add_on_dmtcp_callback(std::function<void()> &&callback) {
+    dmtcp_callback_.add(std::move(callback));
+  }
+	
+#ifdef USE_SENSOR
+    float get_pv1_voltage(void) { return this->current_pv1_voltage_; }
+#endif
+	
   
   protected:
     std::string ip_address_;
@@ -34,6 +43,8 @@ class DMTCPComponent : public PollingComponent{
 	uint16_t nb_bytes_to_read_ = 0x0001;
 	
 	float current_pv1_voltage_;
+	
+	CallbackManager<void()> dmtcp_callback_;
 	
   };
  }  // namespace dmtcp
