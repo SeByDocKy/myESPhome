@@ -13,6 +13,8 @@ namespace dmtcp {
   void DMTCPOutput::write_state(float state) {
    	WiFiClient client;
 	
+	uint16_t value  = static_cast<uint16_t>(state*10);
+	
 	if (!client.connect((this->parent_->get_ip_address()).c_str(), this->parent_->get_port())) {
       ESP_LOGE("modbus_tcp", "Failed to connect to Modbus server %s:%d", (this->parent_->get_ip_address()).c_str(), this->parent_->get_port());
       return;
@@ -26,8 +28,8 @@ namespace dmtcp {
         this->write_fcn_code_, // Function Code (write Holding Registers)
         (uint8_t)((this->start_modbus_address_ >> 8) & 0xFF),  // Start Address (High Byte)
         (uint8_t)(this->start_modbus_address_ & 0xFF),         // Start Address (Low Byte)
-        (uint8_t)((this->nb_bytes_to_read_ >> 8) & 0xFF),      // (High Byte)
-        (uint8_t)(this->nb_bytes_to_read_ & 0xFF),             // (Low Byte)       
+        (uint8_t)((value >> 8) & 0xFF),      // (High Byte)
+        (uint8_t)(value & 0xFF),             // (Low Byte)       
     };
 	
 	client.write(request, sizeof(request));
