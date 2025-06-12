@@ -25,7 +25,7 @@ namespace dmtcp {
 	}
 		
 	
-	uint8_t request[] = {
+	uint8_t request[12] = {
         0x00, 0x01,           // Transaction ID
         0x00, 0x00,           // Protocol ID
         0x00, 0x06,           // Length
