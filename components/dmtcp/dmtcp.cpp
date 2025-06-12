@@ -19,6 +19,10 @@ namespace dmtcp {
 	if (!client.connect(this->ip_address_.c_str(), this->port_)) {
       ESP_LOGE("modbus_tcp", "Failed to connect to Modbus server %s:%d", this->ip_address_.c_str(), this->port_);
       return;
+	else {
+	  ESP_LOGV(TAG, "connected to %s:%d" , this->ip_address_.c_str(), this->port_);
+	}
+		
     }
 	
 	uint8_t request[] = {
@@ -32,6 +36,9 @@ namespace dmtcp {
         (uint8_t)((this->nb_bytes_to_read_ >> 8) & 0xFF),      // (High Byte)
         (uint8_t)(this->nb_bytes_to_read_ & 0xFF),             // (Low Byte)       
     };
+	ESP_LOGV(TAG, "request size %d" , (uint8_t)sizeof(request));
+	ESP_LOGV(TAG, "request %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d" , request[0],request1] , request[2],request[3] , request[4],request[5] , request[6],request[7] , request[8],request[9] , request[10],request[11] , request[12],request[13]);
+	
 	
 	client.write(request, sizeof(request));
     delay(100);
