@@ -7,7 +7,7 @@ namespace dmtcp {
   static const uint8_t SIZE_RESPONSE = 255;
   void DMTCPComponent::setup() {
    ESP_LOGCONFIG(TAG, "Setting up DEYE MODBUS TCP...");
-   ESP_LOGV(TAG, "unit_id %d" , this->read_unit_id_);
+//   ESP_LOGV(TAG, "unit_id %d" , this->read_unit_id_);
   }
   float DMTCPComponent::get_setup_priority() const { return setup_priority::DATA; }
   void DMTCPComponent::update() { this->deye_read_data(); }
@@ -30,13 +30,10 @@ namespace dmtcp {
         0x00, 0x01,           // Transaction ID
         0x00, 0x00,           // Protocol ID
         0x00, 0x06,           // Length
-        //0x08,       // Unit ID
 		this->read_unit_id_,       // Unit ID
         this->read_fcn_code_, // Function Code (Read Holding Registers)
         (uint8_t)((this->start_modbus_address_ >> 8) & 0xFF),  // Start Address (High Byte)
         (uint8_t)(this->start_modbus_address_ & 0xFF),         // Start Address (Low Byte)
-//		0x00,      // (High Byte)
-//        0x01,             // (Low Byte)       
         (uint8_t)((this->nb_bytes_to_read_ >> 8) & 0xFF),      // (High Byte)
         (uint8_t)(this->nb_bytes_to_read_ & 0xFF),             // (Low Byte)       
     };

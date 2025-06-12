@@ -43,9 +43,9 @@ class DMTCPComponent : public PollingComponent{
     std::string ip_address_;
 	uint16_t port_;
 	uint8_t read_unit_id_ = 0x08;
-	uint8_t read_fcn_code_=0x03;
+	uint8_t read_fcn_code_= 0x03;
 	uint16_t start_modbus_address_ = 0x006d;
-	uint16_t nb_bytes_to_read_ = 0x0001;
+	uint16_t nb_bytes_to_read_ = 0x0002;
 	
 	float current_pv1_voltage_;
 	
