@@ -45,6 +45,9 @@ namespace dmtcp {
 	
 	uint8_t response[SIZE_RESPONSE];
     size_t response_len = client.read(response, sizeof(response));
+	
+	ESP_LOGV(TAG, "response size %d" , (uint8_t)response_len);
+	
     if (response_len < 9) {
       ESP_LOGE("modbus_tcp", "Invalid response length: %d", response_len);
       return;
