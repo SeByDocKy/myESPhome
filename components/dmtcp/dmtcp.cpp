@@ -19,6 +19,7 @@ namespace dmtcp {
 	if (!client.connect(this->ip_address_.c_str(), this->port_)) {
       ESP_LOGE("modbus_tcp", "Failed to connect to Modbus server %s:%d", this->ip_address_.c_str(), this->port_);
       return;
+	}
 	else {
 	  ESP_LOGV(TAG, "connected to %s:%d" , this->ip_address_.c_str(), this->port_);
 	}
