@@ -24,7 +24,6 @@ namespace dmtcp {
 	  ESP_LOGV(TAG, "connected to %s:%d" , this->ip_address_.c_str(), this->port_);
 	}
 		
-    }
 	
 	uint8_t request[] = {
         0x00, 0x01,           // Transaction ID
