@@ -37,7 +37,7 @@ namespace dmtcp {
         (uint8_t)(this->nb_bytes_to_read_ & 0xFF),             // (Low Byte)       
     };
 	ESP_LOGV(TAG, "request size %d" , (uint8_t)sizeof(request));
-	ESP_LOGV(TAG, "request %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d" , request[0],request[1] , request[2],request[3] , request[4],request[5] , request[6],request[7] , request[8],request[9] , request[10],request[11] , request[12],request[13]);
+	ESP_LOGV(TAG, "request %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d" , request[0],request[1] , request[2],request[3] , request[4],request[5] , request[6],request[7] , request[8],request[9] , request[10],request[11]);
 	
 	
 	client.write(request, sizeof(request));
