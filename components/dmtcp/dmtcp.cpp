@@ -7,6 +7,7 @@ namespace dmtcp {
   static const uint8_t SIZE_RESPONSE = 255;
   void DMTCPComponent::setup() {
    ESP_LOGCONFIG(TAG, "Setting up DEYE MODBUS TCP...");
+   ESP_LOGV(TAG, "unit_id %d" , this->read_unit_id_);
   }
   float DMTCPComponent::get_setup_priority() const { return setup_priority::DATA; }
   void DMTCPComponent::update() { this->deye_read_data(); }
