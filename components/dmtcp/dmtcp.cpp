@@ -33,8 +33,10 @@ namespace dmtcp {
         (uint8_t)this->read_fcn_code_, // Function Code (Read Holding Registers)
         (uint8_t)((this->start_modbus_address_ >> 8) & 0xFF),  // Start Address (High Byte)
         (uint8_t)(this->start_modbus_address_ & 0xFF),         // Start Address (Low Byte)
-        (uint8_t)((this->nb_bytes_to_read_ >> 8) & 0xFF),      // (High Byte)
-        (uint8_t)(this->nb_bytes_to_read_ & 0xFF),             // (Low Byte)       
+		0x00,      // (High Byte)
+        0x01,             // (Low Byte)       
+//        (uint8_t)((this->nb_bytes_to_read_ >> 8) & 0xFF),      // (High Byte)
+//        (uint8_t)(this->nb_bytes_to_read_ & 0xFF),             // (Low Byte)       
     };
 	ESP_LOGV(TAG, "request size %d" , (uint8_t)sizeof(request));
 	ESP_LOGV(TAG, "request %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d : %d:%d , %d" , request[0],request[1] , request[2],request[3] , request[4],request[5] , request[6],request[7] , request[8],request[9] , request[10],request[11] , this->nb_bytes_to_read_);
