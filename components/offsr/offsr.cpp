@@ -112,7 +112,7 @@ void OFFSRComponent::pid_update() {
 	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , output_);
   
     // if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
-    if ( (!std::isnan(this->power_sensor_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {  		
+    if ( (this->power_sensor_ != nullptr) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {  		
 		output_ = this->current_output_restart_;
 #ifdef USE_BINARY_SENSOR 	  
       this->current_thermostat_cut_= true;
@@ -158,4 +158,5 @@ void OFFSRComponent::pid_update() {
 
  }  // namespace offsr
 }  // namespace esphome
+
 
