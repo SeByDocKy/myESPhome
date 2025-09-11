@@ -8,8 +8,6 @@ namespace sx1509 {
 static const char *const TAG = "sx1509";
 
 void SX1509Component::setup() {
-  ESP_LOGCONFIG(TAG, "Running setup");
-
   ESP_LOGV(TAG, "  Resetting devices");
   if (!this->write_byte(REG_RESET, 0x12)) {
     this->mark_failed();
@@ -41,6 +39,9 @@ void SX1509Component::dump_config() {
 }
 
 void SX1509Component::loop() {
+  // Reset cache at the start of each loop
+  this->reset_pin_cache_();
+
   if (this->has_keypad_) {
     if (millis() - this->last_loop_timestamp_ < min_loop_period_)
       return;
@@ -75,18 +76,20 @@ void SX1509Component::loop() {
   }
 }
 
-bool SX1509Component::digital_read(uint8_t pin) {
+bool SX1509Component::digital_read_hw(uint8_t pin) {
+  // Always read all pins when any input pin is accessed
+  return this->read_byte_16(REG_DATA_B, &this->input_mask_);
+}
+
+bool SX1509Component::digital_read_cache(uint8_t pin) {
+  // Return cached value for input pins, false for output pins
   if (this->ddr_mask_ & (1 << pin)) {
-    uint16_t temp_reg_data;
-    if (!this->read_byte_16(REG_DATA_B, &temp_reg_data))
-      return false;
-    if (temp_reg_data & (1 << pin))
-      return true;
+    return (this->input_mask_ & (1 << pin)) != 0;
   }
   return false;
 }
 
-void SX1509Component::digital_write(uint8_t pin, bool bit_value) {
+void SX1509Component::digital_write_hw(uint8_t pin, bool bit_value) {
   if ((~this->ddr_mask_) & (1 << pin)) {
     // If the pin is an output, write high/low
     uint16_t temp_reg_data = 0;
@@ -188,7 +191,7 @@ void SX1509Component::setup_led_driver(uint8_t pin) {
   this->read_byte(REG_MISC, &temp_byte);
   temp_byte &= ~(1 << 7);  // set linear mode bank B
   temp_byte &= ~(1 << 3);  // set linear mode bank A
-  temp_byte |= 0x20;       // Frequency of the LED Driver clock ClkX of all IOs: 0x70 = 128 as divider 0x20; 0x30 = 2.08Khz, 0x40 = 520Hz
+  temp_byte |= 0x70;       // Frequency of the LED Driver clock ClkX of all IOs:
   this->write_byte(REG_MISC, temp_byte);
 
   this->read_byte_16(REG_LED_DRIVER_ENABLE_B, &temp_word);
