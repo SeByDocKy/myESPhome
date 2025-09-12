@@ -48,6 +48,7 @@ UNIT_VOLT_AMPS_REACTIVE = "VAr"
 
 ICON_FREQUENCY = "mdi:sine-wave"
 ICON_NUMERIC = "mdi:numeric"
+ICON_COUNTER = "mdi:counter"
 
 CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = ["modbus"]
@@ -113,12 +114,14 @@ CONFIG_SCHEMA = (
                 unit_of_measurement=UNIT_KILOWATT_HOURS,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_ENERGY,
+				icon=ICON_COUNTER,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),
             cv.Optional(CONF_REACTIVE_ENERGY): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOVOLT_AMPS_REACTIVE_HOURS,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_ENERGY,
+				icon=ICON_COUNTER,
                 state_class=STATE_CLASS_TOTAL_INCREASING,
             ),    
 	    cv.Optional(CONF_ACDC_MODE): sensor.sensor_schema(
@@ -141,6 +144,7 @@ CONFIG_SCHEMA = (
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
+				icon=ICON_COUNTER,
                 state_class=STATE_CLASS_MEASUREMENT,
 	    ),
             cv.Optional(CONF_NEG_ACTIVE_ENERGY): sensor.sensor_schema(
@@ -148,6 +152,7 @@ CONFIG_SCHEMA = (
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
+				icon=ICON_COUNTER,
                 state_class=STATE_CLASS_MEASUREMENT,
 	    ),
             cv.Optional(CONF_POS_REACTIVE_ENERGY): sensor.sensor_schema(
@@ -155,6 +160,7 @@ CONFIG_SCHEMA = (
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
+				icon=ICON_COUNTER,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_NEG_REACTIVE_ENERGY): sensor.sensor_schema(
@@ -162,6 +168,7 @@ CONFIG_SCHEMA = (
                 icon=ICON_POWER,
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
+				icon=ICON_COUNTER,
                 state_class=STATE_CLASS_MEASUREMENT,
 	     ),			
 	}
