@@ -1,0 +1,103 @@
+substitutions:
+  name: testetek
+  my_second: '59'
+  my_minute: '59'
+  my_hours: '23'
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 5.5.1
+    platform_version: 55.03.30-2
+      
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "ETEK Fallback Hotspot"
+    password: "eVt5yd7PvHjS"
+
+time:
+  - platform: homeassistant # sntp
+    id: my_time
+
+uart:
+  id: uart_0
+  tx_pin: GPIO01
+  rx_pin: GPIO03
+  baud_rate: 9600 
+  
+packages:
+
+  modbus_9600: 
+    url: https://github.com/SeByDocKy/pvbrain2
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'pvbrain2/base/device_modbus.yaml'
+        vars:
+          modbus_id: 'modbus_9600'
+          modbus_uart_id: uart_0
+          modbus_send_wait_time: '100ms'
+          
+  deye:
+    url: https://github.com/SeByDocKy/pvbrain2
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'pvbrain2/inverter/deye/device_deye.yaml' 
+        vars:
+          inverter_name: 'deye'
+          inverter_modbus_id: 'modbus_9600'
+          inverter_modbus_address: '1'
+          inverter_modbus_throttle: '100ms'
+          inverter_update_interval: '2s'
+          inverter_template_update: '2s'
+          inverter_text_update: '5s'
+
+  evse: 
+    url: https://github.com/SeByDocKy/pvbrain2
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'pvbrain2/evse/etek/device_ekepc2.yaml'
+        vars:
+          evse_name: 'evse'
+          evse_modbus_id: 'modbus_9600'
+          evse_modbus_address: '2'
+          evse_modbus_throttle: '00ms'
+          evse_update_interval: '2s'
+          evse_template_update: '2s'
+
+  regul_etek: 
+    url: https://github.com/SeByDocKy/pvbrain2
+    ref: main
+    refresh: 0s
+    
+    files: 
+      - path: 'pvbrain2/solar_router/device_offsr_basic.yaml'
+        vars:
+          offsr_name: 'regul_etek'
+          offsr_id: 'evse_id'
+          offsr_battery_current_id: 'deye_battery_current'
+          offsr_battery_voltage_id: 'deye_battery_voltage'
+          offsr_output_id: 'evse_output'
+          offsr_windows_size: '1'          
+
