@@ -131,7 +131,7 @@ async def to_code(config):
     cg.add_build_flag("-std=gnu++17")
     cg.add_build_flag("-fexceptions")
     cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
-    cg.add_library("SPI", None)
+    # cg.add_library("SPI", None)
     cg.add_library("esphome-hoymiles-libs", None, "https://github.com/nedyarrd/esphome-hoymiles-libs")
     cg.add_library("Hoymiles", None, "https://github.com/nedyarrd/esphome-hoymiles-main")
     cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A")
