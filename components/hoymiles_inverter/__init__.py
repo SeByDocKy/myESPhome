@@ -135,6 +135,7 @@ async def to_code(config):
     cg.add_library("esphome-hoymiles-libs", None, "https://github.com/nedyarrd/esphome-hoymiles-libs")
     cg.add_library("Hoymiles", None, "https://github.com/nedyarrd/esphome-hoymiles-main")
     cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A")
+    cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/SpiManager")
     var = cg.new_Pvariable(config[CONF_ID])
 
     for inv_conf in config[CONF_INVERTERS]:
