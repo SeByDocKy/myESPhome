@@ -43,7 +43,7 @@ void HoymilesInverter::set_limit_absolute_number(HoymilesNumber* number) {
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
             ESP_LOGI(TAG, "set_limit_absolute_number(): New limit absolute: %.0f", value);
-            this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::AbsolutPersistent);
+            this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::AbsolutNonPersistent);
         }
     });
 }
