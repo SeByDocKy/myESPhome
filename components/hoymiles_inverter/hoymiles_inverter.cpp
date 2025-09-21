@@ -32,7 +32,8 @@ void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) {
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
             ESP_LOGI(TAG, "set_limit_percent_number(): New limit percent: %.0f", value);
-            this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);
+            // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);
+            this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
         }
     });
 }
