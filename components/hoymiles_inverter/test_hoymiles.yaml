@@ -70,6 +70,10 @@ hoymiles_inverter:
             name: ${name}_channel_0_voltage
         - power:
             name: ${name}_channel_1_power
+          current: # Current in A
+            name: ${name}_channel_1_current
+          voltage: # Voltage in V
+            name: ${name}_channel_1_voltage  
       ac_channel:
         power:
           name: ${name}_ac_power
@@ -77,6 +81,6 @@ hoymiles_inverter:
         power:
           name: ${name}_inverter_power
         energy: # Today's Energy in Wh
-          name: ${name}_inverter_energy
+          name: ${name}_inverter_energy_today
 
 
