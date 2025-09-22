@@ -7,7 +7,7 @@ namespace jk_bms {
 
 static const char *const TAG = "jk_bms";
 
-static const uint8_t MAX_NO_RESPONSE_COUNT = 5;
+static const uint8_t MAX_NO_RESPONSE_COUNT = 7; #5
 
 static const uint8_t FUNCTION_READ_ALL = 0x06;
 static const uint8_t FUNCTION_WRITE_REGISTER = 0x02;
