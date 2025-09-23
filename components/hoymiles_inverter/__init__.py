@@ -130,7 +130,7 @@ async def to_code(config):
     # cg.add_build_flag("-std=c++17")
     # cg.add_build_flag("-std=gnu++17")
     cg.add_build_flag("-fexceptions")
-    # cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
+    cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
 
     # cg.add_library("SPI", None)
     # cg.add_library("RF24", None, "https://github.com/nRF24/RF24")
