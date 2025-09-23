@@ -129,7 +129,7 @@ async def channel_to_code(config):
 async def to_code(config):
     # cg.add_build_flag("-std=c++17")
     # cg.add_build_flag("-std=gnu++17")
-    # cg.add_build_flag("-fexceptions")
+    cg.add_build_flag("-fexceptions")
     # cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
 
     # cg.add_library("SPI", None)
