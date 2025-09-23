@@ -16,7 +16,6 @@ esp32:
     # platform_version: 55.03.30-2
    
 external_components:
-
   - source: "github://SeByDocKy/myESPhome/"
     components: [hoymiles_inverter]
     refresh: 0s
@@ -63,24 +62,66 @@ hoymiles_inverter:
         name: ${name}_reachable
       dc_channels:
         - power: # Power in W
-            name: ${name}_channel_0_power
+            name: ${name}_pv0_power
           current: # Current in A
-            name: ${name}_channel_0_current
+            name: ${name}_pv0_current
             icon: mdi:current-dc
           voltage: # Voltage in V
-            name: ${name}_channel_0_voltage
+            name: ${name}_pv0_voltage
+          energy: 
+            name: ${name}_pv0_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001
         - power:
-            name: ${name}_channel_1_power
+            name: ${name}_pv1_power
           current: # Current in A
-            name: ${name}_channel_1_current
+            name: ${name}_pv1_current
             icon: mdi:current-dc
           voltage: # Voltage in V
-            name: ${name}_channel_1_voltage  
+            name: ${name}_pv1_voltage
+          energy: 
+            name: ${name}_pv1_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001  
+        - power: # Power in W
+            name: ${name}_pv2_power
+          current: # Current in A
+            name: ${name}_pv2_current
+            icon: mdi:current-dc
+          voltage: # Voltage in V
+            name: ${name}_pv2_voltage
+          energy: 
+            name: ${name}_pv2_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001  
+        - power:
+            name: ${name}_pv3_power
+          current: # Current in A
+            name: ${name}_pv3_current
+            icon: mdi:current-dc
+          voltage: # Voltage in V
+            name: ${name}_pv3_voltage
+          energy: 
+            name: ${name}_pv3_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001  
       ac_channel:
         power:
           name: ${name}_ac_power
         energy: 
-          name: ${name}_ac_power_today
+          name: ${name}_ac_energy_today
           device_class: energy
           icon: mdi:counter
           unit_of_measurement: 'kWh'
@@ -96,5 +137,3 @@ hoymiles_inverter:
           unit_of_measurement: 'kWh'
           filters: 
             - multiply: 0.001
-
-
