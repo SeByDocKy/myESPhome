@@ -18,7 +18,7 @@ CODEOWNERS = ["@kvj"]
 DEPENDENCIES = []
 AUTO_LOAD = ["sensor", "number", "binary_sensor"]
 
-MULTI_CONF = False
+MULTI_CONF = True #False
 
 CONF_PINS = "pins"
 CONF_SDIO = "sdio"
