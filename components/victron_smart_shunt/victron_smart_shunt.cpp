@@ -8,45 +8,45 @@ static const char *const TAG = "victron_smart_shunt";
 
 void VictronSmartShuntComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "VictronSmartShunt:");
-  LOG_SENSOR("  ", "Max Power Yesterday", max_power_yesterday_sensor_);
-  LOG_SENSOR("  ", "Max Power Today", max_power_today_sensor_);
-  LOG_SENSOR("  ", "Yield Total", yield_total_sensor_);
-  LOG_SENSOR("  ", "Yield Yesterday", yield_yesterday_sensor_);
-  LOG_SENSOR("  ", "Yield Today", yield_today_sensor_);
-  LOG_SENSOR("  ", "Panel Voltage", panel_voltage_sensor_);
-  LOG_SENSOR("  ", "Panel Power", panel_power_sensor_);
-  LOG_SENSOR("  ", "Battery Voltage", battery_voltage_sensor_);
-  LOG_SENSOR("  ", "Battery Current", battery_current_sensor_);
-  LOG_SENSOR("  ", "Load Current", load_current_sensor_);
-  LOG_SENSOR("  ", "Day Number", day_number_sensor_);
-  LOG_SENSOR("  ", "Charger Status", charger_status_sensor_);
-  LOG_SENSOR("  ", "Error Code", error_code_sensor_);
-  LOG_TEXT_SENSOR("  ", "Charger Text", charger_text_sensor_);
-  LOG_TEXT_SENSOR("  ", "Error Text", error_text_sensor_);
-  LOG_TEXT_SENSOR("  ", "Tracker Operation", tracker_operation_sensor_);
-  LOG_TEXT_SENSOR("  ", "FW Version", fw_version_sensor_);
-  LOG_TEXT_SENSOR("  ", "PID", pid_sensor_);
+  // LOG_SENSOR("  ", "Max Power Yesterday", max_power_yesterday_sensor_);
+  // LOG_SENSOR("  ", "Max Power Today", max_power_today_sensor_);
+  // LOG_SENSOR("  ", "Yield Total", yield_total_sensor_);
+  // LOG_SENSOR("  ", "Yield Yesterday", yield_yesterday_sensor_);
+  // LOG_SENSOR("  ", "Yield Today", yield_today_sensor_);
+  // LOG_SENSOR("  ", "Panel Voltage", panel_voltage_sensor_);
+  // LOG_SENSOR("  ", "Panel Power", panel_power_sensor_);
+  // LOG_SENSOR("  ", "Battery Voltage", battery_voltage_sensor_);
+  // LOG_SENSOR("  ", "Battery Current", battery_current_sensor_);
+  // LOG_SENSOR("  ", "Load Current", load_current_sensor_);
+  // LOG_SENSOR("  ", "Day Number", day_number_sensor_);
+  // LOG_SENSOR("  ", "Charger Status", charger_status_sensor_);
+  // LOG_SENSOR("  ", "Error Code", error_code_sensor_);
+  // LOG_TEXT_SENSOR("  ", "Charger Text", charger_text_sensor_);
+  // LOG_TEXT_SENSOR("  ", "Error Text", error_text_sensor_);
+  // LOG_TEXT_SENSOR("  ", "Tracker Operation", tracker_operation_sensor_);
+  // LOG_TEXT_SENSOR("  ", "FW Version", fw_version_sensor_);
+  // LOG_TEXT_SENSOR("  ", "PID", pid_sensor_);
 
-  LOG_SENSOR("  ", "Instantaneous power", instantaneous_power_sensor_);
-  LOG_SENSOR("  ", "Time to go", time_to_go_sensor_);
-  LOG_SENSOR("  ", "Consumed amp hours", consumed_amp_hours_sensor_);
-  LOG_SENSOR("  ", "State of Charge", state_of_charge_sensor_);
+  // LOG_SENSOR("  ", "Instantaneous power", instantaneous_power_sensor_);
+  // LOG_SENSOR("  ", "Time to go", time_to_go_sensor_);
+  // LOG_SENSOR("  ", "Consumed amp hours", consumed_amp_hours_sensor_);
+  // LOG_SENSOR("  ", "State of Charge", state_of_charge_sensor_);
 
-  LOG_TEXT_SENSOR("  ", "BMV-Alarm", bmv_alarm_sensor_);
-  LOG_TEXT_SENSOR("  ", "BMV-Alarm Reason", bmv_alarm_reason_sensor_);
-  LOG_TEXT_SENSOR("  ", "BMV-PID", bmv_sensor_);
+  // LOG_TEXT_SENSOR("  ", "BMV-Alarm", bmv_alarm_sensor_);
+  // LOG_TEXT_SENSOR("  ", "BMV-Alarm Reason", bmv_alarm_reason_sensor_);
+  // LOG_TEXT_SENSOR("  ", "BMV-PID", bmv_sensor_);
 
-  LOG_SENSOR("  ", "Minimum main (battery) voltage", min_battery_voltage_sensor_);
-  LOG_SENSOR("  ", "Maximum main (battery) voltage", max_battery_voltage_sensor_);
-  LOG_SENSOR("  ", "Amount of charged energy", amount_of_charged_sensor_);
+  // LOG_SENSOR("  ", "Minimum main (battery) voltage", min_battery_voltage_sensor_);
+  // LOG_SENSOR("  ", "Maximum main (battery) voltage", max_battery_voltage_sensor_);
+  // LOG_SENSOR("  ", "Amount of charged energy", amount_of_charged_sensor_);
 
-  LOG_SENSOR("  ", "Number of charge cycles", number_of_charge_cycles_sensor_);
-  LOG_SENSOR("  ", "Number of full discharges", number_of_full_discharges_sensor_);
+  // LOG_SENSOR("  ", "Number of charge cycles", number_of_charge_cycles_sensor_);
+  // LOG_SENSOR("  ", "Number of full discharges", number_of_full_discharges_sensor_);
 
-  LOG_SENSOR("  ", "Number of seconds since last full charge", last_full_charge_sensor_);
-  LOG_SENSOR("  ", "Depth of the deepest discharge", depth_deepest_dis_sensor_);
-  LOG_SENSOR("  ", "Depth of the last discharge", depth_of_the_last_discharge_sensor_);
-  LOG_SENSOR("  ", "Amount of discharged energy", amount_of_discharged_energy_sensor_);
+  // LOG_SENSOR("  ", "Number of seconds since last full charge", last_full_charge_sensor_);
+  // LOG_SENSOR("  ", "Depth of the deepest discharge", depth_deepest_dis_sensor_);
+  // LOG_SENSOR("  ", "Depth of the last discharge", depth_of_the_last_discharge_sensor_);
+  // LOG_SENSOR("  ", "Amount of discharged energy", amount_of_discharged_energy_sensor_);
 
   check_uart_settings(19200);
 }
