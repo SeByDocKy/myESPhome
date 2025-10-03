@@ -60,7 +60,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
-    await cg.register_component(var, config)
+    # await cg.register_component(var, config)
     
     # Enregistrement du device SPI avec le parent spécifié
     await spi.register_spi_device(var, config)
@@ -89,4 +89,5 @@ async def to_code(config):
     cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
     cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
+    
     await cg.register_component(var, config)
