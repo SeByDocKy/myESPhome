@@ -1,15 +1,17 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import spi
 from esphome.const import CONF_ID
 from esphome import pins
 
-DEPENDENCIES = ["spi"]
+DEPENDENCIES = []
 CODEOWNERS = ["@your_github"]
+AUTO_LOAD = []
 
 cmt2300a_ns = cg.esphome_ns.namespace("cmt2300a")
-CMT2300AComponent = cmt2300a_ns.class_("CMT2300AComponent", cg.Component, spi.SPIDevice)
+CMT2300AComponent = cmt2300a_ns.class_("CMT2300AComponent", cg.Component)
 
+CONF_SCLK_PIN = "sclk_pin"
+CONF_SDIO_PIN = "sdio_pin"
 CONF_CS_PIN = "cs_pin"
 CONF_FCS_PIN = "fcs_pin"
 CONF_GPIO1_PIN = "gpio1_pin"
@@ -17,6 +19,8 @@ CONF_GPIO2_PIN = "gpio2_pin"
 CONF_GPIO3_PIN = "gpio3_pin"
 CONF_FREQUENCY = "frequency"
 CONF_DATA_RATE = "data_rate"
+CONF_TX_POWER = "tx_power"
+CONF_ENABLE_CRC = "enable_crc"
 
 FREQUENCIES = {
     "433MHz": 433000000,
@@ -27,25 +31,37 @@ FREQUENCIES = {
 DATA_RATES = {
     "2kbps": 2000,
     "10kbps": 10000,
+    "38.4kbps": 38400,
+    "100kbps": 100000,
     "250kbps": 250000,
 }
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(CMT2300AComponent),
+    cv.Required(CONF_SCLK_PIN): pins.gpio_output_pin_schema,
+    cv.Required(CONF_SDIO_PIN): pins.gpio_pin_schema,  # Bidirectionnel
     cv.Required(CONF_CS_PIN): pins.gpio_output_pin_schema,
     cv.Required(CONF_FCS_PIN): pins.gpio_output_pin_schema,
     cv.Optional(CONF_GPIO1_PIN): pins.gpio_input_pin_schema,
-    cv.Optional(CONF_GPIO2_PIN): pins.gpio_input_pin_schema,
-    cv.Optional(CONF_GPIO3_PIN): pins.gpio_input_pin_schema,
+    cv.Optional(CONF_GPIO2_PIN): pins.gpio_pin_schema,
+    cv.Optional(CONF_GPIO3_PIN): pins.gpio_pin_schema,
     cv.Optional(CONF_FREQUENCY, default="868MHz"): cv.enum(FREQUENCIES),
     cv.Optional(CONF_DATA_RATE, default="250kbps"): cv.enum(DATA_RATES),
-}).extend(cv.COMPONENT_SCHEMA).extend(spi.spi_device_schema(cs_pin_required=False))
+    cv.Optional(CONF_TX_POWER, default=20): cv.int_range(min=0, max=20),
+    cv.Optional(CONF_ENABLE_CRC, default=True): cv.boolean,
+}).extend(cv.COMPONENT_SCHEMA)
 
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    await spi.register_spi_device(var, config)
+    
+    # Configuration des pins
+    sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
+    cg.add(var.set_sclk_pin(sclk))
+    
+    sdio = await cg.gpio_pin_expression(config[CONF_SDIO_PIN])
+    cg.add(var.set_sdio_pin(sdio))
     
     cs = await cg.gpio_pin_expression(config[CONF_CS_PIN])
     cg.add(var.set_cs_pin(cs))
@@ -65,5 +81,12 @@ async def to_code(config):
         gpio3 = await cg.gpio_pin_expression(config[CONF_GPIO3_PIN])
         cg.add(var.set_gpio3_pin(gpio3))
     
+    # Configuration radio
     cg.add(var.set_frequency(config[CONF_FREQUENCY]))
     cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
+    cg.add(var.set_tx_power(config[CONF_TX_POWER]))
+    cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
+    
+    # Ajout des includes ESP-IDF nécessaires
+    cg.add_platformio_option("lib_deps", [])
+    cg.add_build_flag("-DUSE_ESP_IDF")
