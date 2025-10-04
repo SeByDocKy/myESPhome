@@ -89,9 +89,9 @@ async def to_code(config):
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
     cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
     
-    # Ajout des includes ESP-IDF nécessaires
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
