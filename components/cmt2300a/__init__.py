@@ -49,13 +49,13 @@ CONFIG_SCHEMA = (
    cv.Schema(
     {
        cv.GenerateID(): cv.declare_id(CMT2300AComponent),
-       cv.Required(CONF_SCLK_PIN): pins.gpio_output_pin_schema,
-       cv.Required(CONF_SDIO_PIN): pins.gpio_pin_schema,  # Bidirectionnel
-       cv.Required(CONF_CS_PIN): pins.gpio_output_pin_schema,
-       cv.Required(CONF_FCS_PIN): pins.gpio_output_pin_schema,
-       cv.Optional(CONF_GPIO1_PIN): pins.gpio_input_pin_schema,
-       cv.Optional(CONF_GPIO2_PIN): pins.gpio_pin_schema,
-       cv.Optional(CONF_GPIO3_PIN): pins.gpio_pin_schema,
+       # cv.Required(CONF_SCLK_PIN): pins.gpio_output_pin_schema,
+       # cv.Required(CONF_SDIO_PIN): pins.gpio_pin_schema,  # Bidirectionnel
+       # cv.Required(CONF_CS_PIN): pins.gpio_output_pin_schema,
+       # cv.Required(CONF_FCS_PIN): pins.gpio_output_pin_schema,
+       # cv.Optional(CONF_GPIO1_PIN): pins.gpio_input_pin_schema,
+       # cv.Optional(CONF_GPIO2_PIN): pins.gpio_pin_schema,
+       # cv.Optional(CONF_GPIO3_PIN): pins.gpio_pin_schema,
        cv.Optional(CONF_FREQUENCY, default="868MHz"): cv.enum(FREQUENCIES),
        cv.Optional(CONF_DATA_RATE, default="250kbps"): cv.enum(DATA_RATES),
        cv.Optional(CONF_TX_POWER, default=20): cv.int_range(min=0, max=20),
@@ -93,6 +93,7 @@ async def to_code(config):
     
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
