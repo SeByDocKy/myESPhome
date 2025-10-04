@@ -79,7 +79,7 @@ class CMT2300AComponent : public Component {
  protected:
   // SPI Arduino
   SPIClass *spi_{nullptr};
-  SPISettings spi_settings_{1000000, MSBFIRST, SPI_MODE0};
+  SPISettings spi_settings_{1000000, SPI_MSBFIRST, SPI_MODE0};
   
   // Accès registres (via cs_pin_)
   void write_register_(uint8_t reg, uint8_t value);
