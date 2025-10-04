@@ -5,8 +5,6 @@
 namespace esphome {
 namespace cmt2300a {
 
-// /*
-
 static const char *const TAG = "cmt2300a";
 
 void CMT2300AComponent::setup() {
@@ -582,8 +580,5 @@ uint8_t CMT2300AComponent::get_rssi() {
   return this->read_register_(0x50);
 }
 
-// */
 }  // namespace cmt2300a
 }  // namespace esphome
-
-
