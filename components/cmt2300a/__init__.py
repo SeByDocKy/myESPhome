@@ -59,8 +59,9 @@ CONFIG_SCHEMA = (
        cv.Optional(CONF_FREQUENCY, default="868MHz"): cv.enum(FREQUENCIES),
        cv.Optional(CONF_DATA_RATE, default="250kbps"): cv.enum(DATA_RATES),
        cv.Optional(CONF_TX_POWER, default=20): cv.int_range(min=0, max=20),
-      cv.Optional(CONF_ENABLE_CRC, default=True): cv.boolean,
-  }).extend(cv.COMPONENT_SCHEMA)
+       cv.Optional(CONF_ENABLE_CRC, default=True): cv.boolean,
+    }
+   ) #.extend(cv.COMPONENT_SCHEMA)
 )
 
 async def to_code(config):
@@ -91,6 +92,7 @@ async def to_code(config):
     
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
