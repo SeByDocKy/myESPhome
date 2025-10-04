@@ -3,9 +3,9 @@ import esphome.config_validation as cv
 from esphome.const import CONF_ID
 from esphome import pins
 
-# DEPENDENCIES = []
+DEPENDENCIES = []
 CODEOWNERS = ["@SeByDocKy"]
-# AUTO_LOAD = []
+AUTO_LOAD = []
 MULTI_CONF = True
 
 cmt2300a_ns = cg.esphome_ns.namespace("cmt2300a")
@@ -92,6 +92,7 @@ async def to_code(config):
     # Ajout des includes ESP-IDF nécessaires
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
