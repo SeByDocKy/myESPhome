@@ -273,18 +273,24 @@ uint8_t CMT2300AComponent::read_register_(uint8_t reg) {
   this->cs_pin_->digital_write(false);
   delayMicroseconds(2);
   
-  // Écriture adresse (R/W=1)
+  // Phase 1: Écriture adresse (SDIO en OUTPUT)
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   this->spi_write_byte_(0x80 | (reg & 0x7F));
   
-  // Petit délai pour turnaround
+  // Phase 2: Changement de direction SDIO vers INPUT
+  delayMicroseconds(1);
+  this->sdio_pin_->pin_mode(gpio::FLAG_INPUT);
   delayMicroseconds(1);
   
-  // Lecture data
+  // Phase 3: Lecture data
   uint8_t value = 0;
   this->spi_read_byte_(&value);
   
   delayMicroseconds(2);
   this->cs_pin_->digital_write(true);
+  
+  // Remettre SDIO en OUTPUT pour la prochaine transaction
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   
   ESP_LOGVV(TAG, "Read reg 0x%02X = 0x%02X", reg, value);
   return value;
