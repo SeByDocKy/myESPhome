@@ -4,7 +4,7 @@ from esphome.const import CONF_ID
 from esphome import pins
 
 DEPENDENCIES = []
-CODEOWNERS = ["@your_github"]
+CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = []
 
 cmt2300a_ns = cg.esphome_ns.namespace("cmt2300a")
@@ -77,8 +77,9 @@ async def to_code(config):
     cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
     
     # Ajout des includes ESP-IDF nécessaires
-    # cg.add_platformio_option("lib_deps", [])
-    # cg.add_build_flag("-DUSE_ESP_IDF")
+    cg.add_platformio_option("lib_deps", [])
+    cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
