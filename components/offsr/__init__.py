@@ -1,8 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor, output, time
-# from esphome import automation
-# from esphome.automation import maybe_simple_id
 
 CODEOWNERS = ["@sebydocky"]
 DEPENDENCIES = ["time"]
@@ -56,18 +54,4 @@ async def to_code(config):
     if CONF_POWER_ID in config:
         sens = await cg.get_variable(config[CONF_POWER_ID])
         cg.add(var.set_power_sensor(sens))
-    
-    
-# @automation.register_action(
-    # "offsr.pid_update",
-    # PidUpdateAction,
-    # maybe_simple_id(
-        # {
-            # cv.Required(CONF_ID): cv.use_id(OFFSRComponent),
-        # }
-    # ),
-# )
-# async def pid_update_to_code(config, action_id, template_arg, args):
-    # parent = await cg.get_variable(config[CONF_ID])
-    # return cg.new_Pvariable(action_id, template_arg, parent)        
- 
+     
