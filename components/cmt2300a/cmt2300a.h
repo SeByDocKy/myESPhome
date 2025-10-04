@@ -13,6 +13,7 @@
 namespace esphome {
 namespace cmt2300a {
 
+/*
 // Registres CMT2300A
 static const uint8_t CMT2300A_REG_MODE_CTL = 0x00;
 static const uint8_t CMT2300A_REG_MODE_STA = 0x01;
@@ -150,5 +151,8 @@ class CMT2300AComponent : public Component {
   uint32_t crc_error_count_{0};
 };
 
+*/
+
 }  // namespace cmt2300a
 }  // namespace esphome
+
