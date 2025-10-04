@@ -56,7 +56,6 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     
-    # Configuration des pins
     sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
     cg.add(var.set_sclk_pin(sclk))
     
@@ -81,7 +80,6 @@ async def to_code(config):
         gpio3 = await cg.gpio_pin_expression(config[CONF_GPIO3_PIN])
         cg.add(var.set_gpio3_pin(gpio3))
     
-    # Configuration radio
     cg.add(var.set_frequency(config[CONF_FREQUENCY]))
     cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
@@ -90,4 +88,5 @@ async def to_code(config):
     # Ajout des includes ESP-IDF nécessaires
     # cg.add_platformio_option("lib_deps", [])
     # cg.add_build_flag("-DUSE_ESP_IDF")
+
 
