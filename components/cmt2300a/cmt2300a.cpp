@@ -152,11 +152,15 @@ void CMT2300AComponent::dump_config() {
 bool CMT2300AComponent::init_spi_() {
   ESP_LOGD(TAG, "Initializing ESP-IDF SPI in half-duplex mode...");
   
+  // Récupération des numéros de GPIO
+  gpio_num_t sdio_gpio = (gpio_num_t) this->sdio_pin_->get_pin_number();
+  gpio_num_t sclk_gpio = (gpio_num_t) this->sclk_pin_->get_pin_number();
+  
   // Configuration du bus SPI
   spi_bus_config_t bus_cfg = {};
-  bus_cfg.mosi_io_num = this->sdio_pin_->get_pin();  // SDIO comme MOSI
-  bus_cfg.miso_io_num = this->sdio_pin_->get_pin();  // SDIO comme MISO
-  bus_cfg.sclk_io_num = this->sclk_pin_->get_pin();
+  bus_cfg.mosi_io_num = sdio_gpio;  // SDIO comme MOSI
+  bus_cfg.miso_io_num = sdio_gpio;  // SDIO comme MISO
+  bus_cfg.sclk_io_num = sclk_gpio;
   bus_cfg.quadwp_io_num = -1;
   bus_cfg.quadhd_io_num = -1;
   bus_cfg.max_transfer_sz = 256;
