@@ -58,31 +58,33 @@ CONFIG_SCHEMA = (
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
-    cg.add(var.set_sclk_pin(sclk))
-    sdio = await cg.gpio_pin_expression(config[CONF_SDIO_PIN])
-    cg.add(var.set_sdio_pin(sdio))
-    cs = await cg.gpio_pin_expression(config[CONF_CS_PIN])
-    cg.add(var.set_cs_pin(cs))
-    fcs = await cg.gpio_pin_expression(config[CONF_FCS_PIN])
-    cg.add(var.set_fcs_pin(fcs))
-    if CONF_GPIO1_PIN in config:
-        gpio1 = await cg.gpio_pin_expression(config[CONF_GPIO1_PIN])
-        cg.add(var.set_gpio1_pin(gpio1))
-    if CONF_GPIO2_PIN in config:
-        gpio2 = await cg.gpio_pin_expression(config[CONF_GPIO2_PIN])
-        cg.add(var.set_gpio2_pin(gpio2))
-    if CONF_GPIO3_PIN in config:
-        gpio3 = await cg.gpio_pin_expression(config[CONF_GPIO3_PIN])
-        cg.add(var.set_gpio3_pin(gpio3))
-    cg.add(var.set_frequency(config[CONF_FREQUENCY]))
-    cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
-    cg.add(var.set_tx_power(config[CONF_TX_POWER]))
-    cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
     
-    # Ajout des includes ESP-IDF nécessaires
-    cg.add_platformio_option("lib_deps", [])
-    cg.add_build_flag("-DUSE_ESP_IDF")
+    # sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
+    # cg.add(var.set_sclk_pin(sclk))
+    # sdio = await cg.gpio_pin_expression(config[CONF_SDIO_PIN])
+    # cg.add(var.set_sdio_pin(sdio))
+    # cs = await cg.gpio_pin_expression(config[CONF_CS_PIN])
+    # cg.add(var.set_cs_pin(cs))
+    # fcs = await cg.gpio_pin_expression(config[CONF_FCS_PIN])
+    # cg.add(var.set_fcs_pin(fcs))
+    # if CONF_GPIO1_PIN in config:
+    #     gpio1 = await cg.gpio_pin_expression(config[CONF_GPIO1_PIN])
+    #     cg.add(var.set_gpio1_pin(gpio1))
+    # if CONF_GPIO2_PIN in config:
+    #     gpio2 = await cg.gpio_pin_expression(config[CONF_GPIO2_PIN])
+    #     cg.add(var.set_gpio2_pin(gpio2))
+    # if CONF_GPIO3_PIN in config:
+    #     gpio3 = await cg.gpio_pin_expression(config[CONF_GPIO3_PIN])
+    #     cg.add(var.set_gpio3_pin(gpio3))
+    # cg.add(var.set_frequency(config[CONF_FREQUENCY]))
+    # cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
+    # cg.add(var.set_tx_power(config[CONF_TX_POWER]))
+    # cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
+    
+    # # Ajout des includes ESP-IDF nécessaires
+    # cg.add_platformio_option("lib_deps", [])
+    # cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
