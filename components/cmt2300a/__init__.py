@@ -86,13 +86,14 @@ async def to_code(config):
 #     if CONF_GPIO3_PIN in config:
 #         gpio3 = await cg.gpio_pin_expression(config[CONF_GPIO3_PIN])
 #         cg.add(var.set_gpio3_pin(gpio3))
-#     cg.add(var.set_frequency(config[CONF_FREQUENCY]))
-#     cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
-#     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
-#     cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
+    cg.add(var.set_frequency(config[CONF_FREQUENCY]))
+    cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
+    cg.add(var.set_tx_power(config[CONF_TX_POWER]))
+    cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
     
-#     cg.add_platformio_option("lib_deps", [])
-#     cg.add_build_flag("-DUSE_ESP_IDF")
+    cg.add_platformio_option("lib_deps", [])
+    cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
