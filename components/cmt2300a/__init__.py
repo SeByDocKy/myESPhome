@@ -48,7 +48,8 @@ DATA_RATES = {
 CONFIG_SCHEMA = (
    cv.Schema(
     {
-       cv.GenerateID(): cv.declare_id(CMT2300AComponent),
+       cv.GenerateID(): cv.declare_id(CMT2300AComponent),  
+       cv.Required(CONF_SCLK_PIN): pins.gpio_output_pin_schema{pins.CONF_OUTPUT: True, pins.CONF_INPUT: False},      
        # cv.Required(CONF_SCLK_PIN): pins.gpio_output_pin_schema,
        # cv.Required(CONF_SDIO_PIN): pins.gpio_pin_schema,  # Bidirectionnel
        # cv.Required(CONF_CS_PIN): pins.gpio_output_pin_schema,
@@ -69,8 +70,8 @@ async def to_code(config):
     await cg.register_component(var, config)
     
     
-#     sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
-#     cg.add(var.set_sclk_pin(sclk))
+    sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
+    cg.add(var.set_sclk_pin(sclk))
 #     sdio = await cg.gpio_pin_expression(config[CONF_SDIO_PIN])
 #     cg.add(var.set_sdio_pin(sdio))
 #     cs = await cg.gpio_pin_expression(config[CONF_CS_PIN])
@@ -93,6 +94,7 @@ async def to_code(config):
     
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
