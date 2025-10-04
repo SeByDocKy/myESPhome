@@ -51,8 +51,14 @@ class CMT2300AComponent : public Component {
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
 
   // Configuration des pins
-  void set_sclk_pin(GPIOPin *pin) { sclk_pin_ = pin; }
-  void set_sdio_pin(GPIOPin *pin) { sdio_pin_ = pin; }
+  void set_sclk_pin(GPIOPin *pin) { 
+    sclk_pin_ = pin; 
+    sclk_gpio_ = pin->get_pin();
+  }
+  void set_sdio_pin(GPIOPin *pin) { 
+    sdio_pin_ = pin;
+    sdio_gpio_ = pin->get_pin();
+  }
   void set_cs_pin(GPIOPin *pin) { cs_pin_ = pin; }
   void set_fcs_pin(GPIOPin *pin) { fcs_pin_ = pin; }
   void set_gpio1_pin(GPIOPin *pin) { gpio1_pin_ = pin; }
@@ -132,6 +138,10 @@ class CMT2300AComponent : public Component {
   GPIOPin *gpio1_pin_{nullptr};
   GPIOPin *gpio2_pin_{nullptr};
   GPIOPin *gpio3_pin_{nullptr};
+  
+  // Numéros GPIO pour ESP-IDF
+  uint8_t sclk_gpio_{0};
+  uint8_t sdio_gpio_{0};
 
   // Configuration radio
   uint32_t frequency_{868000000};
