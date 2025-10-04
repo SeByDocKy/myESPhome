@@ -256,6 +256,9 @@ bool CMT2300AComponent::spi_read_bytes_(uint8_t *data, size_t len) {
 #endif
 
 void CMT2300AComponent::write_register_(uint8_t reg, uint8_t value) {
+  // S'assurer que SDIO est en OUTPUT
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
+  
   this->cs_pin_->digital_write(false);
   delayMicroseconds(2);
   
@@ -273,18 +276,24 @@ uint8_t CMT2300AComponent::read_register_(uint8_t reg) {
   this->cs_pin_->digital_write(false);
   delayMicroseconds(2);
   
-  // Écriture adresse (R/W=1)
+  // Phase 1: Écriture adresse (SDIO en OUTPUT)
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   this->spi_write_byte_(0x80 | (reg & 0x7F));
   
-  // Petit délai pour turnaround
+  // Phase 2: Changement de direction SDIO vers INPUT
+  delayMicroseconds(1);
+  this->sdio_pin_->pin_mode(gpio::FLAG_INPUT);
   delayMicroseconds(1);
   
-  // Lecture data
+  // Phase 3: Lecture data
   uint8_t value = 0;
   this->spi_read_byte_(&value);
   
   delayMicroseconds(2);
   this->cs_pin_->digital_write(true);
+  
+  // Remettre SDIO en OUTPUT pour la prochaine transaction
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   
   ESP_LOGVV(TAG, "Read reg 0x%02X = 0x%02X", reg, value);
   return value;
@@ -295,6 +304,9 @@ void CMT2300AComponent::write_fifo_(const std::vector<uint8_t> &data) {
     ESP_LOGW(TAG, "Invalid FIFO write size: %d", data.size());
     return;
   }
+  
+  // S'assurer que SDIO est en OUTPUT
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   
   this->fcs_pin_->digital_write(false);
   delayMicroseconds(1);
@@ -322,11 +334,19 @@ std::vector<uint8_t> CMT2300AComponent::read_fifo_() {
     return data;
   }
   
+  // S'assurer que SDIO est en OUTPUT au début
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
+  
   this->fcs_pin_->digital_write(false);
   delayMicroseconds(1);
   
-  // Commande read FIFO
+  // Commande read FIFO (OUTPUT)
   this->spi_write_byte_(CMT2300A_FIFO_RD);
+  
+  // Changement vers INPUT pour lecture
+  delayMicroseconds(1);
+  this->sdio_pin_->pin_mode(gpio::FLAG_INPUT);
+  delayMicroseconds(1);
   
   // Lecture longueur
   uint8_t actual_length = 0;
@@ -340,6 +360,9 @@ std::vector<uint8_t> CMT2300AComponent::read_fifo_() {
   
   delayMicroseconds(1);
   this->fcs_pin_->digital_write(true);
+  
+  // Remettre en OUTPUT
+  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   
   ESP_LOGV(TAG, "FIFO read: %d bytes", data.size());
   return data;
