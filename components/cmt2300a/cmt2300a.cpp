@@ -181,11 +181,12 @@ bool CMT2300AComponent::init_spi_() {
   dev_cfg.command_bits = 0;
   dev_cfg.address_bits = 0;
   dev_cfg.dummy_bits = 0;
-  dev_cfg.mode = 0;  // SPI Mode 0
+  dev_cfg.mode = 0;  // SPI Mode 0 (CPOL=0, CPHA=0)
   dev_cfg.clock_speed_hz = 1000000;  // 1 MHz
   dev_cfg.spics_io_num = -1;  // CS géré manuellement
   dev_cfg.queue_size = 1;
-  dev_cfg.flags = SPI_DEVICE_HALFDUPLEX | SPI_DEVICE_NO_DUMMY;  // Half-duplex!
+  dev_cfg.flags = SPI_DEVICE_HALFDUPLEX;  // Half-duplex sans NO_DUMMY
+  dev_cfg.input_delay_ns = 0;
   
   ret = spi_bus_add_device(this->spi_host_, &dev_cfg, &this->spi_handle_);
   if (ret != ESP_OK) {
@@ -212,16 +213,17 @@ bool CMT2300AComponent::spi_write_byte_(uint8_t data) {
   trans.length = 8;  // 8 bits
   trans.tx_data[0] = data;
   
-  esp_err_t ret = spi_device_transmit(this->spi_handle_, &trans);
+  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
   return (ret == ESP_OK);
 }
 
 bool CMT2300AComponent::spi_read_byte_(uint8_t *data) {
   spi_transaction_t trans = {};
   trans.flags = SPI_TRANS_USE_RXDATA;
-  trans.rxlength = 8;  // 8 bits
+  trans.length = 8;  // Envoyer 8 bits de dummy (0x00)
+  trans.rxlength = 8;  // Recevoir 8 bits
   
-  esp_err_t ret = spi_device_transmit(this->spi_handle_, &trans);
+  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
   if (ret == ESP_OK) {
     *data = trans.rx_data[0];
     return true;
@@ -236,7 +238,7 @@ bool CMT2300AComponent::spi_write_bytes_(const uint8_t *data, size_t len) {
   trans.length = len * 8;  // bits
   trans.tx_buffer = data;
   
-  esp_err_t ret = spi_device_transmit(this->spi_handle_, &trans);
+  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
   return (ret == ESP_OK);
 }
 
@@ -244,23 +246,24 @@ bool CMT2300AComponent::spi_read_bytes_(uint8_t *data, size_t len) {
   if (len == 0) return true;
   
   spi_transaction_t trans = {};
+  trans.length = len * 8;  // Envoyer dummy bytes
   trans.rxlength = len * 8;  // bits
   trans.rx_buffer = data;
   
-  esp_err_t ret = spi_device_transmit(this->spi_handle_, &trans);
+  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
   return (ret == ESP_OK);
 }
 #endif
 
 void CMT2300AComponent::write_register_(uint8_t reg, uint8_t value) {
   this->cs_pin_->digital_write(false);
-  delayMicroseconds(1);
+  delayMicroseconds(2);
   
   // Écriture: adresse (R/W=0) puis data
   this->spi_write_byte_(reg & 0x7F);
   this->spi_write_byte_(value);
   
-  delayMicroseconds(1);
+  delayMicroseconds(2);
   this->cs_pin_->digital_write(true);
   
   ESP_LOGVV(TAG, "Write reg 0x%02X = 0x%02X", reg, value);
@@ -268,16 +271,19 @@ void CMT2300AComponent::write_register_(uint8_t reg, uint8_t value) {
 
 uint8_t CMT2300AComponent::read_register_(uint8_t reg) {
   this->cs_pin_->digital_write(false);
-  delayMicroseconds(1);
+  delayMicroseconds(2);
   
   // Écriture adresse (R/W=1)
   this->spi_write_byte_(0x80 | (reg & 0x7F));
+  
+  // Petit délai pour turnaround
+  delayMicroseconds(1);
   
   // Lecture data
   uint8_t value = 0;
   this->spi_read_byte_(&value);
   
-  delayMicroseconds(1);
+  delayMicroseconds(2);
   this->cs_pin_->digital_write(true);
   
   ESP_LOGVV(TAG, "Read reg 0x%02X = 0x%02X", reg, value);
