@@ -4,7 +4,7 @@ from esphome.const import CONF_ID
 from esphome import pins
 
 DEPENDENCIES = []
-CODEOWNERS = ["@SeByDocKy"]
+CODEOWNERS = ["@sebydocky"]
 AUTO_LOAD = []
 MULTI_CONF = True
 
@@ -92,6 +92,7 @@ async def to_code(config):
     
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
