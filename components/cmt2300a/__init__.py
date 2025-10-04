@@ -76,8 +76,8 @@ async def to_code(config):
     await cg.register_component(var, config)
     
     
-    # sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
-    # cg.add(var.set_sclk_pin(sclk))
+    sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
+    cg.add(var.set_sclk_pin(sclk))
 #     sdio = await cg.gpio_pin_expression(config[CONF_SDIO_PIN])
 #     cg.add(var.set_sdio_pin(sdio))
 #     cs = await cg.gpio_pin_expression(config[CONF_CS_PIN])
@@ -100,6 +100,7 @@ async def to_code(config):
     
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
 
