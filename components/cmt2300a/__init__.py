@@ -6,7 +6,7 @@ from esphome import pins
 DEPENDENCIES = []
 CODEOWNERS = ["@sebydocky"]
 AUTO_LOAD = []
-MULTI_CONF = True
+# MULTI_CONF = True
 
 cmt2300a_ns = cg.esphome_ns.namespace("cmt2300a")
 CMT2300AComponent = cmt2300a_ns.class_("CMT2300AComponent", cg.Component)
@@ -92,4 +92,5 @@ async def to_code(config):
     
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
