@@ -11,6 +11,7 @@ MULTI_CONF = True
 cmt2300a_ns = cg.esphome_ns.namespace("cmt2300a")
 CMT2300AComponent = cmt2300a_ns.class_("CMT2300AComponent", cg.Component)
 
+CONF_CMT2300A_ID = "cmt2300a_id"
 CONF_SCLK_PIN = "sclk_pin"
 CONF_SDIO_PIN = "sdio_pin"
 CONF_CS_PIN = "cs_pin"
@@ -36,6 +37,13 @@ DATA_RATES = {
     "100kbps": 100000,
     "250kbps": 250000,
 }
+
+
+CMT2300AComponent_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_CMT2300A_ID): cv.use_id(CMT2300AComponent),
+    }
+)
 
 CONFIG_SCHEMA = (
    cv.Schema(
@@ -84,5 +92,6 @@ async def to_code(config):
     # Ajout des includes ESP-IDF nécessaires
     cg.add_platformio_option("lib_deps", [])
     cg.add_build_flag("-DUSE_ESP_IDF")
+
 
 
