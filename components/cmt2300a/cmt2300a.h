@@ -4,7 +4,11 @@
 #include "esphome/core/hal.h"
 #include <vector>
 #include <functional>
-#include <SPI.h>
+
+#ifdef USE_ESP_IDF
+#include "driver/spi_master.h"
+#include "driver/gpio.h"
+#endif
 
 namespace esphome {
 namespace cmt2300a {
@@ -77,10 +81,21 @@ class CMT2300AComponent : public Component {
   uint8_t get_rssi();
 
  protected:
-  // SPI Arduino
-  SPIClass *spi_{nullptr};
-  SPISettings spi_settings_{1000000, SPI_MSBFIRST, SPI_MODE0};
+#ifdef USE_ESP_IDF
+  // Configuration ESP-IDF SPI
+  bool init_spi_();
+  void deinit_spi_();
   
+  // Transactions SPI half-duplex
+  bool spi_write_byte_(uint8_t data);
+  bool spi_read_byte_(uint8_t *data);
+  bool spi_write_bytes_(const uint8_t *data, size_t len);
+  bool spi_read_bytes_(uint8_t *data, size_t len);
+  
+  spi_device_handle_t spi_handle_{nullptr};
+  spi_host_device_t spi_host_{SPI2_HOST};
+#endif
+
   // Accès registres (via cs_pin_)
   void write_register_(uint8_t reg, uint8_t value);
   uint8_t read_register_(uint8_t reg);
