@@ -51,19 +51,13 @@ class CMT2300AComponent : public Component {
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
 
   // Configuration des pins
-  void set_sclk_pin(GPIOPin *pin) { 
-    sclk_pin_ = pin; 
-    sclk_gpio_ = pin->get_pin();
-  }
-  void set_sdio_pin(GPIOPin *pin) { 
-    sdio_pin_ = pin;
-    sdio_gpio_ = pin->get_pin();
-  }
-  void set_cs_pin(GPIOPin *pin) { cs_pin_ = pin; }
-  void set_fcs_pin(GPIOPin *pin) { fcs_pin_ = pin; }
-  void set_gpio1_pin(GPIOPin *pin) { gpio1_pin_ = pin; }
-  void set_gpio2_pin(GPIOPin *pin) { gpio2_pin_ = pin; }
-  void set_gpio3_pin(GPIOPin *pin) { gpio3_pin_ = pin; }
+  void set_sclk_pin(InternalGPIOPin *pin) { sclk_pin_ = pin; }
+  void set_sdio_pin(InternalGPIOPin *pin) { sdio_pin_ = pin; }
+  void set_cs_pin(InternalGPIOPin *pin) { cs_pin_ = pin; }
+  void set_fcs_pin(InternalGPIOPin *pin) { fcs_pin_ = pin; }
+  void set_gpio1_pin(InternalGPIOPin *pin) { gpio1_pin_ = pin; }
+  void set_gpio2_pin(InternalGPIOPin *pin) { gpio2_pin_ = pin; }
+  void set_gpio3_pin(InternalGPIOPin *pin) { gpio3_pin_ = pin; }
 
   // Configuration radio
   void set_frequency(uint32_t freq) { frequency_ = freq; }
@@ -131,17 +125,13 @@ class CMT2300AComponent : public Component {
   bool wait_for_mode_(uint8_t mode, uint32_t timeout_ms = 100);
 
   // Pins
-  GPIOPin *sclk_pin_{nullptr};
-  GPIOPin *sdio_pin_{nullptr};
-  GPIOPin *cs_pin_{nullptr};
-  GPIOPin *fcs_pin_{nullptr};
-  GPIOPin *gpio1_pin_{nullptr};
-  GPIOPin *gpio2_pin_{nullptr};
-  GPIOPin *gpio3_pin_{nullptr};
-  
-  // Numéros GPIO pour ESP-IDF
-  uint8_t sclk_gpio_{0};
-  uint8_t sdio_gpio_{0};
+  InternalGPIOPin *sclk_pin_{nullptr};
+  InternalGPIOPin *sdio_pin_{nullptr};
+  InternalGPIOPin *cs_pin_{nullptr};
+  InternalGPIOPin *fcs_pin_{nullptr};
+  InternalGPIOPin *gpio1_pin_{nullptr};
+  InternalGPIOPin *gpio2_pin_{nullptr};
+  InternalGPIOPin *gpio3_pin_{nullptr};
 
   // Configuration radio
   uint32_t frequency_{868000000};
