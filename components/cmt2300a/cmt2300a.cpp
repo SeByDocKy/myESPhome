@@ -8,7 +8,7 @@ namespace cmt2300a {
 static const char *const TAG = "cmt2300a";
 
 void CMT2300AComponent::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up CMT2300A with half-duplex SPI...");
+  ESP_LOGCONFIG(TAG, "Setting up CMT2300A with Arduino SPI...");
   
   // Vérification des pins
   if (this->sclk_pin_ == nullptr || this->sdio_pin_ == nullptr || 
@@ -18,7 +18,7 @@ void CMT2300AComponent::setup() {
     return;
   }
   
-  // Configuration pins de contrôle (CS et FCS)
+  // Configuration pins de contrôle
   this->cs_pin_->setup();
   this->cs_pin_->digital_write(true);
   
@@ -30,26 +30,17 @@ void CMT2300AComponent::setup() {
     this->gpio1_pin_->pin_mode(gpio::FLAG_INPUT);
   }
   
-  if (this->gpio2_pin_ != nullptr) {
-    this->gpio2_pin_->setup();
-  }
+  // Initialisation SPI Arduino
+  this->spi_ = new SPIClass(HSPI);
+  this->spi_->begin(
+    this->sclk_pin_->get_pin(),   // SCK
+    this->sdio_pin_->get_pin(),   // MISO
+    this->sdio_pin_->get_pin(),   // MOSI (même pin!)
+    -1                            // CS géré manuellement
+  );
   
-  if (this->gpio3_pin_ != nullptr) {
-    this->gpio3_pin_->setup();
-  }
-
-#ifdef USE_ESP_IDF
-  // Initialisation SPI ESP-IDF
-  if (!this->init_spi_()) {
-    ESP_LOGE(TAG, "Failed to initialize SPI");
-    this->mark_failed();
-    return;
-  }
-#else
-  ESP_LOGE(TAG, "This component requires ESP-IDF framework!");
-  this->mark_failed();
-  return;
-#endif
+  ESP_LOGD(TAG, "Arduino SPI initialized - SCLK: %d, SDIO: %d", 
+           this->sclk_pin_->get_pin(), this->sdio_pin_->get_pin());
   
   delay(10);
   
@@ -66,6 +57,10 @@ void CMT2300AComponent::setup() {
   uint8_t chip_id = this->read_register_(0x7F);
   ESP_LOGD(TAG, "Chip ID: 0x%02X", chip_id);
   
+  if (chip_id == 0x00 || chip_id == 0xFF) {
+    ESP_LOGW(TAG, "Chip ID looks invalid, but continuing...");
+  }
+  
   // Configuration de base
   if (!this->enter_standby_mode()) {
     ESP_LOGE(TAG, "Failed to enter standby mode");
@@ -76,34 +71,11 @@ void CMT2300AComponent::setup() {
   delay(10);
   
   // Configuration des paramètres radio
-  if (!this->configure_frequency_()) {
-    ESP_LOGE(TAG, "Failed to configure frequency");
-    this->mark_failed();
-    return;
-  }
-  
-  if (!this->configure_data_rate_()) {
-    ESP_LOGE(TAG, "Failed to configure data rate");
-    this->mark_failed();
-    return;
-  }
-  
-  if (!this->configure_packet_format_()) {
-    ESP_LOGE(TAG, "Failed to configure packet format");
-    this->mark_failed();
-    return;
-  }
-  
-  if (!this->configure_tx_power_()) {
-    ESP_LOGE(TAG, "Failed to configure TX power");
-    this->mark_failed();
-    return;
-  }
-  
-  // Calibration
-  if (!this->calibrate_()) {
-    ESP_LOGW(TAG, "Calibration warning");
-  }
+  this->configure_frequency_();
+  this->configure_data_rate_();
+  this->configure_packet_format_();
+  this->configure_tx_power_();
+  this->calibrate_();
   
   // Clear interruptions et FIFO
   this->clear_interrupt_flags_(0xFF);
@@ -133,7 +105,7 @@ void CMT2300AComponent::loop() {
 }
 
 void CMT2300AComponent::dump_config() {
-  ESP_LOGCONFIG(TAG, "CMT2300A (Half-Duplex SPI):");
+  ESP_LOGCONFIG(TAG, "CMT2300A (Arduino SPI):");
   LOG_PIN("  SCLK Pin: ", this->sclk_pin_);
   LOG_PIN("  SDIO Pin (bidirectional): ", this->sdio_pin_);
   LOG_PIN("  CS Pin: ", this->cs_pin_);
@@ -148,125 +120,14 @@ void CMT2300AComponent::dump_config() {
                 this->tx_count_, this->rx_count_, this->crc_error_count_);
 }
 
-#ifdef USE_ESP_IDF
-bool CMT2300AComponent::init_spi_() {
-  ESP_LOGD(TAG, "Initializing ESP-IDF SPI in half-duplex mode...");
-  
-  // Récupération des numéros GPIO via get_pin()
-  gpio_num_t sdio_gpio = (gpio_num_t) this->sdio_pin_->get_pin();
-  gpio_num_t sclk_gpio = (gpio_num_t) this->sclk_pin_->get_pin();
-  
-  ESP_LOGD(TAG, "Using pins - SCLK: %d, SDIO: %d", sclk_gpio, sdio_gpio);
-  
-  // Configuration du bus SPI
-  spi_bus_config_t bus_cfg = {};
-  bus_cfg.mosi_io_num = sdio_gpio;  // SDIO comme MOSI
-  bus_cfg.miso_io_num = sdio_gpio;  // SDIO comme MISO
-  bus_cfg.sclk_io_num = sclk_gpio;
-  bus_cfg.quadwp_io_num = -1;
-  bus_cfg.quadhd_io_num = -1;
-  bus_cfg.max_transfer_sz = 256;
-  bus_cfg.flags = SPICOMMON_BUSFLAG_MASTER | SPICOMMON_BUSFLAG_SCLK | 
-                  SPICOMMON_BUSFLAG_MOSI | SPICOMMON_BUSFLAG_MISO;
-  
-  // Initialisation du bus SPI
-  esp_err_t ret = spi_bus_initialize(this->spi_host_, &bus_cfg, SPI_DMA_DISABLED);
-  if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to initialize SPI bus: %d", ret);
-    return false;
-  }
-  
-  // Configuration du device SPI en mode half-duplex
-  spi_device_interface_config_t dev_cfg = {};
-  dev_cfg.command_bits = 0;
-  dev_cfg.address_bits = 0;
-  dev_cfg.dummy_bits = 0;
-  dev_cfg.mode = 0;  // SPI Mode 0 (CPOL=0, CPHA=0)
-  dev_cfg.clock_speed_hz = 1000000;  // 1 MHz
-  dev_cfg.spics_io_num = -1;  // CS géré manuellement
-  dev_cfg.queue_size = 1;
-  dev_cfg.flags = SPI_DEVICE_HALFDUPLEX;  // Half-duplex sans NO_DUMMY
-  dev_cfg.input_delay_ns = 0;
-  
-  ret = spi_bus_add_device(this->spi_host_, &dev_cfg, &this->spi_handle_);
-  if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to add SPI device: %d", ret);
-    spi_bus_free(this->spi_host_);
-    return false;
-  }
-  
-  ESP_LOGD(TAG, "SPI initialized successfully in half-duplex mode");
-  return true;
-}
-
-void CMT2300AComponent::deinit_spi_() {
-  if (this->spi_handle_ != nullptr) {
-    spi_bus_remove_device(this->spi_handle_);
-    this->spi_handle_ = nullptr;
-  }
-  spi_bus_free(this->spi_host_);
-}
-
-bool CMT2300AComponent::spi_write_byte_(uint8_t data) {
-  spi_transaction_t trans = {};
-  trans.flags = SPI_TRANS_USE_TXDATA;
-  trans.length = 8;  // 8 bits
-  trans.tx_data[0] = data;
-  
-  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
-  return (ret == ESP_OK);
-}
-
-bool CMT2300AComponent::spi_read_byte_(uint8_t *data) {
-  spi_transaction_t trans = {};
-  trans.flags = SPI_TRANS_USE_RXDATA;
-  trans.length = 8;  // Envoyer 8 bits de dummy (0x00)
-  trans.rxlength = 8;  // Recevoir 8 bits
-  
-  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
-  if (ret == ESP_OK) {
-    *data = trans.rx_data[0];
-    return true;
-  }
-  return false;
-}
-
-bool CMT2300AComponent::spi_write_bytes_(const uint8_t *data, size_t len) {
-  if (len == 0) return true;
-  
-  spi_transaction_t trans = {};
-  trans.length = len * 8;  // bits
-  trans.tx_buffer = data;
-  
-  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
-  return (ret == ESP_OK);
-}
-
-bool CMT2300AComponent::spi_read_bytes_(uint8_t *data, size_t len) {
-  if (len == 0) return true;
-  
-  spi_transaction_t trans = {};
-  trans.length = len * 8;  // Envoyer dummy bytes
-  trans.rxlength = len * 8;  // bits
-  trans.rx_buffer = data;
-  
-  esp_err_t ret = spi_device_polling_transmit(this->spi_handle_, &trans);
-  return (ret == ESP_OK);
-}
-#endif
-
 void CMT2300AComponent::write_register_(uint8_t reg, uint8_t value) {
-  // S'assurer que SDIO est en OUTPUT
-  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
-  
   this->cs_pin_->digital_write(false);
-  delayMicroseconds(2);
+  this->spi_->beginTransaction(this->spi_settings_);
   
-  // Écriture: adresse (R/W=0) puis data
-  this->spi_write_byte_(reg & 0x7F);
-  this->spi_write_byte_(value);
+  this->spi_->transfer(reg & 0x7F);  // R/W = 0 pour écriture
+  this->spi_->transfer(value);
   
-  delayMicroseconds(2);
+  this->spi_->endTransaction();
   this->cs_pin_->digital_write(true);
   
   ESP_LOGVV(TAG, "Write reg 0x%02X = 0x%02X", reg, value);
@@ -274,26 +135,13 @@ void CMT2300AComponent::write_register_(uint8_t reg, uint8_t value) {
 
 uint8_t CMT2300AComponent::read_register_(uint8_t reg) {
   this->cs_pin_->digital_write(false);
-  delayMicroseconds(2);
+  this->spi_->beginTransaction(this->spi_settings_);
   
-  // Phase 1: Écriture adresse (SDIO en OUTPUT)
-  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
-  this->spi_write_byte_(0x80 | (reg & 0x7F));
+  this->spi_->transfer(0x80 | (reg & 0x7F));  // R/W = 1 pour lecture
+  uint8_t value = this->spi_->transfer(0x00); // Dummy byte pour lire
   
-  // Phase 2: Changement de direction SDIO vers INPUT
-  delayMicroseconds(1);
-  this->sdio_pin_->pin_mode(gpio::FLAG_INPUT);
-  delayMicroseconds(1);
-  
-  // Phase 3: Lecture data
-  uint8_t value = 0;
-  this->spi_read_byte_(&value);
-  
-  delayMicroseconds(2);
+  this->spi_->endTransaction();
   this->cs_pin_->digital_write(true);
-  
-  // Remettre SDIO en OUTPUT pour la prochaine transaction
-  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   
   ESP_LOGVV(TAG, "Read reg 0x%02X = 0x%02X", reg, value);
   return value;
@@ -305,22 +153,17 @@ void CMT2300AComponent::write_fifo_(const std::vector<uint8_t> &data) {
     return;
   }
   
-  // S'assurer que SDIO est en OUTPUT
-  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
-  
   this->fcs_pin_->digital_write(false);
-  delayMicroseconds(1);
+  this->spi_->beginTransaction(this->spi_settings_);
   
-  // Commande write FIFO
-  this->spi_write_byte_(CMT2300A_FIFO_WR);
+  this->spi_->transfer(CMT2300A_FIFO_WR);
+  this->spi_->transfer(data.size());
   
-  // Longueur
-  this->spi_write_byte_(data.size());
+  for (uint8_t byte : data) {
+    this->spi_->transfer(byte);
+  }
   
-  // Données
-  this->spi_write_bytes_(data.data(), data.size());
-  
-  delayMicroseconds(1);
+  this->spi_->endTransaction();
   this->fcs_pin_->digital_write(true);
   
   ESP_LOGV(TAG, "FIFO write: %d bytes", data.size());
@@ -334,35 +177,21 @@ std::vector<uint8_t> CMT2300AComponent::read_fifo_() {
     return data;
   }
   
-  // S'assurer que SDIO est en OUTPUT au début
-  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
-  
   this->fcs_pin_->digital_write(false);
-  delayMicroseconds(1);
+  this->spi_->beginTransaction(this->spi_settings_);
   
-  // Commande read FIFO (OUTPUT)
-  this->spi_write_byte_(CMT2300A_FIFO_RD);
+  this->spi_->transfer(CMT2300A_FIFO_RD);
+  uint8_t actual_length = this->spi_->transfer(0x00);
   
-  // Changement vers INPUT pour lecture
-  delayMicroseconds(1);
-  this->sdio_pin_->pin_mode(gpio::FLAG_INPUT);
-  delayMicroseconds(1);
-  
-  // Lecture longueur
-  uint8_t actual_length = 0;
-  this->spi_read_byte_(&actual_length);
-  
-  // Lecture données
   if (actual_length > 0 && actual_length <= CMT2300A_FIFO_SIZE) {
-    data.resize(actual_length);
-    this->spi_read_bytes_(data.data(), actual_length);
+    data.reserve(actual_length);
+    for (uint8_t i = 0; i < actual_length; i++) {
+      data.push_back(this->spi_->transfer(0x00));
+    }
   }
   
-  delayMicroseconds(1);
+  this->spi_->endTransaction();
   this->fcs_pin_->digital_write(true);
-  
-  // Remettre en OUTPUT
-  this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
   
   ESP_LOGV(TAG, "FIFO read: %d bytes", data.size());
   return data;
@@ -370,11 +199,11 @@ std::vector<uint8_t> CMT2300AComponent::read_fifo_() {
 
 void CMT2300AComponent::clear_fifo_() {
   this->fcs_pin_->digital_write(false);
-  delayMicroseconds(1);
+  this->spi_->beginTransaction(this->spi_settings_);
   
-  this->spi_write_byte_(CMT2300A_FIFO_CLR);
+  this->spi_->transfer(CMT2300A_FIFO_CLR);
   
-  delayMicroseconds(1);
+  this->spi_->endTransaction();
   this->fcs_pin_->digital_write(true);
 }
 
@@ -387,21 +216,11 @@ bool CMT2300AComponent::send_packet(const std::vector<uint8_t> &data) {
     return false;
   }
   
-  // Standby
-  if (!this->enter_standby_mode()) {
-    return false;
-  }
-  
-  // Clear FIFO
+  if (!this->enter_standby_mode()) return false;
   this->clear_fifo_();
-  
-  // Écriture données
   this->write_fifo_(data);
   
-  // TX mode
-  if (!this->enter_tx_mode()) {
-    return false;
-  }
+  if (!this->enter_tx_mode()) return false;
   
   this->tx_count_++;
   ESP_LOGD(TAG, "Packet sent: %d bytes", data.size());
@@ -409,35 +228,19 @@ bool CMT2300AComponent::send_packet(const std::vector<uint8_t> &data) {
 }
 
 bool CMT2300AComponent::enter_rx_mode() {
-  if (this->set_mode_(CMT2300A_MODE_RX)) {
-    ESP_LOGV(TAG, "Entered RX mode");
-    return true;
-  }
-  return false;
+  return this->set_mode_(CMT2300A_MODE_RX);
 }
 
 bool CMT2300AComponent::enter_tx_mode() {
-  if (this->set_mode_(CMT2300A_MODE_TX)) {
-    ESP_LOGV(TAG, "Entered TX mode");
-    return true;
-  }
-  return false;
+  return this->set_mode_(CMT2300A_MODE_TX);
 }
 
 bool CMT2300AComponent::enter_standby_mode() {
-  if (this->set_mode_(CMT2300A_MODE_STBY)) {
-    ESP_LOGV(TAG, "Entered Standby mode");
-    return true;
-  }
-  return false;
+  return this->set_mode_(CMT2300A_MODE_STBY);
 }
 
 bool CMT2300AComponent::enter_sleep_mode() {
-  if (this->set_mode_(CMT2300A_MODE_SLEEP)) {
-    ESP_LOGV(TAG, "Entered Sleep mode");
-    return true;
-  }
-  return false;
+  return this->set_mode_(CMT2300A_MODE_SLEEP);
 }
 
 bool CMT2300AComponent::set_mode_(uint8_t mode) {
@@ -474,7 +277,6 @@ void CMT2300AComponent::handle_interrupt_() {
   
   ESP_LOGV(TAG, "Interrupt flags: 0x%02X", flags);
   
-  // RX Done
   if (flags & CMT2300A_INT_RX_DONE) {
     if (flags & CMT2300A_INT_PKT_OK) {
       std::vector<uint8_t> data = this->read_fifo_();
@@ -489,18 +291,15 @@ void CMT2300AComponent::handle_interrupt_() {
       ESP_LOGD(TAG, "RX CRC error");
     }
     
-    // Clear FIFO et retour RX
     this->clear_fifo_();
     this->enter_rx_mode();
   }
   
-  // TX Done
   if (flags & CMT2300A_INT_TX_DONE) {
     ESP_LOGV(TAG, "TX complete");
-    this->enter_rx_mode();  // Retour en RX
+    this->enter_rx_mode();
   }
   
-  // Clear flags
   this->clear_interrupt_flags_(flags);
 }
 
@@ -513,89 +312,55 @@ void CMT2300AComponent::clear_interrupt_flags_(uint8_t flags) {
 }
 
 bool CMT2300AComponent::reset_chip_() {
-  // Soft reset
   this->write_register_(0x7F, 0xFF);
   delay(10);
-  
-  // Vérification reset
   uint8_t status = this->read_register_(CMT2300A_REG_MODE_STA);
   return (status & 0x80) == 0;
 }
 
 bool CMT2300AComponent::configure_frequency_() {
-  // Calcul des registres de fréquence
-  // Formule: freq_reg = (freq_hz * 2^16) / f_xosc
-  // f_xosc = 26 MHz
   uint32_t freq_reg = ((uint64_t)this->frequency_ << 16) / 26000000UL;
   
-  // Écriture sur 3 registres (24 bits)
   this->write_register_(0x10, (freq_reg >> 16) & 0xFF);
   this->write_register_(0x11, (freq_reg >> 8) & 0xFF);
   this->write_register_(0x12, freq_reg & 0xFF);
   
-  ESP_LOGD(TAG, "Frequency configured: %u Hz (reg=0x%06X)", 
-           this->frequency_, freq_reg);
+  ESP_LOGD(TAG, "Frequency configured: %u Hz", this->frequency_);
   return true;
 }
 
 bool CMT2300AComponent::configure_data_rate_() {
-  // Calcul du registre de débit
   uint32_t rate_reg = 26000000UL / this->data_rate_;
-  
   if (rate_reg > 0xFFFF) rate_reg = 0xFFFF;
   
   this->write_register_(0x20, (rate_reg >> 8) & 0xFF);
   this->write_register_(0x21, rate_reg & 0xFF);
   
-  ESP_LOGD(TAG, "Data rate configured: %u bps (reg=0x%04X)", 
-           this->data_rate_, rate_reg);
+  ESP_LOGD(TAG, "Data rate configured: %u bps", this->data_rate_);
   return true;
 }
 
 bool CMT2300AComponent::configure_packet_format_() {
-  // Configuration format paquet
-  uint8_t pkt_config = 0x8A;  // Variable length, 4 byte preamble, 2 byte sync
-  this->write_register_(0x30, pkt_config);
-  
-  // CRC et Whitening
-  uint8_t crc_config = this->enable_crc_ ? 0x90 : 0x00;
-  this->write_register_(0x31, crc_config);
-  
-  // Sync Word (0xAA55)
+  this->write_register_(0x30, 0x8A);
+  this->write_register_(0x31, this->enable_crc_ ? 0x90 : 0x00);
   this->write_register_(0x33, 0xAA);
   this->write_register_(0x34, 0x55);
-  
-  // Address filtering disabled
   this->write_register_(0x35, 0x00);
-  
-  // Max packet length
   this->write_register_(0x36, CMT2300A_FIFO_SIZE);
   
-  ESP_LOGD(TAG, "Packet format configured (CRC: %s)", 
-           this->enable_crc_ ? "enabled" : "disabled");
+  ESP_LOGD(TAG, "Packet format configured");
   return true;
 }
 
 bool CMT2300AComponent::configure_tx_power_() {
-  uint8_t pa_power;
-  if (this->tx_power_ <= 0) {
-    pa_power = 0x00;
-  } else if (this->tx_power_ >= 20) {
-    pa_power = 0x3F;
-  } else {
-    pa_power = (this->tx_power_ * 0x3F) / 20;
-  }
-  
+  uint8_t pa_power = (this->tx_power_ >= 20) ? 0x3F : (this->tx_power_ * 0x3F) / 20;
   this->write_register_(0x40, pa_power);
   
-  ESP_LOGD(TAG, "TX Power configured: %d dBm (reg=0x%02X)", 
-           this->tx_power_, pa_power);
+  ESP_LOGD(TAG, "TX Power configured: %d dBm", this->tx_power_);
   return true;
 }
 
 bool CMT2300AComponent::calibrate_() {
-  ESP_LOGD(TAG, "Starting calibration...");
-  
   this->set_mode_(CMT2300A_MODE_CAL);
   
   uint32_t start = millis();
