@@ -60,7 +60,7 @@ CONFIG_SCHEMA = cv.Schema({
 }
 
 bool CMT2300AComponent::configure_data_rate_() {
-  uint32_t rate_reg = 26000000UL / this->data_rate_;
+  uint32_t rate_reg = 26000000 / this->data_rate_;
   if (rate_reg > 0xFFFF) rate_reg = 0xFFFF;
   
   this->write_register_(0x20, (rate_reg >> 8) & 0xFF);
@@ -123,3 +123,4 @@ uint8_t CMT2300AComponent::get_rssi() {
 }  // namespace cmt2300a
 
 }  // namespace esphome
+
