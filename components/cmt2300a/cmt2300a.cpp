@@ -110,15 +110,15 @@ void CMT2300AComponent::spi_write_byte_(uint8_t data) {
   for (int i = 7; i >= 0; i--) {
     // Préparer le bit
     this->sdio_pin_->digital_write((data >> i) & 0x01);
-    delayMicroseconds(1);
+    delayMicroseconds(5);  // Augmenté de 1 à 5
     
     // Clock HIGH
     this->sclk_pin_->digital_write(true);
-    delayMicroseconds(1);
+    delayMicroseconds(5);  // Augmenté de 1 à 5
     
     // Clock LOW
     this->sclk_pin_->digital_write(false);
-    delayMicroseconds(1);
+    delayMicroseconds(5);  // Augmenté de 1 à 5
   }
 }
 
@@ -128,12 +128,12 @@ uint8_t CMT2300AComponent::spi_read_byte_() {
   
   // SDIO en INPUT
   this->sdio_pin_->pin_mode(gpio::FLAG_INPUT);
-  delayMicroseconds(2);
+  delayMicroseconds(5);  // Augmenté de 2 à 5
   
   for (int i = 7; i >= 0; i--) {
     // Clock HIGH
     this->sclk_pin_->digital_write(true);
-    delayMicroseconds(1);
+    delayMicroseconds(5);  // Augmenté de 1 à 5
     
     // Lire le bit
     if (this->sdio_pin_->digital_read()) {
@@ -142,7 +142,7 @@ uint8_t CMT2300AComponent::spi_read_byte_() {
     
     // Clock LOW
     this->sclk_pin_->digital_write(false);
-    delayMicroseconds(1);
+    delayMicroseconds(5);  // Augmenté de 1 à 5
   }
   
   return data;
@@ -150,27 +150,29 @@ uint8_t CMT2300AComponent::spi_read_byte_() {
 
 void CMT2300AComponent::write_register_(uint8_t reg, uint8_t value) {
   this->cs_pin_->digital_write(false);
-  delayMicroseconds(2);
+  delayMicroseconds(10);  // Augmenté de 2 à 10
   
   this->spi_write_byte_(reg & 0x7F);
   this->spi_write_byte_(value);
   
-  delayMicroseconds(2);
+  delayMicroseconds(10);  // Augmenté de 2 à 10
   this->cs_pin_->digital_write(true);
+  delayMicroseconds(10);  // Ajouté délai après CS
   
   ESP_LOGVV(TAG, "Write reg 0x%02X = 0x%02X", reg, value);
 }
 
 uint8_t CMT2300AComponent::read_register_(uint8_t reg) {
   this->cs_pin_->digital_write(false);
-  delayMicroseconds(2);
+  delayMicroseconds(10);  // Augmenté de 2 à 10
   
   this->spi_write_byte_(0x80 | (reg & 0x7F));
-  delayMicroseconds(2);
+  delayMicroseconds(10);  // Augmenté de 2 à 10
   uint8_t value = this->spi_read_byte_();
   
-  delayMicroseconds(2);
+  delayMicroseconds(10);  // Augmenté de 2 à 10
   this->cs_pin_->digital_write(true);
+  delayMicroseconds(10);  // Ajouté délai après CS
   
   ESP_LOGVV(TAG, "Read reg 0x%02X = 0x%02X", reg, value);
   return value;
