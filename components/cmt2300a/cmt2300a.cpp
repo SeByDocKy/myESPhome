@@ -48,7 +48,7 @@ void CMT2300AComponent::setup() {
     return;
   }
   
-  delay(50);
+  delay(100);
   
   uint8_t chip_id = this->read_register_(0x7F);
   ESP_LOGD(TAG, "Chip ID: 0x%02X", chip_id);
@@ -372,3 +372,4 @@ uint8_t CMT2300AComponent::get_rssi() {
 
 }  // namespace cmt2300a
 }  // namespace esphome
+
