@@ -48,79 +48,39 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_FREQUENCY, default="868MHz"): cv.enum(FREQUENCIES),
     cv.Optional(CONF_DATA_RATE, default="250kbps"): cv.enum(DATA_RATES),
     cv.Optional(CONF_TX_POWER, default=20): cv.int_range(min=0, max=20),
-    cv.Optional(CONF_ENABLE_CRC, default=True): cv.bool CMT2300AComponent::configure_frequency_() {
-  uint32_t freq_reg = ((uint64_t)this->frequency_ << 16) / 26000000;
-  
-  this->write_register_(0x10, (freq_reg >> 16) & 0xFF);
-  this->write_register_(0x11, (freq_reg >> 8) & 0xFF);
-  this->write_register_(0x12, freq_reg & 0xFF);
-  
-  ESP_LOGD(TAG, "Frequency configured: %u Hz", this->frequency_);
-  return true;
-}
+    cv.Optional(CONF_ENABLE_CRC, default=True): cv.boolean,
+}).extend(cv.COMPONENT_SCHEMA)
 
-bool CMT2300AComponent::configure_data_rate_() {
-  uint32_t rate_reg = 26000000 / this->data_rate_;
-  if (rate_reg > 0xFFFF) rate_reg = 0xFFFF;
-  
-  this->write_register_(0x20, (rate_reg >> 8) & 0xFF);
-  this->write_register_(0x21, rate_reg & 0xFF);
-  
-  ESP_LOGD(TAG, "Data rate configured: %u bps", this->data_rate_);
-  return true;
-}
 
-bool CMT2300AComponent::configure_packet_format_() {
-  this->write_register_(0x30, 0x8A);  // Variable length, 4 byte preamble, 2 byte sync
-  this->write_register_(0x31, this->enable_crc_ ? 0x90 : 0x00);  // CRC-16 + Whitening
-  this->write_register_(0x33, 0xAA);  // Sync Word 1
-  this->write_register_(0x34, 0x55);  // Sync Word 2
-  this->write_register_(0x35, 0x00);  // Address filtering disabled
-  this->write_register_(0x36, CMT2300A_FIFO_SIZE);  // Max packet length
-  
-  ESP_LOGD(TAG, "Packet format configured");
-  return true;
-}
-
-bool CMT2300AComponent::configure_tx_power_() {
-  uint8_t pa_power;
-  if (this->tx_power_ <= 0) {
-    pa_power = 0x00;
-  } else if (this->tx_power_ >= 20) {
-    pa_power = 0x3F;
-  } else {
-    pa_power = (this->tx_power_ * 0x3F) / 20;
-  }
-  
-  this->write_register_(0x40, pa_power);
-  
-  ESP_LOGD(TAG, "TX Power configured: %d dBm", this->tx_power_);
-  return true;
-}
-
-bool CMT2300AComponent::calibrate_() {
-  ESP_LOGD(TAG, "Starting calibration...");
-  
-  this->set_mode_(CMT2300A_MODE_CAL);
-  
-  uint32_t start = millis();
-  while ((millis() - start) < 10) {
-    if (this->get_mode_() == CMT2300A_MODE_STBY) {
-      ESP_LOGD(TAG, "Calibration complete");
-      return true;
-    }
-    delay(1);
-  }
-  
-  ESP_LOGW(TAG, "Calibration timeout");
-  return false;
-}
-
-uint8_t CMT2300AComponent::get_rssi() {
-  return this->read_register_(0x50);
-}
-
-}  // namespace cmt2300a
-
-}  // namespace esphome
-
+async def to_code(config):
+    var = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(var, config)
+    
+    sclk = await cg.gpio_pin_expression(config[CONF_SCLK_PIN])
+    cg.add(var.set_sclk_pin(sclk))
+    
+    sdio = await cg.gpio_pin_expression(config[CONF_SDIO_PIN])
+    cg.add(var.set_sdio_pin(sdio))
+    
+    cs = await cg.gpio_pin_expression(config[CONF_CS_PIN])
+    cg.add(var.set_cs_pin(cs))
+    
+    fcs = await cg.gpio_pin_expression(config[CONF_FCS_PIN])
+    cg.add(var.set_fcs_pin(fcs))
+    
+    if CONF_GPIO1_PIN in config:
+        gpio1 = await cg.gpio_pin_expression(config[CONF_GPIO1_PIN])
+        cg.add(var.set_gpio1_pin(gpio1))
+    
+    if CONF_GPIO2_PIN in config:
+        gpio2 = await cg.gpio_pin_expression(config[CONF_GPIO2_PIN])
+        cg.add(var.set_gpio2_pin(gpio2))
+    
+    if CONF_GPIO3_PIN in config:
+        gpio3 = await cg.gpio_pin_expression(config[CONF_GPIO3_PIN])
+        cg.add(var.set_gpio3_pin(gpio3))
+    
+    cg.add(var.set_frequency(config[CONF_FREQUENCY]))
+    cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
+    cg.add(var.set_tx_power(config[CONF_TX_POWER]))
+    cg.add(var.set_enable_crc(config[CONF_ENABLE_CRC]))
