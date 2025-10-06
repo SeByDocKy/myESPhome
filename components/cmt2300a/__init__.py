@@ -49,7 +49,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_DATA_RATE, default="250kbps"): cv.enum(DATA_RATES),
     cv.Optional(CONF_TX_POWER, default=20): cv.int_range(min=0, max=20),
     cv.Optional(CONF_ENABLE_CRC, default=True): cv.bool CMT2300AComponent::configure_frequency_() {
-  uint32_t freq_reg = ((uint64_t)this->frequency_ << 16) / 26000000UL;
+  uint32_t freq_reg = ((uint64_t)this->frequency_ << 16) / 26000000;
   
   this->write_register_(0x10, (freq_reg >> 16) & 0xFF);
   this->write_register_(0x11, (freq_reg >> 8) & 0xFF);
@@ -121,4 +121,5 @@ uint8_t CMT2300AComponent::get_rssi() {
 }
 
 }  // namespace cmt2300a
+
 }  // namespace esphome
