@@ -48,7 +48,7 @@ void CMT2300AComponent::setup() {
     return;
   }
   
-  delay(100);
+  delay(50);
   
   uint8_t chip_id = this->read_register_(0x7F);
   ESP_LOGD(TAG, "Chip ID: 0x%02X", chip_id);
@@ -319,8 +319,25 @@ void CMT2300AComponent::clear_interrupt_flags_(uint8_t flags) {
 }
 
 bool CMT2300AComponent::reset_chip_() {
+  ESP_LOGD(TAG, "Resetting chip...");
+  
+  // Essayer de lire avant reset
+  uint8_t before = this->read_register_(0x01);
+  ESP_LOGD(TAG, "Before reset, reg 0x01 = 0x%02X", before);
+  
   this->write_register_(0x7F, 0xFF);
-  delay(10);
+  delay(50);  // Délai plus long
+  
+  // Essayer de lire après reset
+  uint8_t after = this->read_register_(0x01);
+  ESP_LOGD(TAG, "After reset, reg 0x01 = 0x%02X", after);
+  
+  // Essayer de lire différents registres
+  uint8_t r00 = this->read_register_(0x00);
+  uint8_t r02 = this->read_register_(0x02);
+  uint8_t r7F = this->read_register_(0x7F);
+  ESP_LOGD(TAG, "Test reads - 0x00:0x%02X, 0x02:0x%02X, 0x7F:0x%02X", r00, r02, r7F);
+  
   return true;
 }
 
@@ -372,4 +389,3 @@ uint8_t CMT2300AComponent::get_rssi() {
 
 }  // namespace cmt2300a
 }  // namespace esphome
-
