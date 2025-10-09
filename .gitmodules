@@ -1,0 +1,3 @@
+[submodule "lib/OpenDTU"]
+	path = lib/OpenDTU
+	url = https://github.com/tbnobody/OpenDTU/
