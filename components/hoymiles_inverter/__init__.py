@@ -132,16 +132,22 @@ async def to_code(config):
     cg.add_build_flag("-fexceptions")
     cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
 
+    ############# new lib #############
     # cg.add_library("SPI", None)
     # cg.add_library("RF24", None, "https://github.com/nRF24/RF24")
-    # cg.add_library("OpenDTU", None, "https://github.com/tbnobody/OpenDTU")
+    # cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") 
+    # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A")
+    # cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
+    # cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles")
 
+     ############# old lib #############
+    cg.add_library("lib/OpenDTU",None,"https://github.com/tbnobody/OpenDTU/")
     cg.add_library("SPI", None)
-    cg.add_library("RF24", None, "https://github.com/nRF24/RF24")
-    cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") 
-    cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A")
-    cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
-    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles")
+    cg.add_library("esphome-hoymiles-libs", None, "https://github.com/nedyarrd/esphome-hoymiles-libs")
+    cg.add_library("Hoymiles", None, "https://github.com/nedyarrd/esphome-hoymiles-main")
+    cg.add_library("CMT2300A", None, "https://github.com/nedyarrd/esphome-CMT2300A")
+
+
     
     var = cg.new_Pvariable(config[CONF_ID])
 
