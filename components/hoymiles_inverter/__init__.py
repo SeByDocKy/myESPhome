@@ -132,17 +132,22 @@ async def to_code(config):
     cg.add_build_flag("-fexceptions")
     cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
 
-    ############# new lib #############
+    ############# with new OpenDTU lib #############
     cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
-    # cg.add_library("RF24", None, "https://github.com/nRF24/RF24")
-    # cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") 
-    # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A") # -> Use new SPImanager framework...
-    cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/esphome-CMT2300A") # -> without SPImanager framework...
-    # cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles") ## new version with spimanager ####
-    cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
-    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/esphome-hoymiles-main") ## former version without spimanager ####
-     ############# old lib #############
-    # cg.add_library("lib/OpenDTU",None,"https://github.com/tbnobody/OpenDTU@1f1227fa104cda435df7132ddfa011524a262554")
+    cg.add_library("RF24", None, "https://github.com/nRF24/RF24") # needed for SPImanager version
+    cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") # needed for SPImanager version
+    cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A") # -> Use new SPImanager framework...
+    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles") ## new version with spimanager ####
+
+
+    ############# With old lib, modified to work with ESPhome , prior to OpenDTU v24.9.26 #############
+    # cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
+    # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/esphome-CMT2300A") # -> without SPImanager framework...
+    # cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
+    # cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/esphome-hoymiles-main") ## former version without spimanager ####
+
+    ############# With old lib, prior to OpenDTU v24.9.26 #############
+    
     
     # cg.add_library("SPI", None)
     # cg.add_library("esphome-hoymiles-libs", None, "https://github.com/nedyarrd/esphome-hoymiles-libs")
