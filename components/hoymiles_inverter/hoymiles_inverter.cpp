@@ -150,10 +150,10 @@ void HoymilesPlatform::set_pins(
 
 void HoymilesPlatform::setup() {
     for (uint8_t i = 0; i < this->inverters_.size(); i++) {
-        ESP_LOGI(TAG, "serial number %ll", inv->serial());
         auto inv = this->inverters_[i];
         auto name = "Inv_" + std::to_string(i);
         auto invp = this->hoymiles_->addInverter(name.c_str(), inv->serial());
+        ESP_LOGI(TAG, "inv = %d, serial number %ll", i,inv->serial());
         if (invp != nullptr) {
             inv->set_inverter(invp);
             ESP_LOGI(TAG, "Added inverter model: %s", invp->typeName().c_str());
