@@ -133,19 +133,19 @@ async def to_code(config):
     cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
 
     ############# with new OpenDTU lib #############
-    cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
-    cg.add_library("RF24", None, "https://github.com/nRF24/RF24") # needed for SPImanager version
-    cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") # needed for SPImanager version
-    cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A") # -> Use new SPImanager framework...
-    cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
-    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles") ## new version with SPImanager ####
+    # cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
+    # cg.add_library("RF24", None, "https://github.com/nRF24/RF24") # needed for SPImanager version
+    # cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") # needed for SPImanager version
+    # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A") # -> Use new SPImanager framework...
+    # cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
+    # cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles") ## new version with SPImanager ####
 
 
     ############# With old lib, modified to work properly with ESPhome up to 2024.6.3 , prior to OpenDTU v24.9.26 #############
-    # cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
-    # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/esphome-CMT2300A") # -> without SPImanager framework...
-    # cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
-    # cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/esphome-hoymiles-main") ## former version without SPImanager ####
+    cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
+    cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/esphome-CMT2300A") # -> without SPImanager framework...
+    cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
+    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/esphome-hoymiles-main") ## former version without SPImanager ####
 
     ############# With old lib, prior to OpenDTU v24.9.26 #############
     
