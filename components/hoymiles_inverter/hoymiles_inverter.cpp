@@ -153,7 +153,9 @@ void HoymilesPlatform::setup() {
         auto inv = this->inverters_[i];
         auto name = "Inv_" + std::to_string(i);
         auto invp = this->hoymiles_->addInverter(name.c_str(), inv->serial());
-        this->serial_ = 13831264035630; 
+        
+        this->set_serial(13831264035630);
+       
         
         ESP_LOGI(TAG, "inv = %d, serial number %" PRIu64, this->inverters_.size(),inv->serial());
         if (invp != nullptr) {
