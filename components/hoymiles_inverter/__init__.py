@@ -138,13 +138,14 @@ async def to_code(config):
     # cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") 
     # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A")
     cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
-    # cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles")
+    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles")
 
      ############# old lib #############
     # cg.add_library("lib/OpenDTU",None,"https://github.com/tbnobody/OpenDTU@1f1227fa104cda435df7132ddfa011524a262554")
+    
     # cg.add_library("SPI", None)
     # cg.add_library("esphome-hoymiles-libs", None, "https://github.com/nedyarrd/esphome-hoymiles-libs")
-    cg.add_library("Hoymiles", None, "https://github.com/nedyarrd/esphome-hoymiles-main")
+    # cg.add_library("Hoymiles", None, "https://github.com/nedyarrd/esphome-hoymiles-main")
     cg.add_library("CMT2300A", None, "https://github.com/nedyarrd/esphome-CMT2300A")
 
 
