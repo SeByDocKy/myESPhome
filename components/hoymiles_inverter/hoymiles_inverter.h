@@ -38,7 +38,7 @@ class HoymilesChannel : public esphome::Component {
         void set_voltage_sensor(esphome::sensor::Sensor* sensor) { this->voltage_ = sensor; }
         void set_current_sensor(esphome::sensor::Sensor* sensor) { this->current_ = sensor; }
 
-        vois set_serial(uint64_t sn){this->serial_ = sn;}
+        void set_serial(uint64_t sn){this->serial_ = sn;}
         void setup() override;
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
 };
