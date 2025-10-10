@@ -14,7 +14,7 @@ size_t EsphLogPrint::write(uint8_t value) {
         }
     }
     buffer[index] = 0;
-    ESP_LOGD(TAG, "HM: %s", (char *)&buffer[0]);
+    ESP_LOGD(TAG, "HMS: %s", (char *)&buffer[0]);
     index = 0;
     return 1;
 }
