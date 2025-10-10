@@ -141,7 +141,7 @@ async def to_code(config):
     cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles") ## new version with SPImanager ####
 
 
-    ############# With old lib, modified to work with ESPhome , prior to OpenDTU v24.9.26 #############
+    ############# With old lib, modified to work properly with ESPhome up to 2024.6.3 , prior to OpenDTU v24.9.26 #############
     # cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
     # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/esphome-CMT2300A") # -> without SPImanager framework...
     # cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
