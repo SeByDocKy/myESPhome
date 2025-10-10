@@ -146,7 +146,7 @@ async def to_code(config):
     # cg.add_library("SPI", None)
     # cg.add_library("esphome-hoymiles-libs", None, "https://github.com/nedyarrd/esphome-hoymiles-libs")
     # cg.add_library("Hoymiles", None, "https://github.com/nedyarrd/esphome-hoymiles-main")
-    cg.add_library("CMT2300A", None, "https://github.com/nedyarrd/esphome-CMT2300A")
+    # cg.add_library("CMT2300A", None, "https://github.com/nedyarrd/esphome-CMT2300A")
 
 
     
