@@ -139,9 +139,8 @@ async def to_code(config):
     # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A") # -> Use new SPImanager framework...
     cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/esphome-CMT2300A") # -> without SPImanager framework...
     # cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/Hoymiles") ## new version with spimanager ####
-    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/esphome-hoymiles-main") ## former version without spimanager ####
     cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
-    
+    cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/esphome-hoymiles-main") ## former version without spimanager ####
      ############# old lib #############
     # cg.add_library("lib/OpenDTU",None,"https://github.com/tbnobody/OpenDTU@1f1227fa104cda435df7132ddfa011524a262554")
     
