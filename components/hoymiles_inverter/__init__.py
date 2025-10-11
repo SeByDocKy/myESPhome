@@ -174,7 +174,7 @@ async def to_code(config):
         inv_var = cg.new_Pvariable(inv_conf[CONF_ID])
         cg.add(inv_var.set_serial_no(inv_conf[CONF_SERIAL_NO]))
 
-        cg.add(inv_var.set_rssi(inv_conf[CONF_RSSI]))
+        # cg.add(inv_var.set_rssi(inv_conf[CONF_RSSI]))
 
         for conf in inv_conf.get(CONF_DC_CHANNELS, []):
             cg.add(inv_var.add_channel(await channel_to_code(conf)))
