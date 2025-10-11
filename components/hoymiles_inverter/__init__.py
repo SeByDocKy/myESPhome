@@ -43,7 +43,7 @@ CONF_ENERGY = "energy"
 CONF_VOLTAGE = "voltage"
 CONF_CURRENT = "current"
 
-ICON_WIFI = "wifi-arrow-up-down"
+ICON_WIFI = "mdi:wifi-arrow-up-down"
 
 CHANNEL_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(_chan_cls),
