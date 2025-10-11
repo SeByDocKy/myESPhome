@@ -6,6 +6,7 @@ from esphome.components import number, binary_sensor, sensor
 from esphome.const import (
     CONF_ID,
     CONF_NAME,
+    STATE_CLASS_MEASUREMENT,
 )
 
 _ns = cg.esphome_ns.namespace("hoymiles_inverter")
