@@ -53,6 +53,8 @@ class HoymilesInverter : public esphome::Component {
 
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
 
+        std::unique_ptr<CMT2300A> radio_;
+
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
