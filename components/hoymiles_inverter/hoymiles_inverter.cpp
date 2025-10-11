@@ -95,7 +95,7 @@ void HoymilesInverter::loop() {
     if (check_updated(this->inverter_->SystemConfigPara(), system_conf_last_update_)) {
         system_conf_last_update_ = this->inverter_->SystemConfigPara()->getLastUpdate();
         updateConfiguration(this->inverter_->isProducing(), this->inverter_->SystemConfigPara());
-        ESP_LOGD(TAG, "loop(): DevInfo updated: %s, %d, %d", this->inverter_->DevInfo()->getHwVersion(), this->inverter_->isProducing(), this->inverter_->isReachable());
+        ESP_LOGVV(TAG, "loop(): DevInfo updated: %s, %d, %d", this->inverter_->DevInfo()->getHwVersion(), this->inverter_->isProducing(), this->inverter_->isReachable());
     }
 }
 
