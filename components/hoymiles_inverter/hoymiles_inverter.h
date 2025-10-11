@@ -31,7 +31,7 @@ class HoymilesNumber : public esphome::number::Number {
 
 class HoymilesChannel : public esphome::Component {
     private:
-        esphome::sensor::Sensor *power_ = nullptr, *energy_ = nullptr, *voltage_ = nullptr, *current_ = nullptr, *rssi_ = nullptr;
+        esphome::sensor::Sensor *power_ = nullptr, *energy_ = nullptr, *voltage_ = nullptr, *current_ = nullptr;
     public:
         void set_power_sensor(esphome::sensor::Sensor* sensor) { this->power_ = sensor; }
         void set_energy_sensor(esphome::sensor::Sensor* sensor) { this->energy_ = sensor; }
@@ -51,12 +51,13 @@ class HoymilesInverter : public esphome::Component {
 
         HoymilesNumber *limit_percent_number_ = nullptr, *limit_absolute_number_ = nullptr;
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
+        esphome::sensor::Sensor *rssi_ = nullptr;
 
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
 
        // /*
         std::unique_ptr<CMT2300A> radio_;
-        float rssi_;
+        // float rssi_;
         // */
 
         uint32_t system_conf_last_update_ = 0;
