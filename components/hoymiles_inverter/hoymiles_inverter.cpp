@@ -91,7 +91,7 @@ void HoymilesInverter::loop() {
                 ChannelType_t::TYPE_INV,
                 inv_channels.front());
         }
-        rssi_ = radio_->getRssiDBm();
+        // rssi_ = radio_->getRssiDBm();
     }
     if (check_updated(this->inverter_->SystemConfigPara(), system_conf_last_update_)) {
         system_conf_last_update_ = this->inverter_->SystemConfigPara()->getLastUpdate();
