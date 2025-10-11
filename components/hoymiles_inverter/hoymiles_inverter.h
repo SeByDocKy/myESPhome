@@ -37,7 +37,7 @@ class HoymilesChannel : public esphome::Component {
         void set_energy_sensor(esphome::sensor::Sensor* sensor) { this->energy_ = sensor; }
         void set_voltage_sensor(esphome::sensor::Sensor* sensor) { this->voltage_ = sensor; }
         void set_current_sensor(esphome::sensor::Sensor* sensor) { this->current_ = sensor; }
-        vois set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
+        void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
 
         void setup() override;
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
