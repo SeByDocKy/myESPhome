@@ -32,6 +32,7 @@ CONF_AC_CHANNEL = "ac_channel"
 CONF_INVERTER_CHANNEL = "inverter_channel"
 CONF_INVERTERS = "inverters"
 CONF_SERIAL_NO = "serial"
+CONF_RSSI = "rssi"
 CONF_LIMIT_PERCENT = "limit_percent"
 CONF_LIMIT_ABSOLUTE = "limit_absolute"
 CONF_REACHABLE = "reachable"
@@ -40,6 +41,8 @@ CONF_POWER = "power"
 CONF_ENERGY = "energy"
 CONF_VOLTAGE = "voltage"
 CONF_CURRENT = "current"
+
+ICON_WIFI = "wifi-arrow-up-down"
 
 CHANNEL_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(_chan_cls),
@@ -72,6 +75,11 @@ CHANNEL_SCHEMA = cv.Schema({
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(_inv_cls),
     cv.Required(CONF_SERIAL_NO): cv.string,
+    cv.Optional(CONF_RSSI): sensor.sensor_schema(
+                accuracy_decimals=0,
+                icon = ICON_WIFI,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
     cv.Optional(CONF_AC_CHANNEL): CHANNEL_SCHEMA,
     cv.Optional(CONF_INVERTER_CHANNEL): CHANNEL_SCHEMA,
@@ -165,6 +173,8 @@ async def to_code(config):
         inv_var = cg.new_Pvariable(inv_conf[CONF_ID])
         cg.add(inv_var.set_serial_no(inv_conf[CONF_SERIAL_NO]))
 
+        cg.add(inv_var.set_rssi(inv_conf[CONF_RSSI]))
+
         for conf in inv_conf.get(CONF_DC_CHANNELS, []):
             cg.add(inv_var.add_channel(await channel_to_code(conf)))
         if conf := inv_conf.get(CONF_AC_CHANNEL):
@@ -176,9 +186,9 @@ async def to_code(config):
         cg.add(var.add_inverter(inv_var))
 
         if CONF_LIMIT_PERCENT in inv_conf:
-            cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=10)))
+            cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=5)))
         if CONF_LIMIT_ABSOLUTE in inv_conf:
-            cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2500, step=10)))
+            cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2500, step=50)))
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
 
