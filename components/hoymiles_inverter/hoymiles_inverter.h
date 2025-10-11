@@ -37,7 +37,7 @@ class HoymilesChannel : public esphome::Component {
         void set_energy_sensor(esphome::sensor::Sensor* sensor) { this->energy_ = sensor; }
         void set_voltage_sensor(esphome::sensor::Sensor* sensor) { this->voltage_ = sensor; }
         void set_current_sensor(esphome::sensor::Sensor* sensor) { this->current_ = sensor; }
-        void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
+        
 
         void setup() override;
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
@@ -75,6 +75,7 @@ class HoymilesInverter : public esphome::Component {
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
         uint64_t serial() { return this->serial_; }
         void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
+        void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
         void loop() override;
 
         void updateConfiguration(bool connected, SystemConfigParaParser* parser);
