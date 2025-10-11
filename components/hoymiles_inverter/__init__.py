@@ -79,12 +79,14 @@ INVERTER_SCHEMA = cv.Schema({
         _num_cls,
         entity_category="config",
         device_class="power_factor",
+        icon="mdi:percent",
         unit_of_measurement="%",
     ),
     cv.Optional(CONF_LIMIT_ABSOLUTE): number.number_schema(
         _num_cls,
         entity_category="config",
         device_class="power",
+        icon="mdi:sine-wave",
         unit_of_measurement="W",
     ),
     cv.Optional(CONF_REACHABLE): binary_sensor.binary_sensor_schema(
