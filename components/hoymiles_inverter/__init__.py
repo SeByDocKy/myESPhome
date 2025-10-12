@@ -7,7 +7,10 @@ from esphome.const import (
     CONF_ID,
     CONF_NAME,
     CONF_SIGNAL_STRENGTH,
+    CONF_TEMPERATURE,
     UNIT_DECIBEL_MILLIWATT,
+    UNIT_CELSIUS,
+    ICON_THERMOMETER,
     STATE_CLASS_MEASUREMENT,
 )
 
@@ -44,6 +47,7 @@ CONF_POWER = "power"
 CONF_ENERGY = "energy"
 CONF_VOLTAGE = "voltage"
 CONF_CURRENT = "current"
+CONF_TEMPERATURE = "temperature"
 
 ICON_WIFI = "mdi:wifi-arrow-up-down"
 
@@ -83,6 +87,13 @@ INVERTER_SCHEMA = cv.Schema({
                 accuracy_decimals=0,
                 icon = ICON_WIFI,
                 device_class=CONF_SIGNAL_STRENGTH,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
+    cv.Optional(CONF_TEMPERATURE): sensor.sensor_schema(
+                unit_of_measurement=UNIT_CELSIUS,
+                accuracy_decimals=1,
+                icon = ICON_THERMOMETER,
+                device_class=CONF_TEMPERATURE,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
