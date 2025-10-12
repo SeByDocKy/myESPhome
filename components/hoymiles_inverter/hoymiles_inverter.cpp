@@ -92,7 +92,7 @@ void HoymilesInverter::loop() {
                 ChannelType_t::TYPE_INV,
                 inv_channels.front());
         }
-        tmp_code = radio_->GetRssiCode();
+        tmp_code = radio_->getRssiCode();
         ESP_LOGD("RADIO", "RSSI code: %d" , tmp_code);
         // tmp_rssi = radio_->getRssiDBm();
         if (rssi_ !=nullptr){
