@@ -6,6 +6,8 @@ from esphome.components import number, binary_sensor, sensor
 from esphome.const import (
     CONF_ID,
     CONF_NAME,
+    CONF_SIGNAL_STRENGTH,
+    UNIT_DECIBEL_MILLIWATT,
     STATE_CLASS_MEASUREMENT,
 )
 
@@ -77,8 +79,10 @@ INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(_inv_cls),
     cv.Required(CONF_SERIAL_NO): cv.string,
     cv.Optional(CONF_RSSI): sensor.sensor_schema(
+                unit_of_measurement=UNIT_DECIBEL_MILLIWATT,
                 accuracy_decimals=0,
                 icon = ICON_WIFI,
+                device_class=CONF_SIGNAL_STRENGTH,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
