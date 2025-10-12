@@ -143,7 +143,7 @@ void HoymilesChannel::updateSensors(bool connected, StatisticsParser* stat, Chan
     if (this->temperature_ != nullptr) {
         auto field = FieldId_t::FLD_T;
         float temp = stat->getChannelFieldValue(typ, num, field);
-        ESP_LOGD("HMS" , "temperature = %2.2f" , temp);
+        ESP_LOGD("HMS" , "type channel %s, temperature = %2.2f" , typ, temp);
         this->temperature_->publish_state(connected? stat->getChannelFieldValue(typ, num, field): NAN);
     }
 }
