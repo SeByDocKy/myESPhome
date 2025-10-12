@@ -92,6 +92,9 @@ void HoymilesInverter::loop() {
                 inv_channels.front());
         }
         tmp_rssi = radio_->getRssiDBm();
+        if (rssi_ !=nullptr){
+            rssi_->publish_state(tmp_rssi);
+        }
     }
     if (check_updated(this->inverter_->SystemConfigPara(), system_conf_last_update_)) {
         system_conf_last_update_ = this->inverter_->SystemConfigPara()->getLastUpdate();
@@ -104,9 +107,9 @@ void HoymilesInverter::updateConfiguration(bool connected, SystemConfigParaParse
     ESP_LOGD(TAG, "updateConfiguration(): SystemConfigPara() updated");
     float percent = parser->getLimitPercent();
     ESP_LOGI(TAG, "updateConfiguration(): Limit percent received: %.0f", percent);
-    if (rssi_ !=nullptr){
-      rssi_->publish_state(tmp_rssi);
-    }
+    // if (rssi_ !=nullptr){
+    //   rssi_->publish_state(tmp_rssi);
+    // }
     if (limit_percent_number_ != nullptr) {
         limit_percent_number_->publish_state(connected? percent: NAN);
     }
