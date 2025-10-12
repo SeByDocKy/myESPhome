@@ -61,7 +61,7 @@ class HoymilesInverter : public esphome::Component {
 
        // /*
         std::unique_ptr<CMT2300A> radio_;
-        float tmp_rssi;
+        // float tmp_rssi;
         // */
 
         uint32_t system_conf_last_update_ = 0;
