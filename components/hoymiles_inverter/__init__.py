@@ -76,6 +76,13 @@ CHANNEL_SCHEMA = cv.Schema({
         accuracy_decimals=1,
         device_class="current",
         state_class="measurement",
+    ),
+    cv.Optional(CONF_TEMPERATURE): sensor.sensor_schema(
+        unit_of_measurement=UNIT_CELSIUS,
+        accuracy_decimals=1,
+        icon = ICON_THERMOMETER,
+        device_class=CONF_TEMPERATURE,
+        state_class=STATE_CLASS_MEASUREMENT,
     )
 }).extend(cv.COMPONENT_SCHEMA)
 
@@ -87,13 +94,6 @@ INVERTER_SCHEMA = cv.Schema({
                 accuracy_decimals=0,
                 icon = ICON_WIFI,
                 device_class=CONF_SIGNAL_STRENGTH,
-                state_class=STATE_CLASS_MEASUREMENT,
-             ),
-    cv.Optional(CONF_TEMPERATURE): sensor.sensor_schema(
-                unit_of_measurement=UNIT_CELSIUS,
-                accuracy_decimals=1,
-                icon = ICON_THERMOMETER,
-                device_class=CONF_TEMPERATURE,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
@@ -147,6 +147,8 @@ async def channel_to_code(config):
         cg.add(var.set_voltage_sensor(await sensor.new_sensor(conf)))
     if conf := config.get(CONF_CURRENT):
         cg.add(var.set_current_sensor(await sensor.new_sensor(conf)))
+    if conf := config.get(CONF_TEMPERATURE):
+        cg.add(var.set_temperature(await sensor.new_sensor(conf)))        
 
     await cg.register_component(var, config)
     return var
@@ -201,8 +203,6 @@ async def to_code(config):
 
         if CONF_RSSI in inv_conf:
             cg.add(inv_var.set_rssi(await sensor.new_sensor(inv_conf[CONF_RSSI])))
-        if CONF_TEMPERATURE in inv_conf:
-            cg.add(inv_var.set_temperature(await sensor.new_sensor(inv_conf[CONF_TEMPERATURE])))    
         if CONF_LIMIT_PERCENT in inv_conf:
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=5)))
         if CONF_LIMIT_ABSOLUTE in inv_conf:
