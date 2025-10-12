@@ -107,9 +107,6 @@ void HoymilesInverter::updateConfiguration(bool connected, SystemConfigParaParse
     ESP_LOGD(TAG, "updateConfiguration(): SystemConfigPara() updated");
     float percent = parser->getLimitPercent();
     ESP_LOGI(TAG, "updateConfiguration(): Limit percent received: %.0f", percent);
-    // if (rssi_ !=nullptr){
-    //   rssi_->publish_state(tmp_rssi);
-    // }
     if (limit_percent_number_ != nullptr) {
         limit_percent_number_->publish_state(connected? percent: NAN);
     }
@@ -168,7 +165,6 @@ void HoymilesPlatform::setup() {
         auto name = "Inv_" + std::to_string(i);
         auto invp = this->hoymiles_->addInverter(name.c_str(), inv->serial());
         
-        // ESP_LOGI(TAG, "inv = %d, serial number %" PRIu64, this->inverters_.size(),inv->serial());
         if (invp != nullptr) {
             inv->set_inverter(invp);
             ESP_LOGI(TAG, "Added inverter model: %s", invp->typeName().c_str());
