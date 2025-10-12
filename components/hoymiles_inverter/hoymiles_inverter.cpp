@@ -51,7 +51,6 @@ void HoymilesInverter::set_limit_absolute_number(HoymilesNumber* number) {
 }
 
 void HoymilesInverter::loop() {
-    int tmp_code;
     if (this->inverter_ == nullptr) return;
     auto check_updated = [](Parser* parser, uint32_t value) {
         return (parser->getLastUpdate() > 0) && (parser->getLastUpdate() != value); 
@@ -92,9 +91,8 @@ void HoymilesInverter::loop() {
                 ChannelType_t::TYPE_INV,
                 inv_channels.front());
         }
-        tmp_code = radio_->getRssiCode();
-        ESP_LOGD("RADIO", "RSSI code: %d" , tmp_code);
-        // tmp_rssi = radio_->getRssiDBm();
+        ESP_LOGVV("RADIO", "RSSI code: %d" , radio_->getRssiCode());
+       
         if (rssi_ !=nullptr){
             rssi_->publish_state(radio_->getRssiDBm());
         }
