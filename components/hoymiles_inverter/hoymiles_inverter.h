@@ -78,6 +78,7 @@ class HoymilesInverter : public esphome::Component {
         uint64_t serial() { return this->serial_; }
         void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
         void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
+        void set_temperature (esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; }
         void loop() override;
 
         void updateConfiguration(bool connected, SystemConfigParaParser* parser);
