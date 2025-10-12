@@ -38,7 +38,7 @@ class HoymilesChannel : public esphome::Component {
         void set_energy_sensor(esphome::sensor::Sensor* sensor) { this->energy_ = sensor; }
         void set_voltage_sensor(esphome::sensor::Sensor* sensor) { this->voltage_ = sensor; }
         void set_current_sensor(esphome::sensor::Sensor* sensor) { this->current_ = sensor; }
-        // void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
+        void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
         
 
         void setup() override;
@@ -54,7 +54,7 @@ class HoymilesInverter : public esphome::Component {
         HoymilesNumber *limit_percent_number_ = nullptr, *limit_absolute_number_ = nullptr;
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
-        esphome::sensor::Sensor *temperature_ = nullptr;
+        // esphome::sensor::Sensor *temperature_ = nullptr;
         
 
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
@@ -80,7 +80,7 @@ class HoymilesInverter : public esphome::Component {
         uint64_t serial() { return this->serial_; }
         void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
         void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
-        void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
+        // void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
         
         void loop() override;
 
