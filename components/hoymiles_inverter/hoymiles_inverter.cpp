@@ -140,6 +140,10 @@ void HoymilesChannel::updateSensors(bool connected, StatisticsParser* stat, Chan
         auto field = typ == ChannelType_t::TYPE_AC? FieldId_t::FLD_IAC: FieldId_t::FLD_IDC;
         this->current_->publish_state(connected? stat->getChannelFieldValue(typ, num, field): 0.0);
     }
+    if (this->temperature_ != nullptr) {
+        auto field = FieldId_t::FLD_T;
+        this->temperature_->publish_state(connected? stat->getChannelFieldValue(typ, num, field): NAN);
+    }
 }
 
 
