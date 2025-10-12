@@ -32,7 +32,7 @@ class HoymilesNumber : public esphome::number::Number {
 class HoymilesChannel : public esphome::Component {
     private:
         esphome::sensor::Sensor *power_ = nullptr, *energy_ = nullptr, *voltage_ = nullptr, *current_ = nullptr;
-        // esphome::sensor::Sensor *temperature_ = nullptr;
+        esphome::sensor::Sensor *temperature_ = nullptr;
     public:
         void set_power_sensor(esphome::sensor::Sensor* sensor) { this->power_ = sensor; }
         void set_energy_sensor(esphome::sensor::Sensor* sensor) { this->energy_ = sensor; }
