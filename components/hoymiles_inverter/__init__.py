@@ -174,8 +174,6 @@ async def to_code(config):
         inv_var = cg.new_Pvariable(inv_conf[CONF_ID])
         cg.add(inv_var.set_serial_no(inv_conf[CONF_SERIAL_NO]))
 
-        # cg.add(inv_var.set_rssi(inv_conf[CONF_RSSI]))
-
         for conf in inv_conf.get(CONF_DC_CHANNELS, []):
             cg.add(inv_var.add_channel(await channel_to_code(conf)))
         if conf := inv_conf.get(CONF_AC_CHANNEL):
@@ -186,6 +184,8 @@ async def to_code(config):
         await cg.register_component(inv_var, inv_conf)
         cg.add(var.add_inverter(inv_var))
 
+        if CONF_RSSI in inv_conf:
+            cg.add(inv_var.set_rssi(await sensor.new_sensor(inv_conf[CONF_RSSI])))
         if CONF_LIMIT_PERCENT in inv_conf:
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=5)))
         if CONF_LIMIT_ABSOLUTE in inv_conf:
