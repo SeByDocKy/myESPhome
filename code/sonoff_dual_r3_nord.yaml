@@ -1,0 +1,181 @@
+substitutions:
+  name: sonoff_dual_r3_nord
+
+esphome:
+  name: ${name}
+         
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  # framework:
+    # type: arduino # platformio/espressif32@5.4.0)
+    # version: 3.0.4  ##  ~3.20005.0
+    # platform_version: 53.3.13
+  framework:
+    type: esp-idf
+    version: 5.5.1
+    platform_version: 55.03.31-1
+   
+logger:
+  level: INFO
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+
+ota:
+  - platform: esphome
+
+# uart:
+  # tx_pin: GPIO25
+  # rx_pin: GPIO26
+  # baud_rate: 4800
+  # parity: NONE
+  # stop_bits: 2
+  
+
+uart:
+  tx_pin: GPIO25
+  rx_pin: GPIO26
+  baud_rate: 38400
+  parity: EVEN
+  stop_bits: 1  
+
+
+sensor:  
+  - platform: wifi_signal
+    name: ${name}_RSSI
+    id: sensor_rssi
+    update_interval: 90s
+    entity_category: "diagnostic"
+
+  - platform: uptime
+    # name: ${name}_uptime
+    id: sensor_uptime
+    update_interval: 300s
+    entity_category: "diagnostic"
+    
+  - platform: internal_temperature
+    name: ${name}_temperature
+    id: ${name}_temperature
+    accuracy_decimals: 1
+    update_interval: 5s
+    filters:
+      - round: 1    
+    
+  - platform: cse7761
+    update_interval: 5s
+    voltage:
+      name: ${name}_voltage
+    current_1:
+      name: ${name}_current_1
+      # disabled_by_default: True
+    current_2:
+      name: ${name}_current_2
+      # disabled_by_default: True
+    active_power_1:
+      name: ${name}_power_1
+    active_power_2:
+      name: ${name}_power_2    
+    
+
+button:
+  - platform: restart
+    name: ${name}_restart
+    id: button_restart
+
+light:
+  - platform: status_led
+    name: ${name}_led
+    id: led_status
+    pin:
+      number: GPIO13
+      inverted: True
+    internal: True
+
+switch:
+  - platform: gpio
+    name: ${name}_1
+    pin: GPIO27
+    id: relay_1
+
+  - platform: gpio
+    name: ${name}_2
+    pin: GPIO14
+    id: relay_2
+
+binary_sensor:
+  - platform: gpio
+    name: ${name}_button
+    id: sensor_button
+    pin:
+      number: GPIO00
+      mode:
+        input: True
+        pullup: True
+      inverted: True
+    # disabled_by_default: True
+    icon: 'mdi:radiobox-blank'
+    filters:
+      - delayed_on: 50ms
+    on_press:
+      - switch.toggle: relay_1
+
+  - platform: gpio
+    name: ${name}_1
+    pin:
+      number: GPIO32
+      mode:
+        input: True
+        pullup: True
+      inverted: True
+    filters:
+      - delayed_on_off: 50ms
+    on_press:
+      - switch.turn_on: relay_1
+    on_release:
+      - switch.turn_off: relay_1
+
+  - platform: gpio
+    name: ${name}_2
+    pin:
+      number: GPIO33
+      mode:
+        input: True
+        pullup: True
+      inverted: True
+    filters:
+      - delayed_on_off: 50ms
+    on_press:
+      - switch.turn_on: relay_2
+    on_release:
+      - switch.turn_off: relay_2
+      
+
+text_sensor:
+  - platform: template
+    name: ${name}_uptime_total # Update formatted
+    lambda: |-
+      int seconds = (id(sensor_uptime).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s
+
+
