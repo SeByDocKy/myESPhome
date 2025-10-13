@@ -1,0 +1,262 @@
+substitutions:
+  name: "test_a7670e_mqtt_cloud"
+  device_description: "ESPhome modem 4G via MQTT Synchronizer"
+  income_topic: "mqtt-cloud-synchronizer"
+
+esphome:
+  name: ${name}
+  comment: ${device_description}
+  friendly_name: a7670e_mqtt_cloud
+  min_version: 2025.6.0
+
+  # Publication des descriptions pour Discovery via Node-RED au boot
+  on_boot:
+    priority: -100
+    then:
+      - if:
+          condition:
+            modem.connected: #atmodem
+          then:
+            - mqtt.publish:
+                topic: device/${name}/temperature/config
+                retain: true
+                payload: |-
+                  # {"component":"sensor","name":"temperature", "dev_cla": "temperature", "unit_of_meas": "°C", "stat_cla": "measurement"}
+                  
+                   {"component":"sensor","name":"temperature", "value_template":"{{value}}, "device_class": "temperature", "unit_of_measurement": "°C", "state_class": "measurement", "icon": "mdi:thermometer, "device":{"identifier":${name}, "name":${name},"manufacturer":"Smartphoton","model":"MQTT-2ways-sync","sw_version":"1.0.3"} }                 
+                                    
+            - mqtt.publish:
+                topic: device/${name}/switch/config
+                retain: true
+                payload: |-
+                  {"component":"switch","name":"relay_feedback","icon", "mdi:toggle-switch", "device":{"identifier":${name}, "name":${name},"manufacturer":"Smartphoton","model":"MQTT-2ways-sync","sw_version":"1.0.3"}}
+            - mqtt.publish:
+                topic: device/${name}/texte/config
+                retain: true
+                payload: |-
+                  {"component":"text","name":"free_text", "device":{"identifier":${name}, "name":${name},"manufacturer":"Smartphoton","model":"MQTT-2ways-sync","sw_version":"1.0.3"}}
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 5.5.1
+    platform_version: 55.03.31
+    advanced:
+      enable_idf_experimental_features: yes
+      # enable_lwip_assert: false
+      # compiler_optimization: size #size
+      # assertion_level: disable
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_PERF: y
+      CONFIG_ESP32_DEFAULT_CPU_FREQ_240: y
+      CONFIG_UART_ISR_IN_IRAM: y
+      ESP_MODEM_CMUX_DEFRAGMENT_PAYLOAD: n
+      ESP_MODEM_USE_INFLATABLE_BUFFER_IF_NEEDED: y
+      ESP_MODEM_CMUX_USE_SHORT_PAYLOADS_ONLY: y
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "60"  #"60"  
+
+# wifi:
+  # ssid: !secret wifi_ssid
+  # password: !secret wifi_password
+
+  # ap:
+    # ssid: "esp32-setup"
+    # password: "12345678"
+
+# api:
+
+# ota:
+  # - platform: esphome
+  
+logger:
+
+# web_server:
+  # port: 80
+
+
+external_components:
+    - source: github://pr#6721
+      components: [ network, modem ]  # also add 'watchdog' if not found
+      refresh: 10min
+
+modem:
+  id: atmodem
+  rx_pin: GPIO27 
+  tx_pin: GPIO26
+  power_pin:
+    number: GPIO04
+    inverted: True
+  model: SIM7670  # or SIM7670 BG96 SIM7000 SIM800 GENERIC
+  apn: free
+  pin_code: !secret sim_pin
+  enable_cmux: True
+  # ton_delay:
+  dte_buffer_size: 1024
+  # we can send initial AT commands at setup
+  init_at:
+    - AT+GMM  # model
+  on_not_responding:
+    - logger.log: "modem not responding"
+  on_connect:
+    - logger.log: "modem got IP"
+  on_disconnect:
+    - logger.log: "modem lost IP"
+
+
+mqtt:
+  broker: !secret cloud_mqtt_address 
+  port: 8883
+  topic_prefix: null
+  birth_message:
+    topic: device/${name}/birth/topic
+    payload: online
+  will_message:
+    topic: device/${name}/will/topic
+    payload: offline
+  shutdown_message:
+    topic: device/${name}/shutdown/topic
+    payload: "mqtt disconnected"
+  username: !secret cloud_mqtt_user 
+  password: !secret cloud_mqtt_password
+  client_id: ${name}
+  certificate_authority: !secret cloud_certificate
+  skip_cert_cn_check: false
+  on_message:
+    - topic: ${income_topic}/a7670e_relay
+      qos: 0
+      payload: 'on'
+      then:
+        if:
+          condition:
+            and:
+              - switch.is_off: relay
+              - switch.is_off: relay_feedback
+          then:
+            - switch.turn_on: relay
+            - logger.log: "Turn ON relay from MQTT Cloud synchronizer"
+            
+    - topic: ${income_topic}/a7670e_relay
+      qos: 0
+      payload: 'off'
+      then:
+        if:
+          condition:
+            and:
+              - switch.is_on: relay
+              - switch.is_on: relay_feedback
+          then:
+            - switch.turn_off: relay
+            - logger.log: "Turn OFF relay from MQTT Cloud synchronizer"        
+
+sensor:
+  - platform: modem
+    rssi:
+      # name: ${name}_rssi
+      id: ${name}_rssi
+      accuracy_decimals: 1
+      filters:
+        - round: 1
+        
+  - platform: internal_temperature
+    name: ${name}_temperature
+    id: ${name}_temperature
+    accuracy_decimals: 1
+    filters:
+      - round: 1
+    on_value:
+      then: 
+        if:
+          condition:
+            modem.connected: #atmodem
+          then:
+            - mqtt.publish:
+                topic: device/${name}/temperature/state
+                payload: !lambda "return std::to_string(x);"
+            - logger.log:
+                 format: "mqtt publish succesfully temperature with value %s"
+                 args: [ 'std::to_string(x).c_str()' ]                
+
+switch:
+  - platform: template
+    name: ${name}_relay_feedback
+    id: relay_feedback
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - mqtt.publish:
+          topic: device/${name}/switch/state
+          payload: "on"
+    turn_off_action:
+      - mqtt.publish:
+          topic: device/${name}/switch/state
+          payload: "off"
+  
+  - platform: gpio
+    pin: 
+      number: GPIO32
+    name: ${name}_relay
+    id: relay
+    
+text:
+  - platform: template
+    name: "Texte Libre"
+    id: texte_libre
+    optimistic: true
+    restore_value: true
+    mode: text
+    on_value:
+      then:
+        if:
+          condition:
+            modem.connected: #atmodem
+          then:
+            - mqtt.publish:
+                topic: device/${name}/texte/state
+                payload: !lambda "return x;"
+
+interval:
+  - interval: 2s  #Check every 2s to send relay_feedback to HA
+    then:
+      - if:
+          condition:
+            and:
+              - switch.is_on: relay
+              - switch.is_off: relay_feedback
+              - modem.connected: #atmodem
+          then:
+             - switch.turn_on: relay_feedback
+             - logger.log: "Turn ON relay_feedback MQTT Cloud synchronizer"
+      - if:
+           condition:
+             and:
+               - switch.is_off: relay
+               - switch.is_on: relay_feedback
+               - modem.connected: #atmodem
+           then:           
+            - switch.turn_off: relay_feedback
+            - logger.log: "Turn OFF relay_feedback MQTT Cloud synchronizer"           
+  
+  - interval: 60s   #Check every 60s for MQTT autodiscover in HA
+    then:
+      - if:
+          condition:
+            modem.connected: #atmodem
+          then:
+            - mqtt.publish:
+                topic: device/${name}/temperature/config
+                retain: true
+                payload: |-
+                  # {"component":"sensor","name":"temperature", "dev_cla": "temperature", "unit_of_meas": "°C", "stat_cla": "measurement"}
+                  {"component":"sensor","name":"temperature", "value_template":"{{value}}, "device_class": "temperature", "unit_of_measurement": "°C", "state_class": "measurement", "icon": "mdi:thermometer, "device":{"identifier":${name}, "name":${name},"manufacturer":"Smartphoton","model":"MQTT-2ways-sync","sw_version":"1.0.3"} }                  
+            - mqtt.publish:
+                topic: device/${name}/switch/config
+                retain: true
+                payload: |-
+                  {"component":"switch","name":"relay_feedback", "icon", "mdi:toggle-switch", "device":{"identifier":${name}, "name":${name},"manufacturer":"Smartphoton","model":"MQTT-2ways-sync","sw_version":"1.0.3"}}
+            - mqtt.publish:
+                topic: device/${name}/texte/config
+                retain: true
+                payload: |-
+                  {"component":"text","name":"free_text", "device":{"identifier":${name}, "name":${name},"manufacturer":"Smartphoton","model":"MQTT-2ways-sync","sw_version":"1.0.3"}}
