@@ -166,8 +166,8 @@ void HoymilesPlatform::setup() {
     const int8_t clk=this->clk_->get_pin();
     const int8_t cs=this->cs_->get_pin();
     const int8_t fcs=this->fcs_->get_pin();
-    const int8_t gpio2=this->gpio2_->get_pin();
-    const int8_t gpio3=this->gpio3_->get_pin();
+    int8_t gpio2=this->gpio2_->get_pin();
+    int8_t gpio3=this->gpio3_->get_pin();
     if(this->gpio2_ == nullptr){
         gpio2 = -1;   
     }
