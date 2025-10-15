@@ -161,6 +161,25 @@ void HoymilesPlatform::set_pins(
 }
 
 void HoymilesPlatform::setup() {
+    ESP_LOGI(TAG, "set_pins(): Setting up Hoymiles instance");
+    const int8_t sdio=this->sdio_->get_pin();
+    const int8_t clk=this->clk_->get_pin();
+    const int8_t cs=this->cs_->get_pin();
+    const int8_t fcs=this->fcs_->get_pin();
+    const int8_t gpio2=this->gpio2_->get_pin();
+    const int8_t gpio3=this->gpio3_->get_pin();
+    if(gpio2 == null){
+        gpio2 = -1;
+    }
+    if(gpio3 == null){
+        gpio3 = -1;
+    }
+
+    this->hoymiles_ = &Hoymiles;
+    Hoymiles.setMessageOutput(new EsphLogPrint());
+    this->hoymiles_->init();
+    this->hoymiles_->initCMT(sdio, clk, cs, fcs, gpio2, gpio3);
+
     for (uint8_t i = 0; i < this->inverters_.size(); i++) {
         auto inv = this->inverters_[i];
         auto name = "Inv_" + std::to_string(i);
