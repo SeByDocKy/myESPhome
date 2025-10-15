@@ -91,11 +91,24 @@ class HoymilesPlatform : public esphome::PollingComponent {
     private:
         HoymilesClass* hoymiles_ = nullptr;
         std::vector<HoymilesInverter*> inverters_ = {};
+        esphome::InternalGPIOPin* sdio_ = nullptr;
+        esphome::InternalGPIOPin* clk_ = nullptr;
+        esphome::InternalGPIOPin* cs_ = nullptr;
+        esphome::InternalGPIOPin* fcs_ = nullptr;
+        esphome::InternalGPIOPin* gpio2_ = nullptr;
+        esphome::InternalGPIOPin* gpio3_ = nullptr;
     public:
         void setup() override;
         void update() override;
         void loop() override;
         void add_inverter(HoymilesInverter* inverter) { this->inverters_.push_back(inverter); }
+        void set_sdio(esphome::InternalGPIOPin* pin) {this->sdio_ = pin;}
+        void set_clk(esphome::InternalGPIOPin* pin) {this->clk_ = pin;}
+        void set_cs(esphome::InternalGPIOPin* pin) {this->cs_ = pin;}
+        void set_fcs(esphome::InternalGPIOPin* pin) {this->fcs_ = pin;}
+        void set_gpio2(esphome::InternalGPIOPin* pin) {this->gpio2_ = pin;}
+        void set_gpio3(esphome::InternalGPIOPin* pin) {this->gpio3_ = pin;}
+
         void set_pins(
             esphome::InternalGPIOPin* sdio,
             esphome::InternalGPIOPin* clk,
