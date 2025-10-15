@@ -180,6 +180,8 @@ void HoymilesPlatform::setup() {
     this->hoymiles_->init();
     this->hoymiles_->initCMT(sdio, clk, cs, fcs, gpio2, gpio3);
 
+    //  Original part //
+    
     for (uint8_t i = 0; i < this->inverters_.size(); i++) {
         auto inv = this->inverters_[i];
         auto name = "Inv_" + std::to_string(i);
