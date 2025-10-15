@@ -128,8 +128,8 @@ CONFIG_SCHEMA = (
             cv.Required(CONF_CLK): pins.internal_gpio_input_pin_schema,
             cv.Required(CONF_CS): pins.internal_gpio_input_pin_schema,
             cv.Required(CONF_FCS): pins.internal_gpio_input_pin_schema,
-            cv.Required(CONF_GPIO2): pins.internal_gpio_input_pin_schema,
-            cv.Required(CONF_GPIO3): pins.internal_gpio_input_pin_schema,
+            cv.Optional(CONF_GPIO2): pins.internal_gpio_input_pin_schema,
+            cv.Optional(CONF_GPIO3): pins.internal_gpio_input_pin_schema,
         }),
         cv.Required(CONF_INVERTERS): [INVERTER_SCHEMA],
     })
@@ -215,7 +215,18 @@ async def to_code(config):
         await cg.gpio_pin_expression(config[CONF_PINS][CONF_CLK]),
         await cg.gpio_pin_expression(config[CONF_PINS][CONF_CS]),
         await cg.gpio_pin_expression(config[CONF_PINS][CONF_FCS]),
-        await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO2]),
-        await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO3]),
     ))
+    if CONF_GPIO2 in config[CONF_PINS]:
+      cg.add(var.set_pins(await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO2])))
+    if CONF_GPIO3 in config[CONF_PINS]:
+      cg.add(var.set_pins(await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO3]))
+    
+    # cg.add(var.set_pins(
+    #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_SDIO]),
+    #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_CLK]),
+    #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_CS]),
+    #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_FCS]),
+    #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO2]),
+    #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO3]),
+    # ))
     await cg.register_component(var, config)
