@@ -218,10 +218,10 @@ async def to_code(config):
     ))
     if CONF_GPIO2 in config[CONF_PINS]:
       cg.add(var.set_pins(await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO2])))
-      print(GPIO2)
+      print("GPIO2")
     if CONF_GPIO3 in config[CONF_PINS]:
       cg.add(var.set_pins(await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO3])))
-      print(GPIO3)
+      print("GPIO3")
 
     # cg.add(var.set_pins(
     #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_SDIO]),
