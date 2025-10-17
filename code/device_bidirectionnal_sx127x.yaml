@@ -34,7 +34,7 @@ packet_transport:
   update_interval: ${bidirectionnal_sx127x_update_interval}
   providers:
     - name: ${bidirectionnal_sx127x_power_meter_name}
-      encryption: !secret encryption_key
+      encryption: ${bidirectionnal_encryption_key}
 
 sensor:
 
