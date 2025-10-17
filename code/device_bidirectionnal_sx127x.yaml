@@ -1,0 +1,51 @@
+external_components:    
+  - source: "github://swoboda1337/sx127x-esphome"
+    components: [sx127x]
+    refresh: 0s
+    
+globals:
+  - id: ${bidirectionnal_sx127x_name}_rssi_power_meter_global
+    type: float    
+    
+sx127x:
+  spi_id: ${bidirectionnal_sx127x_spid_id}
+  data_rate: 5Mhz #1Mhz
+  dio0_pin: ${bidirectionnal_sx127x_dio0_pin}
+  cs_pin: ${bidirectionnal_sx127x_cs_pin}
+  rst_pin: ${bidirectionnal_sx127x_rst_pin}
+  pa_pin: BOOST
+  pa_power: 2
+  bandwidth: 125_0kHz
+  crc_enable: true
+  frequency: 433920000
+  modulation: LORA
+  rx_start: true
+  sync_value: 0x12
+  spreading_factor: 7
+  preamble_size: 8
+  coding_rate: CR_4_6
+  on_packet:
+    then:
+      - lambda: |-
+          id( ${bidirectionnal_sx127x_name}_rssi_power_meter_global) = float(rssi);
+
+packet_transport:
+  platform: sx127x
+  update_interval: ${bidirectionnal_sx127x_update_interval}
+  providers:
+    - name: ${bidirectionnal_sx127x_power_meter_name}
+      encryption: !secret encryption_key
+
+sensor:
+
+  - platform: packet_transport
+    provider: ${bidirectionnal_sx127x_power_meter_name}
+    name: ${name}_${bidirectionnal_sx127x_name}_power
+    internal: false
+    id: ${name}_power
+    remote_id: ${bidirectionnal_sx127x_power_meter_name}_power
+    icon: mdi:power
+    accuracy_decimals: 1
+    unit_of_measurement: 'W'
+    device_class: power
+      
