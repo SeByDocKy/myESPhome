@@ -21,6 +21,18 @@ class EsphLogPrint : public Print {
         size_t write(uint8_t value) override;
 };
 
+
+class HoymilesInverterOutput : public output::FloatOutput, public Component {
+ public:
+  // void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
+  
+ protected:
+  void write_state(float state) override;
+  
+  //HoymilesInverter *parent_;
+};
+
+
 class PercentNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
