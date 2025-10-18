@@ -3,7 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/application.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
-#include "esphome/components/output/float_output.h"
+// #include "esphome/components/output/float_output.h"
 
 #include <Hoymiles.h>
 #include <Print.h>
