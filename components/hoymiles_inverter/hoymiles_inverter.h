@@ -29,7 +29,7 @@ class PercentFloatOutput : public output::FloatOutput, public Component {
  protected:
   void write_state(float state) override;
   
-  HoymilesInverter *parent_;
+  // HoymilesInverter *parent_;
 };
 
 
