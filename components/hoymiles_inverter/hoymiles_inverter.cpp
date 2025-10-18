@@ -20,8 +20,10 @@ size_t EsphLogPrint::write(uint8_t value) {
 }
 
 void HoymilesNumber::control(float value) {
+    
     this->publish_state(value);
     this->control_callback_.call(value);
+    this->pref_.save(&value);
 }
 
 void HoymilesInverter::setup() {
