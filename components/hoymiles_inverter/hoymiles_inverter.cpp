@@ -51,9 +51,6 @@ void AbsoluteNumber::control(float value) {
 }
 
 
-
-
-
 void HoymilesNumber::control(float value) {
     this->publish_state(value);
     this->control_callback_.call(value);    
