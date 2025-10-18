@@ -54,15 +54,9 @@ class HoymilesInverter : public esphome::Component {
         HoymilesNumber *limit_percent_number_ = nullptr, *limit_absolute_number_ = nullptr;
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
-        // esphome::sensor::Sensor *temperature_ = nullptr;
-        
 
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
-
-       // /*
         std::unique_ptr<CMT2300A> radio_;
-        // float tmp_rssi;
-        // */
 
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
@@ -80,7 +74,7 @@ class HoymilesInverter : public esphome::Component {
         uint64_t serial() { return this->serial_; }
         void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
         void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
-        // void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
+
         
         void loop() override;
 
