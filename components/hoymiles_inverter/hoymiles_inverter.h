@@ -27,7 +27,6 @@ class PercentNumber : public esphome::number::Number {
        
         ESPPreferenceObject pref_;
         float current_percent_power_limit_ = 100.0;
-        // float current_absolute_power_limit_ = 1000.0;
 
     public:
         void setup();
@@ -42,7 +41,6 @@ class AbsoluteNumber : public esphome::number::Number {
         esphome::CallbackManager<void(float)> control_callback_;
        
         ESPPreferenceObject pref_;
-        // float current_percent_power_limit_ = 100.0;
         float current_absolute_power_limit_ = 1000.0;
 
     public:
@@ -54,21 +52,14 @@ class AbsoluteNumber : public esphome::number::Number {
 };
 
 
-
 class HoymilesNumber : public esphome::number::Number {
     private:
-        esphome::CallbackManager<void(float)> control_callback_;
-       
-        // ESPPreferenceObject pref_;
-        // float current_percent_power_limit_ = 100.0;
-        // float current_absolute_power_limit_ = 1000.0;
-
+        esphome::CallbackManager<void(float)> control_callback_;   
     public:
         void setup();
         void control(float value) override;
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
-        // float get_percent_power_limit(void){return this->current_percent_power_limit_;}
-        // void set_percent_power_limit(float value){this->current_percent_power_limit_ = value;}
+
 };
 
 class HoymilesChannel : public esphome::Component {
