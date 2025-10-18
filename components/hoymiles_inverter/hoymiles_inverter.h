@@ -29,7 +29,7 @@ class PercentNumber : public esphome::number::Number {
         float current_percent_power_limit_ = 100.0;
 
     public:
-        void setup();
+        void setup() override;
         void control(float value) override;
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
         float get_percent_power_limit(void){return this->current_percent_power_limit_;}
@@ -44,7 +44,7 @@ class AbsoluteNumber : public esphome::number::Number {
         float current_absolute_power_limit_ = 1000.0;
 
     public:
-        void setup();
+        void setup() override;
         void control(float value) override;
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
         float get_absolute_power_limit(void){return this->current_absolute_power_limit_;}
