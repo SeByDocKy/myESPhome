@@ -29,7 +29,7 @@ class HoymilesNumber : public esphome::number::Number {
         float current_absolute_power_limit_ = 1000.0;
 
     public:
-        void setup() override;
+        void setup();
         void control(float value) override;
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
         float get_percent_power_limit(void){return this->current_percent_power_limit_;}
@@ -47,7 +47,7 @@ class HoymilesChannel : public esphome::Component {
         void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
         
 
-        void setup();
+        void setup() override;
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
 };
 
