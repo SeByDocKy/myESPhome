@@ -105,9 +105,9 @@ INVERTER_SCHEMA = cv.Schema({
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
     cv.Optional(CONF_AC_CHANNEL): CHANNEL_SCHEMA,
     cv.Optional(CONF_INVERTER_CHANNEL): CHANNEL_SCHEMA,
-    cv.Optional(CONF_OUTPUT_PERCENT): output.FLOAT_OUTPUT_SCHEMA(  
+    cv.Optional(CONF_OUTPUT_PERCENT): output.FLOAT_OUTPUT_SCHEMA({
         cv.Required(CONF_ID): cv.declare_id(_out_cls),
-    ).extend(cv.COMPONENT_SCHEMA),
+    }).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_LIMIT_PERCENT): number.number_schema(
         _percent_cls, #_num_cls,
         entity_category="config",
