@@ -24,6 +24,7 @@ class EsphLogPrint : public Print {
 class HoymilesNumber : public esphome::number::Number {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
+        ESPPreferenceObject pref_;
     public:
         void control(float value) override;
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
