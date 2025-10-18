@@ -29,7 +29,7 @@ void HoymilesNumber::control(float value) {
 void HoymilesNumber::setup() {
     float value;
     this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
-    if (!this->pref_.load(&value)) value = this->parent_->get_absorbing_setpoint();
+    if (!this->pref_.load(&value)) value = this->get_percent_power_limit();
     // this->parent_->set_absorbing_setpoint(value);
     this->publish_state(value);
 }
