@@ -26,12 +26,15 @@ void HoymilesNumber::control(float value) {
     this->pref_.save(&value);
 }
 
-void HoymilesInverter::setup() {
+void HoymilesNumber::setup() {
     float value;
     this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
     if (!this->pref_.load(&value)) value = this->parent_->get_absorbing_setpoint();
     // this->parent_->set_absorbing_setpoint(value);
     this->publish_state(value);
+}
+
+void HoymilesInverter::setup() {
 }
 
 void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) { 
