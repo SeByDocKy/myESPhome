@@ -47,7 +47,7 @@ class HoymilesChannel : public esphome::Component {
         void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
         
 
-        void setup() override;
+        void setup();
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
 };
 
