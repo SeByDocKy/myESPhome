@@ -23,17 +23,18 @@ void HoymilesNumber::control(float value) {
     
     this->publish_state(value);
     this->control_callback_.call(value);
-    this->set_percent_power_limit(value);
-    this->pref_.save(&value);
+    
+    // this->set_percent_power_limit(value);
+    // this->pref_.save(&value);
 }
 
-void HoymilesNumber::setup() {
-    float value;
-    this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
-    if (!this->pref_.load(&value)) value = this->get_percent_power_limit();
-    // this->parent_->set_absorbing_setpoint(value);
-    this->publish_state(value);
-}
+// void HoymilesNumber::setup() {
+//     float value;
+//     this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+//     if (!this->pref_.load(&value)) value = this->get_percent_power_limit();
+//     // this->parent_->set_absorbing_setpoint(value);
+//     this->publish_state(value);
+// }
 
 void HoymilesInverter::setup() {
 }
