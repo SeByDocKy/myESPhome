@@ -1,7 +1,7 @@
 from esphome import pins
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import number, binary_sensor, sensor
+from esphome.components import number, binary_sensor, sensor, output
 
 from esphome.const import (
     CONF_ID,
@@ -27,7 +27,7 @@ _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
 
 CODEOWNERS = ["@kvj"]
 DEPENDENCIES = []
-AUTO_LOAD = ["sensor", "number", "binary_sensor"]
+AUTO_LOAD = ["sensor", "number", "binary_sensor", "output"]
 
 MULTI_CONF = False
 
