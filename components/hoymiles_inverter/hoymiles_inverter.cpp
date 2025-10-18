@@ -20,7 +20,7 @@ size_t EsphLogPrint::write(uint8_t value) {
 }
 
 void PercentFloatOutput::write_state(float value){
-     this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
+     this->parent_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
 }
 
 void PercentNumber::setup() {
