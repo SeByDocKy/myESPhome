@@ -87,7 +87,7 @@ class HoymilesInverter : public esphome::Component {
         // HoymilesNumber *limit_percent_number_ = nullptr, *limit_absolute_number_ = nullptr;
         
         PercentNumber *limit_percent_number_ = nullptr;
-        AbsoluteNumber *limit_percent_number_ = nullptr;
+        AbsoluteNumber *limit_absolute_number_ = nullptr;
 
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
