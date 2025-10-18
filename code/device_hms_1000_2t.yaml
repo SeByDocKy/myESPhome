@@ -9,6 +9,9 @@ hoymiles_inverter:
         name: ${name}_${hoymiles_name}_percent_power_limit
       limit_absolute: # Number Entity 0 - 2500 W
         name: ${name}_${hoymiles_name}_absolute_power_limit
+      percent_output:
+        name: ${name}_${hoymiles_name}_percent_output
+        id: ${hoymiles_name}_percent_output  
       reachable: # Binary Sensor
         name: ${name}_${hoymiles_name}_reachable
       dc_channels:
@@ -61,4 +64,5 @@ hoymiles_inverter:
           icon: mdi:counter
           unit_of_measurement: 'kWh'
           filters: 
+
             - multiply: 0.001
