@@ -69,7 +69,8 @@ void HoymilesNumber::control(float value) {
 void HoymilesInverter::setup() {
 }
 
-void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) { 
+//void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) {
+void HoymilesInverter::set_limit_percent_number(PercentNumber* number) {    
     this->limit_percent_number_ = number;
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
@@ -81,7 +82,8 @@ void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) {
     });
 }
 
-void HoymilesInverter::set_limit_absolute_number(HoymilesNumber* number) {
+//void HoymilesInverter::set_limit_absolute_number(HoymilesNumber* number) {
+void HoymilesInverter::set_limit_absolute_number(AbsoluteNumber* number) {     
     this->limit_absolute_number_ = number;
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
