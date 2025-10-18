@@ -22,10 +22,10 @@ class EsphLogPrint : public Print {
 };
 
 
-class HoymilesInverterOutput : public output::FloatOutput, public Component {
+class PercentFloatOutput : public output::FloatOutput, public Component {
  public:
   // void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
-  
+  // void setup() override;
  protected:
   void write_state(float state) override;
   
