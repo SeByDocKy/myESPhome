@@ -21,7 +21,7 @@ class EsphLogPrint : public Print {
         size_t write(uint8_t value) override;
 };
 
-class HoymilesInverter;
+
 class PercentFloatOutput : public output::FloatOutput, public Component {
  public:
   void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
