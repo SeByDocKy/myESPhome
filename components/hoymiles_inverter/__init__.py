@@ -105,9 +105,7 @@ INVERTER_SCHEMA = cv.Schema({
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
     cv.Optional(CONF_AC_CHANNEL): CHANNEL_SCHEMA,
     cv.Optional(CONF_INVERTER_CHANNEL): CHANNEL_SCHEMA,
-    # cv.Optional(CONF_OUTPUT_PERCENT): output.FLOAT_OUTPUT_SCHEMA(
-    #   _out_cls, 
-    # ),
+    cv.Optional(CONF_OUTPUT_PERCENT): output.FLOAT_OUTPUT_SCHEMA
     cv.Optional(CONF_LIMIT_PERCENT): number.number_schema(
         _percent_cls, #_num_cls,
         entity_category="config",
@@ -216,8 +214,8 @@ async def to_code(config):
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
-        # if CONF_OUTPUT_PERCENT in inv_conf:
-            # await output.register_output(var, config)
+        if CONF_OUTPUT_PERCENT in inv_conf:
+            await output.register_output(var, config)
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
 
