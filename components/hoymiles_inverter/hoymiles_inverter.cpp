@@ -19,6 +19,34 @@ size_t EsphLogPrint::write(uint8_t value) {
     return 1;
 }
 
+
+void PercentNumber::control(float value) {
+    this->publish_state(value);
+    this->control_callback_.call(value);
+    this->set_percent_power_limit(value);
+    this->pref_.save(&value);
+}
+void AbsoluteNumber::setup() {
+    float value;
+    this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+    if (!this->pref_.load(&value)) value = this->get_absolute_power_limit();
+    this->publish_state(value);
+}
+
+void AbsoluteNumber::control(float value) {
+    this->publish_state(value);
+    this->control_callback_.call(value);
+    this->set_absolute_power_limit(value);
+    this->pref_.save(&value);
+}
+void PercentNumber::setup() {
+    float value;
+    this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+    if (!this->pref_.load(&value)) value = this->get_percent_power_limit();
+    this->publish_state(value);
+}
+
+
 void HoymilesNumber::control(float value) {
     
     this->publish_state(value);
