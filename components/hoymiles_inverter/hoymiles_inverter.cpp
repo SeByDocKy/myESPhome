@@ -155,11 +155,13 @@ void HoymilesInverter::updateConfiguration(bool connected, SystemConfigParaParse
     float percent = parser->getLimitPercent();
     ESP_LOGI(TAG, "updateConfiguration(): Limit percent received: %.0f", percent);
     if (limit_percent_number_ != nullptr) {
-        limit_percent_number_->publish_state(connected? percent: NAN);
+        //limit_percent_number_->publish_state(connected? percent: NAN);
+        limit_percent_number_->publish_state(percent);
     }
     if (limit_absolute_number_ != nullptr) {
         auto max_power = this->inverter_->DevInfo()->getMaxPower();
-        limit_absolute_number_->publish_state((connected && (max_power > 0))? percent * max_power / 100.0: NAN);
+        // limit_absolute_number_->publish_state((connected && (max_power > 0))? percent * max_power / 100.0: NAN);
+        limit_absolute_number_->publish_state(percent * max_power / 100.0);
     }
 }
 
