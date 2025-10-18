@@ -21,7 +21,7 @@ _chan_cls = _ns.class_("HoymilesChannel", cg.Component)
 _num_cls = _ns.class_("HoymilesNumber", number.Number)
 
 _percent_cls = _ns.class_("PercentNumber", number.Number)
-_absolute_cls = _ns.class_("PercentNumber", number.Number)
+_absolute_cls = _ns.class_("AbsoluteNumber", number.Number)
 
 CODEOWNERS = ["@kvj"]
 DEPENDENCIES = []
