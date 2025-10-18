@@ -26,6 +26,7 @@ class HoymilesNumber : public esphome::number::Number {
         esphome::CallbackManager<void(float)> control_callback_;
         ESPPreferenceObject pref_;
     public:
+        void setup() override;
         void control(float value) override;
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
 };
