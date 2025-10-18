@@ -23,6 +23,7 @@ void HoymilesNumber::control(float value) {
     
     this->publish_state(value);
     this->control_callback_.call(value);
+    this->set_percent_power_limit(value);
     this->pref_.save(&value);
 }
 
