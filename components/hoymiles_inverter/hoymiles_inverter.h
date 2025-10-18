@@ -32,6 +32,7 @@ class HoymilesNumber : public esphome::number::Number {
         void setup() override;
         void control(float value) override;
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
+        float get_percent_power_limit(void){return this->current_percent_power_limit_;}
 };
 
 class HoymilesChannel : public esphome::Component {
