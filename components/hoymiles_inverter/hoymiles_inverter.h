@@ -21,6 +21,40 @@ class EsphLogPrint : public Print {
         size_t write(uint8_t value) override;
 };
 
+class PercentNumber : public esphome::number::Number {
+    private:
+        esphome::CallbackManager<void(float)> control_callback_;
+       
+        ESPPreferenceObject pref_;
+        float current_percent_power_limit_ = 100.0;
+        // float current_absolute_power_limit_ = 1000.0;
+
+    public:
+        void setup();
+        void control(float value) override;
+        void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
+        float get_percent_power_limit(void){return this->current_percent_power_limit_;}
+        void set_percent_power_limit(float value){this->current_percent_power_limit_ = value;}
+};
+
+class AbsoluteNumber : public esphome::number::Number {
+    private:
+        esphome::CallbackManager<void(float)> control_callback_;
+       
+        ESPPreferenceObject pref_;
+        // float current_percent_power_limit_ = 100.0;
+        float current_absolute_power_limit_ = 1000.0;
+
+    public:
+        void setup();
+        void control(float value) override;
+        void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
+        float get_absolute_power_limit(void){return this->current_absolute_power_limit_;}
+        void set_absolute_power_limit(float value){this->current_absolute_power_limit_ = value;}
+};
+
+
+
 class HoymilesNumber : public esphome::number::Number {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
