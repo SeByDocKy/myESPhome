@@ -25,6 +25,9 @@ class HoymilesNumber : public esphome::number::Number {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
         ESPPreferenceObject pref_;
+        float current_percent_power_limit_ = 100.0;
+        float current_absolute_power_limit_ = 1000.0;
+
     public:
         void setup() override;
         void control(float value) override;
