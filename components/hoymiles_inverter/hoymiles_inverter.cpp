@@ -29,9 +29,9 @@ void PercentNumber::setup() {
 }
 void PercentNumber::control(float value) {
     this->publish_state(value);
-    this->control_callback_.call(value);
     this->set_percent_power_limit(value);
     this->pref_.save(&value);
+    this->control_callback_.call(value);
 }
 
 
@@ -44,9 +44,9 @@ void AbsoluteNumber::setup() {
 }
 void AbsoluteNumber::control(float value) {
     this->publish_state(value);
-    this->control_callback_.call(value);
     this->set_absolute_power_limit(value);
     this->pref_.save(&value);
+    this->control_callback_.call(value);
 }
 
 
