@@ -49,6 +49,9 @@ void AbsoluteNumber::control(float value) {
 
 
 
+void HoymilesInverter::setup() {
+}
+
 void HoymilesNumber::control(float value) {
     
     this->publish_state(value);
@@ -66,8 +69,7 @@ void HoymilesNumber::control(float value) {
 //     this->publish_state(value);
 // }
 
-void HoymilesInverter::setup() {
-}
+
 
 //void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) {
 void HoymilesInverter::set_limit_percent_number(PercentNumber* number) {    
