@@ -18,7 +18,10 @@ _ns = cg.esphome_ns.namespace("hoymiles_inverter")
 _cls = _ns.class_("HoymilesPlatform", cg.PollingComponent)
 _inv_cls = _ns.class_("HoymilesInverter", cg.Component)
 _chan_cls = _ns.class_("HoymilesChannel", cg.Component)
-_num_cls = _ns.class_("HoymilesNumber", number.Number)
+# _num_cls = _ns.class_("HoymilesNumber", number.Number)
+
+_percent_cls = _ns.class_("PercentNumber", number.Number)
+_absolute_cls = _ns.class_("PercentNumber", number.Number)
 
 CODEOWNERS = ["@kvj"]
 DEPENDENCIES = []
@@ -100,14 +103,14 @@ INVERTER_SCHEMA = cv.Schema({
     cv.Optional(CONF_AC_CHANNEL): CHANNEL_SCHEMA,
     cv.Optional(CONF_INVERTER_CHANNEL): CHANNEL_SCHEMA,
     cv.Optional(CONF_LIMIT_PERCENT): number.number_schema(
-        _num_cls,
+        _percent_cls, #_num_cls,
         entity_category="config",
         device_class="power_factor",
         icon="mdi:percent",
         unit_of_measurement="%",
     ),
     cv.Optional(CONF_LIMIT_ABSOLUTE): number.number_schema(
-        _num_cls,
+        _absolute_cls, #_num_cls,
         entity_category="config",
         device_class="power",
         icon="mdi:sine-wave",
