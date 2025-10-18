@@ -8,7 +8,6 @@
 #include <Hoymiles.h>
 #include <Print.h>
 
-
 namespace esphome {
 namespace hoymiles_inverter {
 
