@@ -23,7 +23,7 @@ _num_cls = _ns.class_("HoymilesNumber", number.Number)
 _percent_cls = _ns.class_("PercentNumber", number.Number, cg.Component)
 _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
 
-# _out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput, cg.Component)
+_out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput, cg.Component)
 
 CODEOWNERS = ["@kvj"]
 DEPENDENCIES = []
@@ -105,7 +105,9 @@ INVERTER_SCHEMA = cv.Schema({
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
     cv.Optional(CONF_AC_CHANNEL): CHANNEL_SCHEMA,
     cv.Optional(CONF_INVERTER_CHANNEL): CHANNEL_SCHEMA,
-    cv.Optional(CONF_OUTPUT_PERCENT): output.FLOAT_OUTPUT_SCHEMA,
+    cv.Optional(CONF_OUTPUT_PERCENT): output.FLOAT_OUTPUT_SCHEMA(  
+        cv.Required(CONF_ID): cv.declare_id(_out_cls),
+    ),
     cv.Optional(CONF_LIMIT_PERCENT): number.number_schema(
         _percent_cls, #_num_cls,
         entity_category="config",
