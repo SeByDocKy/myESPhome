@@ -21,7 +21,7 @@ class EsphLogPrint : public Print {
         size_t write(uint8_t value) override;
 };
 
-class PercentNumber : public esphome::number::Number {
+class PercentNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
        
@@ -36,7 +36,7 @@ class PercentNumber : public esphome::number::Number {
         void set_percent_power_limit(float value){this->current_percent_power_limit_ = value;}
 };
 
-class AbsoluteNumber : public esphome::number::Number {
+class AbsoluteNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
        
