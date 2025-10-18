@@ -3,6 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/application.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/components/output/float_output.h"
 
 #include <Hoymiles.h>
 #include <Print.h>
@@ -93,6 +94,7 @@ class HoymilesInverter : public esphome::Component {
 
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
+        esphome::output::FloatOutput *output_ = nullptr;
 
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
         std::unique_ptr<CMT2300A> radio_;
