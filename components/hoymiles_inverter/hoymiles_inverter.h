@@ -113,8 +113,14 @@ class HoymilesInverter : public esphome::Component {
         void add_channel(HoymilesChannel* channel) { this->channels_.push_back(channel); }
         void set_ac_channel(HoymilesChannel* channel) { this->ac_channel_ = channel; }
         void set_inverter_channel(HoymilesChannel* channel) { this->inverter_channel_ = channel; }
-        void set_limit_percent_number(HoymilesNumber* number);
-        void set_limit_absolute_number(HoymilesNumber* number);
+        
+        // void set_limit_percent_number(HoymilesNumber* number);
+        // void set_limit_absolute_number(HoymilesNumber* number);
+
+        void set_limit_percent_number(PercentNumber* number);
+        void set_limit_absolute_number(AbsoluteNumber* number);
+
+
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
         uint64_t serial() { return this->serial_; }
