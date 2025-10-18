@@ -22,6 +22,7 @@ size_t EsphLogPrint::write(uint8_t value) {
 
 void PercentNumber::setup() {
     float value;
+    ESP_LOGD("Number" , "Entered into PercentNumber setup()");
     this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
     if (!this->pref_.load(&value)) value = this->get_percent_power_limit();
     this->set_percent_power_limit(value);
