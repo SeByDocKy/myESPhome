@@ -20,6 +20,7 @@ _inv_cls = _ns.class_("HoymilesInverter", cg.Component)
 _chan_cls = _ns.class_("HoymilesChannel", cg.Component)
 
 _num_cls = _ns.class_("HoymilesNumber", number.Number)
+
 _percent_cls = _ns.class_("PercentNumber", number.Number, cg.Component)
 _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
 
