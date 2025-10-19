@@ -134,7 +134,7 @@ void HoymilesInverter::loop() {
             rssi_->publish_state(radio_->getRssiDBm());
         }
     }
-    updateOutput(this->inverter_->isProducing(), this->inverter_->SystemConfigPara());
+    // updateOutput(this->inverter_->isProducing(), this->inverter_->SystemConfigPara());
     
     if (check_updated(this->inverter_->SystemConfigPara(), system_conf_last_update_)) {
         system_conf_last_update_ = this->inverter_->SystemConfigPara()->getLastUpdate();
@@ -163,7 +163,7 @@ void HoymilesInverter::updateOutput(bool connected, SystemConfigParaParser* pars
    
    float percent;
    if (this->output_percent_ != nullptr) {   
-       percent = this->output_percent_->get_state();
+       // percent = this->output_percent_->get_state();
        // percent = output_percent_->get_state();
        this->inverter_->sendActivePowerControlRequest(percent, PowerLimitControlType::AbsolutNonPersistent);
    }
