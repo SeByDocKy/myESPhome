@@ -118,13 +118,15 @@ class HoymilesInverter : public esphome::Component {
         HoymilesChannel *inverter_channel_ = nullptr, *ac_channel_ = nullptr;
 
         // HoymilesNumber *limit_percent_number_ = nullptr, *limit_absolute_number_ = nullptr;
-        
+
+        PercentFloatOutput *percent_output_ = nullptr;
         PercentNumber *limit_percent_number_ = nullptr;
         AbsoluteNumber *limit_absolute_number_ = nullptr;
 
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
-        esphome::output::FloatOutput *percent_output_ = nullptr;
+        //esphome::output::FloatOutput *percent_output_ = nullptr;
+        
     
 
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
