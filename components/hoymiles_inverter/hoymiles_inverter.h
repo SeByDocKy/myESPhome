@@ -154,7 +154,7 @@ class HoymilesInverter : public esphome::Component {
         uint64_t serial() { return this->serial_; }
         void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
         void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
-        void set_output_percent (esphome::output::FloatOutput *output) {this->output_percent_ = output; }
+        void set_output_percent (esphome::output::FloatOutput *output) {this->percent_output_ = output; }
 
         
         void loop() override;
