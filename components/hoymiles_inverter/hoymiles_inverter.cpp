@@ -156,7 +156,7 @@ void HoymilesInverter::updateConfiguration(bool connected, SystemConfigParaParse
     }
 }
 
-void HoymilesInverter::updateOutput(bool connected, , SystemConfigParaParser* parser){
+void HoymilesInverter::updateOutput(bool connected, SystemConfigParaParser* parser){
    ESP_LOGD(TAG, "update output");
    float percent = parser->getLimitPercent();
    if (limit_percent_number_ != nullptr) {   
