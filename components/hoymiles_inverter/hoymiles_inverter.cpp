@@ -163,7 +163,7 @@ void HoymilesInverter::updateOutput(bool connected, SystemConfigParaParser* pars
    
    float percent;
    if (this->output_percent_ != nullptr) {   
-       percent = this->last_output_value_;
+       percent = this->output_percent_->get_state();
        // percent = output_percent_->get_state();
        this->inverter_->sendActivePowerControlRequest(percent, PowerLimitControlType::AbsolutNonPersistent);
    }
