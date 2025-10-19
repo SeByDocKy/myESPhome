@@ -134,6 +134,8 @@ void HoymilesInverter::loop() {
             rssi_->publish_state(radio_->getRssiDBm());
         }
     }
+    updateOutput(this->inverter_->isProducing(), this->inverter_->SystemConfigPara());
+    
     if (check_updated(this->inverter_->SystemConfigPara(), system_conf_last_update_)) {
         system_conf_last_update_ = this->inverter_->SystemConfigPara()->getLastUpdate();
         updateConfiguration(this->inverter_->isProducing(), this->inverter_->SystemConfigPara());
