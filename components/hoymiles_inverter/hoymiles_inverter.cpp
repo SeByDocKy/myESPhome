@@ -39,7 +39,6 @@ void PercentNumber::control(float value) {
     this->control_callback_.call(value);
 }
 
-
 void AbsoluteNumber::setup() {
     float value;
     this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
@@ -53,7 +52,6 @@ void AbsoluteNumber::control(float value) {
     this->pref_.save(&value);
     this->control_callback_.call(value);
 }
-
 
 void HoymilesNumber::control(float value) {
     this->publish_state(value);
@@ -70,8 +68,7 @@ void HoymilesInverter::set_percent_output(PercentFloatOutput* output) {
         if (this->inverter_ != nullptr) {
             ESP_LOGI(TAG, "set_percent_output(): New percent: %.0f", value);
             this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
-            // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);
-            
+            // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);    
         }
     });
 }
@@ -83,8 +80,7 @@ void HoymilesInverter::set_percent_number(PercentNumber* number) {
         if (this->inverter_ != nullptr) {
             ESP_LOGI(TAG, "set_limit_percent_number(): New limit percent: %.0f", value);
             this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
-            // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);
-            
+            // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);   
         }
     });
 }
