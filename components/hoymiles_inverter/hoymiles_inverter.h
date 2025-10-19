@@ -160,7 +160,7 @@ class HoymilesInverter : public esphome::Component {
         void loop() override;
 
         void updateConfiguration(bool connected, SystemConfigParaParser* parser);
-        void updateOutput(bool connected, SystemConfigParaParser* parser);
+        // void updateOutput(bool connected, SystemConfigParaParser* parser);
 };
 
 class HoymilesPlatform : public esphome::PollingComponent {
