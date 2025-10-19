@@ -124,7 +124,7 @@ class HoymilesInverter : public esphome::Component {
 
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
-        esphome::output::FloatOutput *output_percent_ = nullptr;
+        esphome::output::FloatOutput *percent_output_ = nullptr;
     
 
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
