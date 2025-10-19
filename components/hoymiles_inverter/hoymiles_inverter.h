@@ -63,8 +63,8 @@ class PercentNumber : public esphome::number::Number, public Component {
         void control(float value) override;
         
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
-        float get_percent_power_limit(void){return this->current_percent_power_limit_;}
-        void set_percent_power_limit(float value){this->current_percent_power_limit_ = value;}
+        // float get_percent_power_limit(void){return this->current_percent_power_limit_;}
+        // void set_percent_power_limit(float value){this->current_percent_power_limit_ = value;}
 };
 
 class AbsoluteNumber : public esphome::number::Number, public Component {
@@ -80,8 +80,8 @@ class AbsoluteNumber : public esphome::number::Number, public Component {
         void control(float value) override;
         
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
-        float get_absolute_power_limit(void){return this->current_absolute_power_limit_;}
-        void set_absolute_power_limit(float value){this->current_absolute_power_limit_ = value;}
+        // float get_absolute_power_limit(void){return this->current_absolute_power_limit_;}
+        // void set_absolute_power_limit(float value){this->current_absolute_power_limit_ = value;}
 };
 
 
