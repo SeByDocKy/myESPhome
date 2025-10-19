@@ -62,11 +62,11 @@ void HoymilesInverter::setup() {
 }
 
 
-void HoymilesInverter::set_percent_output(PercentFloatOutput* output) {    
+void HoymilesInverter::set_limit_percent_output(PercentFloatOutput* output) {    
     this->percent_output_ = output;
     output->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
-            ESP_LOGI(TAG, "set_percent_output(): New percent: %.0f", value);
+            ESP_LOGI(TAG, "set_limit_percent_output(): New percent: %.0f", value);
             this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
             // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);    
         }
@@ -74,7 +74,7 @@ void HoymilesInverter::set_percent_output(PercentFloatOutput* output) {
 }
 
 //void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) {
-void HoymilesInverter::set_percent_number(PercentNumber* number) {    
+void HoymilesInverter::set_limit_percent_number(PercentNumber* number) {    
     this->limit_percent_number_ = number;
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
@@ -86,7 +86,7 @@ void HoymilesInverter::set_percent_number(PercentNumber* number) {
 }
 
 //void HoymilesInverter::set_limit_absolute_number(HoymilesNumber* number) {
-void HoymilesInverter::set_absolute_number(AbsoluteNumber* number) {     
+void HoymilesInverter::set_limit_absolute_number(AbsoluteNumber* number) {     
     this->limit_absolute_number_ = number;
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
