@@ -28,13 +28,13 @@ void PercentNumber::setup() {
     float value;
     ESP_LOGD("Number" , "Entered into PercentNumber setup()");
     this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
-    if (!this->pref_.load(&value)) value = this->get_percent_power_limit();
-    this->set_percent_power_limit(value);
+    if (!this->pref_.load(&value)) value = this->get_percent_power();
+    this->set_percent_power(value);
     this->publish_state(value);
 }
 void PercentNumber::control(float value) {
     this->publish_state(value);
-    this->set_percent_power_limit(value);
+    this->set_percent_power(value);
     this->pref_.save(&value);
     this->control_callback_.call(value);
 }
@@ -43,13 +43,13 @@ void PercentNumber::control(float value) {
 void AbsoluteNumber::setup() {
     float value;
     this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
-    if (!this->pref_.load(&value)) value = this->get_absolute_power_limit();
-    this->set_absolute_power_limit(value);
+    if (!this->pref_.load(&value)) value = this->get_absolute_power();
+    this->set_absolute_power(value);
     this->publish_state(value);
 }
 void AbsoluteNumber::control(float value) {
     this->publish_state(value);
-    this->set_absolute_power_limit(value);
+    this->set_absolute_power(value);
     this->pref_.save(&value);
     this->control_callback_.call(value);
 }
