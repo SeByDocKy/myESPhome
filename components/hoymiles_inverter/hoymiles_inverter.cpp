@@ -19,9 +19,9 @@ size_t EsphLogPrint::write(uint8_t value) {
     return 1;
 }
 
-void PercentFloatOutput::write_state(float value){
-     // this->parent_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
-}
+// void PercentFloatOutput::write_state(float value){
+//      // this->parent_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
+// }
 
 void PercentNumber::setup() {
     float value;
