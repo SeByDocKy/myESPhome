@@ -34,6 +34,24 @@ class EsphLogPrint : public Print {
 // };
 
 
+class PercentFloatOutput : public output::FloatOutput, public Component {  
+
+ private:
+   esphome::CallbackManager<void(float)> control_callback_;
+   void write_state(float value) override;
+ protected:
+  void write_state(float state) override;
+  HoymilesInverter *parent_;
+
+  public:
+    void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
+    float get_percent_power_limit(void){return this->current_percent_power_limit_;}
+    void set_percent_power_limit(float value){this->current_percent_power_limit_ = value;}
+  // void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
+  // void setup() override; 
+};
+
+
 class PercentNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
