@@ -160,7 +160,7 @@ void HoymilesInverter::updateOutput(bool connected, SystemConfigParaParser* pars
    ESP_LOGD(TAG, "update output");
    float percent = parser->getLimitPercent();
    if (limit_percent_number_ != nullptr) {   
-      output_percent_->write_state(percent);
+      output_percent_->set_level(percent);
    }
     
 }
