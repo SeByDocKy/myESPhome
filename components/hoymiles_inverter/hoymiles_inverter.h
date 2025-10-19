@@ -143,9 +143,9 @@ class HoymilesInverter : public esphome::Component {
         // void set_limit_percent_number(HoymilesNumber* number);
         // void set_limit_absolute_number(HoymilesNumber* number);
 
-        void set_percent_output(PercentFloatOutput* output)
-        void set_percent_number(PercentNumber* number)
-        void set_absolute_number(AbsoluteNumber* number)
+        void set_percent_output(PercentFloatOutput* output);
+        void set_percent_number(PercentNumber* number);
+        void set_absolute_number(AbsoluteNumber* number);
 
 
         void set_limit_percent_output(PercentFloatOutput* output) {this->percent_output_ = output;}
