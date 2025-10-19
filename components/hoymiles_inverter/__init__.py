@@ -214,9 +214,9 @@ async def to_code(config):
         if CONF_RSSI in inv_conf:
             cg.add(inv_var.set_rssi(await sensor.new_sensor(inv_conf[CONF_RSSI])))
         if CONF_LIMIT_PERCENT in inv_conf:
-            cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
+            cg.add(inv_var.set_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
         if CONF_LIMIT_ABSOLUTE in inv_conf:
-            cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
+            cg.add(inv_var.set_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
         if CONF_PERCENT_OUTPUT in inv_conf:
             await output.register_output(var, config)
             # await output.register_output(out_var, inv_conf[CONF_OUTPUT_PERCENT])
