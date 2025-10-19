@@ -46,7 +46,7 @@ CONF_SERIAL_NO = "serial"
 CONF_RSSI = "rssi"
 CONF_LIMIT_PERCENT = "limit_percent"
 CONF_LIMIT_ABSOLUTE = "limit_absolute"
-CONF_OUTPUT_PERCENT = "output_percent"
+CONF_PERCENT_OUTPUT = "percent_output"
 CONF_REACHABLE = "reachable"
 
 CONF_POWER = "power"
@@ -105,7 +105,7 @@ INVERTER_SCHEMA = cv.Schema({
     cv.Optional(CONF_DC_CHANNELS): [CHANNEL_SCHEMA],
     cv.Optional(CONF_AC_CHANNEL): CHANNEL_SCHEMA,
     cv.Optional(CONF_INVERTER_CHANNEL): CHANNEL_SCHEMA,
-    cv.Optional(CONF_OUTPUT_PERCENT): output.FLOAT_OUTPUT_SCHEMA.extend({
+    cv.Optional(CONF_PERCENT_OUTPUT): output.FLOAT_OUTPUT_SCHEMA.extend({
         cv.Required(CONF_ID): cv.declare_id(_inv_cls),
     }),
     cv.Optional(CONF_LIMIT_PERCENT): number.number_schema(
@@ -216,11 +216,11 @@ async def to_code(config):
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
-        if CONF_OUTPUT_PERCENT in inv_conf:
-            await output.register_output(var, config)
+        if CONF_PERCENT_OUTPUT in inv_conf:
+            # await output.register_output(var, config)
             # out_var = cg.new_Pvariable(inv_conf[CONF_OUTPUT_PERCENT][CONF_ID])
             # await output.register_output(out_var, inv_conf[CONF_OUTPUT_PERCENT])
-            # cg.add(inv_var.set_output_percent(out_var))
+            cg.add(inv_var.set_percent_output(await output.register_output(var, inv_conf[CONF_PERCENT_OUTPUT])))
             # cg.add(out_var.set_parent(inv_var))
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
