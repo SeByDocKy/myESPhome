@@ -19,9 +19,10 @@ size_t EsphLogPrint::write(uint8_t value) {
     return 1;
 }
 
-// void PercentFloatOutput::write_state(float value){
-//      // this->parent_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
-// }
+void PercentFloatOutput::write_state(float value){
+    this->set_percent_output(value);
+    this->control_callback_.call(value);
+}
 
 void PercentNumber::setup() {
     float value;
@@ -63,7 +64,7 @@ void HoymilesInverter::setup() {
 }
 
 
-void HoymilesInverter::set_percent_output(PercentOutput* output) {    
+void HoymilesInverter::set_percent_output(PercentFloatOutput* output) {    
     this->percent_output_ = output;
     output->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
