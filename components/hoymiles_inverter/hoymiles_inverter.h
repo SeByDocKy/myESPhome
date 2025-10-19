@@ -150,9 +150,9 @@ class HoymilesInverter : public esphome::Component {
         void set_absolute_number(AbsoluteNumber* number);
 
 
-        void set_limit_percent_output(PercentFloatOutput* output) {this->percent_output_ = output;}
-        void set_limit_percent_number(PercentNumber* number){this->limit_percent_number_ = number;}
-        void set_limit_absolute_number(AbsoluteNumber* number){this->limit_absolute_number_ = number;}
+        // void set_limit_percent_output(PercentFloatOutput* output) {this->percent_output_ = output;}
+        // void set_limit_percent_number(PercentNumber* number){this->limit_percent_number_ = number;}
+        // void set_limit_absolute_number(AbsoluteNumber* number){this->limit_absolute_number_ = number;}
 
 
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
