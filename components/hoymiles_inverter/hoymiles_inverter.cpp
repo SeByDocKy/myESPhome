@@ -176,7 +176,7 @@ void HoymilesInverter::updateOutput(bool connected, SystemConfigParaParser* pars
    ESP_LOGD(TAG, "update output");
    
    float percent;
-   if (this->output_percent_ != nullptr) {   
+   if (this->percent_output_ != nullptr) {   
        // percent = this->output_percent_->get_state();
        // percent = output_percent_->get_state();
        this->inverter_->sendActivePowerControlRequest(percent, PowerLimitControlType::AbsolutNonPersistent);
