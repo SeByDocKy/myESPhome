@@ -172,17 +172,17 @@ void HoymilesInverter::updateConfiguration(bool connected, SystemConfigParaParse
     }
 }
 
-void HoymilesInverter::updateOutput(bool connected, SystemConfigParaParser* parser){
-   ESP_LOGD(TAG, "update output");
+
+// void HoymilesInverter::updateOutput(bool connected, SystemConfigParaParser* parser){
+//    ESP_LOGD(TAG, "update output");
    
-   float percent;
-   if (this->percent_output_ != nullptr) {   
-       // percent = this->output_percent_->get_state();
-       // percent = output_percent_->get_state();
-       this->inverter_->sendActivePowerControlRequest(percent, PowerLimitControlType::AbsolutNonPersistent);
-   }
-    
-}
+//    float percent;
+//    if (this->percent_output_ != nullptr) {   
+//        // percent = this->output_percent_->get_state();
+//        // percent = output_percent_->get_state();
+//        this->inverter_->sendActivePowerControlRequest(percent, PowerLimitControlType::AbsolutNonPersistent);
+//    }    
+// }
 
 
 void HoymilesChannel::setup() {
