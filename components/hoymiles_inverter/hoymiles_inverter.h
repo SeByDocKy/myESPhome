@@ -135,6 +135,9 @@ class HoymilesInverter : public esphome::Component {
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
+
+        bool first_ = true;
+
     public:
         void setup() override;
 
