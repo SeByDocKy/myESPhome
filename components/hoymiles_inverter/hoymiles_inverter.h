@@ -119,7 +119,7 @@ class HoymilesInverter : public esphome::Component {
 
         // HoymilesNumber *limit_percent_number_ = nullptr, *limit_absolute_number_ = nullptr;
 
-        PercentFloatOutput *percent_output_ = nullptr;
+        PercentFloatOutput *limit_percent_output_ = nullptr;
         PercentNumber *limit_percent_number_ = nullptr;
         AbsoluteNumber *limit_absolute_number_ = nullptr;
 
