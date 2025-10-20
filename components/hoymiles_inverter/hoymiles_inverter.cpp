@@ -150,6 +150,10 @@ void HoymilesInverter::loop() {
         }
     }
     // updateOutput(this->inverter_->isProducing(), this->inverter_->SystemConfigPara());
+   if (this->first_){
+     updateConfiguration(true, this->inverter_->SystemConfigPara());
+     this->first_ = false;
+   }
     
     if (check_updated(this->inverter_->SystemConfigPara(), system_conf_last_update_)) {
         system_conf_last_update_ = this->inverter_->SystemConfigPara()->getLastUpdate();
