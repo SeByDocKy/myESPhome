@@ -39,6 +39,7 @@ class PercentFloatOutput : public output::FloatOutput, public Component {
  private:
    esphome::CallbackManager<void(float)> control_callback_;
    float current_percent_output_;
+   auto pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
    
   public:
     void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
