@@ -34,6 +34,7 @@ void PercentNumber::setup() {
 }
 void PercentNumber::control(float value) {
     this->publish_state(value);
+    ESP_LOGD("Number" , "save into percent eeprom value %f" , value);
     this->set_percent_power(value);
     this->pref_.save(&value);
     this->control_callback_.call(value);
