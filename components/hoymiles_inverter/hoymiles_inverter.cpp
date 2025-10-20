@@ -34,7 +34,7 @@ void PercentNumber::setup() {
 }
 void PercentNumber::control(float value) {
     this->publish_state(value);
-    ESP_LOGD("Number" , "save into percent eeprom value %f" , value);
+    ESP_LOGI("Number" , "save into percent power eeprom value %f" , value);
     this->set_percent_power(value);
     this->pref_.save(&value);
     this->control_callback_.call(value);
@@ -49,6 +49,7 @@ void AbsoluteNumber::setup() {
 }
 void AbsoluteNumber::control(float value) {
     this->publish_state(value);
+    ESP_LOGI("Number" , "save into absolute power eeprom value %f" , value);
     this->set_absolute_power(value);
     this->pref_.save(&value);
     this->control_callback_.call(value);
