@@ -54,7 +54,7 @@ class PercentNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
        
-        ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());;
+        ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
         float current_percent_power_limit_ = 100.0;
         
 
@@ -71,7 +71,7 @@ class AbsoluteNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
        
-        ESPPreferenceObject pref_;
+        ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
         float current_absolute_power_limit_ = 1000.0;
         
 
