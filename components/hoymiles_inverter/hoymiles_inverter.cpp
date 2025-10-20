@@ -153,7 +153,7 @@ void HoymilesInverter::loop() {
         }
     }
     // updateOutput(this->inverter_->isProducing(), this->inverter_->SystemConfigPara());
-   if (this->first_ && this->inverter_->isProducing()){
+   if (this->first_ && this->inverter_->isReachable()){
      if (limit_percent_number_ != nullptr) {
         limit_percent_number_->publish_state(100);
      }
