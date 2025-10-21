@@ -33,6 +33,7 @@ class EsphLogPrint : public Print {
 //   HoymilesInverter *parent_;
 // };
 
+class HoymilesInverter;
 
 class PercentFloatOutput : public output::FloatOutput, public Component  {   // , public Parented<HoymilesInverter>  
 
