@@ -71,7 +71,7 @@ void HoymilesInverter::setup() {
 }
 
 void HoymilesInverter::write_float(float value){
-     if (value != NULL){
+     if (value != NAN){ //NULL
        this->inverter_->sendActivePowerControlRequest(value*100, PowerLimitControlType::RelativNonPersistent);
      }
 
