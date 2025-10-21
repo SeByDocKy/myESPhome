@@ -75,16 +75,16 @@ void HoymilesInverter::write_float(float value){
 
 }
 
-void HoymilesInverter::set_limit_percent_output(PercentFloatOutput* output) {    
-    this->limit_percent_output_ = output;
-    output->add_control_callback([this](float value) {
-        if (this->inverter_ != nullptr) {
-            ESP_LOGI(TAG, "set_limit_percent_output(): New percent: %.0f", value);
-            this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
-            // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);    
-        }
-    });
-}
+// void HoymilesInverter::set_limit_percent_output(PercentFloatOutput* output) {    
+//     this->limit_percent_output_ = output;
+//     output->add_control_callback([this](float value) {
+//         if (this->inverter_ != nullptr) {
+//             ESP_LOGI(TAG, "set_limit_percent_output(): New percent: %.0f", value);
+//             this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativNonPersistent);
+//             // this->inverter_->sendActivePowerControlRequest(value, PowerLimitControlType::RelativPersistent);    
+//         }
+//     });
+// }
 
 //void HoymilesInverter::set_limit_percent_number(HoymilesNumber* number) {
 void HoymilesInverter::set_limit_percent_number(PercentNumber* number) {    
