@@ -21,6 +21,7 @@ size_t EsphLogPrint::write(uint8_t value) {
 
 void HoymilesButton::press_action(){
     this->parent_->doretart();
+    // this->control_callback_.call(value);
 }
 
 void PercentFloatOutput::write_state(float value){
