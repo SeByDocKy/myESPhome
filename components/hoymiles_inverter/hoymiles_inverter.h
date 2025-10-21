@@ -39,13 +39,17 @@ class PercentFloatOutput : public output::FloatOutput, public Component  {   // 
  private:
    // esphome::CallbackManager<void(float)> control_callback_;
    void write_state(float value) override;
-   float current_percent_output_;
-   HoymilesInverter *parent_;
+   // float current_percent_output_;
+   // HoymilesInverter *parent_;
+   HoymilesPlatform *parent_;
    
   public:
     // void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
     // void write_state(float value) override;
-    void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
+    //void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
+    void set_parent(HoymilesPlatform *parent) { this->parent_ = parent; }
+
+   
   // float get_percent_power_limit(void){return this->current_percent_power_limit_;}
   // void set_percent_output(float value){this->current_percent_output_ = value;}
   // void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
