@@ -238,7 +238,7 @@ async def to_code(config):
 
         if CONF_RESTART in inv_conf:
             btn = await button.new_button(inv_conf[CONF_RESTART])
-            cg.add(btn.set_parent(var))
+            cg.add(btn.set_parent(inv_var))
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
 
