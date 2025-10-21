@@ -149,13 +149,16 @@ void HoymilesInverter::loop() {
 
    if (this->first_ && this->inverter_->isReachable()){
      float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
+     auto max_power = this->inverter_->DevInfo()->getMaxPower();
      if (limit_percent_number_ != nullptr) {
-        limit_percent_number_->publish_state(100);
+        limit_percent_number_->publish_state(percent);
+        // limit_percent_number_->publish_state(100);
      }
      if (limit_absolute_number_ != nullptr) {
         auto max_power = this->inverter_->DevInfo()->getMaxPower();
         // limit_absolute_number_->publish_state((connected && (max_power > 0))? percent * max_power / 100.0: NAN);
-        limit_absolute_number_->publish_state(1000);
+        limit_absolute_number_->publish_state(max_power);
+        // limit_absolute_number_->publish_state(1000); 
      }
      //updateConfiguration(true, this->inverter_->SystemConfigPara());
      this->first_ = false;
