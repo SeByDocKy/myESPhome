@@ -196,6 +196,7 @@ async def to_code(config):
 
     
     var = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(var, config)
 
     for inv_conf in config[CONF_INVERTERS]:
         inv_var = cg.new_Pvariable(inv_conf[CONF_ID])
@@ -218,11 +219,11 @@ async def to_code(config):
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
         if CONF_PERCENT_OUTPUT in inv_conf:
-            await output.register_output(var, config)
-            # await output.register_output(out_var, inv_conf[CONF_OUTPUT_PERCENT])
-            # cg.add(inv_var.set_limit_percent_output(await output.register_output(var, inv_conf[CONF_PERCENT_OUTPUT])))
-            # cg.add(out_var.set_parent(inv_var))
-            # cg.add(inv_var.set_limit_percent_output(await output.register_output(var, config)))
+            # await output.register_output(var, config)
+            conf = inv_conf[CONF_PERCENT_OUTPUT]
+            out = cg.new_Pvariable(conf[CONF_ID])
+            await output.register_output(out, conf)
+            cg.add(out.set_parent(var))
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
 
@@ -245,4 +246,4 @@ async def to_code(config):
     #     await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO3]),
     # ))
     
-    await cg.register_component(var, config)
+   
