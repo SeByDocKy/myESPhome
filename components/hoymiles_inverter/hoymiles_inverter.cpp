@@ -148,7 +148,7 @@ void HoymilesInverter::loop() {
     }
 
    if (this->first_ && this->inverter_->isReachable()){
-     float percent = this->inverter_->SystemConfigPara->getLimitPercent();
+     float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
      if (limit_percent_number_ != nullptr) {
         limit_percent_number_->publish_state(100);
      }
