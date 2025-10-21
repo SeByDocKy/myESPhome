@@ -34,7 +34,7 @@ class EsphLogPrint : public Print {
 // };
 
 
-class PercentFloatOutput : public output::FloatOutput, public Component  {   // , public Parented<HoymilesInverter>  
+class PercentFloatOutput : public output::FloatOutput, public Component, public HoymilesInverter  {   // , public Parented<HoymilesInverter>  
 
  private:
    // esphome::CallbackManager<void(float)> control_callback_;
