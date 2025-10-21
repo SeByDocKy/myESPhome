@@ -42,8 +42,7 @@ class PercentFloatOutput : public output::FloatOutput, public Component  {   // 
    void write_state(float value) override;
    // float current_percent_output_;
    HoymilesInverter *parent_;
-   // HoymilesPlatform *parent_;
-   
+   bool active_ = true;   
   public:
     // void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
     // void write_state(float value) override;
