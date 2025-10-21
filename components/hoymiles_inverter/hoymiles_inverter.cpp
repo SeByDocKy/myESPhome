@@ -58,7 +58,7 @@ void HoymilesInverter::setup() {
 
 
 void HoymilesInverter::setretart(){
-   this->inverter_->setRestart()
+   this->inverter_->sendRestartControlRequest()
 }
 
 void HoymilesInverter::write_float(float value){
