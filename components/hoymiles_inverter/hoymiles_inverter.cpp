@@ -70,6 +70,10 @@ void HoymilesNumber::control(float value) {
 void HoymilesInverter::setup() {
 }
 
+void HoymilesInverter::write_float(float value){
+     this->inverter_->sendActivePowerControlRequest(value*100, PowerLimitControlType::RelativNonPersistent);
+
+}
 
 void HoymilesInverter::set_limit_percent_output(PercentFloatOutput* output) {    
     this->limit_percent_output_ = output;
