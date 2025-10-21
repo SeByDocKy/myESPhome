@@ -1,0 +1,105 @@
+fan:
+  - platform: speed
+    id: ${hoymiles_name}_command
+    name: ${name}_${hoymiles_name}_command
+    output: {hoymiles_name}_percent_output
+
+
+
+hoymiles_inverter:
+  id: !extend ${hoymiles_id}
+  inverters:
+    - id: ${hoymiles_name}_id  #!extend
+      serial: ${hoymiles_inverter_sn} # Serial No of your inverter 
+      rssi:
+        name: ${name}_${hoymiles_name}_rssi  # Sensor
+      limit_percent: # Number Entity 0 - 100%
+        name: ${name}_${hoymiles_name}_percent_power_limit
+      limit_absolute: # Number Entity 0 - 2500 W
+        name: ${name}_${hoymiles_name}_absolute_power_limit
+      percent_output:
+        id: ${hoymiles_name}_percent_output  
+      reachable: # Binary Sensor
+        name: ${name}_${hoymiles_name}_reachable
+      dc_channels:
+        - power: # Power in W
+            name: ${name}_${hoymiles_name}_pv0_power
+          current: # Current in A
+            name: ${name}_${hoymiles_name}_pv0_current
+            icon: mdi:current-dc
+          voltage: # Voltage in V
+            name: ${name}_${hoymiles_name}_pv0_voltage
+          energy: 
+            name: ${name}_${hoymiles_name}_pv0_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001
+        - power:
+            name: ${name}_${hoymiles_name}_pv1_power
+          current: # Current in A
+            name: ${name}_${hoymiles_name}_pv1_current
+            icon: mdi:current-dc
+          voltage: # Voltage in V
+            name: ${name}_${hoymiles_name}_pv1_voltage
+          energy: 
+            name: ${name}_${hoymiles_name}_pv1_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001
+              
+        - power:
+            name: ${name}_${hoymiles_name}_pv2_power
+          current: # Current in A
+            name: ${name}_${hoymiles_name}_pv2_current
+            icon: mdi:current-dc
+          voltage: # Voltage in V
+            name: ${name}_${hoymiles_name}_pv2_voltage
+          energy: 
+            name: ${name}_${hoymiles_name}_pv2_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001
+              
+        - power:
+            name: ${name}_${hoymiles_name}_pv3_power
+          current: # Current in A
+            name: ${name}_${hoymiles_name}_pv3_current
+            icon: mdi:current-dc
+          voltage: # Voltage in V
+            name: ${name}_${hoymiles_name}_pv3_voltage
+          energy: 
+            name: ${name}_${hoymiles_name}_pv3_energy_today
+            device_class: energy
+            icon: mdi:counter
+            unit_of_measurement: 'kWh'
+            filters: 
+              - multiply: 0.001
+      ac_channel:
+        power:
+          name: ${name}_${hoymiles_name}_ac_power
+        energy: 
+          name: ${name}_${hoymiles_name}_ac_energy_today
+          device_class: energy
+          icon: mdi:counter
+          unit_of_measurement: 'kWh'
+          filters: 
+            - multiply: 0.001
+      inverter_channel:
+        temperature:
+          name: ${name}_${hoymiles_name}_temperature
+        power:
+          name: ${name}_${hoymiles_name}_inverter_power
+        energy: # Today's Energy in Wh
+          name: ${name}_${hoymiles_name}_inverter_energy_today
+          device_class: energy
+          icon: mdi:counter
+          unit_of_measurement: 'kWh'
+          filters: 
+
+            - multiply: 0.001
