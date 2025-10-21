@@ -24,7 +24,8 @@ _num_cls = _ns.class_("HoymilesNumber", number.Number)
 _percent_cls = _ns.class_("PercentNumber", number.Number, cg.Component)
 _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
 
-_out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput, cg.Component)
+# _out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput, cg.Component)
+_out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput)
 
 CODEOWNERS = ["@kvj"]
 DEPENDENCIES = []
