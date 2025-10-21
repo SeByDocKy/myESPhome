@@ -19,6 +19,10 @@ size_t EsphLogPrint::write(uint8_t value) {
     return 1;
 }
 
+void HoymilesButton::press_action(){
+    this->parent_->doretart();
+}
+
 void PercentFloatOutput::write_state(float value){
      this->parent_->write_float(value);
 }
@@ -57,7 +61,7 @@ void HoymilesInverter::setup() {
 }
 
 
-void HoymilesInverter::setretart(){
+void HoymilesInverter::doretart(){
    this->inverter_->sendRestartControlRequest();
 }
 
