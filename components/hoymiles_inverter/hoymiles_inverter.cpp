@@ -64,6 +64,7 @@ void HoymilesInverter::setup() {
 
 void HoymilesInverter::doretart(){
    this->inverter_->sendRestartControlRequest();
+   ESP_LOGI("Inverter" , "restart button pressed");
 }
 
 void HoymilesInverter::write_float(float value){
