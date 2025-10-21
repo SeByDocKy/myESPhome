@@ -1,3 +1,9 @@
+fan:
+  - platform: speed
+    id: ${hoymiles_name}_command
+    name: ${name}_${hoymiles_name}_command
+    output: {hoymiles_name}_percent_output
+
 hoymiles_inverter:
   id: !extend ${hoymiles_id}
   inverters:
@@ -65,6 +71,7 @@ hoymiles_inverter:
           filters: 
 
             - multiply: 0.001
+
 
 
 
