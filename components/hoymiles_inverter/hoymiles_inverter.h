@@ -35,6 +35,15 @@ class EsphLogPrint : public Print {
 
 class HoymilesInverter;
 
+class HoymilesButton : public button::Button, public Component {
+ private:
+  void press_action() override;
+  HoymilesInverter *parent_;
+
+ public:
+   void set_parent(HoymilesInverter *parent) { this->parent_ = parent; }
+};
+
 class PercentFloatOutput : public output::FloatOutput, public Component  {   // , public Parented<HoymilesInverter>  
 
  private:
