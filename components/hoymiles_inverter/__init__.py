@@ -20,6 +20,8 @@ _inv_cls = _ns.class_("HoymilesInverter", cg.Component)
 _chan_cls = _ns.class_("HoymilesChannel", cg.Component)
 
 _num_cls = _ns.class_("HoymilesNumber", number.Number)
+_but_cls = _ns.class_("HoymilesButton", button.Button, cg.Component)
+
 
 _percent_cls = _ns.class_("PercentNumber", number.Number, cg.Component)
 _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
@@ -27,9 +29,10 @@ _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
 # _out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput, cg.Component)
 _out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput)
 
-CODEOWNERS = ["@kvj"]
+
+CODEOWNERS = ["@kvj","@sebydocky"]
 DEPENDENCIES = []
-AUTO_LOAD = ["sensor", "number", "binary_sensor", "output"]
+AUTO_LOAD = ["sensor", "button", "number", "binary_sensor", "output"]
 
 MULTI_CONF = False
 
@@ -50,6 +53,7 @@ CONF_LIMIT_PERCENT = "limit_percent"
 CONF_LIMIT_ABSOLUTE = "limit_absolute"
 CONF_PERCENT_OUTPUT = "percent_output"
 CONF_REACHABLE = "reachable"
+CONF_RESTART = "restart"
 
 CONF_POWER = "power"
 CONF_ENERGY = "energy"
@@ -110,6 +114,7 @@ INVERTER_SCHEMA = cv.Schema({
     cv.Optional(CONF_PERCENT_OUTPUT): output.FLOAT_OUTPUT_SCHEMA.extend({
         cv.Required(CONF_ID): cv.declare_id(_out_cls),
     }),
+    cv.Optional(CONF_RESTART): button.button_schema(_but_cls),
     cv.Optional(CONF_LIMIT_PERCENT): number.number_schema(
         _percent_cls, #_num_cls,
         entity_category="config",
@@ -230,6 +235,10 @@ async def to_code(config):
             out = cg.new_Pvariable(conf[CONF_ID])
             await output.register_output(out, conf)
             cg.add(out.set_parent(inv_var))
+
+        if CONF_RESTART in inv_conf:
+            btn = await button.new_button(inv_conf[CONF_RESTART])
+            cg.add(btn.set_parent(var))
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
 
