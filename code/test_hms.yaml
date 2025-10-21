@@ -1,3 +1,6 @@
+#################### Compile with ESPhome < 2025.6.3 ##################
+
+
 substitutions:
   name: test_hms
 
@@ -66,7 +69,7 @@ packages:
     ref: main
     refresh: 0s
     files:
-      - path: 'code/device_hms_1000_2t.yaml' 
+      - path: 'code/device_hms_2t.yaml' 
         vars:
           hoymiles_id: 'hms_id'
           hoymiles_name: 'hms1_1000'
@@ -77,8 +80,9 @@ packages:
     ref: main
     refresh: 0s
     files:
-      - path: 'code/device_hms_2000_4t.yaml' 
+      - path: 'code/device_hms_4t.yaml' 
         vars:
           hoymiles_id: 'hms_id'
           hoymiles_name: 'hms2_2000'
           hoymiles_inverter_sn: !secret hms2000_sn1          
+
