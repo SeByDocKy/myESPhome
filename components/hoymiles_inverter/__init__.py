@@ -224,7 +224,7 @@ async def to_code(config):
             conf = inv_conf[CONF_PERCENT_OUTPUT]
             out = cg.new_Pvariable(conf[CONF_ID])
             await output.register_output(out, conf)
-            cg.add(out.set_parent(var))
+            cg.add(out.set_parent(inv_var))
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
 
