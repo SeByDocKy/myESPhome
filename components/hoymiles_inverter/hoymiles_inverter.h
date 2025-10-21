@@ -34,7 +34,7 @@ class EsphLogPrint : public Print {
 // };
 
 
-class PercentFloatOutput : public output::FloatOutput, public Component  {   // , public Parented<HoymilesInverter>  
+class PercentFloatOutput : public output::FloatOutput, public esphome::Component, public Component  {   // , public Parented<HoymilesInverter>  
 
  private:
    // esphome::CallbackManager<void(float)> control_callback_;
@@ -118,7 +118,7 @@ class HoymilesChannel : public esphome::Component {
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
 };
 
-class HoymilesInverter : public Component, public esphome::Component {
+class HoymilesInverter : public esphome::Component {
     private:
         uint64_t serial_;
         std::vector<HoymilesChannel*> channels_ = {};
