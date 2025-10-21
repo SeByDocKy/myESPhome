@@ -22,7 +22,7 @@ size_t EsphLogPrint::write(uint8_t value) {
 void PercentFloatOutput::write_state(float value){
     // this->set_percent_output(value);
     // this->control_callback_.call(value);
-     this->parent_->write_float(state);
+     this->parent_->write_float(value);
 }
 
 void PercentNumber::setup() {
