@@ -1,4 +1,4 @@
-#################### Compile with ESPhome < 2025.6.3 ##################
+#################### Compile with ESPhome <= 2025.6.3 ##################
 
 
 substitutions:
@@ -85,4 +85,5 @@ packages:
           hoymiles_id: 'hms_id'
           hoymiles_name: 'hms2_2000'
           hoymiles_inverter_sn: !secret hms2000_sn1          
+
 
