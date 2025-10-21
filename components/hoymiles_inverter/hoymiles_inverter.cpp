@@ -20,8 +20,6 @@ size_t EsphLogPrint::write(uint8_t value) {
 }
 
 void PercentFloatOutput::write_state(float value){
-    // this->set_percent_output(value);
-    // this->control_callback_.call(value);
      this->parent_->write_float(value);
 }
 
@@ -34,16 +32,7 @@ void PercentNumber::setup() {
     this->publish_state(value);
 }
 void PercentNumber::control(float value) {
-    // float tmp;
-    // if (!this->pref_.load(&tmp)) {
-    //     tmp = this->get_percent_power(); 
-    //     ESP_LOGI("Number" , "retrived tmp value" , tmp);
-    // }
-    // if (value != tmp) value = tmp;
     this->publish_state(value);
-    // ESP_LOGI("Number" , "save into percent power eeprom value %f" , value);
-    // this->set_percent_power(value);
-    // this->pref_.save(&value);
     this->control_callback_.call(value);
 }
 
@@ -56,9 +45,6 @@ void AbsoluteNumber::setup() {
 }
 void AbsoluteNumber::control(float value) {
     this->publish_state(value);
-    // ESP_LOGI("Number" , "save into absolute power eeprom value %f" , value);
-    // this->set_absolute_power(value);
-    // this->pref_.save(&value);
     this->control_callback_.call(value);
 }
 
