@@ -171,7 +171,7 @@ class HoymilesInverter : public esphome::Component {
 
         void write_float(float value);
 
-        void setretart();
+        void doretart();
 
         // void set_percent_output(PercentFloatOutput* output) {this->percent_output_ = output;}
         // void set_percent_number(PercentNumber* number){this->limit_percent_number_ = number;}
