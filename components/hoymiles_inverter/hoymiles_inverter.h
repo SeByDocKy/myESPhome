@@ -118,7 +118,7 @@ class HoymilesChannel : public esphome::Component {
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
 };
 
-class HoymilesInverter : public esphome::Component {
+class HoymilesInverter : public Component, public esphome::Component {
     private:
         uint64_t serial_;
         std::vector<HoymilesChannel*> channels_ = {};
