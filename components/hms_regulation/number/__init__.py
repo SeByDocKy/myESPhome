@@ -37,7 +37,7 @@ CONFIG_SCHEMA = {
     cv.GenerateID(CONF_HMS_REGULATION_ID): cv.use_id(HMS_REGULATIONComponent),
     
     cv.Optional(CONF_SETPOINT): number.number_schema(
-        ChargingSetpointNumber,
+        SetpointNumber,
         device_class=DEVICE_CLASS_POWER,
         icon = ICON_POWER,
         unit_of_measurement=UNIT_WATT,
@@ -121,5 +121,6 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, hms_regulation_component)
         cg.add(hms_regulation_component.set_output_max_number(n))
+
 
 
