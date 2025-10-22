@@ -1,7 +1,7 @@
 #include "output_min_number.h"
 
 namespace esphome {
-namespace offsr {
+namespace hms_regulation {
 
 void OutputMinNumber::setup() {
   float value;
@@ -17,5 +17,6 @@ void OutputMinNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
+}  // namespace hms_regulation
 }  // namespace esphome
+
