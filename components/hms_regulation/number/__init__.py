@@ -34,7 +34,7 @@ CONF_OUTPUT_MAX = "output_max"
 
 CONFIG_SCHEMA = {
      
-    cv.GenerateID(CONF_OFFSR_ID): cv.use_id(HMS_REGULATIONComponent),
+    cv.GenerateID(CONF_HMS_REGULATION_ID): cv.use_id(HMS_REGULATIONComponent),
     
     cv.Optional(CONF_SETPOINT): number.number_schema(
         ChargingSetpointNumber,
@@ -121,3 +121,4 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, hms_regulation_component)
         cg.add(hms_regulation_component.set_output_max_number(n))
+
