@@ -79,7 +79,7 @@ async def to_code(config):
         )
         await cg.register_component(n, setpoint_config)
         await cg.register_parented(n, hms_regulation_component)
-        cg.add(hms_regulation_component.set_charging_setpoint_number(n))
+        cg.add(hms_regulation_component.set_setpoint_number(n))
         
   if kp_config := config.get(CONF_KP):
         n = await number.new_number(
@@ -121,4 +121,5 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, hms_regulation_component)
         cg.add(hms_regulation_component.set_output_max_number(n))
+
 
