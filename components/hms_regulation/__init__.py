@@ -7,7 +7,7 @@ DEPENDENCIES = ["time"]
 MULTI_CONF = True
 
 hms_regulation_ns = cg.esphome_ns.namespace("hms_regulation")
-HMS_REGULATIONComponent = offsr_ns.class_("HMS_REGULATIONComponent", cg.Component)
+HMS_REGULATIONComponent = hms_regulation_ns.class_("HMS_REGULATIONComponent", cg.Component)
 
 from esphome.const import (
     CONF_ID,
@@ -42,4 +42,5 @@ async def to_code(config):
     cg.add(var.set_input_sensor(sens))
 	
     out = await cg.get_variable(config[CONF_OUTPUT_ID])
+
     cg.add(var.set_device_output(out))
