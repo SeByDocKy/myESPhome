@@ -1,4 +1,4 @@
-#include "offsr.h"
+#include "hms_regulation.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -117,5 +117,6 @@ void HMS_REGULATIONComponent::pid_update() {
 
  }  // namespace hms_regulation
 }  // namespace esphome
+
 
 
