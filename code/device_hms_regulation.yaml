@@ -1,0 +1,60 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [hms_regulation]
+    refresh: 0s
+    
+hms_regulation:
+  - id: ${hms_regulation_id}
+    input_id: ${hms_regulation_name}_input_smoothed  
+    output_id: ${hms_regulation_output_id}
+          
+sensor:
+  - platform: hms_regulation
+    hms_regulation_id: ${hms_regulation_id}
+    error: 
+      name: ${name}_${hms_regulation_name}_error    
+    output: 
+      name: ${name}_${hms_regulation_name}_output
+    target:
+      name: ${name}_${hms_regulation_name}_target
+      
+      
+  - platform: copy
+    source_id: ${hms_regulation_input_id}
+    name: ${name}_${hms_regulation_name}_input_smoothed
+    id: ${hms_regulation_name}_input_smoothed
+    filters:
+      - sliding_window_moving_average:
+          window_size: ${hms_regulation_windows_size}
+          send_every: 1 
+          
+switch:
+  - platform: hms_regulation
+    hms_regulation_id: ${hms_regulation_id}
+    activation: 
+      name: ${name}_${hms_regulation_name}_activation
+      id: ${hms_regulation_name}_activation
+    manual_override: 
+      name: ${name}_${hms_regulation_name}_manual_override
+      id: ${hms_regulation_name}_manual_override
+    pid_mode: 
+      name: ${name}_${hms_regulation_name}_pid_mode
+      id: ${hms_regulation_name}_pid_mode
+      
+      
+number:
+  - platform: hms_regulation
+    hms_regulation_id: ${hms_regulation_id}
+    setpoint: 
+      name: ${name}_${hms_regulation_name}_setpoint
+    kp: 
+      name: ${name}_${hms_regulation_name}_kp
+    ki: 
+      name: ${name}_${hms_regulation_name}_ki
+    kd: 
+      name: ${name}_${hms_regulation_name}_kd
+    output_min: 
+      name: ${name}_${hms_regulation_name}_output_min
+    output_max: 
+      name: ${name}_${hms_regulation_name}_output_max      
+          
