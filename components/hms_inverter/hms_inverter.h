@@ -135,7 +135,7 @@ class HmsInverter : public esphome::Component {
         std::unique_ptr<CMT2300A> radio_;
 
         int8_t current_palevel_ = 20;
-        int8_t former_palevel_ = 20;  
+        int8_t former_palevel_ = 19;  
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
