@@ -230,9 +230,9 @@ async def to_code(config):
         if CONF_LIMIT_PERCENT in inv_conf:        
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
         if CONF_PALEVEL in inv_conf: 
-            n = await number.new_number(inv_conf[CONF_PALEVEL], min_value=-10, max_value=20, step=1)
-            cg.add(n.set_parent(inv_var))
-            # cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-10, max_value=20, step=1)))    
+            # n = await number.new_number(inv_conf[CONF_PALEVEL], min_value=-10, max_value=20, step=1)
+            # cg.add(n.set_parent(inv_var))
+            cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-10, max_value=20, step=1)))    
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
         if CONF_PERCENT_OUTPUT in inv_conf:
