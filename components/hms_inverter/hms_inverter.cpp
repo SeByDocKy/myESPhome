@@ -23,21 +23,26 @@ void HmsButton::press_action(){
     this->parent_->doretart();
 }
 
-
-void PalevelNumber::setup(){
-   this->publish_state(this->parent_->get_palevel());
-}
-
-
-void PalevelNumber::control(float value){
-    this->parent_->set_palevel(value);
-    this->publish_state(value);
-}
-
-
 void PercentFloatOutput::write_state(float value){
      this->parent_->write_float(value);
 }
+
+void PalevelNumber::setup(){
+   // this->publish_state(this->parent_->get_palevel());
+
+   // float value;
+   // this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+   // if (!this->pref_.load(&value)) value = this->get_palevel();
+   // this->set_percent_power(value);
+   // this->publish_state(value); 
+    
+}
+void PalevelNumber::control(float value){
+    this->publish_state(value);
+    this->control_callback_.call(value);
+    //this->parent_->set_palevel(value);
+}
+
 
 void PercentNumber::setup() {
     float value;
@@ -88,6 +93,17 @@ void HmsInverter::write_float(float value){
        this->active_ = true;
      }
 }
+
+void HmsInverter::set_palevel_number(PalevelNumber* number) {    
+    this->palevel_number_ = number;
+    number->add_control_callback([this](int8_t value) {
+        if (this->inverter_ != nullptr) {
+            ESP_LOGI(TAG, "set_palevel_number(): New palevel: %.0d", value);
+            this->radio_->setPALevel(value);
+        }
+    });
+}
+
 
 void HmsInverter::set_limit_percent_number(PercentNumber* number) {    
     this->limit_percent_number_ = number;
