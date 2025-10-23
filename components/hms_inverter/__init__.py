@@ -24,6 +24,8 @@ _but_cls = _ns.class_("HmsButton", button.Button, cg.Component)
 
 _percent_cls = _ns.class_("PercentNumber", number.Number, cg.Component)
 _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
+_palevel_cls = _ns.class_("PalevelNumber", number.Number, cg.Component)
+
 _out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput)
 
 
@@ -48,7 +50,8 @@ CONF_SERIAL_NO = "serial"
 CONF_RSSI = "rssi"
 CONF_LIMIT_PERCENT = "limit_percent"
 CONF_LIMIT_ABSOLUTE = "limit_absolute"
-CONF_PERCENT_OUTPUT = "percent_output"
+CONF_PERCENT_OUTPUT = "percent_output" 
+CONF_PALEVEL = "palavel"
 CONF_REACHABLE = "reachable"
 CONF_RESTART = "restart"
 
@@ -125,6 +128,13 @@ INVERTER_SCHEMA = cv.Schema({
         device_class="power",
         icon="mdi:sine-wave",
         unit_of_measurement="W",
+    ),
+    cv.Optional(CONF_PALEVEL): number.number_schema(
+        _palevel_cls, 
+        entity_category="config",
+        device_class="signal_strength",
+        icon="mdi:signal",
+        unit_of_measurement="dBm",
     ),
     cv.Optional(CONF_REACHABLE): binary_sensor.binary_sensor_schema(
         binary_sensor.BinarySensorInitiallyOff,
@@ -219,6 +229,8 @@ async def to_code(config):
             cg.add(inv_var.set_rssi(await sensor.new_sensor(inv_conf[CONF_RSSI])))
         if CONF_LIMIT_PERCENT in inv_conf:        
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
+        if CONF_PALEVEL in inv_conf:        
+            cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-10, max_value=20, step=1)))    
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
         if CONF_PERCENT_OUTPUT in inv_conf:
