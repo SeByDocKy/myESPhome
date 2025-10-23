@@ -154,6 +154,7 @@ class HmsInverter : public esphome::Component {
         void set_limit_percent_output(PercentFloatOutput* output);
         void set_limit_percent_number(PercentNumber* number);
         void set_limit_absolute_number(AbsoluteNumber* number);
+        void set_palevel_number(PalevelNumber* number);
 
         void write_float(float value);
 
