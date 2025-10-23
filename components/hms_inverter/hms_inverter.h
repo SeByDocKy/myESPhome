@@ -139,6 +139,7 @@ class HmsInverter : public esphome::Component {
         std::unique_ptr<CMT2300A> radio_;
 
         int8_t current_palevel_ = 20;
+        int8_t former_palevel_ = 19;
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
@@ -163,6 +164,8 @@ class HmsInverter : public esphome::Component {
         void doretart();
         void set_palevel(int8_t value) {this->current_palevel_ = value;}
         int8_t get_palevel() {return this->current_palevel_ ;}
+        void set_oldpalevel(int8_t value) {this->former_palevel_ = value;}
+        int8_t get_oldpalevel() {return this->former_palevel_ ;}
 
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
