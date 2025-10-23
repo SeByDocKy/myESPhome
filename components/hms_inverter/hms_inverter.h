@@ -105,7 +105,7 @@ class HmsChannel : public esphome::Component {
 class HmsInverter : public esphome::Component {
     private:
         uint64_t serial_;
-        std::vector<HoymilesChannel*> channels_ = {};
+        std::vector<HmsChannel*> channels_ = {};
         HmsChannel *inverter_channel_ = nullptr, *ac_channel_ = nullptr;
 
         PercentFloatOutput *limit_percent_output_ = nullptr;
