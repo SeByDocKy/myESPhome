@@ -23,6 +23,12 @@ void HmsButton::press_action(){
     this->parent_->doretart();
 }
 
+
+void PalevelNumber::control(float value){
+    this->parent_->PalevelNumber(value);
+}
+
+
 void PercentFloatOutput::write_state(float value){
      this->parent_->write_float(value);
 }
