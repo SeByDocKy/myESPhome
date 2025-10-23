@@ -127,12 +127,14 @@ class HmsInverter : public esphome::Component {
         AbsoluteNumber *limit_absolute_number_ = nullptr;
         PalevelNumber *palevel_number_ = nullptr;
 
+
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
  
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
         std::unique_ptr<CMT2300A> radio_;
 
+        float current_palevel_=20.0;
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
