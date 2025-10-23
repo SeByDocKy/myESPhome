@@ -32,6 +32,21 @@ class HmsButton : public button::Button, public Component {
    void set_parent(HmsInverter *parent) { this->parent_ = parent; }
 };
 
+
+class PalevelNumber : public esphome::number::Number, public Component {
+    private: 
+        // ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+        // float current_palevel_ = 20;
+        void control(float value) override;
+        HmsInverter *parent_;
+
+    public:
+      void set_parent(HmsInverter *parent) { this->parent_ = parent; }
+        
+        
+}
+
+
 class PercentFloatOutput : public output::FloatOutput, public Component  { 
 
  private:
@@ -74,6 +89,7 @@ class AbsoluteNumber : public esphome::number::Number, public Component {
         float get_absolute_power(void){return this->current_absolute_power_limit_;}
         void set_absolute_power(float value){this->current_absolute_power_limit_ = value;}
 };
+
 
 
 class HmsNumber : public esphome::number::Number {
