@@ -125,6 +125,7 @@ class HmsInverter : public esphome::Component {
         PercentFloatOutput *limit_percent_output_ = nullptr;
         PercentNumber *limit_percent_number_ = nullptr;
         AbsoluteNumber *limit_absolute_number_ = nullptr;
+        PalevelNumber *palevel_number_ = nullptr;
 
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
@@ -154,7 +155,7 @@ class HmsInverter : public esphome::Component {
 
         void doretart();
         void set_Palevel(float value);
-        std::unique_ptr<CMT2300A> get_radio(){return this->radio_;}
+        // std::unique_ptr<CMT2300A> get_radio(){return this->radio_;}
 
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
