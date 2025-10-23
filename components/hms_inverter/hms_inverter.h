@@ -153,6 +153,7 @@ class HmsInverter : public esphome::Component {
         void write_float(float value);
 
         void doretart();
+        void set_Palevel(float value);
 
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
