@@ -71,7 +71,7 @@ void HmsInverter::doretart(){
 }
 
 void HmsInverter::set_Palevel(float value){
-   auto radio = this->inverter_->get_radio();
+   // auto radio = this->inverter_->get_radio();
    // this->inverter_->get_radio()->setPALevel(value);
 }
 
