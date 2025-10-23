@@ -24,7 +24,7 @@ esp32:
    
 external_components:
   - source: "github://SeByDocKy/myESPhome/"
-    components: [hoymiles_inverter]
+    components: [hms_inverter]
     refresh: 0s
             
 logger:
@@ -51,7 +51,7 @@ wifi:
     password: "eVt5yd7PvHjS"
     
         
-hoymiles_inverter:
+hms_inverter:
   id: hms_id
   update_interval: '3s'
   pins: 
@@ -84,6 +84,4 @@ packages:
         vars:
           hoymiles_id: 'hms_id'
           hoymiles_name: 'hms2_2000'
-          hoymiles_inverter_sn: !secret hms2000_sn1          
-
-
+          hoymiles_inverter_sn: !secret hms2000_sn1
