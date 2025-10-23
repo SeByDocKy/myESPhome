@@ -51,7 +51,7 @@ CONF_RSSI = "rssi"
 CONF_LIMIT_PERCENT = "limit_percent"
 CONF_LIMIT_ABSOLUTE = "limit_absolute"
 CONF_PERCENT_OUTPUT = "percent_output" 
-CONF_PALEVEL = "palavel"
+CONF_PALEVEL = "palevel"
 CONF_REACHABLE = "reachable"
 CONF_RESTART = "restart"
 
