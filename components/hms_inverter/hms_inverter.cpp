@@ -100,6 +100,7 @@ void HmsInverter::set_palevel_number(PalevelNumber* number) {
         if (this->inverter_ != nullptr) {
             ESP_LOGI(TAG, "set_palevel_number(): New palevel: %.0d", value);
             this->radio_->setPALevel(value);
+            this->set_palevel(value);
         }
     });
 }
@@ -188,6 +189,11 @@ void HmsInverter::loop() {
     }   
     
    if (this->first_ && this->inverter_->isReachable()){
+
+     if (this->palevel_number_ != nullptr) {
+       int8_t level = this->get_palevel();
+       this->palevel_number_->publish_state(level);
+     }
      if (this->limit_percent_number_ != nullptr) {
         float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
         this->limit_percent_number_->publish_state(percent);
