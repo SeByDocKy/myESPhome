@@ -33,18 +33,6 @@ class HmsButton : public button::Button, public Component {
 };
 
 
-class PalevelNumber : public esphome::number::Number, public Component {
-    private: 
-        // ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
-        // float current_palevel_ = 20;
-        void control(float value) override;
-        HmsInverter *parent_;
-
-    public:
-      void set_parent(HmsInverter *parent) { this->parent_ = parent; }
-      void setup() override;
-};
-
 
 class PercentFloatOutput : public output::FloatOutput, public Component  { 
 
@@ -56,18 +44,38 @@ class PercentFloatOutput : public output::FloatOutput, public Component  {
     void set_parent(HmsInverter *parent) { this->parent_ = parent; }
 };
 
+class PalevelNumber : public esphome::number::Number, public Component {
+    private: 
+        //ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+        // float current_palevel_ = 20;
+        
+        // void control(float value) override;
+        // HmsInverter *parent_;
+
+        int8_t current_palevel_;
+        esphome::CallbackManager<void(float)> control_callback_;
+        ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+
+    public:
+      // void set_parent(HmsInverter *parent) { this->parent_ = parent; }
+      // void setup() override;
+
+      void control(float value) override;   
+      void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
+      float get_palevel(void){return this->current_palevel_;}
+      void set_palevel(float value){this->current_palevel_ = value;}
+};
+
+
 class PercentNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
-       
         ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
         float current_percent_power_limit_ = 100.0;
         
-
     public:
         void setup() override;
-        void control(float value) override;
-        
+        void control(float value) override;   
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
         float get_percent_power(void){return this->current_percent_power_limit_;}
         void set_percent_power(float value){this->current_percent_power_limit_ = value;}
