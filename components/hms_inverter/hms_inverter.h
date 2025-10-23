@@ -128,9 +128,9 @@ class HmsInverter : public esphome::Component {
     public:
         void setup() override;
 
-        void add_channel(HoymilesChannel* channel) { this->channels_.push_back(channel); }
-        void set_ac_channel(HoymilesChannel* channel) { this->ac_channel_ = channel; }
-        void set_inverter_channel(HoymilesChannel* channel) { this->inverter_channel_ = channel; }
+        void add_channel(HmsChannel* channel) { this->channels_.push_back(channel); }
+        void set_ac_channel(HmsChannel* channel) { this->ac_channel_ = channel; }
+        void set_inverter_channel(HmsChannel* channel) { this->inverter_channel_ = channel; }
         
         void set_limit_percent_output(PercentFloatOutput* output);
         void set_limit_percent_number(PercentNumber* number);
