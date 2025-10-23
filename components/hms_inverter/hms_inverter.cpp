@@ -65,10 +65,13 @@ void HmsNumber::control(float value) {
 void HmsInverter::setup() {
 }
 
-
 void HmsInverter::doretart(){
    this->inverter_->sendRestartControlRequest();
    ESP_LOGI("Inverter" , "restart button pressed");
+}
+
+void HmsInverter::set_Palevel(float value){
+   this->inverter_->setPALevel(value);
 }
 
 void HmsInverter::write_float(float value){
@@ -76,7 +79,6 @@ void HmsInverter::write_float(float value){
        this->inverter_->sendActivePowerControlRequest(value*100, PowerLimitControlType::RelativNonPersistent);
        this->active_ = true;
      }
-
 }
 
 void HmsInverter::set_limit_percent_number(PercentNumber* number) {    
