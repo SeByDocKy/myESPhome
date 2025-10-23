@@ -26,6 +26,7 @@ void HmsButton::press_action(){
 
 void PalevelNumber::control(float value){
     this->parent_->set_palevel(value);
+    this->publish_state(value);
 }
 
 
