@@ -42,9 +42,7 @@ class PalevelNumber : public esphome::number::Number, public Component {
 
     public:
       void set_parent(HmsInverter *parent) { this->parent_ = parent; }
-        
-        
-}
+};
 
 
 class PercentFloatOutput : public output::FloatOutput, public Component  { 
