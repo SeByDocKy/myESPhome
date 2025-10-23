@@ -154,15 +154,17 @@ void HmsInverter::loop() {
             ESP_LOGVV("RADIO", "RSSI code: %d" , this->radio_->getRssiCode());
         }
 
-        ESP_LOGD("HMS" , "Old PALevel: %d, PALevel: %d" , this->get_oldpalevel(), this->get_palevel());
-        
-        if (this->get_oldpalevel() != this->get_palevel()){
-              this->radio_->setPALevel(this->get_palevel());
-              ESP_LOGD("HMS" , "Set PALevel to: %d" , this->get_palevel());
-              this->set_oldpalevel(this->get_palevel());
-        }
+
     }
 
+    ESP_LOGI("HMS" , "Old PALevel: %d, PALevel: %d" , this->get_oldpalevel(), this->get_palevel());
+        
+    if (this->get_oldpalevel() != this->get_palevel()){
+        this->radio_->setPALevel(this->get_palevel());
+        ESP_LOGI("HMS" , "Set PALevel to: %d" , this->get_palevel());
+        this->set_oldpalevel(this->get_palevel());
+    }   
+    
    if (this->first_ && this->inverter_->isReachable()){
      float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
      if (limit_percent_number_ != nullptr) {
