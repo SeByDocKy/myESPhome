@@ -172,8 +172,8 @@ void HmsInverter::loop() {
     }   
     
    if (this->first_ && this->inverter_->isReachable()){
-     float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
      if (this->limit_percent_number_ != nullptr) {
+        float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
         this->limit_percent_number_->publish_state(percent);
         // limit_percent_number_->publish_state(100);
      }
