@@ -25,7 +25,7 @@ void HmsButton::press_action(){
 
 
 void PalevelNumber::control(float value){
-    this->parent_->set_Palevel(value);
+    this->parent_->current_palevel_ = value;
 }
 
 
