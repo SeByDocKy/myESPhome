@@ -25,7 +25,7 @@ void HmsButton::press_action(){
 
 
 void PalevelNumber::control(float value){
-    this->parent_->current_palevel_ = value;
+    this->parent_->set_palevel(value);
 }
 
 
@@ -70,9 +70,10 @@ void HmsInverter::doretart(){
    ESP_LOGI("Inverter" , "restart button pressed");
 }
 
-void HmsInverter::set_Palevel(float value){
+void HmsInverter::set_palevel(float value){
    // auto radio = this->inverter_->get_radio();
    // this->inverter_->get_radio()->setPALevel(value);
+    this->inverter_->current_palevel_ = value;
 }
 
 void HmsInverter::write_float(float value){
