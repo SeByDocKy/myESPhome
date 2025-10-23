@@ -151,13 +151,14 @@ void HmsInverter::loop() {
         if (rssi_ !=nullptr){
             rssi_->publish_state(radio_->getRssiDBm());
         }
-        ESP_LOGD("HMS" , "old palevel: %f" , this->get_oldpalevel());
+        // ESP_LOGD("HMS" , "old palevel: %f" , this->get_oldpalevel());
 
         
-        // if (this->inverter_->get_oldpalevel() != this->inverter_->get_palevel()){
-        //       radio_->setPalevel(this->inverter_->get_palevel());
-        //       this->inverter_->set_oldpalevel(this->inverter_->get_palevel());
-        // }
+        if (this->get_oldpalevel() != this->get_palevel()){
+              radio_->setPalevel(this->get_palevel());
+              ESP_LOGD("HMS" , "Set PALevel to: %f" , this->get_palevel());
+              this->set_oldpalevel(this->get_palevel());
+        }
     }
 
    if (this->first_ && this->inverter_->isReachable()){
