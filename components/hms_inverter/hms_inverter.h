@@ -53,8 +53,8 @@ class PalevelNumber : public esphome::number::Number, public Component {
         // HmsInverter *parent_;
 
         int8_t current_palevel_;
-        esphome::CallbackManager<void(float)> control_callback_;
-        ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+        esphome::CallbackManager<void(int8_t)> control_callback_;
+        ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_object_id_hash());
 
     public:
       // void set_parent(HmsInverter *parent) { this->parent_ = parent; }
