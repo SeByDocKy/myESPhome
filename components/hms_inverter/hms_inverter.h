@@ -59,7 +59,6 @@ class PalevelNumber : public esphome::number::Number, public Component {
     public:
       // void set_parent(HmsInverter *parent) { this->parent_ = parent; }
       void setup() override;
-
       void control(float value) override;   
       void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
       float get_palevel(void){return this->current_palevel_;}
@@ -84,11 +83,9 @@ class PercentNumber : public esphome::number::Number, public Component {
 class AbsoluteNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
-       
         ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
         float current_absolute_power_limit_ = 1000.0;
         
-
     public:
         void setup() override;
         void control(float value) override;
@@ -96,7 +93,6 @@ class AbsoluteNumber : public esphome::number::Number, public Component {
         float get_absolute_power(void){return this->current_absolute_power_limit_;}
         void set_absolute_power(float value){this->current_absolute_power_limit_ = value;}
 };
-
 
 
 class HmsNumber : public esphome::number::Number {
@@ -120,7 +116,6 @@ class HmsChannel : public esphome::Component {
         void set_current_sensor(esphome::sensor::Sensor* sensor) { this->current_ = sensor; }
         void set_temperature(esphome::sensor::Sensor* sensor) { this->temperature_ = sensor; } 
         
-
         void setup() override;
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
 };
@@ -144,7 +139,6 @@ class HmsInverter : public esphome::Component {
         std::unique_ptr<CMT2300A> radio_;
 
         int8_t current_palevel_ = 20;
-        int8_t former_palevel_ = 19;  
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
@@ -169,9 +163,6 @@ class HmsInverter : public esphome::Component {
         void doretart();
         void set_palevel(int8_t value) {this->current_palevel_ = value;}
         int8_t get_palevel() {return this->current_palevel_ ;}
-        void set_oldpalevel(int8_t value) {this->former_palevel_ = value;}
-        int8_t get_oldpalevel() {return this->former_palevel_ ;}
-        // std::unique_ptr<CMT2300A> get_radio(){return this->radio_;}
 
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
