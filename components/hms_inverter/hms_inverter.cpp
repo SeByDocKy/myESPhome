@@ -151,7 +151,7 @@ void HmsInverter::loop() {
        
         if (rssi_ !=nullptr){
             rssi_->publish_state(this->radio_->getRssiDBm());
-            ESP_LOGVV("RADIO", "RSSI code: %d" , this->radio_->getRssiCode());
+            ESP_LOGVV("RADIO", "CMT2300A RSSI %d" , this->radio_->getRssiCode());
         }
 
 
@@ -161,7 +161,7 @@ void HmsInverter::loop() {
         
     if (this->get_oldpalevel() != this->get_palevel()){
         this->radio_->setPALevel(this->get_palevel());
-        ESP_LOGI("HMS" , "Set PALevel to: %d" , this->get_palevel());
+        ESP_LOGI("HMS" , "Set PALevel: %d dBm" , this->get_palevel());
         this->set_oldpalevel(this->get_palevel());
     }   
     
