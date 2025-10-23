@@ -70,11 +70,11 @@ void HmsInverter::doretart(){
    ESP_LOGI("Inverter" , "restart button pressed");
 }
 
-void HmsInverter::set_palevel(float value){
-   // auto radio = this->inverter_->get_radio();
-   // this->inverter_->get_radio()->setPALevel(value);
-    this->inverter_->current_palevel_ = value;
-}
+// void HmsInverter::set_palevel(float value){
+//    // auto radio = this->inverter_->get_radio();
+//    // this->inverter_->get_radio()->setPALevel(value);
+//     this->inverter_->current_palevel_ = value;
+// }
 
 void HmsInverter::write_float(float value){
      if (value != NULL){ //NAN
