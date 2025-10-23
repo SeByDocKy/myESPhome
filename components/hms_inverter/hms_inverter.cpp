@@ -149,13 +149,13 @@ void HmsInverter::loop() {
         ESP_LOGVV("RADIO", "RSSI code: %d" , radio_->getRssiCode());
        
         if (rssi_ !=nullptr){
-            rssi_->publish_state(radio_->getRssiDBm());
+            rssi_->publish_state(this->radio_->getRssiDBm());
         }
         // ESP_LOGD("HMS" , "old palevel: %f" , this->get_oldpalevel());
 
         
         if (this->get_oldpalevel() != this->get_palevel()){
-              radio_->setPalevel(this->get_palevel());
+              this->radio_->setPALevel(this->get_palevel());
               ESP_LOGD("HMS" , "Set PALevel to: %f" , this->get_palevel());
               this->set_oldpalevel(this->get_palevel());
         }
