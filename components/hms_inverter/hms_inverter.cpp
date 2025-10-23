@@ -160,6 +160,7 @@ void HmsInverter::loop() {
     // ESP_LOGI("HMS" , "Old PALevel: %d, PALevel: %d" , this->get_oldpalevel(), this->get_palevel());
         
     if (this->get_oldpalevel() != this->get_palevel()){
+        this->palevel_number_->publish_state(this->get_palevel());
         this->radio_->setPALevel(this->get_palevel());
         ESP_LOGI("HMS" , "Set PALevel: %d dBm" , this->get_palevel());
         this->set_oldpalevel(this->get_palevel());
