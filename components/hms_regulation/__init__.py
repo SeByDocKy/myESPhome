@@ -2,7 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor, output, time
 
-CODEOWNERS = ["@sebydocky"]
+CODEOWNERS = ["@SeByDocKy"]
 DEPENDENCIES = ["time"]
 MULTI_CONF = True
 
@@ -44,3 +44,4 @@ async def to_code(config):
     out = await cg.get_variable(config[CONF_OUTPUT_ID])
 
     cg.add(var.set_device_output(out))
+
