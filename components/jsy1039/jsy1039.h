@@ -51,7 +51,7 @@ template<typename... Ts>
 class ResetEnergyAction : public Action<Ts...> {
  public:
   ResetEnergyAction(JSY1039 *parent) : parent_(parent) {}
-  void play(Ts... x) override { this->parent_->reset_energy1(); }
+  void play(Ts... x) override { this->parent_->reset_energy(); }
   
  protected:
  JSY1039 *parent_;
