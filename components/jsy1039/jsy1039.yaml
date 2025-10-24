@@ -1,0 +1,154 @@
+substitutions:
+  name: jsy1039
+  current_address: '1'
+  current_baud_rate: '9600'
+  updates: 2s
+  modbus_throttle: 1000ms
+  offset_select: '4'
+ 
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: 5.5.1
+    platform_version: 55.03.31-1
+    
+    # type: arduino
+    # version: 2.0.11 #2.0.5 2.0.9
+    # platform_version: 6.4.0 #4.4.0 6.2.0   
+ 
+esphome:
+  name: ${name}
+  friendly_name: ${name}
+   
+# Enable logging
+logger:
+  #level: debug
+
+# Enable Home Assistant API
+api:
+  
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Jsy193 Fallback Hotspot"
+    password: "OpHFaf5UmP0c"
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [jsy1039]
+    refresh: 0s
+
+uart:
+  - id: uart_0
+    tx_pin: GPIO1
+    rx_pin: GPIO03 
+    baud_rate: ${current_baud_rate}
+    stop_bits: 1 # 2 for ESP32, 1 for ESP8266
+        
+modbus:
+   id: modbus_0
+   uart_id: uart_0
+   send_wait_time: ${modbus_throttle}
+
+button:
+  - platform: template
+    name: ${name}_reset_energy
+    id: ${name}_reset_energy
+    icon: "mdi:button-pointer"
+    on_press:
+      then:
+        - jsy1039.reset_energy: 
+           id: ${name}_id
+
+  - platform: template
+    name: ${name}_write_register04
+    id: ${name}_write_register04
+    icon: "mdi:button-pointer"
+    on_press:
+      then:
+        - jsy1039.write_com_setting:
+            id: ${name}_id
+            new_address: !lambda 'return stoi(id(new_address).state);'
+            new_baudrate: !lambda |-
+              auto index = id(new_baudrate).active_index();
+              return uint8_t( index.value() + ${offset_select}  );
+          
+  - platform: template
+    name: ${name}_read_register04
+    id: ${name}_read_register04
+    icon: "mdi:button-pointer"
+    on_press:
+      then:
+        - lambda: |-
+           uint8_t current_address, current_baudrate;
+           esphome::jsy1039::JSY1039 *sen =  id(${name}_id);
+           sen->read_register04();
+           current_address = sen->get_address();
+           auto address = id(new_address).make_call();
+           address.set_value(std::to_string(current_address));
+           address.perform();
+           current_baudrate = sen->get_baudrate();
+           auto baudrate = id(new_baudrate).make_call();
+           baudrate.set_index(current_baudrate - ${offset_select});
+           baudrate.perform();        
+
+text:
+  - platform: template
+    name: ${name}_new_address
+    id: new_address
+    optimistic: true
+    min_length: 0
+    max_length: 3
+    mode: text
+    initial_value: '   '
+    restore_value: false
+
+select:
+  - platform: template
+    name: ${name}_new_baudrate
+    id: new_baudrate
+    optimistic: true
+    options:
+      - '              '
+      - '5 - 4800 bauds'
+      - '6 - 9600 bauds'
+      - '7 - 19200 bauds'
+      - '8 - 38400 bauds'
+    initial_option: '              '
+    restore_value: false
+            
+sensor:
+  - platform: jsy1039
+    id: ${name}_id 
+    modbus_id: modbus_0
+    address: ${current_address}
+    update_interval: ${updates}
+    current:
+      name: ${name}_current
+      accuracy_decimals: 1
+    voltage:
+      name: ${name}_voltage
+      accuracy_decimals: 1
+    power:
+      name: ${name}_power
+      accuracy_decimals: 1
+    frequency:
+      name: ${name}_frequency
+      accuracy_decimals: 1
+    power_factor:
+      name: ${name}_power_factor
+      accuracy_decimals: 2
+    pos_energy:
+      name: ${name}_pos_energy
+      accuracy_decimals: 1
+    neg_energy:
+      name: ${name}_neg_energy
+      accuracy_decimals: 1
