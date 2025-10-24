@@ -1,4 +1,7 @@
-
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [jsy1039]
+    refresh: 0s
 
 
 sensor:
@@ -28,4 +31,5 @@ sensor:
       accuracy_decimals: 1
     neg_energy:
       name: ${name}_${jsy1039_name}_neg_energy
+
       accuracy_decimals: 1
