@@ -116,7 +116,7 @@ void JSY1039::read_register04() {
 }
 
 void JSY1039::write_register04(uint8_t new_address , uint8_t new_baudrate) {
-  if ((new_address>=1) & (new_address <= 255) & (new_baudrate>=3) & (new_baudrate <= 8)){
+  if ((new_address>=1) & (new_address <= 255) & (new_baudrate>=5) & (new_baudrate <= 8)){
     this->read_data_ = 3;
 	std::vector<uint8_t> cmd;
     cmd.push_back(0x00);  // broadcast address
