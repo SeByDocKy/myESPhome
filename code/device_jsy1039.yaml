@@ -1,0 +1,31 @@
+
+
+
+sensor:
+  - platform: jsy1039
+    id: ${jsy1039_name}_id 
+    modbus_id: ${jsy1039_modbus_id}
+    address: ${jsy1039_address}
+    update_interval: ${jsy1039_update_interval}
+    current:
+      name: ${name}_${jsy1039_name}_current
+      accuracy_decimals: 1
+    voltage:
+      name: ${name}_${jsy1039_name}_voltage
+      accuracy_decimals: 1
+    power:
+      name: ${name}_${jsy1039_name}_power
+      id: ${jsy1039_name}_power
+      accuracy_decimals: 1
+    frequency:
+      name: ${name}_${jsy1039_name}_frequency
+      accuracy_decimals: 1
+    power_factor:
+      name: ${name}_${jsy1039_name}_power_factor
+      accuracy_decimals: 2
+    pos_energy:
+      name: ${name}_${jsy1039_name}_pos_energy
+      accuracy_decimals: 1
+    neg_energy:
+      name: ${name}_${jsy1039_name}_neg_energy
+      accuracy_decimals: 1
