@@ -9,7 +9,7 @@ static const uint8_t JSY1039_CMD_READ_IN_REGISTERS = 0x03;   // multiple registe
 static const uint8_t JSY1039_CMD_WRITE_IN_REGISTERS = 0x10;
 static const uint8_t JSY1039_REGISTER_SETTINGS_START = 0x04; // modbus address & databaud
 static const uint8_t JSY1039_REGISTER_SETTINGS_COUNT = 0x01;  // 1 x 16-bit setting registers
-static const uint8_t JSY1039_RESET_RESET_ENERGY_LB = 0x0C; // 0x0104;
+static const uint8_t JSY1039_RESET_ENERGY_LB = 0x0C; // 0x0104;
 static const uint16_t JSY1039_REGISTER_DATA_START = 0x048;  
 static const uint8_t JSY1039_REGISTER_DATA_COUNT = 9;  // 20 x 16-bit data registers
 
@@ -142,7 +142,7 @@ void JSY1039::reset_energy() {
   cmd.push_back(this->address_);
   cmd.push_back(JSY1039_CMD_WRITE_IN_REGISTERS);
   cmd.push_back(0x01);  
-  cmd.push_back(JSY193_RESET_RESET_ENERGY_LB);
+  cmd.push_back(JSY1039_RESET_ENERGY_LB);
   cmd.push_back(0x00);
   cmd.push_back(0x04); 
   cmd.push_back(0x08);
