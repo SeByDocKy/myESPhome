@@ -289,6 +289,7 @@ void HmsPlatform::setup() {
     }
 
     ESP_LOGI(TAG, "sdio:%d,clk:%d,cd:%d,fcd:%d,gpio2:%d,gpio3:%d",sdio,clk,cs,fcs,gpio2,gpio3);
+    delay(2000);
     
     this->hoymiles_ = &Hoymiles;
     Hoymiles.setMessageOutput(new EsphLogPrint());
