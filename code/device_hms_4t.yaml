@@ -8,7 +8,7 @@ hms_inverter:
   id: !extend ${hms_inverter_id}
   inverters:
     - id: ${hms_inverter_name}_id  #!extend
-      serial: ${hms_inverter_inverter_sn} # Serial No of your inverter 
+      serial: ${hms_inverter_sn} # Serial No of your inverter 
       rssi:
         name: ${name}_${hms_inverter_name}_rssi  # Sensor
       limit_percent: # Number Entity 0 - 100%
@@ -104,5 +104,6 @@ hms_inverter:
           unit_of_measurement: 'kWh'
           filters: 
             - multiply: 0.001
+
 
 
