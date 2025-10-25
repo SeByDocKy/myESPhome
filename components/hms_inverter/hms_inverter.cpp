@@ -289,16 +289,6 @@ void HmsPlatform::setup() {
 
     ESP_LOGI(TAG, "sdio:%d,clk:%d,cd:%d,fcd:%d,gpio2:%d,gpio3:%d",sdio,clk,cs,fcs,gpio2,gpio3);
     
-    if(this->gpio2_ == nullptr){
-        gpio2 = -1;   
-    }
-    if(this->gpio3_ == nullptr){
-        gpio3 = -1;
-    }
-
-
-    // delay(2000);
-    
     this->hoymiles_ = &Hoymiles;
     Hoymiles.setMessageOutput(new EsphLogPrint());
     
