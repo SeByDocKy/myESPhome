@@ -287,7 +287,7 @@ void HmsPlatform::setup() {
       gpio3=this->gpio3_->get_pin();
     }
 
-    ESP_LOGI(TAG, "sdio:%d,clk:%d,cd:%d,fcd:%d,gpio2:%d,gpio3:%d",sdio,clk,cs,fcs,gpio2,gpio3);
+    ESP_LOGI(TAG, "sdio:%d,clk:%d,cs:%d,fcs:%d,gpio2:%d,gpio3:%d",sdio,clk,cs,fcs,gpio2,gpio3);
     
     this->hoymiles_ = &Hoymiles;
     Hoymiles.setMessageOutput(new EsphLogPrint());
