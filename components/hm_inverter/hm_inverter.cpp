@@ -174,8 +174,9 @@ void HmInverter::loop() {
         
        
         if (rssi_ !=nullptr){
-            rssi_->publish_state(this->radio_->getRssiDBm());
-            ESP_LOGVV("RADIO", "NRF24 RSSI %d" , this->radio_->getRssiCode());
+            // rssi_->publish_state(this->radio_->getRssiDBm());
+			rssi_->publish_state(this->radio_->getPALevel());
+            // ESP_LOGVV("RADIO", "NRF24 RSSI %d" , this->radio_->getRssiCode());
         }
     }
 
@@ -305,3 +306,4 @@ void HmPlatform::loop() {
 }
 
 }
+
