@@ -181,7 +181,7 @@ async def to_code(config):
     cg.add_build_flag("-std=c++17")
     cg.add_build_flag("-std=gnu++17")
     cg.add_build_flag("-fexceptions")
-    cg.add_build_flag("-HM_INVERTER")
+    cg.add_build_flag("-DHM_INVERTER")
     
     cg.add_platformio_option("build_unflags", ["-std=gnu++11", "-fno-exceptions"])
 
@@ -255,6 +255,7 @@ async def to_code(config):
     cg.add(var.set_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_EN])))
 
     cg.add(var.set_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_IRQ])))
+
 
 
 
