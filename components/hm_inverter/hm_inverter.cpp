@@ -259,8 +259,10 @@ void HmPlatform::setup() {
 	const int8_t miso=this->miso_->get_pin();
     const int8_t clk=this->clk_->get_pin();
     const int8_t cs=this->cs_->get_pin();
+	const int8_t en=this->en_->get_pin();
+	const int8_t irq=this->irq_->get_pin();
 
-    ESP_LOGI(TAG, "mosi:%d, miso:%d,clk:%d,cs:%d",mosi,miso,clk,cs);
+    ESP_LOGI(TAG, "mosi:%d, miso:%d,clk:%d,cs:%d,en:%d,irq:%d",mosi,miso,clk,cs,en,irq);
     
     this->hoymiles_ = &Hoymiles;
     Hoymiles.setMessageOutput(new EsphLogPrint());
@@ -271,8 +273,8 @@ void HmPlatform::setup() {
 	this->hoymiles_->init();
 	
 	SPIClass* spiClass = new SPIClass(SPI_NRF);
-    spiClass->begin(pin.nrf24_clk, pin.nrf24_miso, pin.nrf24_mosi, pin.nrf24_cs);
-    this->hoymiles_->initNRF(spiClass, pin.nrf24_en, pin.nrf24_irq);
+    spiClass->begin(clk, miso, mosi, cs);
+    this->hoymiles_->initNRF(spiClass, en, irq);
 
     //  Original part //
     
@@ -301,4 +303,5 @@ void HmPlatform::loop() {
 }
 
 }
+
 }
