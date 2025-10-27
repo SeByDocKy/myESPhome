@@ -83,12 +83,6 @@ void HmInverter::doretart(){
    ESP_LOGI("Inverter" , "restart button pressed");
 }
 
-// void HmsInverter::set_palevel(float value){
-//    // auto radio = this->inverter_->get_radio();
-//    // this->inverter_->get_radio()->setPALevel(value);
-//     this->inverter_->current_palevel_ = value;
-// }
-
 void HmInverter::write_float(float value){
      if (value != NULL){ //NAN
        this->inverter_->sendActivePowerControlRequest(value*100, PowerLimitControlType::RelativNonPersistent);
@@ -181,7 +175,7 @@ void HmInverter::loop() {
         
     if ((this->get_oldpalevel() != this->get_palevel()) && this->inverter_->isReachable()){
         // this->palevel_number_->publish_state(this->get_palevel());
-//        this->radio_->setPALevel(this->get_palevel());
+        this->radio_->setPALevel(((rf24_pa_dbm_e))this->get_palevel());
         ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
         this->set_oldpalevel(this->get_palevel());
     }   
@@ -301,6 +295,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
