@@ -300,10 +300,11 @@ void HmPlatform::update() {
 }
 
 void HmPlatform::loop() {
-    this->hoymiles_->getRadioCmt()->loop();
+    this->hoymiles_->getRadioNrf()->loop();
 }
 
 }
 
 }
+
 
