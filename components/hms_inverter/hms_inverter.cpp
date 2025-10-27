@@ -171,15 +171,13 @@ void HmsInverter::loop() {
         }
         
        
-        if (rssi_ !=nullptr){
+        if (rssi_ !=nullptr && this->inverter_->isReachable() ){
             rssi_->publish_state(this->radio_->getRssiDBm());
             ESP_LOGVV("RADIO", "CMT2300A RSSI %d" , this->radio_->getRssiCode());
         }
 
 
     }
-
-    // ESP_LOGI("HMS" , "Old PALevel: %d, PALevel: %d" , this->get_oldpalevel(), this->get_palevel());
         
     if (this->get_oldpalevel() != this->get_palevel()){
         // this->palevel_number_->publish_state(this->get_palevel());
