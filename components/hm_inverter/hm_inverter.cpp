@@ -181,7 +181,7 @@ void HmInverter::loop() {
         
     if ((this->get_oldpalevel() != this->get_palevel()) && this->inverter_->isReachable()){
         // this->palevel_number_->publish_state(this->get_palevel());
-        this->radio_->setPALevel(this->get_palevel());
+//        this->radio_->setPALevel(this->get_palevel());
         ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
         this->set_oldpalevel(this->get_palevel());
     }   
@@ -301,6 +301,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
