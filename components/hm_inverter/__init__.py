@@ -41,7 +41,7 @@ CONF_MISO = "miso"
 CONF_CLK = "clk"
 CONF_CS = "cs"
 CONF_EN = "en"
-CONF_IRQ = irq
+CONF_IRQ = "irq"
 CONF_DC_CHANNELS = "dc_channels"
 CONF_AC_CHANNEL = "ac_channel"
 CONF_INVERTER_CHANNEL = "inverter_channel"
@@ -250,4 +250,5 @@ async def to_code(config):
     cg.add(var.set_clk(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CLK])))
     cg.add(var.set_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CS])))
     cg.add(var.set_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_EN])))
+
     cg.add(var.set_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_IRQ])))
