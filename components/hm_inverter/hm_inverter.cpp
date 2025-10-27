@@ -179,12 +179,12 @@ void HmInverter::loop() {
     }
 
         
-    // if (this->get_oldpalevel() != this->get_palevel()){
-    //     // this->palevel_number_->publish_state(this->get_palevel());
-    //     this->radio_->setPALevel(this->get_palevel());
-    //     ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
-    //     this->set_oldpalevel(this->get_palevel());
-    // }   
+    if (this->get_oldpalevel() != this->get_palevel()){
+        // this->palevel_number_->publish_state(this->get_palevel());
+        this->radio_->setPALevel(this->get_palevel());
+        ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
+        this->set_oldpalevel(this->get_palevel());
+    }   
     
    if (this->first_ && this->inverter_->isReachable()){
 
@@ -266,9 +266,6 @@ void HmPlatform::setup() {
     this->hoymiles_ = &Hoymiles;
     Hoymiles.setMessageOutput(new EsphLogPrint());
     
-/*     this->hoymiles_->init();
-    this->hoymiles_->initCMT(sdio, clk, cs, fcs, gpio2, gpio3);
- */	
 	this->hoymiles_->init();
 	
 	SPIClass* spiClass = new SPIClass(SPI_NRF);
@@ -304,6 +301,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
