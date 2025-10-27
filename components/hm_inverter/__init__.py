@@ -233,7 +233,7 @@ async def to_code(config):
         if CONF_LIMIT_PERCENT in inv_conf:        
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
         if CONF_PALEVEL in inv_conf: 
-            cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-10, max_value=20, step=1)))    
+            cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-18, max_value=0, step=1)))    
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
         if CONF_PERCENT_OUTPUT in inv_conf:
@@ -255,6 +255,7 @@ async def to_code(config):
     cg.add(var.set_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_EN])))
 
     cg.add(var.set_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_IRQ])))
+
 
 
 
