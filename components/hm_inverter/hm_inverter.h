@@ -127,8 +127,8 @@ class HmInverter : public esphome::Component {
         // std::unique_ptr<CMT2300A> radio_;
 		std::unique_ptr<RF24> radio_;
         
-		int8_t current_palevel_ = -6;
-        int8_t former_palevel_ = -7;
+		int8_t current_palevel_ = 0;
+        int8_t former_palevel_ = -1;
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
@@ -192,4 +192,5 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
