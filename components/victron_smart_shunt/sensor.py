@@ -195,10 +195,10 @@ CONFIG_SCHEMA = cv.Schema(
             accuracy_decimals=3,
             device_class=DEVICE_CLASS_POWER,
         ),
-        cv.Optional(CONF_BMV_ALARM_TEXT): text_sensor.TEXT_SENSOR_SCHEMA.extend(
+        cv.Optional(CONF_BMV_ALARM_TEXT): text_sensor.text_sensor_schema(
             {cv.GenerateID(): cv.declare_id(text_sensor.TextSensor)}
         ),
-        cv.Optional(CONF_BMV_TEXT): text_sensor.TEXT_SENSOR_SCHEMA.extend(
+        cv.Optional(CONF_BMV_TEXT): text_sensor.text_sensor_schema(
             {cv.GenerateID(): cv.declare_id(text_sensor.TextSensor)}
         ),
         cv.Optional(CONF_MIN_BATTERY_VOLTAGE): sensor.sensor_schema(
