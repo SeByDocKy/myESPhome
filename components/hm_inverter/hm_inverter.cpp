@@ -167,18 +167,18 @@ void HmInverter::loop() {
         }
         
        
-        if (rssi_ !=nullptr && this->inverter_->isReachable() ){
-			rssi_->publish_state(this->radio_->getPALevel());
-        }
+   //      if (rssi_ !=nullptr && this->inverter_->isReachable() ){
+			// rssi_->publish_state(this->radio_->getPALevel());
+   //      }
     }
 
         
-    if ((this->get_oldpalevel() != this->get_palevel()) && this->inverter_->isReachable()){
-        this->palevel_number_->publish_state(this->get_palevel());
-        // this->radio_->setPALevel( ( (rf24_pa_dbm_e)this->get_palevel()) , false);
-        ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
-        this->set_oldpalevel(this->get_palevel());
-    }   
+    // if ((this->get_oldpalevel() != this->get_palevel()) && this->inverter_->isReachable()){
+    //     this->palevel_number_->publish_state(this->get_palevel());
+    //     // this->radio_->setPALevel( ( (rf24_pa_dbm_e)this->get_palevel()) , false);
+    //     ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
+    //     this->set_oldpalevel(this->get_palevel());
+    // }   
     
    if (this->first_ && this->inverter_->isReachable()){
 
@@ -295,6 +295,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
