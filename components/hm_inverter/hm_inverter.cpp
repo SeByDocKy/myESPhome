@@ -258,6 +258,7 @@ void HmPlatform::setup() {
     ESP_LOGI(TAG, "mosi:%d, miso:%d,clk:%d,cs:%d,en:%d,irq:%d",mosi,miso,clk,cs,en,irq);
     
     this->hoymiles_ = &Hoymiles;
+	thus->hoymilesradio_ = &HoymilesRadio_NRF;
     Hoymiles.setMessageOutput(new EsphLogPrint());
     
 	this->hoymiles_->init();
@@ -295,6 +296,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
