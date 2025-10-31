@@ -125,7 +125,7 @@ void HmInverter::set_limit_absolute_number(AbsoluteNumber* number) {
 }
 
 void HmInverter::loop() {
-	int_8 = rssi;
+	int8_t = rssi;
     if (this->inverter_ == nullptr) return;
     auto check_updated = [](Parser* parser, uint32_t value) {
         return (parser->getLastUpdate() > 0) && (parser->getLastUpdate() != value); 
@@ -298,6 +298,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
