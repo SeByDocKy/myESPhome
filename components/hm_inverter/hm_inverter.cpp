@@ -125,6 +125,7 @@ void HmInverter::set_limit_absolute_number(AbsoluteNumber* number) {
 }
 
 void HmInverter::loop() {
+	int_8 = rssi;
     if (this->inverter_ == nullptr) return;
     auto check_updated = [](Parser* parser, uint32_t value) {
         return (parser->getLastUpdate() > 0) && (parser->getLastUpdate() != value); 
@@ -168,6 +169,7 @@ void HmInverter::loop() {
         
        
         if (rssi_ !=nullptr && this->inverter_->isReachable() ){
+			rssi = (this->radio_->testRPD() ? -30 : -80);
 //			rssi_->publish_state(this->radio_->getPALevel());
 //			rssi_->publish_state(this->radio_->testRPD() ? -30 : -80);
         }
@@ -296,6 +298,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
