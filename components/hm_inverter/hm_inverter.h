@@ -168,7 +168,7 @@ class HmInverter : public esphome::Component {
 class HmPlatform : public esphome::PollingComponent {
     private:
         HoymilesClass* hoymiles_ = nullptr;
-        HoymilesRadio *hoymilesradio_ = nullptr;
+        HoymilesRadio* hoymilesradio_ = nullptr;
         std::vector<HmInverter*> inverters_ = {};
         esphome::InternalGPIOPin* mosi_ = nullptr;
 		esphome::InternalGPIOPin* miso_ = nullptr;
@@ -192,6 +192,7 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
 
