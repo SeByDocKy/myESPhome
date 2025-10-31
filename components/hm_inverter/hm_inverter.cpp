@@ -168,7 +168,7 @@ void HmInverter::loop() {
         
        
         if (this->rssi_ !=nullptr && this->inverter_->isReachable() ){
-			this->get_palevel();
+			this->rssi_->publish_state(this->get_palevel());
 			// this->rssi_->publish_state(this->hoymilesradio_->getRadioNrf()->getPALevel());
 			// rssi_->publish_state(this->radio_->testRPD() ? -30 : -80);
         }
@@ -298,6 +298,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
