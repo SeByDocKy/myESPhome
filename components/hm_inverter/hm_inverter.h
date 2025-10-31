@@ -112,6 +112,7 @@ class HmChannel : public esphome::Component {
 class HmInverter : public esphome::Component {
     private:
         uint64_t serial_;
+        int8_t rssi_dB;
         std::vector<HmChannel*> channels_ = {};
         HmChannel *inverter_channel_ = nullptr, *ac_channel_ = nullptr;
 
@@ -192,5 +193,6 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
