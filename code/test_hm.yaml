@@ -49,7 +49,7 @@ wifi:
     
         
 hm_inverter:
-  id: hms_id
+  id: hm_id
   update_interval: '3s'
   pins: 
     clk: GPIO26
@@ -82,3 +82,4 @@ packages:
           # hm_inverter_id: 'hm_id'
           # hm_inverter_name: 'hms_2000'
           # hm_inverter_sn: !secret hm2000_sn1
+
