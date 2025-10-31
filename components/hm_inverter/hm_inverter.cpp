@@ -169,7 +169,7 @@ void HmInverter::loop() {
        
         if (this->rssi_ !=nullptr && this->inverter_->isReachable() ){
 			// this->rssi_->publish_state(this->testRPD());
-			 this->rssi_->publish_state((this->radio_->getRadioNrf()->testRPD()) ? -30 : -80);
+			 this->rssi_->publish_state((this->radio_->getRadio()->testRPD()) ? -30 : -80);
 			// rssi_->publish_state(this->radio_->testRPD() ? -30 : -80);
         }
     }
@@ -298,6 +298,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
