@@ -124,7 +124,6 @@ class HmInverter : public esphome::Component {
         esphome::sensor::Sensor *rssi_ = nullptr;
  
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
-        // std::unique_ptr<CMT2300A> radio_;
 		std::unique_ptr<RF24> radio_;
         
 		int8_t current_palevel_ = 0;
@@ -192,6 +191,7 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
 
