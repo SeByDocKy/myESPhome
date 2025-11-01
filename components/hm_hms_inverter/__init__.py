@@ -274,9 +274,9 @@ async def to_code(config):
     cg.add(var.set_cmt_clk(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CMT_CLK])))
     cg.add(var.set_cmt_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CMT_CS])))
     cg.add(var.set_cmt_fcs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CMT_FCS])))
-    if CONF_GPIO2 in config[CONF_PINS]:
+    if CONF_CMT_GPIO2 in config[CONF_PINS]:
       cg.add(var.set_cmt_gpio2(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CMT_GPIO2])))
-    if CONF_GPIO3 in config[CONF_PINS]:
+    if CONF_CMT_GPIO3 in config[CONF_PINS]:
       cg.add(var.set_cmt_gpio3(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CMT_GPIO3])))             
 
     cg.add(var.set_nrf_mosi(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_MOSI])))
@@ -285,5 +285,6 @@ async def to_code(config):
     cg.add(var.set_nrf_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_CS])))
     cg.add(var.set_nrf_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_EN])))
     cg.add(var.set_nrf_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_IRQ])))
+
 
 
