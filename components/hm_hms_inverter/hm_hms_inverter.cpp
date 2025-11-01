@@ -101,8 +101,8 @@ void HmHmsInverter::set_palevel_number(PalevelNumber* number) {
     number->add_control_callback([this](int8_t value) {
         if (this->inverter_ != nullptr) {
             ESP_LOGI(TAG, "set_palevel_number(): New palevel: %.0d", value);
-            this->radio_->setPALevel(value);
-            this->set_palevel(value);
+            // this->radio_->setPALevel(value);
+            // this->set_palevel(value);
         }
     });
 }
@@ -319,6 +319,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
