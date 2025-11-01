@@ -14,7 +14,7 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
 )
 
-_ns = cg.esphome_ns.namespace("hm_inverter")
+_ns = cg.esphome_ns.namespace("hm_hms_inverter")
 _cls = _ns.class_("HmPlatform", cg.PollingComponent)
 _inv_cls = _ns.class_("HmInverter", cg.Component)
 _chan_cls = _ns.class_("HmChannel", cg.Component)
@@ -285,3 +285,4 @@ async def to_code(config):
     cg.add(var.set_nrf_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_CS])))
     cg.add(var.set_nrf_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_EN])))
     cg.add(var.set_nrf_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_IRQ])))
+
