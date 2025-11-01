@@ -177,7 +177,7 @@ class HmHmsInverter : public esphome::Component {
 class HmHmsPlatform : public esphome::PollingComponent {
     private:
         HoymilesClass* hoymiles_ = nullptr;
-        std::vector<HmInverter*> inverters_ = {};
+        std::vector<HmHmsInverter*> inverters_ = {};
 
         esphome::InternalGPIOPin* cmt_sdio_ = nullptr;
         esphome::InternalGPIOPin* cmt_clk_ = nullptr;
@@ -196,7 +196,7 @@ class HmHmsPlatform : public esphome::PollingComponent {
         void setup() override;
         void update() override;
         void loop() override;
-        void add_inverter(HmInverter* inverter) { this->inverters_.push_back(inverter); }
+        void add_inverter(HmHmsInverter* inverter) { this->inverters_.push_back(inverter); }
  
         void set_cmt_sdio(esphome::InternalGPIOPin* pin) {this->cmt_sdio_ = pin;}
         void set_cmt_clk(esphome::InternalGPIOPin* pin) {this->cmt_clk_ = pin;}
@@ -217,6 +217,7 @@ class HmHmsPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
 
