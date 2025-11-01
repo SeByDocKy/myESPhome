@@ -264,7 +264,7 @@ void HmHmsPlatform::setup() {
     if(this->cmt_gpio2_ != nullptr){
       cmt_gpio2=this->cmt_gpio2_->get_pin();
     }   
-    if(this->gpio3_ != nullptr){
+    if(this->cmt_gpio3_ != nullptr){
       cmt_gpio3=this->cmt_gpio3_->get_pin();
     }
 	
@@ -319,6 +319,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
