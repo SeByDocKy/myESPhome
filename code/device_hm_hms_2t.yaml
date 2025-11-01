@@ -1,8 +1,8 @@
-fan:
-  - platform: speed
-    id: ${hm_hms_inverter_name}_command
-    name: ${name}_${hm_hms_inverter_name}_command
-    output: ${hm_hms_inverter_name}_percent_output
+# fan:
+#   - platform: speed
+#     id: ${hm_hms_inverter_name}_command
+#     name: ${name}_${hm_hms_inverter_name}_command
+#     output: ${hm_hms_inverter_name}_percent_output
 
 hm_hms_inverter:
   id: !extend ${hm_hms_inverter_id}
@@ -75,3 +75,4 @@ hm_hms_inverter:
           filters: 
 
             - multiply: 0.001
+
