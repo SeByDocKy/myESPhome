@@ -294,7 +294,8 @@ void HmsPlatform::setup() {
     this->hoymiles_->initCMT(sdio, clk, cs, fcs, gpio2, gpio3);
 
     //  Original part //
-    
+
+    ESP_LOGI(TAG, "HMS number of inverter %d", this->inverters_.size());
     for (uint8_t i = 0; i < this->inverters_.size(); i++) {
         auto inv = this->inverters_[i];
         auto name = "Inv_" + std::to_string(i);
