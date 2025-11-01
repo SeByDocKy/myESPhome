@@ -15,12 +15,12 @@ from esphome.const import (
 )
 
 _ns = cg.esphome_ns.namespace("hm_hms_inverter")
-_cls = _ns.class_("HmPlatform", cg.PollingComponent)
-_inv_cls = _ns.class_("HmInverter", cg.Component)
-_chan_cls = _ns.class_("HmChannel", cg.Component)
+_cls = _ns.class_("HmHmsPlatform", cg.PollingComponent)
+_inv_cls = _ns.class_("HmHmsInverter", cg.Component)
+_chan_cls = _ns.class_("HmHmsChannel", cg.Component)
 
-_num_cls = _ns.class_("HmNumber", number.Number)
-_but_cls = _ns.class_("HmButton", button.Button, cg.Component)
+_num_cls = _ns.class_("HmHmsNumber", number.Number)
+_but_cls = _ns.class_("HmHmsButton", button.Button, cg.Component)
 
 _percent_cls = _ns.class_("PercentNumber", number.Number, cg.Component)
 _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
@@ -285,4 +285,5 @@ async def to_code(config):
     cg.add(var.set_nrf_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_CS])))
     cg.add(var.set_nrf_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_EN])))
     cg.add(var.set_nrf_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_IRQ])))
+
 
