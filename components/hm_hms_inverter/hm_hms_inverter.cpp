@@ -282,7 +282,7 @@ void HmHmsPlatform::setup() {
     this->hoymiles_->init();
 	
     ESP_LOGI(TAG, "HMS: cmt_sdio:%d, cmt_clk:%d, cmt_cs:%d, cmt_fcs:%d, cmt_gpio2:%d, cmt_gpio3:%d",cmt_sdio,cmt_clk,cmt_cs,cmt_fcs,cmt_gpio2,cmt_gpio3); 
-    this->hoymiles_->initCMT(cmt_cmt_sdio, cmt_cmt_clk, cmt_cmt_cs, cmt_cmt_fcs, cmt_cmt_gpio2, cmt_cmt_gpio3);
+    this->hoymiles_->initCMT(cmt_sdio, cmt_clk, cmt_cs, cmt_fcs, cmt_gpio2, cmt_gpio3);
 
 	ESP_LOGI(TAG, "NRF: nrf_mosi:%d, nrf_miso:%d, nrf_clk:%d, nrf_cs:%d",nrf_mosi,nrf_miso,nrf_clk,nrf_cs);
 	SPIClass* spiClass = new SPIClass(SPI_NRF);
@@ -319,6 +319,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
