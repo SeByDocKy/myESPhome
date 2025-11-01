@@ -1,4 +1,4 @@
-#include "hm_inverter.h"
+#include "hm_hms_inverter.h"
 
 
 #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
@@ -10,9 +10,9 @@
 #endif
 
 namespace esphome {
-namespace hm_inverter {
+namespace hm_hms_inverter {
 
-#define TAG "HM"
+#define TAG "HM/HMS"
 
 size_t EsphLogPrint::write(uint8_t value) {
     if (value == 10) return 1; // Skip new line
@@ -23,12 +23,12 @@ size_t EsphLogPrint::write(uint8_t value) {
         }
     }
     buffer[index] = 0;
-    ESP_LOGD(TAG, "HM: %s", (char *)&buffer[0]);
+    ESP_LOGD(TAG, "HM/HMS: %s", (char *)&buffer[0]);
     index = 0;
     return 1;
 }
 
-void HmButton::press_action(){
+void HmHmsButton::press_action(){
     this->parent_->doretart();
 }
 
@@ -70,15 +70,15 @@ void AbsoluteNumber::control(float value) {
     this->control_callback_.call(value);
 }
 
-void HmNumber::control(float value) {
+void HmHmsNumber::control(float value) {
     this->publish_state(value);
     this->control_callback_.call(value);    
 }
 
-void HmInverter::setup() {
+void HmHmsInverter::setup() {
 }
 
-void HmInverter::doretart(){
+void HmHmsInverter::doretart(){
    this->inverter_->sendRestartControlRequest();
    ESP_LOGI("Inverter" , "restart button pressed");
 }
@@ -89,14 +89,14 @@ void HmInverter::doretart(){
 //     this->inverter_->current_palevel_ = value;
 // }
 
-void HmInverter::write_float(float value){
+void HmHmsInverter::write_float(float value){
      if (value != NULL){ //NAN
        this->inverter_->sendActivePowerControlRequest(value*100, PowerLimitControlType::RelativNonPersistent);
        this->active_ = true;
      }
 }
 
-void HmInverter::set_palevel_number(PalevelNumber* number) {    
+void HmHmsInverter::set_palevel_number(PalevelNumber* number) {    
     this->palevel_number_ = number;
     number->add_control_callback([this](int8_t value) {
         if (this->inverter_ != nullptr) {
@@ -108,7 +108,7 @@ void HmInverter::set_palevel_number(PalevelNumber* number) {
 }
 
 
-void HmInverter::set_limit_percent_number(PercentNumber* number) {    
+void HmHmsInverter::set_limit_percent_number(PercentNumber* number) {    
     this->limit_percent_number_ = number;
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
@@ -119,7 +119,7 @@ void HmInverter::set_limit_percent_number(PercentNumber* number) {
     });
 }
 
-void HmInverter::set_limit_absolute_number(AbsoluteNumber* number) {     
+void HmHmsInverter::set_limit_absolute_number(AbsoluteNumber* number) {     
     this->limit_absolute_number_ = number;
     number->add_control_callback([this](float value) {
         if (this->inverter_ != nullptr) {
@@ -130,7 +130,7 @@ void HmInverter::set_limit_absolute_number(AbsoluteNumber* number) {
     });
 }
 
-void HmInverter::loop() {
+void HmHmsInverter::loop() {
     if (this->inverter_ == nullptr) return;
     auto check_updated = [](Parser* parser, uint32_t value) {
         return (parser->getLastUpdate() > 0) && (parser->getLastUpdate() != value); 
@@ -173,26 +173,26 @@ void HmInverter::loop() {
         }
         
        
-        if (rssi_ !=nullptr){
-            rssi_->publish_state(this->radio_->getRssiDBm());
-            ESP_LOGVV("RADIO", "NRF24 RSSI %d" , this->radio_->getRssiCode());
-        }
+        // if (rssi_ !=nullptr){
+        //     rssi_->publish_state(this->radio_->getRssiDBm());
+        //     ESP_LOGVV("RADIO", "NRF24 RSSI %d" , this->radio_->getRssiCode());
+        // }
     }
 
         
-    if (this->get_oldpalevel() != this->get_palevel()){
-        // this->palevel_number_->publish_state(this->get_palevel());
-        this->radio_->setPALevel(this->get_palevel());
-        ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
-        this->set_oldpalevel(this->get_palevel());
-    }   
+    // if (this->get_oldpalevel() != this->get_palevel()){
+    //     // this->palevel_number_->publish_state(this->get_palevel());
+    //     this->radio_->setPALevel(this->get_palevel());
+    //     ESP_LOGI("HM" , "Set PALevel: %d dBm" , this->get_palevel());
+    //     this->set_oldpalevel(this->get_palevel());
+    // }   
     
    if (this->first_ && this->inverter_->isReachable()){
 
-     if (this->palevel_number_ != nullptr) {
-       int8_t level = this->get_palevel();
-       this->palevel_number_->publish_state(level);
-     }
+     // if (this->palevel_number_ != nullptr) {
+     //   int8_t level = this->get_palevel();
+     //   this->palevel_number_->publish_state(level);
+     // }
      if (this->limit_percent_number_ != nullptr) {
         float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
         this->limit_percent_number_->publish_state(percent);
@@ -211,7 +211,7 @@ void HmInverter::loop() {
     }
 }
 
-void HmInverter::updateConfiguration(bool connected, SystemConfigParaParser* parser) {
+void HmHmsInverter::updateConfiguration(bool connected, SystemConfigParaParser* parser) {
     ESP_LOGD(TAG, "updateConfiguration(): SystemConfigPara() updated");
     float percent = parser->getLimitPercent();
     ESP_LOGI(TAG, "updateConfiguration(): Limit percent received: %.0f", percent);
@@ -226,10 +226,10 @@ void HmInverter::updateConfiguration(bool connected, SystemConfigParaParser* par
     }
 }
 
-void HmChannel::setup() {
+void HmHmsChannel::setup() {
 }
 
-void HmChannel::updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num) {
+void HmHmsChannel::updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num) {
     if (this->power_ != nullptr) {
         auto field = typ == ChannelType_t::TYPE_AC? FieldId_t::FLD_PAC: FieldId_t::FLD_PDC;
         this->power_->publish_state(connected? stat->getChannelFieldValue(typ, num, field): 0.0);
@@ -253,22 +253,24 @@ void HmChannel::updateSensors(bool connected, StatisticsParser* stat, ChannelTyp
 }
 
 
-void HmPlatform::setup() {
-    ESP_LOGI(TAG, "set_pins(): Setting up HM instance");
-    const int8_t mosi=this->mosi_->get_pin();
-	const int8_t miso=this->miso_->get_pin();
-    const int8_t clk=this->clk_->get_pin();
-    const int8_t cs=this->cs_->get_pin();
+void HmHmsPlatform::setup() {
+    ESP_LOGI(TAG, "set_pins(): Setting up HM/HMS instance");
+    const int8_t nrf_mosi=this->nrf_mosi_->get_pin();
+	const int8_t nrf_miso=this->nrf_miso_->get_pin();
+    const int8_t nrf_clk=this->nrf_clk_->get_pin();
+    const int8_t nrf_cs=this->nrf_cs_->get_pin();
 
-    ESP_LOGI(TAG, "mosi:%d, miso:%d,clk:%d,cs:%d",mosi,miso,clk,cs);
+    ESP_LOGI(TAG, "NRF: nrf_mosi:%d, nrf_miso:%d, nrf_clk:%d, nrf_cs:%d",nrf_mosi,nrf_miso,nrf_clk,nrf_cs);
     
     this->hoymiles_ = &Hoymiles;
     Hoymiles.setMessageOutput(new EsphLogPrint());
-    
+
+    this->hoymiles_->init();
+	
 /*     this->hoymiles_->init();
     this->hoymiles_->initCMT(sdio, clk, cs, fcs, gpio2, gpio3);
  */	
-	this->hoymiles_->init();
+
 	
 	SPIClass* spiClass = new SPIClass(SPI_NRF);
     spiClass->begin(pin.nrf24_clk, pin.nrf24_miso, pin.nrf24_mosi, pin.nrf24_cs);
@@ -301,4 +303,5 @@ void HmPlatform::loop() {
 }
 
 }
+
 }
