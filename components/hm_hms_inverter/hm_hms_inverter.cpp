@@ -255,6 +255,19 @@ void HmHmsChannel::updateSensors(bool connected, StatisticsParser* stat, Channel
 
 void HmHmsPlatform::setup() {
     ESP_LOGI(TAG, "set_pins(): Setting up HM/HMS instance");
+
+    int8_t cmt_gpio2=-1,cmt_gpio3=-1;
+    const int8_t cmt_sdio=this->cmt_sdio_->get_pin();
+    const int8_t cmt_clk=this->cmt_clk_->get_pin();
+    const int8_t cmt_cs=this->cmt_cs_->get_pin();
+    const int8_t cmt_fcs=this->cmt_fcs_->get_pin();
+    if(this->cmt_gpio2_ != nullptr){
+      cmt_gpio2=this->cmt_gpio2_->get_pin();
+    }   
+    if(this->gpio3_ != nullptr){
+      cmt_gpio3=this->cmt_gpio3_->get_pin();
+    }
+	
     const int8_t nrf_mosi=this->nrf_mosi_->get_pin();
 	const int8_t nrf_miso=this->nrf_miso_->get_pin();
     const int8_t nrf_clk=this->nrf_clk_->get_pin();
@@ -269,11 +282,9 @@ void HmHmsPlatform::setup() {
 
     this->hoymiles_->init();
 	
-/*     this->hoymiles_->init();
-    this->hoymiles_->initCMT(sdio, clk, cs, fcs, gpio2, gpio3);
- */	
+     
+    this->hoymiles_->initCMT(cmt_sdio, cmt_clk, cmt_cs, cmt_fcs, cmt_gpio2, cmt_gpio3);
 
-	
 	SPIClass* spiClass = new SPIClass(SPI_NRF);
     spiClass->begin(nrf_clk, nrf_miso, nrf_mosi, nrf_cs);
     this->hoymiles_->initNRF(spiClass, nrf_en, nrf_irq);
@@ -307,4 +318,5 @@ void HmPlatform::loop() {
 }
 
 }
+
 
