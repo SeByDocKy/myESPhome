@@ -259,6 +259,8 @@ void HmHmsPlatform::setup() {
 	const int8_t nrf_miso=this->nrf_miso_->get_pin();
     const int8_t nrf_clk=this->nrf_clk_->get_pin();
     const int8_t nrf_cs=this->nrf_cs_->get_pin();
+	const int8_t nrf_en=this->nrf_en_->get_pin();
+	const int8_t nrf_irq=this->nrf_irq_->get_pin();
 
     ESP_LOGI(TAG, "NRF: nrf_mosi:%d, nrf_miso:%d, nrf_clk:%d, nrf_cs:%d",nrf_mosi,nrf_miso,nrf_clk,nrf_cs);
     
@@ -273,8 +275,8 @@ void HmHmsPlatform::setup() {
 
 	
 	SPIClass* spiClass = new SPIClass(SPI_NRF);
-    spiClass->begin(pin.nrf24_clk, pin.nrf24_miso, pin.nrf24_mosi, pin.nrf24_cs);
-    this->hoymiles_->initNRF(spiClass, pin.nrf24_en, pin.nrf24_irq);
+    spiClass->begin(nrf_clk, nrf_miso, nrf_mosi, nrf_cs);
+    this->hoymiles_->initNRF(spiClass, nrf_en, nrf_irq);
 
     //  Original part //
     
@@ -305,3 +307,4 @@ void HmPlatform::loop() {
 }
 
 }
+
