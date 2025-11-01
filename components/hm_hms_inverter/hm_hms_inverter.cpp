@@ -275,16 +275,16 @@ void HmHmsPlatform::setup() {
 	const int8_t nrf_en=this->nrf_en_->get_pin();
 	const int8_t nrf_irq=this->nrf_irq_->get_pin();
 
-    ESP_LOGI(TAG, "NRF: nrf_mosi:%d, nrf_miso:%d, nrf_clk:%d, nrf_cs:%d",nrf_mosi,nrf_miso,nrf_clk,nrf_cs);
     
     this->hoymiles_ = &Hoymiles;
     Hoymiles.setMessageOutput(new EsphLogPrint());
 
     this->hoymiles_->init();
 	
-     
-    this->hoymiles_->initCMT(cmt_sdio, cmt_clk, cmt_cs, cmt_fcs, cmt_gpio2, cmt_gpio3);
+    ESP_LOGI(TAG, "HMS: cmt_sdio:%d, cmt_clk:%d, cmt_cs:%d, cmt_fcs:%d, cmt_gpio2:%d, cmt_gpio3:%d",cmt_sdio,cmt_clk,cmt_cs,cmt_fcs,cmt_gpio2,cmt_gpio3); 
+    this->hoymiles_->initCMT(cmt_cmt_sdio, cmt_cmt_clk, cmt_cmt_cs, cmt_cmt_fcs, cmt_cmt_gpio2, cmt_cmt_gpio3);
 
+	ESP_LOGI(TAG, "NRF: nrf_mosi:%d, nrf_miso:%d, nrf_clk:%d, nrf_cs:%d",nrf_mosi,nrf_miso,nrf_clk,nrf_cs);
 	SPIClass* spiClass = new SPIClass(SPI_NRF);
     spiClass->begin(nrf_clk, nrf_miso, nrf_mosi, nrf_cs);
     this->hoymiles_->initNRF(spiClass, nrf_en, nrf_irq);
@@ -318,5 +318,6 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
