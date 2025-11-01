@@ -306,18 +306,20 @@ void HmHmsPlatform::setup() {
     }
 }
 
-void HmPlatform::update() {
+void HmHmsPlatform::update() {
     ESP_LOGD(TAG, "update(): Polling inverters");
     this->hoymiles_->loop();
 }
 
-void HmPlatform::loop() {
+void HmHmsPlatform::loop() {
     this->hoymiles_->getRadioCmt()->loop();
+	this->hoymiles_->getRadioNrf()->loop();
 }
 
 }
 
 }
+
 
 
 
