@@ -44,7 +44,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "HMS Hotspot"
+    ssid: "HM Hotspot"
     password: "eVt5yd7PvHjS"
     
         
@@ -82,4 +82,5 @@ packages:
           # hm_inverter_id: 'hm_id'
           # hm_inverter_name: 'hms_2000'
           # hm_inverter_sn: !secret hm2000_sn1
+
 
