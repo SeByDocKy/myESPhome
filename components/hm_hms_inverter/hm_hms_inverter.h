@@ -9,7 +9,7 @@
 #include <Print.h>
 
 namespace esphome {
-namespace hm_inverter {
+namespace hm_hms_inverter {
 
 #define MAX_PRINT_LEN 255
 
@@ -21,25 +21,25 @@ class EsphLogPrint : public Print {
         size_t write(uint8_t value) override;
 };
 
-class HmInverter;
+class HmHmsInverter;
 
-class HmButton : public button::Button, public Component {
+class HmHmsButton : public button::Button, public Component {
  private:
   void press_action() override;
-  HmInverter *parent_;
+  HmHmsInverter *parent_;
 
  public:
-   void set_parent(HmInverter *parent) { this->parent_ = parent; }
+   void set_parent(HmHmsInverter *parent) { this->parent_ = parent; }
 };
 
 class PercentFloatOutput : public output::FloatOutput, public Component  { 
 
  private:
    void write_state(float value) override;
-   HmInverter *parent_;
+   HmHmsInverter *parent_;
       
   public:
-    void set_parent(HmInverter *parent) { this->parent_ = parent; }
+    void set_parent(HmHmsInverter *parent) { this->parent_ = parent; }
 };
 
 class PalevelNumber : public esphome::number::Number, public Component {
@@ -85,7 +85,7 @@ class AbsoluteNumber : public esphome::number::Number, public Component {
 };
 
 
-class HmNumber : public esphome::number::Number {
+class HmHmsNumber : public esphome::number::Number {
     private:
         esphome::CallbackManager<void(float)> control_callback_;   
     public:
@@ -94,7 +94,7 @@ class HmNumber : public esphome::number::Number {
         void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
 };
 
-class HmChannel : public esphome::Component {
+class HmHmsChannel : public esphome::Component {
     private:
         esphome::sensor::Sensor *power_ = nullptr, *energy_ = nullptr, *voltage_ = nullptr, *current_ = nullptr;
         esphome::sensor::Sensor *temperature_ = nullptr;
@@ -109,11 +109,11 @@ class HmChannel : public esphome::Component {
         void updateSensors(bool connected, StatisticsParser* stat, ChannelType_t typ, ChannelNum_t num);
 };
 
-class HmInverter : public esphome::Component {
+class HmHmsInverter : public esphome::Component {
     private:
         uint64_t serial_;
         std::vector<HmChannel*> channels_ = {};
-        HmChannel *inverter_channel_ = nullptr, *ac_channel_ = nullptr;
+        HmHmsChannel *inverter_channel_ = nullptr, *ac_channel_ = nullptr;
 
         PercentFloatOutput *limit_percent_output_ = nullptr;
         PercentNumber *limit_percent_number_ = nullptr;
@@ -124,11 +124,14 @@ class HmInverter : public esphome::Component {
         esphome::sensor::Sensor *rssi_ = nullptr;
  
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
-        // std::unique_ptr<CMT2300A> radio_;
+        std::unique_ptr<CMT2300A> radio_;
 		std::unique_ptr<RF24> radio_;
         
-		int8_t current_palevel_ = 20;
-        int8_t former_palevel_ = 19;
+		int8_t current_cmt_palevel_ = 20;
+        int8_t former_cmt_palevel_ = 19;
+        int8_t current_nrf_palevel_ = 0;
+        int8_t former_nrf_palevel_ = -1;
+
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
@@ -151,10 +154,15 @@ class HmInverter : public esphome::Component {
         void write_float(float value);
 
         void doretart();
-        void set_palevel(int8_t value) {this->current_palevel_ = value;}
-        int8_t get_palevel() {return this->current_palevel_ ;}
-        void set_oldpalevel(int8_t value) {this->former_palevel_ = value;}
-        int8_t get_oldpalevel() {return this->former_palevel_ ;}
+        void set_cmt_palevel(int8_t value) {this->current_palevel_ = value;}
+        int8_t get_cmt_palevel() {return this->current_palevel_ ;}
+        void set_cmt_oldpalevel(int8_t value) {this->former_palevel_ = value;}
+        int8_t get_cmt_oldpalevel() {return this->former_palevel_ ;}
+
+        void set_nrf_palevel(int8_t value) {this->current_palevel_ = value;}
+        int8_t get_nrf_palevel() {return this->current_palevel_ ;}
+        void set_nrf_oldpalevel(int8_t value) {this->former_palevel_ = value;}
+        int8_t get_nrf_oldpalevel() {return this->former_palevel_ ;}
 
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
@@ -166,28 +174,46 @@ class HmInverter : public esphome::Component {
         void updateConfiguration(bool connected, SystemConfigParaParser* parser);
 };
 
-class HmPlatform : public esphome::PollingComponent {
+class HmHmsPlatform : public esphome::PollingComponent {
     private:
         HoymilesClass* hoymiles_ = nullptr;
         std::vector<HmInverter*> inverters_ = {};
-        esphome::InternalGPIOPin* mosi_ = nullptr;
-		esphome::InternalGPIOPin* miso_ = nullptr;
-        esphome::InternalGPIOPin* clk_ = nullptr;
-        esphome::InternalGPIOPin* cs_ = nullptr;
-		esphome::InternalGPIOPin* en_ = nullptr;
-		esphome::InternalGPIOPin* irq_ = nullptr;
+
+        esphome::InternalGPIOPin* cmt_sdio_ = nullptr;
+        esphome::InternalGPIOPin* cmt_clk_ = nullptr;
+        esphome::InternalGPIOPin* cmt_cs_ = nullptr;
+        esphome::InternalGPIOPin* cmt_fcs_ = nullptr;
+        esphome::InternalGPIOPin* cmt_gpio2_ = nullptr;
+        esphome::InternalGPIOPin* cmt_gpio3_ = nullptr;
+
+        esphome::InternalGPIOPin* nrf_mosi_ = nullptr;
+		esphome::InternalGPIOPin* nrf_miso_ = nullptr;
+        esphome::InternalGPIOPin* nrf_clk_ = nullptr;
+        esphome::InternalGPIOPin* nrf_cs_ = nullptr;
+		esphome::InternalGPIOPin* nrf_en_ = nullptr;
+		esphome::InternalGPIOPin* nrf_irq_ = nullptr;
      public:
         void setup() override;
         void update() override;
         void loop() override;
         void add_inverter(HmInverter* inverter) { this->inverters_.push_back(inverter); }
-        void set_mosi(esphome::InternalGPIOPin* pin) {this->mosi_ = pin;}
-		void set_miso(esphome::InternalGPIOPin* pin) {this->miso_ = pin;}
-        void set_clk(esphome::InternalGPIOPin* pin) {this->clk_ = pin;}
-        void set_cs(esphome::InternalGPIOPin* pin) {this->cs_ = pin;}
-		void set_en(esphome::InternalGPIOPin* pin) {this->en_ = pin;}
-		void set_irq(esphome::InternalGPIOPin* pin) {this->irq_ = pin;}
+ 
+        void set_cmt_sdio(esphome::InternalGPIOPin* pin) {this->cmt_sdio_ = pin;}
+        void set_cmt_clk(esphome::InternalGPIOPin* pin) {this->cmt_clk_ = pin;}
+        void set_cmt_cs(esphome::InternalGPIOPin* pin) {this->cmt_cs_ = pin;}
+        void set_cmt_fcs(esphome::InternalGPIOPin* pin) {this->cmt_fcs_ = pin;}
+        void set_cmt_gpio2(esphome::InternalGPIOPin* pin) {this->cmt_gpio2_ = pin;}
+        void set_cmt_gpio3(esphome::InternalGPIOPin* pin) {this->cmt_gpio3_ = pin;}
+
+
+        void set_nrf_mosi(esphome::InternalGPIOPin* pin) {this->nrf_mosi_ = pin;}
+		void set_nrf_miso(esphome::InternalGPIOPin* pin) {this->nrf_miso_ = pin;}
+        void set_nrf_clk(esphome::InternalGPIOPin* pin) {this->nrf_clk_ = pin;}
+        void set_nrf_cs(esphome::InternalGPIOPin* pin) {this->nrf_cs_ = pin;}
+		void set_nrf_en(esphome::InternalGPIOPin* pin) {this->nrf_en_ = pin;}
+		void set_nrf_irq(esphome::InternalGPIOPin* pin) {this->nrf_irq_ = pin;}
 };
 
 }
+
 }
