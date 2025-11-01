@@ -128,8 +128,8 @@ class HmInverter : public esphome::Component {
         HoymilesRadio* hoymilesradio_ = nullptr;
 		std::unique_ptr<RF24> radio_;
         
-		int8_t current_palevel_ = 0;
-        int8_t former_palevel_ = -1;
+		int8_t current_palevel_ = -8;
+        int8_t former_palevel_ = -9;
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
         uint32_t stat_last_update_ = 0;
@@ -194,6 +194,7 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
 
