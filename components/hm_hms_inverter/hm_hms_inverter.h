@@ -112,7 +112,7 @@ class HmHmsChannel : public esphome::Component {
 class HmHmsInverter : public esphome::Component {
     private:
         uint64_t serial_;
-        std::vector<HmChannel*> channels_ = {};
+        std::vector<HmHmsChannel*> channels_ = {};
         HmHmsChannel *inverter_channel_ = nullptr, *ac_channel_ = nullptr;
 
         PercentFloatOutput *limit_percent_output_ = nullptr;
@@ -142,9 +142,9 @@ class HmHmsInverter : public esphome::Component {
     public:
         void setup() override;
 
-        void add_channel(HmChannel* channel) { this->channels_.push_back(channel); }
-        void set_ac_channel(HmChannel* channel) { this->ac_channel_ = channel; }
-        void set_inverter_channel(HmChannel* channel) { this->inverter_channel_ = channel; }
+        void add_channel(HmHmsChannel* channel) { this->channels_.push_back(channel); }
+        void set_ac_channel(HmHmsChannel* channel) { this->ac_channel_ = channel; }
+        void set_inverter_channel(HmHmsChannel* channel) { this->inverter_channel_ = channel; }
         
         void set_limit_percent_output(PercentFloatOutput* output);
         void set_limit_percent_number(PercentNumber* number);
@@ -217,3 +217,4 @@ class HmHmsPlatform : public esphome::PollingComponent {
 }
 
 }
+
