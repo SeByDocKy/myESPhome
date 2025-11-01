@@ -271,7 +271,7 @@ void HmPlatform::setup() {
 
     //  Original part //
 
-	ESP_LOGI(TAG, "HM nomber of inverter %d", this->inverters_.size());
+	ESP_LOGI(TAG, "HM number of inverter %d", this->inverters_.size());
     for (uint8_t i = 0; i < this->inverters_.size(); i++) {
         auto inv = this->inverters_[i];
         auto name = "Inv_" + std::to_string(i);
@@ -299,6 +299,7 @@ void HmPlatform::loop() {
 }
 
 }
+
 
 
 
