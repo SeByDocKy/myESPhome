@@ -136,6 +136,7 @@ void HmInverter::loop() {
     //     dev_info_last_update_ = this->inverter_->DevInfo()->getLastUpdate();
     //     ESP_LOGD(TAG, "loop(): DevInfo updated: %s, %d, %d", this->inverter_->DevInfo()->getHwVersion(), this->inverter_->isProducing(), this->inverter_->isReachable());
     // }
+	ESP_LOGI(TAG, "HM number of inverter %d", this->inverters_.size());
     if (check_updated(this->inverter_->Statistics(), stat_last_update_)) {
         stat_last_update_ = this->inverter_->Statistics()->getLastUpdate();
         auto dc_channels = this->inverter_->Statistics()->getChannelsByType(ChannelType_t::TYPE_DC);
@@ -299,3 +300,4 @@ void HmPlatform::loop() {
 }
 
 }
+
