@@ -123,7 +123,8 @@ class HmInverter : public esphome::Component {
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
  
-        std::shared_ptr<InverterAbstract> inverter_ = nullptr;
+        // std::shared_ptr<InverterAbstract> inverter_ = nullptr;
+        std::unique_ptr<InverterAbstract> inverter_ = nullptr;
 
         // HoymilesRadio* hoymilesradio_ = nullptr;
 		std::unique_ptr<RF24> radio_;
@@ -194,6 +195,7 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
 
