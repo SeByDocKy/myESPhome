@@ -161,7 +161,8 @@ class HmInverter : public esphome::Component {
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
         uint64_t serial() { return this->serial_; }
-        void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
+        // void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
+        void set_inverter(std::unique_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
         void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }        
         void loop() override;
 
@@ -195,6 +196,7 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
 
