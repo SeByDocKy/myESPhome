@@ -17,8 +17,8 @@ hm_hms_inverter:
         name: ${name}_${hm_hms_inverter_name}_absolute_power_limit
       # palevel:
       #   name: ${name}_${hm_hms_inverter_name}_palevel  
-      percent_output:
-        id: ${hm_hms_inverter_name}_percent_output
+      # percent_output:
+      #   id: ${hm_hms_inverter_name}_percent_output
       restart:
         name: ${name}_${hm_hms_inverter_name}_restart
       reachable: # Binary Sensor
@@ -75,5 +75,6 @@ hm_hms_inverter:
           filters: 
 
             - multiply: 0.001
+
 
 
