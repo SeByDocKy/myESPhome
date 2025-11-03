@@ -173,10 +173,10 @@ void HmHmsInverter::loop() {
         }
         
        
-        // if (rssi_ !=nullptr){
-        //     rssi_->publish_state(this->radio_->getRssiDBm());
-        //     ESP_LOGVV("RADIO", "NRF24 RSSI %d" , this->radio_->getRssiCode());
-        // }
+        if (rssi_ !=nullptr){
+            rssi_->publish_state(this->radio_->getRssiDBm());
+            ESP_LOGVV("RADIO", "RSSI %d" , this->radio_->getRssiCode());
+        }
     }
 
         
@@ -319,6 +319,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
