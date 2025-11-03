@@ -218,7 +218,7 @@ async def to_code(config):
 
     ############# With old lib, modified to work properly with ESPhome up to 2024.6.3 , prior to OpenDTU v24.9.26 #############
     cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
-    cg.add_library("RF24@1.4.9", None) # -> without SPImanager framework...
+    # cg.add_library("RF24@1.4.9", None) # -> without SPImanager framework...
     cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/esphome-CMT2300A")
     cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
     cg.add_library("Hoymiles", None, "https://github.com/SeByDocKy/esphome-hoymiles-main") ## former version without SPImanager ####
@@ -285,6 +285,7 @@ async def to_code(config):
     cg.add(var.set_nrf_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_CS])))
     cg.add(var.set_nrf_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_EN])))
     cg.add(var.set_nrf_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_IRQ])))
+
 
 
 
