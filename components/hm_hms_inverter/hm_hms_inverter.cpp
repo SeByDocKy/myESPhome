@@ -42,7 +42,7 @@ void PalevelNumber::setup(){
 void PalevelNumber::control(float value){
     this->publish_state(value);
     this->control_callback_.call(value);
-    this->parent_->set_palevel(value);
+    // this->parent_->set_palevel(value);
 }
 
 
@@ -323,6 +323,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
