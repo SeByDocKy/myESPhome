@@ -9,14 +9,14 @@ hm_hms_inverter:
   inverters:
     - id: ${hm_hms_inverter_name}_id  #!extend
       serial: ${hm_hms_inverter_sn} # Serial No of your inverter 
-      rssi:
-        name: ${name}_${hm_hms_inverter_name}_rssi  # Sensor
+      # rssi:
+      #   name: ${name}_${hm_hms_inverter_name}_rssi  # Sensor
       limit_percent: # Number Entity 0 - 100%
         name: ${name}_${hm_hms_inverter_name}_percent_power_limit
       limit_absolute: # Number Entity 0 - 2500 W
         name: ${name}_${hm_hms_inverter_name}_absolute_power_limit
-      palevel:
-        name: ${name}_${hm_hms_inverter_name}_palevel  
+      # palevel:
+      #   name: ${name}_${hm_hms_inverter_name}_palevel  
       percent_output:
         id: ${hm_hms_inverter_name}_percent_output
       restart:
@@ -75,4 +75,5 @@ hm_hms_inverter:
           filters: 
 
             - multiply: 0.001
+
 
