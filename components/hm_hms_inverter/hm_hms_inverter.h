@@ -214,9 +214,10 @@ class HmHmsPlatform : public esphome::PollingComponent {
 		void set_nrf_irq(esphome::InternalGPIOPin* pin) {this->nrf_irq_ = pin;}
 };
 
-}
+}  // hm_hms_inverter
 
-}
+}  // esphome
+
 
 
 
