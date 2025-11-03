@@ -176,6 +176,8 @@ void HmHmsInverter::loop() {
         if (rssi_ !=nullptr){
             //rssi_->publish_state(this->radio_->getRssiDBm());
 			// ESP_LOGVV("RADIO", "RSSI %d" , this->radio_->getRssiCode());
+
+			this->radio_= this->inverter_->getRadio();
 			ESP_LOGI("RADIO", "current inverter: %s", this->inverter_->name());
             
         }
@@ -321,6 +323,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
