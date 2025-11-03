@@ -125,7 +125,7 @@ class HmInverter : public esphome::Component {
  
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
 
-        HoymilesRadio* hoymilesradio_ = nullptr;
+        // HoymilesRadio* hoymilesradio_ = nullptr;
 		std::unique_ptr<RF24> radio_;
         
 		int8_t current_palevel_ = -8;
@@ -194,6 +194,7 @@ class HmPlatform : public esphome::PollingComponent {
 }
 
 }
+
 
 
 
