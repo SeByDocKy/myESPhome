@@ -4,7 +4,7 @@ fan:
     name: ${name}_${hoymiles_inverter_name}_command
     output: ${hoymiles_inverter_name}_percent_output
 
-hoymiles_inverter:
+hm_hms_inverter:
   id: !extend ${hoymiles_inverter_id}
   inverters:
     - id: ${hoymiles_inverter_name}_id  #!extend
@@ -103,4 +103,5 @@ hoymiles_inverter:
           icon: mdi:counter
           unit_of_measurement: 'kWh'
           filters: 
+
             - multiply: 0.001
