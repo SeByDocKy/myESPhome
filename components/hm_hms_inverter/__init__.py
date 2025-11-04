@@ -64,7 +64,9 @@ CONF_RSSI = "rssi"
 CONF_LIMIT_PERCENT = "limit_percent"
 CONF_LIMIT_ABSOLUTE = "limit_absolute"
 CONF_PERCENT_OUTPUT = "percent_output" 
-CONF_PALEVEL = "palevel"
+# CONF_PALEVEL = "palevel"
+CONF_CMT_PALEVEL = "cmt_palevel"
+CONF_NRF_PALEVEL = "nrf_palevel"
 CONF_REACHABLE = "reachable"
 CONF_RESTART = "restart"
 
@@ -142,7 +144,8 @@ INVERTER_SCHEMA = cv.Schema({
         icon="mdi:sine-wave",
         unit_of_measurement="W",
     ),
-    cv.Optional(CONF_PALEVEL, default=0): cv.int_range(min=-12, max=20),
+    cv.Optional(CONF_CMT_PALEVEL, default=20): cv.int_range(min=0, max=20),
+    cv.Optional(CONF_NRF_PALEVEL, default=0): cv.int_range(min=-12, max=0),
     # cv.Optional(CONF_PALEVEL): number.number_schema(
     #     _palevel_cls, 
     #     entity_category="config",
@@ -255,9 +258,12 @@ async def to_code(config):
             cg.add(inv_var.set_rssi(await sensor.new_sensor(inv_conf[CONF_RSSI])))
         if CONF_LIMIT_PERCENT in inv_conf:        
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
-        if CONF_PALEVEL in inv_conf: 
-            cg.add(inv_var.set_palevel(inv_conf[CONF_PALEVEL]))
-            # cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-18, max_value=0, step=1)))    
+        if CONF_CMT_PALEVEL in inv_conf: 
+            cg.add(inv_var.set_cmt_palevel(inv_conf[CONF_CMT_PALEVEL]))
+        if CONF_NRF_PALEVEL in inv_conf: 
+            cg.add(inv_var.set_nrf_palevel(inv_conf[CONF_NRF_PALEVEL]))    
+        # if CONF_PALEVEL in inv_conf: 
+        #     cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-18, max_value=0, step=1)))    
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
         if CONF_PERCENT_OUTPUT in inv_conf:
@@ -287,6 +293,7 @@ async def to_code(config):
     cg.add(var.set_nrf_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_CS])))
     cg.add(var.set_nrf_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_EN])))
     cg.add(var.set_nrf_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_IRQ])))
+
 
 
 
