@@ -24,7 +24,7 @@ _but_cls = _ns.class_("HmHmsButton", button.Button, cg.Component)
 
 _percent_cls = _ns.class_("PercentNumber", number.Number, cg.Component)
 _absolute_cls = _ns.class_("AbsoluteNumber", number.Number, cg.Component)
-_palevel_cls = _ns.class_("PalevelNumber", number.Number, cg.Component)
+# _palevel_cls = _ns.class_("PalevelNumber", number.Number, cg.Component)
 
 _out_cls = _ns.class_("PercentFloatOutput", output.FloatOutput)
 
@@ -142,13 +142,14 @@ INVERTER_SCHEMA = cv.Schema({
         icon="mdi:sine-wave",
         unit_of_measurement="W",
     ),
-    cv.Optional(CONF_PALEVEL): number.number_schema(
-        _palevel_cls, 
-        entity_category="config",
-        device_class="signal_strength",
-        icon="mdi:signal",
-        unit_of_measurement="dBm",
-    ),
+    cv.Optional(CONF_PALEVEL, default=0): cv.int_range(min=-12, max=20),
+    # cv.Optional(CONF_PALEVEL): number.number_schema(
+    #     _palevel_cls, 
+    #     entity_category="config",
+    #     device_class="signal_strength",
+    #     icon="mdi:signal",
+    #     unit_of_measurement="dBm",
+    # ),
     cv.Optional(CONF_REACHABLE): binary_sensor.binary_sensor_schema(
         binary_sensor.BinarySensorInitiallyOff,
         entity_category="diagnostic",
@@ -255,7 +256,8 @@ async def to_code(config):
         if CONF_LIMIT_PERCENT in inv_conf:        
             cg.add(inv_var.set_limit_percent_number(await number.new_number(inv_conf[CONF_LIMIT_PERCENT], min_value=0, max_value=100, step=2)))
         if CONF_PALEVEL in inv_conf: 
-            cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-18, max_value=0, step=1)))    
+            cg.add(inv_var.set_palevel(inv_conf[CONF_PALEVEL]))
+            # cg.add(inv_var.set_palevel_number(await number.new_number(inv_conf[CONF_PALEVEL], min_value=-18, max_value=0, step=1)))    
         if CONF_LIMIT_ABSOLUTE in inv_conf:
             cg.add(inv_var.set_limit_absolute_number(await number.new_number(inv_conf[CONF_LIMIT_ABSOLUTE], min_value=0, max_value=2000, step=20)))
         if CONF_PERCENT_OUTPUT in inv_conf:
@@ -285,6 +287,7 @@ async def to_code(config):
     cg.add(var.set_nrf_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_CS])))
     cg.add(var.set_nrf_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_EN])))
     cg.add(var.set_nrf_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_IRQ])))
+
 
 
 
