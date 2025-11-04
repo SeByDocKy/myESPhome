@@ -4,11 +4,11 @@ external_components:
     refresh: 0s
 
 globals:
-  - id: ${jsy1039_name}_pos_energy_yesterday_global
+  - id: ${powermeter_name}_pos_energy_yesterday_global
     type: float
     restore_value: yes
     
-  - id: ${jsy1039_name}_neg_energy_yesterday_global
+  - id: ${powermeter_name}_neg_energy_yesterday_global
     type: float
     restore_value: yes    
        
@@ -21,63 +21,63 @@ time:
         hours: ${my_hours}
         then:  
           - globals.set:
-              id: ${jsy1039_name}_pos_energy_yesterday_global
-              value: !lambda return ( id(${jsy1039_name}_pos_energy_yesterday_global) =  float( id(${jsy1039_name}_pos_energy_today).state) );
+              id: ${powermeter_name}_pos_energy_yesterday_global
+              value: !lambda return ( id(${powermeter_name}_pos_energy_yesterday_global) =  float( id(${powermeter_name}_pos_energy_today).state) );
 
           - globals.set:
-              id: ${jsy1039_name}_neg_energy_yesterday_global
-              value: !lambda return ( id(${jsy1039_name}_neg_energy_yesterday_global) =  float( id(${jsy1039_name}_neg_energy_today).state) );                
+              id: ${powermeter_name}_neg_energy_yesterday_global
+              value: !lambda return ( id(${powermeter_name}_neg_energy_yesterday_global) =  float( id(${powermeter_name}_neg_energy_today).state) );                
                 
 sensor:
-  - platform: jsy1039
-    id: ${jsy1039_name}_id 
-    modbus_id: ${jsy1039_modbus_id}
-    address: ${jsy1039_address}
-    update_interval: ${jsy1039_update_interval}
+  - platform: powermeter
+    id: ${powermeter_name}_id 
+    modbus_id: ${powermeter_modbus_id}
+    address: ${powermeter_address}
+    update_interval: ${powermeter_update_interval}
     current:
-      name: ${name}_${jsy1039_name}_current
+      name: ${name}_${powermeter_name}_current
       accuracy_decimals: 1
     voltage:
-      name: ${name}_${jsy1039_name}_voltage
+      name: ${name}_${powermeter_name}_voltage
       accuracy_decimals: 1
     power:
-      name: ${name}_${jsy1039_name}_power
-      id: ${jsy1039_name}_power
+      name: ${name}_${powermeter_name}_power
+      id: ${powermeter_name}_power
       accuracy_decimals: 1
     frequency:
-      name: ${name}_${jsy1039_name}_frequency
+      name: ${name}_${powermeter_name}_frequency
       accuracy_decimals: 1
     power_factor:
-      name: ${name}_${jsy1039_name}_power_factor
+      name: ${name}_${powermeter_name}_power_factor
       accuracy_decimals: 2
     pos_energy:
-      name: ${name}_${jsy1039_name}_pos_energy
-      id: ${jsy1039_name}_pos_energy
+      name: ${name}_${powermeter_name}_pos_energy
+      id: ${powermeter_name}_pos_energy
       accuracy_decimals: 1
     neg_energy:
-      name: ${name}_${jsy1039_name}_neg_energy
-      id: ${jsy1039_name}_neg_energy
+      name: ${name}_${powermeter_name}_neg_energy
+      id: ${powermeter_name}_neg_energy
       accuracy_decimals: 1
 
 
   - platform: template
-    name: ${name}_${jsy1039_name}_pos_power
-    id: ${jsy1039_name}_pos_power
+    name: ${name}_${powermeter_name}_pos_power
+    id: ${powermeter_name}_pos_power
     unit_of_measurement: 'W'
     accuracy_decimals: 1
-    update_interval: ${jsy1039_template_update}
+    update_interval: ${powermeter_template_update}
     icon: mdi:power
     lambda: |-
-      if(id(${jsy1039_name}_power).state > 0.0){
-        return (id(${jsy1039_name}_power).state);
+      if(id(${powermeter_name}_power).state > 0.0){
+        return (id(${powermeter_name}_power).state);
       }
       else{
         return 0.0;
       }      
   - platform: total_daily_energy
-    name: ${name}_${jsy1039_name}_pos_energy_today
-    id: ${jsy1039_name}_pos_energy_today
-    power_id: ${jsy1039_name}_pos_power
+    name: ${name}_${powermeter_name}_pos_energy_today
+    id: ${powermeter_name}_pos_energy_today
+    power_id: ${powermeter_name}_pos_power
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     method: trapezoid
@@ -86,34 +86,34 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: ${name}_${jsy1039_name}_pos_energy_yesterday
-    id: ${jsy1039_name}_pos_energy_yesterday
+    name: ${name}_${powermeter_name}_pos_energy_yesterday
+    id: ${powermeter_name}_pos_energy_yesterday
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     icon: mdi:counter
-    update_interval: ${jsy1039_template_update}
+    update_interval: ${powermeter_template_update}
     lambda: |-
-      return (id(${jsy1039_name}_pos_energy_yesterday).state = id(${jsy1039_name}_pos_energy_yesterday_global));
+      return (id(${powermeter_name}_pos_energy_yesterday).state = id(${powermeter_name}_pos_energy_yesterday_global));
 
   - platform: template
-    name: ${name}_${jsy1039_name}_neg_power
-    id: ${jsy1039_name}_neg_power
+    name: ${name}_${powermeter_name}_neg_power
+    id: ${powermeter_name}_neg_power
     unit_of_measurement: 'W'
     accuracy_decimals: 1
-    update_interval: ${jsy1039_template_update}
+    update_interval: ${powermeter_template_update}
     icon: mdi:power
     lambda: |-
-      if(id(${jsy1039_name}_power).state <= 0.0){
-        return (id(${jsy1039_name}_power).state);
+      if(id(${powermeter_name}_power).state <= 0.0){
+        return (id(${powermeter_name}_power).state);
       }
       else{
         return 0.0;
       }
 
   - platform: total_daily_energy
-    name: ${name}_${jsy1039_name}_neg_energy_today
-    id: ${jsy1039_name}_neg_energy_today
-    power_id: ${jsy1039_name}_neg_power
+    name: ${name}_${powermeter_name}_neg_energy_today
+    id: ${powermeter_name}_neg_energy_today
+    power_id: ${powermeter_name}_neg_power
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     method: trapezoid
@@ -122,14 +122,11 @@ sensor:
     icon: mdi:counter
     
   - platform: template
-    name: ${name}_${jsy1039_name}_neg_energy_yesterday
-    id: ${jsy1039_name}_neg_energy_yesterday
+    name: ${name}_${powermeter_name}_neg_energy_yesterday
+    id: ${powermeter_name}_neg_energy_yesterday
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     icon: mdi:counter
-    update_interval: ${jsy1039_template_update}
+    update_interval: ${powermeter_template_update}
     lambda: |-
-      return (id(${jsy1039_name}_neg_energy_yesterday).state = id(${jsy1039_name}_neg_energy_yesterday_global));    
-
-
-
+      return (id(${powermeter_name}_neg_energy_yesterday).state = id(${powermeter_name}_neg_energy_yesterday_global));
