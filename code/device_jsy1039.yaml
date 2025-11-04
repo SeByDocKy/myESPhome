@@ -4,22 +4,14 @@ external_components:
     refresh: 0s
 
 globals:
-  - id: ${jsy1039_name}_pos_energy_yesterday_global_${powermeter_suffix1}
+  - id: ${jsy1039_name}_pos_energy_yesterday_global
     type: float
     restore_value: yes
     
-  - id: ${jsy1039_name}_neg_energy_yesterday_global_${powermeter_suffix1}
+  - id: ${jsy1039_name}_neg_energy_yesterday_global
     type: float
     restore_value: yes    
-    
-  - id: ${jsy1039_name}_pos_energy_yesterday_global_${powermeter_suffix2}
-    type: float
-    restore_value: yes
-    
-  - id: ${jsy1039_name}_neg_energy_yesterday_global_${powermeter_suffix2}
-    type: float
-    restore_value: yes    
-   
+       
 time:
   - platform: homeassistant #sntp
     id: !extend my_time
@@ -108,4 +100,5 @@ sensor:
     update_interval: ${jsy1039_template_update}
     lambda: |-
       return (id(${jsy1039_name}_neg_energy_yesterday).state = id(${jsy1039_name}_neg_energy_yesterday_global));    
+
 
