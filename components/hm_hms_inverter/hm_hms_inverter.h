@@ -130,7 +130,8 @@ class HmHmsInverter : public esphome::Component {
 		std::unique_ptr<RF24> nrf_radio_;
 
         
-        int8_t palevel_;
+        int8_t cmt_palevel_ = 20;
+        int8_t nrf_palevel_ = 0;
         
         // int8_t current_palevel_;
         // int8_t former_palevel_ ;
@@ -160,8 +161,10 @@ class HmHmsInverter : public esphome::Component {
 
         void doretart();
 
-        void set_palevel(int8_t value) {this->palevel_ = value;}
-        int8_t get_palevel() {return this->palevel_ ;}
+        void set_cmt_palevel(int8_t value) {this->cmt_palevel_ = value;}
+        int8_t get_cmt_palevel() {return this->cmt_palevel_ ;}
+        void set_nrf_palevel(int8_t value) {this->nrf_palevel_ = value;}
+        int8_t get_nrf_palevel() {return this->nrf_palevel_ ;}
 
         // void set_palevel(int8_t value) {this->current_palevel_ = value;}
         // int8_t get_palevel() {return this->current_palevel_ ;}
@@ -232,6 +235,7 @@ class HmHmsPlatform : public esphome::PollingComponent {
 }  // hm_hms_inverter
 
 }  // esphome
+
 
 
 
