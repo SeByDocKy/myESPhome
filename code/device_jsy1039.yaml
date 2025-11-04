@@ -22,11 +22,11 @@ time:
         then:  
           - globals.set:
               id: ${jsy1039_name}_pos_energy_yesterday_global
-              value: !lambda return ( id(${jsy1039_name}_pos_energy_yesterday_global) =  float( id(${powermeter_name}_pos_energy_today).state) );
+              value: !lambda return ( id(${jsy1039_name}_pos_energy_yesterday_global) =  float( id(${jsy1039_name}_pos_energy_today).state) );
 
           - globals.set:
-              id: ${powermeter_name}_neg_energy_yesterday_global
-              value: !lambda return ( id(${powermeter_name}_neg_energy_yesterday_global) =  float( id(${powermeter_name}_neg_energy_today).state) );                
+              id: ${jsy1039_name}_neg_energy_yesterday_global
+              value: !lambda return ( id(${jsy1039_name}_neg_energy_yesterday_global) =  float( id(${jsy1039_name}_neg_energy_today).state) );                
                 
 sensor:
   - platform: jsy1039
@@ -100,5 +100,3 @@ sensor:
     update_interval: ${jsy1039_template_update}
     lambda: |-
       return (id(${jsy1039_name}_neg_energy_yesterday).state = id(${jsy1039_name}_neg_energy_yesterday_global));    
-
-
