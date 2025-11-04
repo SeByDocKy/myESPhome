@@ -12,7 +12,7 @@
 namespace esphome {
 namespace hm_hms_inverter {
 
-#define TAG "HM/HMS"
+#define TAG "HM+HMS"
 
 size_t EsphLogPrint::write(uint8_t value) {
     if (value == 10) return 1; // Skip new line
@@ -23,7 +23,7 @@ size_t EsphLogPrint::write(uint8_t value) {
         }
     }
     buffer[index] = 0;
-    ESP_LOGD(TAG, "HM/HMS: %s", (char *)&buffer[0]);
+    ESP_LOGD(TAG, "HM+HMS: %s", (char *)&buffer[0]);
     index = 0;
     return 1;
 }
@@ -201,7 +201,7 @@ void HmHmsInverter::loop() {
     
    if (this->first_ && this->inverter_->isReachable()){
 	 if (this->inverter_->getTypeInv()==1){
-       this->cmt_radio_->setPALevel(this->get_palevel());		 
+       this->cmt_radio_->setPALevel(this->get_cmt_palevel());		 
 	 }
 
      // if (this->palevel_number_ != nullptr) {
@@ -334,6 +334,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
