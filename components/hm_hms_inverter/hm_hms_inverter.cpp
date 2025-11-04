@@ -201,9 +201,9 @@ void HmHmsInverter::loop() {
     
    if (this->first_ && this->inverter_->isReachable()){
 	 
-	 if (this->inverter_->getTypeInv()==0){
-       this->nrf_radio_->setPALevel(this->get_nrf_palevel());		 
-	 }  
+	 // if (this->inverter_->getTypeInv()==0){
+  //      this->nrf_radio_->setPALevel(this->get_nrf_palevel());		 
+	 // }  
 	 if (this->inverter_->getTypeInv()==1){
        this->cmt_radio_->setPALevel(this->get_cmt_palevel());		 
 	 }
@@ -338,6 +338,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
