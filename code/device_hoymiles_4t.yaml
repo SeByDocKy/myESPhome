@@ -15,8 +15,10 @@ hm_hms_inverter:
         name: ${name}_${hoymiles_inverter_name}_percent_power_limit
       limit_absolute: # Number Entity 0 - 2500 W
         name: ${name}_${hoymiles_inverter_name}_absolute_power_limit
-      palevel:
-        name: ${name}_${hoymiles_inverter_name}_palevel  
+      # palevel:
+      #   name: ${name}_${hoymiles_inverter_name}_palevel
+      cmt_palevel: ${hoymiles_inverter_cmt_palevel}
+      nrf_palevel: ${hoymiles_inverter_nrf_palevel}   
       percent_output:
         id: ${hoymiles_inverter_name}_percent_output
       restart:
@@ -106,4 +108,5 @@ hm_hms_inverter:
           filters: 
 
             - multiply: 0.001
+
 
