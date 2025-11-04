@@ -42,19 +42,19 @@ class PercentFloatOutput : public output::FloatOutput, public Component  {
     void set_parent(HmHmsInverter *parent) { this->parent_ = parent; }
 };
 
-class PalevelNumber : public esphome::number::Number, public Component {
-    private: 
-      int8_t current_palevel_;
-      esphome::CallbackManager<void(int8_t)> control_callback_;
-      ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_object_id_hash());
+// class PalevelNumber : public esphome::number::Number, public Component {
+//     private: 
+//       int8_t current_palevel_;
+//       esphome::CallbackManager<void(int8_t)> control_callback_;
+//       ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_object_id_hash());
 
-    public:
-      void setup() override;
-      void control(float value) override;   
-      void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
-      float get_palevel(void){return this->current_palevel_;}
-      void set_palevel(float value){this->current_palevel_ = value;}
-};
+//     public:
+//       void setup() override;
+//       void control(float value) override;   
+//       void add_control_callback(std::function<void(float)> &&cb) { this->control_callback_.add(std::move(cb)); }
+//       float get_palevel(void){return this->current_palevel_;}
+//       void set_palevel(float value){this->current_palevel_ = value;}
+// };
 
 class PercentNumber : public esphome::number::Number, public Component {
     private:
@@ -118,7 +118,8 @@ class HmHmsInverter : public esphome::Component {
         PercentFloatOutput *limit_percent_output_ = nullptr;
         PercentNumber *limit_percent_number_ = nullptr;
         AbsoluteNumber *limit_absolute_number_ = nullptr;
-        PalevelNumber *palevel_number_ = nullptr;
+        
+        // PalevelNumber *palevel_number_ = nullptr;
 
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
@@ -128,13 +129,12 @@ class HmHmsInverter : public esphome::Component {
         std::unique_ptr<CMT2300A> cmt_radio_;
 		std::unique_ptr<RF24> nrf_radio_;
 
-        int8_t current_palevel_;
-        int8_t former_palevel_ ;
         
-		// int8_t current_cmt_palevel_ = 20;
-  //       int8_t former_cmt_palevel_ = 19;
-  //       int8_t current_nrf_palevel_ = 0;
-  //       int8_t former_nrf_palevel_ = -1;
+        int8_t palevel_;
+        
+        // int8_t current_palevel_;
+        // int8_t former_palevel_ ;
+        
 
         uint32_t system_conf_last_update_ = 0;
         uint32_t dev_info_last_update_ = 0;
@@ -153,15 +153,20 @@ class HmHmsInverter : public esphome::Component {
         void set_limit_percent_output(PercentFloatOutput* output);
         void set_limit_percent_number(PercentNumber* number);
         void set_limit_absolute_number(AbsoluteNumber* number);
-        void set_palevel_number(PalevelNumber* number);
+        
+        // void set_palevel_number(PalevelNumber* number);
 
         void write_float(float value);
 
         void doretart();
-        void set_palevel(int8_t value) {this->current_palevel_ = value;}
-        int8_t get_palevel() {return this->current_palevel_ ;}
-        void set_oldpalevel(int8_t value) {this->former_palevel_ = value;}
-        int8_t get_oldpalevel() {return this->former_palevel_ ;}
+
+        void set_palevel(int8_t value) {this->palevel_ = value;}
+        int8_t get_palevel() {return this->palevel_ ;}
+
+        // void set_palevel(int8_t value) {this->current_palevel_ = value;}
+        // int8_t get_palevel() {return this->current_palevel_ ;}
+        // void set_oldpalevel(int8_t value) {this->former_palevel_ = value;}
+        // int8_t get_oldpalevel() {return this->former_palevel_ ;}
 
        
         // void set_cmt_palevel(int8_t value) {this->current_cmt_palevel_ = value;}
@@ -227,6 +232,7 @@ class HmHmsPlatform : public esphome::PollingComponent {
 }  // hm_hms_inverter
 
 }  // esphome
+
 
 
 
