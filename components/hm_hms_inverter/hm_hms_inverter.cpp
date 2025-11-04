@@ -36,14 +36,14 @@ void PercentFloatOutput::write_state(float value){
      this->parent_->write_float(value);
 }
 
-void PalevelNumber::setup(){
+// void PalevelNumber::setup(){
     
-}
-void PalevelNumber::control(float value){
-    this->publish_state(value);
-    this->control_callback_.call(value);
-    // this->parent_->set_palevel(value);
-}
+// }
+// void PalevelNumber::control(float value){
+//     this->publish_state(value);
+//     this->control_callback_.call(value);
+//     // this->parent_->set_palevel(value);
+// }
 
 
 void PercentNumber::setup() {
@@ -96,16 +96,16 @@ void HmHmsInverter::write_float(float value){
      }
 }
 
-void HmHmsInverter::set_palevel_number(PalevelNumber* number) {    
-    this->palevel_number_ = number;
-    number->add_control_callback([this](int8_t value) {
-        if (this->inverter_ != nullptr) {
-            ESP_LOGI(TAG, "set_palevel_number(): New palevel: %.0d", value);
-            // this->radio_->setPALevel(value);
-            // this->set_palevel(value);
-        }
-    });
-}
+// void HmHmsInverter::set_palevel_number(PalevelNumber* number) {    
+//     this->palevel_number_ = number;
+//     number->add_control_callback([this](int8_t value) {
+//         if (this->inverter_ != nullptr) {
+//             ESP_LOGI(TAG, "set_palevel_number(): New palevel: %.0d", value);
+//             // this->radio_->setPALevel(value);
+//             // this->set_palevel(value);
+//         }
+//     });
+// }
 
 
 void HmHmsInverter::set_limit_percent_number(PercentNumber* number) {    
@@ -200,11 +200,14 @@ void HmHmsInverter::loop() {
     // }   
     
    if (this->first_ && this->inverter_->isReachable()){
+	 if (this->inverter_->getTypeInv()==1){
+       this->cmt_radio_->setPALevel(this->get_palevel());		 
+	 }
 
-     if (this->palevel_number_ != nullptr) {
-       int8_t level = this->get_palevel();
-       this->palevel_number_->publish_state(level);
-     }
+     // if (this->palevel_number_ != nullptr) {
+     //   int8_t level = this->get_palevel();
+     //   this->palevel_number_->publish_state(level);
+     // }
      if (this->limit_percent_number_ != nullptr) {
         float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
         this->limit_percent_number_->publish_state(percent);
@@ -331,6 +334,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
