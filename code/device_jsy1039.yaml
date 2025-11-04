@@ -29,7 +29,7 @@ time:
               value: !lambda return ( id(${powermeter_name}_neg_energy_yesterday_global) =  float( id(${powermeter_name}_neg_energy_today).state) );                
                 
 sensor:
-  - platform: powermeter
+  - platform: jsy1039
     id: ${powermeter_name}_id 
     modbus_id: ${powermeter_modbus_id}
     address: ${powermeter_address}
@@ -130,3 +130,4 @@ sensor:
     update_interval: ${powermeter_template_update}
     lambda: |-
       return (id(${powermeter_name}_neg_energy_yesterday).state = id(${powermeter_name}_neg_energy_yesterday_global));
+
