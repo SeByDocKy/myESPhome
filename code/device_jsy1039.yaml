@@ -16,8 +16,8 @@ time:
   - platform: homeassistant #sntp
     id: !extend my_time
     on_time:
-      - seconds: ${my_second}
-        minutes: ${my_minute}
+      - seconds: ${my_seconds}
+        minutes: ${my_minutes}
         hours: ${my_hours}
         then:  
           - globals.set:
@@ -100,3 +100,4 @@ sensor:
     update_interval: ${jsy1039_template_update}
     lambda: |-
       return (id(${jsy1039_name}_neg_energy_yesterday).state = id(${jsy1039_name}_neg_energy_yesterday_global));    
+
