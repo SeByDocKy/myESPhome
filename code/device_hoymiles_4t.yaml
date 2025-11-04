@@ -20,7 +20,8 @@ hm_hms_inverter:
       percent_output:
         id: ${hoymiles_inverter_name}_percent_output
       restart:
-        name: ${name}_${hoymiles_inverter_name}_restart  
+        name: ${name}_${hoymiles_inverter_name}_restart
+        id: ${hoymiles_inverter_name}_restart
       reachable: # Binary Sensor
         name: ${name}_${hoymiles_inverter_name}_reachable
       dc_channels:
@@ -105,3 +106,4 @@ hm_hms_inverter:
           filters: 
 
             - multiply: 0.001
+
