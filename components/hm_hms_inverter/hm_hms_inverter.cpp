@@ -176,7 +176,7 @@ void HmHmsInverter::loop() {
         if (rssi_ !=nullptr){
 
             if (this->inverter_->getTypeInv()==0){
-                rssi_->publish_state(this->nrf_radio_->getRssiDBm());
+                rssi_->publish_state((this->nrf_radio_->testRPD()) ? -30 : -80);
 			}
 			else if (this->inverter_->getTypeInv()==1){
                 rssi_->publish_state(this->cmt_radio_->getRssiDBm());
@@ -331,6 +331,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
