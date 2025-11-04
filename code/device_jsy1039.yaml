@@ -3,7 +3,39 @@ external_components:
     components: [jsy1039]
     refresh: 0s
 
+globals:
+  - id: ${jsy1039_name}_pos_energy_yesterday_global_${powermeter_suffix1}
+    type: float
+    restore_value: yes
+    
+  - id: ${jsy1039_name}_neg_energy_yesterday_global_${powermeter_suffix1}
+    type: float
+    restore_value: yes    
+    
+  - id: ${jsy1039_name}_pos_energy_yesterday_global_${powermeter_suffix2}
+    type: float
+    restore_value: yes
+    
+  - id: ${jsy1039_name}_neg_energy_yesterday_global_${powermeter_suffix2}
+    type: float
+    restore_value: yes    
+   
+time:
+  - platform: homeassistant #sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:  
+          - globals.set:
+              id: ${jsy1039_name}_pos_energy_yesterday_global
+              value: !lambda return ( id(${jsy1039_name}_pos_energy_yesterday_global) =  float( id(${powermeter_name}_pos_energy_today).state) );
 
+          - globals.set:
+              id: ${powermeter_name}_neg_energy_yesterday_global
+              value: !lambda return ( id(${powermeter_name}_neg_energy_yesterday_global) =  float( id(${powermeter_name}_neg_energy_today).state) );                
+                
 sensor:
   - platform: jsy1039
     id: ${jsy1039_name}_id 
@@ -28,8 +60,52 @@ sensor:
       accuracy_decimals: 2
     pos_energy:
       name: ${name}_${jsy1039_name}_pos_energy
+      id: ${jsy1039_name}_pos_energy
       accuracy_decimals: 1
     neg_energy:
       name: ${name}_${jsy1039_name}_neg_energy
+      id: ${jsy1039_name}_neg_energy
       accuracy_decimals: 1
+      
+  - platform: total_daily_energy
+    name: ${name}_${jsy1039_name}_pos_energy_today
+    id: ${jsy1039_name}_pos_energy_today
+    power_id: ${jsy1039_name}_pos_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: trapezoid
+    filters:
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${jsy1039_name}_pos_energy_yesterday
+    id: ${jsy1039_name}_pos_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    update_interval: ${jsy1039_template_update}
+    lambda: |-
+      return (id(${jsy1039_name}_pos_energy_yesterday).state = id(${jsy1039_name}_pos_energy_yesterday_global));
+
+  - platform: total_daily_energy
+    name: ${name}_${jsy1039_name}_neg_energy_today
+    id: ${jsy1039_name}_neg_energy_today
+    power_id: ${jsy1039_name}_neg_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: trapezoid
+    filters:
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${jsy1039_name}_neg_energy_yesterday
+    id: ${jsy1039_name}_neg_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    update_interval: ${jsy1039_template_update}
+    lambda: |-
+      return (id(${jsy1039_name}_neg_energy_yesterday).state = id(${jsy1039_name}_neg_energy_yesterday_global));    
 
