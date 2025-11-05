@@ -1,0 +1,60 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [minipid]
+    refresh: 0s
+    
+minipid:
+  - id: ${minipid_id}
+    input_id: ${minipid_name}_input_smoothed  
+    output_id: ${minipid_output_id}
+          
+sensor:
+  - platform: minipid
+    minipid_id: ${minipid_id}
+    error: 
+      name: ${name}_${minipid_name}_error    
+    output: 
+      name: ${name}_${minipid_name}_output
+    target:
+      name: ${name}_${minipid_name}_target
+      
+      
+  - platform: copy
+    source_id: ${minipid_input_id}
+    name: ${name}_${minipid_name}_input_smoothed
+    id: ${minipid_name}_input_smoothed
+    filters:
+      - sliding_window_moving_average:
+          window_size: ${minipid_windows_size}
+          send_every: 1 
+          
+switch:
+  - platform: minipid
+    minipid_id: ${minipid_id}
+    activation: 
+      name: ${name}_${minipid_name}_activation
+      id: ${minipid_name}_activation
+    manual_override: 
+      name: ${name}_${minipid_name}_manual_override
+      id: ${minipid_name}_manual_override
+    pid_mode: 
+      name: ${name}_${minipid_name}_pid_mode
+      id: ${minipid_name}_pid_mode
+      
+      
+number:
+  - platform: minipid
+    minipid_id: ${minipid_id}
+    setpoint: 
+      name: ${name}_${minipid_name}_setpoint
+    kp: 
+      name: ${name}_${minipid_name}_kp
+    ki: 
+      name: ${name}_${minipid_name}_ki
+    kd: 
+      name: ${name}_${minipid_name}_kd
+    output_min: 
+      name: ${name}_${minipid_name}_output_min
+    output_max: 
+      name: ${name}_${minipid_name}_output_max      
+          
