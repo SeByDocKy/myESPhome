@@ -1,8 +1,8 @@
-# fan:
-#   - platform: speed
-#     id: ${hm_hms_inverter_name}_command
-#     name: ${name}_${hm_hms_inverter_name}_command
-#     output: ${hm_hms_inverter_name}_percent_output
+fan:
+  - platform: speed
+    id: ${hm_hms_inverter_name}_command
+    name: ${name}_${hm_hms_inverter_name}_command
+    output: ${hm_hms_inverter_name}_percent_output
 
 hm_hms_inverter:
   id: !extend ${hm_hms_inverter_id}
@@ -15,12 +15,15 @@ hm_hms_inverter:
         name: ${name}_${hm_hms_inverter_name}_percent_power_limit
       limit_absolute: # Number Entity 0 - 2500 W
         name: ${name}_${hm_hms_inverter_name}_absolute_power_limit
-      palevel:
-        name: ${name}_${hm_hms_inverter_name}_palevel  
+      # palevel:
+      #   name: ${name}_${hm_hms_inverter_name}_palevel
+      cmt_palevel: ${hm_hms_inverter_cmt_palevel}
+      nrf_palevel: ${hm_hms_inverter_nrf_palevel}   
       percent_output:
         id: ${hm_hms_inverter_name}_percent_output
       restart:
-        name: ${name}_${hm_hms_inverter_name}_restart  
+        name: ${name}_${hm_hms_inverter_name}_restart
+        id: ${hm_hms_inverter_name}_restart
       reachable: # Binary Sensor
         name: ${name}_${hm_hms_inverter_name}_reachable
       dc_channels:
@@ -104,5 +107,3 @@ hm_hms_inverter:
           unit_of_measurement: 'kWh'
           filters: 
             - multiply: 0.001
-
-
