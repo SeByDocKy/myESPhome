@@ -106,7 +106,4 @@ hm_hms_inverter:
           icon: mdi:counter
           unit_of_measurement: 'kWh'
           filters: 
-
             - multiply: 0.001
-
-
