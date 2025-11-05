@@ -57,18 +57,18 @@ time:
 
 
 
-# output:    
-  # - platform: template
-    # id: fake_power
-    # type: float
-    # write_action:
-      # - lambda: 'return;'
+output:    
+  - platform: template
+    id: fake_output_id
+    type: float
+    write_action:
+      - lambda: 'return;'
 
-# fan:
-  # - platform: speed
-    # id: fake_power_command
-    # name: ${name}_fake_power_command
-    # output: fake_power
+fan:
+  - platform: speed
+    id: fake_fake_output_command
+    name: ${name}_fake_power_command
+    output: fake_output_id
 
 button:
   - platform: restart
@@ -77,11 +77,11 @@ button:
 minipid:
   - id: my_minipid
     input_id: fake_input_id  
-    output_id: hms1_1000_percent_output
+    output_id: fake_output_id
           
 sensor:
   - platform: minipid
-    hms_regulation_id: my_minipid
+    minipid_id: my_minipid
     error: 
       name: ${name}_regulation_error    
     output: 
@@ -97,12 +97,12 @@ sensor:
    
   - platform: template
     name: ${name}_fake_input_power
-    id: fake_input_power
+    id: fake_input_id
 
       
 switch:
   - platform: minipid
-    hms_regulation_id: my_minipid
+    minipid_id: my_minipid
     activation: 
       name: ${name}_activation
       id: activation
@@ -115,7 +115,7 @@ switch:
           
 number:
   - platform: minipid
-    hms_regulation_id: my_minipid
+    minipid_id: my_minipid
     setpoint: 
       name: ${name}_setpoint
     kp: 
@@ -142,6 +142,8 @@ number:
     restore_value: true
     on_value:
        then:
-         - output.set_level:
-             id: fake_input_power
-             level: !lambda 'return x;'
+         - lambda: |-
+             id(fake_input_id).publish_state(x);
+         # - output.set_level:
+             # id: fake_input_power
+             # level: !lambda 'return x;'
