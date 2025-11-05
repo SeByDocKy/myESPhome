@@ -52,7 +52,7 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     minipid_component = await cg.get_variable(config[CONF_MINIPID_ID])
-    cg.add(var.set_parent(minipid))
+    cg.add(var.set_parent(minipid_component))
 
     if CONF_ERROR in config:
         sens = await sensor.new_sensor(config[CONF_ERROR])
@@ -65,3 +65,4 @@ async def to_code(config):
     if CONF_TARGET in config:
         sens = await sensor.new_sensor(config[CONF_TARGET])
         cg.add(var.set_target_sensor(sens))
+
