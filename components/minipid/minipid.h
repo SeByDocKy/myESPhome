@@ -62,6 +62,8 @@ SUB_NUMBER(output_max)
   bool get_manual_override(void){return this->current_manual_override_;}
   void set_pid_mode(bool enable) {this->current_pid_mode_ = enable;}
   bool get_pid_mode(void){return this->current_pid_mode_;}
+  void set_reverse(bool enable) {this->current_reverse_ = enable;}
+  bool get_reverse(void){return this->current_reverse_;}
 #endif
 
 #ifdef USE_NUMBER
@@ -115,6 +117,7 @@ SUB_NUMBER(output_max)
   bool current_activation_ = false;
   bool current_manual_override_ = false;
   bool current_pid_mode_ = false;
+  bool current_reverse_ = false;
 #endif  
   
 #ifdef USE_NUMBER  

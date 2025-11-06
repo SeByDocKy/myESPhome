@@ -50,6 +50,9 @@ void MINIPIDComponent::pid_update() {
 #endif
     dt_ = float(now - this->last_time_)/1000.0f;
     error_ = -(this->current_setpoint_ - this->current_input_);
+	if (this->current_reverse_){
+		error_ = -error_;
+	}
 	this->current_error_ = error_;
 		
     tmp = (error_ * dt_);
