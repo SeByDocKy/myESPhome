@@ -40,7 +40,9 @@ switch:
     pid_mode: 
       name: ${name}_${minipid_name}_pid_mode
       id: ${minipid_name}_pid_mode
-      
+    reverse: 
+      name: ${name}_${minipid_name}_reverse
+      id: ${minipid_name}_reverse
       
 number:
   - platform: minipid
@@ -57,4 +59,3 @@ number:
       name: ${name}_${minipid_name}_output_min
     output_max: 
       name: ${name}_${minipid_name}_output_max      
-          
