@@ -112,6 +112,9 @@ switch:
     pid_mode: 
       name: ${name}_pid_mode
       id: pid_mode
+    reverse:
+      name: ${name}_reverse
+      id: reverse
           
 number:
   - platform: minipid
