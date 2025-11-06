@@ -27,6 +27,7 @@ class MINIPIDComponent : public Component{
 SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 SUB_SWITCH(pid_mode)
+SUB_SWITCH(reverse)
 #endif
 
 #ifdef USE_NUMBER
