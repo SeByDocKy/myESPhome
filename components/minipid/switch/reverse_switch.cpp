@@ -10,7 +10,7 @@ void ReverseSwitch::setup() {
   this->parent_->set_activation(state);
 }
 
-void ActivationSwitch::write_state(bool state) {
+void ReverseSwitch::write_state(bool state) {
   this->publish_state(state);
   this->parent_->set_activation(state);
   this->pref_.save(&state);
