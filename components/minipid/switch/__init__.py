@@ -69,7 +69,7 @@ async def to_code(config):
         await cg.register_parented(s, minipid_component)
         cg.add(minipid_component.set_pid_mode_switch(s))
 
-    if reverse_config := config.get(CONF_reverse):
+    if reverse_config := config.get(CONF_REVERSE):
         s = await switch.new_switch(reverse_config)
         await cg.register_component(s, reverse_config)
         await cg.register_parented(s, minipid_component)
