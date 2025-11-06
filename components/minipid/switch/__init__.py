@@ -15,10 +15,12 @@ from .. import CONF_MINIPID_ID, MINIPIDComponent, minipid_ns
 ActivationSwitch = minipid_ns.class_("ActivationSwitch", switch.Switch, cg.Component)
 ManualOverrideSwitch = minipid_ns.class_("ManualOverrideSwitch", switch.Switch, cg.Component)
 PidModeSwitch = minipid_ns.class_("PidModeSwitch", switch.Switch, cg.Component)
+ReverseSwitch = minipid_ns.class_("ReverseSwitch", switch.Switch, cg.Component)
 
 CONF_ACTIVATION = "activation"
 CONF_MANUAL_OVERRIDE = "manual_override"
 CONF_PID_MODE = "pid_mode"
+CONF_REVERSE = "reverse"
 
 CONFIG_SCHEMA = {
 
@@ -36,6 +38,11 @@ CONFIG_SCHEMA = {
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_PID_MODE): switch.switch_schema(
         PidModeSwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,    
+    ).extend(cv.COMPONENT_SCHEMA),
+    cv.Optional(CONF_REVERSE): switch.switch_schema(
+        ReverseSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
@@ -60,4 +67,10 @@ async def to_code(config):
         s = await switch.new_switch(pid_mode_config)
         await cg.register_component(s, pid_mode_config)
         await cg.register_parented(s, minipid_component)
-        cg.add(minipid_component.set_pid_mode_switch(s))        
+        cg.add(minipid_component.set_pid_mode_switch(s))
+
+    if reverse_config := config.get(CONF_reverse):
+        s = await switch.new_switch(reverse_config)
+        await cg.register_component(s, reverse_config)
+        await cg.register_parented(s, minipid_component)
+        cg.add(minipid_component.set_reverse_switch(s))        
