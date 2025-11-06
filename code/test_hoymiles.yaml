@@ -1,0 +1,175 @@
+substitutions:
+  name: test_hoymiles
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+
+esphome:
+  name: ${name}
+
+  platformio_options:  
+     build_unflags:
+      - -Werror=all
+     build_flags:
+      -DBOARD_HAS_PSRAM
+        
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: arduino
+
+   
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [hm_hms_inverter]
+    refresh: 0s
+            
+logger:
+  level: debug
+
+# Enable Home Assistant API
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+time:
+  - platform: sntp
+    id: my_time
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "HM+HMS Hotspot"
+    password: "eVt5yd7PvHjS"
+    
+uart: 
+  id: uart_0
+  tx_pin: GPIO25
+  rx_pin: GPIO26
+  baud_rate: 9600
+  
+modbus:
+  - id: modbus_0
+    uart_id: uart_0
+    send_wait_time: 100ms    
+        
+hm_hms_inverter:
+  id: hoymiles_id
+  update_interval: '2s'
+  pins:
+    cmt_clk: GPIO18
+    cmt_cs: GPIO21
+    cmt_fcs: GPIO22
+    cmt_sdio: GPIO19
+    cmt_gpio2: GPIO27
+    cmt_gpio3: GPIO32
+    
+    nrf_clk: GPIO15
+    nrf_mosi: GPIO16
+    nrf_miso: GPIO17
+    nrf_cs: GPIO12
+    nrf_en: GPIO13
+    nrf_irq: GPIO14
+  
+sensor:
+   
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+    
+  - platform: uptime
+    id: uptime_sec
+    
+
+binary_sensor:
+  - platform: status
+    name: ${name}_esp_status
+    
+button:
+  - platform: restart
+    name: ${name}_restart
+
+  - platform: template
+    name: ${name}_general_hoymiles_restart
+    on_press:
+      - button.press: hms1_1000_restart    
+      - button.press: hm1_1500_restart
+    
+output:
+  - platform: template
+    id: ${name}_output_combined
+    type: float
+    write_action:
+      - output.set_level:
+          id: hm1_1500_percent_output
+          level: !lambda return state;    
+      - output.set_level:
+          id: hms1_1000_percent_output
+          level: !lambda return state;
+      
+fan:
+  - platform: speed
+    id: ${name}_output_combined_command
+    name: ${name}_output_combined_command
+    output: ${name}_output_combined    
+    
+packages: 
+
+  hm_hms_inverter1: 
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_hm_hms_2t.yaml' 
+        vars:
+          hm_hms_inverter_id: 'hoymiles_id'
+          hm_hms_inverter_name: 'hm1_1500'
+          hm_hms_inverter_cmt_palevel: '20'
+          hm_hms_inverter_nrf_palevel: '0'
+          hm_hms_inverter_sn: !secret hm1500_sn1
+
+  hm_hms_inverter2: 
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_hm_hms_2t.yaml' 
+        vars:
+          hm_hms_inverter_id: 'hoymiles_id'
+          hm_hms_inverter_name: 'hms1_1000'
+          hm_hms_inverter_cmt_palevel: '20'
+          hm_hms_inverter_nrf_palevel: '0'
+          hm_hms_inverter_sn: !secret hms1000_sn1
+          
+  powermeter:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_jsy1039.yaml' 
+        vars:
+          powermeter_name: 'jsy1039'
+          powermeter_modbus_id: 'modbus_0'
+          powermeter_address: '1'
+          powermeter_update_interval: '2s'
+          powermeter_template_update: '2s'
+
+  minipid1:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_minipid.yaml' 
+        vars:
+          minipid_id: 'pid1_id'
+          minipid_name: 'pid1'
+          minipid_input_id: 'jsy1039_power' #'power_from_ha' 
+          minipid_output_id: 'test_hoymiles_output_combined' #'hms1_1000_percent_output'
+          minipid_windows_size: '1'          
