@@ -45,7 +45,7 @@ CONFIG_SCHEMA = cv.All(
                     ): cv.entity_category,
                 }
             ),
-            cv.Optional(CONF_DC_SWITCH): switch.SWITCH_SCHEMA.extend(
+            cv.Optional(CONF_DC_SWITCH): switch.switch_schema(
                 {
                     cv.GenerateID(): cv.declare_id(EmersonR48Switch),
                     cv.Optional(CONF_ICON, default=ICON_CURRENT_AC): cv.icon,
@@ -57,7 +57,7 @@ CONFIG_SCHEMA = cv.All(
                     ): cv.entity_category,
                 }
             ),
-            cv.Optional(CONF_FAN_SWITCH): switch.SWITCH_SCHEMA.extend(
+            cv.Optional(CONF_FAN_SWITCH): switch.switch_schema(
                 {
                     cv.GenerateID(): cv.declare_id(EmersonR48Switch),
                     cv.Optional(CONF_ICON, default=ICON_CURRENT_AC): cv.icon,
@@ -69,7 +69,7 @@ CONFIG_SCHEMA = cv.All(
                     ): cv.entity_category,
                 }
             ),
-            cv.Optional(CONF_LED_SWITCH): switch.SWITCH_SCHEMA.extend(
+            cv.Optional(CONF_LED_SWITCH): switch.switch_schema(
                 {
                     cv.GenerateID(): cv.declare_id(EmersonR48Switch),
                     cv.Optional(CONF_ICON, default=ICON_CURRENT_AC): cv.icon,
