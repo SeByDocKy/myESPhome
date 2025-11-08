@@ -1,14 +1,20 @@
 external_components:
-  - source: "github://leodesigner/esphome-emerson-vertiv-r48"
+  - source: "github://SeByDocKy/myESPhome/"
     components: [emerson_r48]
     refresh: 0s
+
+
+# external_components:
+#   - source: "github://leodesigner/esphome-emerson-vertiv-r48"
+#     components: [emerson_r48]
+#     refresh: 0s
     
-  # - source: 
-  #     type: git
-  #     url: http://github.com/IxioJo/esphome-emerson-vertiv-r48
-  #     # url:  http://github://leodesigner/esphome-emerson-vertiv-r48
-  #     ref: main
-  #   refresh: 0s        
+#   # - source: 
+#   #     type: git
+#   #     url: http://github.com/IxioJo/esphome-emerson-vertiv-r48
+#   #     # url:  http://github://leodesigner/esphome-emerson-vertiv-r48
+#   #     ref: main
+#   #   refresh: 0s        
                
 canbus:
   - platform: mcp2515
@@ -100,5 +106,6 @@ sensor:
       if(id(${emmerson_name}_output_current).state>0) { return ( id(${emmerson_name}_output_current).state * id(${emmerson_name}_output_voltage).state ); } 
 
       else {return 0;}      
+
 
 
