@@ -5,7 +5,7 @@ namespace minipid {
 void ReverseSwitch::setup() {
   bool state;
   this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
-  if (!this->pref_.load(&state)) state = this->parent_->get_activation();
+  if (!this->pref_.load(&state)) state = this->parent_->get_reverse();
   this->publish_state(state);
   this->parent_->set_activation(state);
 }
@@ -18,3 +18,4 @@ void ReverseSwitch::write_state(bool state) {
 
 }  // namespace minipid
 }  // namespace esphome
+
