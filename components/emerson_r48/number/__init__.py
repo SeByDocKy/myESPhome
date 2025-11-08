@@ -32,7 +32,7 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(CONF_EMERSON_R48_ID): cv.use_id(EmersonR48Component),
-            cv.Optional(CONF_OUTPUT_VOLTAGE): number.NUMBER_SCHEMA.extend(
+            cv.Optional(CONF_OUTPUT_VOLTAGE): number.number_schema(
                 {
                     cv.GenerateID(): cv.declare_id(EmersonR48Number),
                     cv.Optional(CONF_MIN_VALUE, default=41): cv.float_,
@@ -50,7 +50,7 @@ CONFIG_SCHEMA = cv.All(
                     ): cv.entity_category,
                 }
             ),
-            cv.Optional(CONF_MAX_OUTPUT_CURRENT): number.NUMBER_SCHEMA.extend(
+            cv.Optional(CONF_MAX_OUTPUT_CURRENT): number.number_schema(
                 {
                     cv.GenerateID(): cv.declare_id(EmersonR48Number),
                     cv.Optional(CONF_MIN_VALUE, default=2): cv.float_,
@@ -68,7 +68,7 @@ CONFIG_SCHEMA = cv.All(
                     ): cv.entity_category,
                 }
             ),
-            cv.Optional(CONF_MAX_INPUT_CURRENT): number.NUMBER_SCHEMA.extend(
+            cv.Optional(CONF_MAX_INPUT_CURRENT): number.number_schema(
                 {
                     cv.GenerateID(): cv.declare_id(EmersonR48Number),
                     cv.Optional(CONF_MIN_VALUE, default=0): cv.float_,
