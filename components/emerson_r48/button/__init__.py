@@ -15,7 +15,7 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(CONF_EMERSON_R48_ID): cv.use_id(EmersonR48Component),
-            cv.Optional(CONF_SET_OFFLINE_VALUES): button.button_schema(
+            cv.Optional(CONF_SET_OFFLINE_VALUES): button._BUTTON_SCHEMA.extend(
                 {
                     cv.GenerateID(): cv.declare_id(EmersonR48Button),
                     cv.Optional(
