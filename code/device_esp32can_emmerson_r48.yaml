@@ -1,8 +1,7 @@
 external_components:
   - source: "github://SeByDocKy/myESPhome/"
     components: [emerson_r48]
-    refresh: 0s
-       
+    refresh: 0s     
 canbus:
   - platform: esp32_can
     id:  ${emmerson_name}_id
@@ -94,6 +93,7 @@ sensor:
       else{
         return 0;
       }      
+
 
 
 
