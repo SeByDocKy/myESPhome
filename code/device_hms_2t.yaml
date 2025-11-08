@@ -21,6 +21,7 @@ hms_inverter:
         id: ${hms_inverter_name}_percent_output
       restart:
         name: ${name}_${hms_inverter_name}_restart
+        id: ${hms_inverter_name}_restart
       reachable: # Binary Sensor
         name: ${name}_${hms_inverter_name}_reachable
       dc_channels:
@@ -74,4 +75,5 @@ hms_inverter:
           unit_of_measurement: 'kWh'
           filters: 
             - multiply: 0.001
+
 
