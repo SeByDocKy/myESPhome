@@ -12,11 +12,17 @@ sensor:
   - platform: minipid
     minipid_id: ${minipid_id}
     error: 
-      name: ${name}_${minipid_name}_error    
+      name: ${name}_${minipid_name}_error
+      unit_of_measurement: 'W'
+      accuracy_decimals: 1
     output: 
       name: ${name}_${minipid_name}_output
+      unit_of_measurement: '%'
+      accuracy_decimals: 1
     target:
       name: ${name}_${minipid_name}_target
+      unit_of_measurement: 'W'
+      accuracy_decimals: 1
       
       
   - platform: copy
@@ -61,4 +67,5 @@ number:
       name: ${name}_${minipid_name}_output_min
     output_max: 
       name: ${name}_${minipid_name}_output_max      
+
 
