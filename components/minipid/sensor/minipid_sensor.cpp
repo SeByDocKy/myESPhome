@@ -22,11 +22,12 @@ void MINIPIDSensor::publish_data_() {
   if (this->error_sensor_ != nullptr)
     this->error_sensor_->publish_state(this->parent_->get_error()); 
   if (this->output_sensor_ != nullptr)
-    this->output_sensor_->publish_state(this->parent_->get_output()*100); 
+    this->output_sensor_->publish_state(this->parent_->get_output()*100.0f); 
   if (this->target_sensor_ != nullptr)
     this->target_sensor_->publish_state(this->parent_->get_target()); 
 }
 
 } // minipid
 } // esphome
+
 
