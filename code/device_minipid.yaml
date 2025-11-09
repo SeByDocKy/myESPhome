@@ -31,6 +31,8 @@ sensor:
     id: ${minipid_name}_input_smoothed
     device_class: energy
     icon: mdi:power
+    unit_of_measurement: 'W'
+    accuracy_decimals: 1
     filters:
       - sliding_window_moving_average:
           window_size: ${minipid_windows_size}
@@ -67,5 +69,6 @@ number:
       name: ${name}_${minipid_name}_output_min
     output_max: 
       name: ${name}_${minipid_name}_output_max      
+
 
 
