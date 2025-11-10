@@ -41,7 +41,6 @@ CONFIG_SCHEMA = {
         SetpointNumber,
         device_class=DEVICE_CLASS_POWER,
         icon = ICON_POWER,
-        mode = 'slider',
         unit_of_measurement=UNIT_WATT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
@@ -125,6 +124,7 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, minipid_component)
         cg.add(minipid_component.set_output_max_number(n))
+
 
 
 
