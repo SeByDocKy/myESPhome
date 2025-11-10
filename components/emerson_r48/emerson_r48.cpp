@@ -65,9 +65,7 @@ void EmersonR48Component::gimme5(){
 
 
 void EmersonR48Component::write_float(float value){
-
-
-
+  this->set_max_input_current(value);
 }
 
 void EmersonR48Component::setup() {
