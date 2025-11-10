@@ -9,10 +9,12 @@
 namespace esphome {
 namespace emerson_r48 {
 
+class EmersonR48MaxCurrentOutput;
+
 class EmersonR48Component : public PollingComponent {
 
 // #ifdef USE_FLOATOUTPUT
-SUB_OUTPUT(max_current)
+// SUB_OUTPUT(max_current)
 
 
  public:
