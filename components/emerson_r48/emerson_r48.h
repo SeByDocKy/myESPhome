@@ -58,7 +58,7 @@ SUB_OUTPUT(max_current)
 
   void set_control(uint8_t msgv);
 
-  void set_maximum_current_output(EmersonR48MaxCurrentOutput* output);
+  void set_max_current_output(EmersonR48MaxCurrentOutput* output);
 
   void sendSync();
   void sendSync2();
