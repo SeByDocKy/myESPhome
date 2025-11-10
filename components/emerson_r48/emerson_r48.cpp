@@ -5,6 +5,8 @@
 #include "esphome/core/component.h"
 #include "esphome/core/log.h"
 
+#define DELAY_CONTROL 10000
+
 namespace esphome {
 namespace emerson_r48 {
 
@@ -173,7 +175,7 @@ void EmersonR48Component::update() {
      uint8_t msgv = this->dcOff_ << 7 | this->fanFull_ << 4 | this->flashLed_ << 3 | this->acOff_ << 2 | 1;
      this->set_control(msgv);
 
-    if (millis() - this->lastCtlSent_ > 10000) {
+    if (millis() - this->lastCtlSent_ > DELAY_CONTROL) {
 
       this->lastCtlSent_ = millis();
     }
