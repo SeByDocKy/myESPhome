@@ -15,6 +15,12 @@ emerson_r48:
   canbus_id: ${emmerson_name}_id
   update_interval: ${emmerson_update_interval}
 
+output:
+  - platform: emerson_r48
+    max_current_output:
+      id: {name}_max_current_output
+    
+
 switch:
   - platform: emerson_r48
     ac_sw:
@@ -93,6 +99,7 @@ sensor:
       else{
         return 0;
       }      
+
 
 
 
