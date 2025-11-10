@@ -11,8 +11,8 @@ namespace emerson_r48 {
 
 class EmersonR48Component : public PollingComponent {
 
-#ifdef USE_OUTPUT
-SUB_OUTPUT(max_current)
+#ifdef USE_FLOATOUTPUT
+SUB_FLOATOUTPUT(max_current)
 
 
  public:
