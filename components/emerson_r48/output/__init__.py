@@ -24,7 +24,7 @@ CONFIG_SCHEMA = cv.All(
 )
 
 async def to_code(config):
-    hub = await cg.get_variable(config[CONF_EMERSON_R48_ID])
+    hub = await cg.get_variable(config[CONF_ID])
     if config[CONF_MAX_CURRENT_OUTPUT]:
         conf = config[CONF_MAX_CURRENT_OUTPUT]
         out = cg.new_Pvariable(conf[CONF_ID])
