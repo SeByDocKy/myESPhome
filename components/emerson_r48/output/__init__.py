@@ -34,8 +34,8 @@ CONFIG_SCHEMA = {
 
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_EMERSON_R48_ID])
-    if config[CONF_MAX_CURRENT_OUTPUT]:
-       conf = config[CONF_MAX_CURRENT_OUTPUT]
+    if config[CONF_MAX_CURRENT]:
+       conf = config[CONF_MAX_CURRENT]
        out = cg.new_Pvariable(conf[CONF_ID])
        await output.register_output(out, conf)
        cg.add(out.set_parent(hub))
