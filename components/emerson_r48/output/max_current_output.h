@@ -8,9 +8,7 @@ namespace emerson_r48 {
 
 class EmersonR48MaxCurrentOutput : public output::FloatOutput, public Component {
  public:
-  void set_parent(EmersonR48Component *parent) {
-    this->parent_ = parent;
-  };
+  void set_parent(EmersonR48Component *parent) {this->parent_ = parent; }
 
  protected:
   EmersonR48Component *parent_;
