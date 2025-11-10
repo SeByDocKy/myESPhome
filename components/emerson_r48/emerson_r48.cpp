@@ -63,9 +63,13 @@ void EmersonR48Component::gimme5(){
   std::vector<uint8_t> data = {0x20, 0xF0, 00, 0x80, 00, 00, 00, 00};
   this->canbus->send_data(CAN_ID_GIMME5, true, data);
 }
+
+
 void EmersonR48Component::write_float(float value){
   this->set_max_input_current(value);
 }
+
+
 void EmersonR48Component::setup() {
   Automation<std::vector<uint8_t>, uint32_t, bool> *automation;
   LambdaAction<std::vector<uint8_t>, uint32_t, bool> *lambdaaction;
