@@ -18,9 +18,8 @@ emerson_r48:
 output:
   - platform: emerson_r48
     max_current_output:
-      id: {name}_max_current_output
+      id: ${emmerson_name}_max_current_output
     
-
 switch:
   - platform: emerson_r48
     ac_sw:
@@ -99,6 +98,7 @@ sensor:
       else{
         return 0;
       }      
+
 
 
 
