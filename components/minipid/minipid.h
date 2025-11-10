@@ -129,7 +129,7 @@ SUB_NUMBER(output_max)
   float current_kd_ = 0.0f;
   
   float current_output_max_ = 100.0f;
-  float current_output_min_ = 0.0f;
+  float current_output_min_ = 2.0f;
 #endif
 
 };
@@ -137,5 +137,6 @@ SUB_NUMBER(output_max)
 
  }  // namespace minipid
 }  // namespace esphome
+
 
 
