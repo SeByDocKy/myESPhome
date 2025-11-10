@@ -97,11 +97,4 @@ sensor:
       } 
       else{
         return 0;
-      }      
-
-
-
-
-
-
-
+      } 
