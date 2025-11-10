@@ -460,7 +460,6 @@ void EmersonR48Component::on_frame(uint32_t can_id, bool rtr, const std::vector<
         //conv_value = value / 1.0;
         this->publish_sensor_state_(this->input_voltage_sensor_, conv_value);
         ESP_LOGD(TAG, "Input voltage: %f", conv_value);
-        
         break;
 
 /*
@@ -505,8 +504,7 @@ void EmersonR48Component::on_frame(uint32_t can_id, bool rtr, const std::vector<
         ESP_LOGV(TAG, "Output Power: %f", conv_value);
         
     */    
-
-
+      
       default:
         // printf("Unknown parameter 0x%02X, 0x%04X\r\n",frame[1], value);
         ESP_LOGD(TAG, "unknown parameter %d %f",data[3],conv_value);
