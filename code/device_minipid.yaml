@@ -59,6 +59,7 @@ number:
     minipid_id: ${minipid_id}
     setpoint: 
       name: ${name}_${minipid_name}_setpoint
+      mode: 'slider'
     kp: 
       name: ${name}_${minipid_name}_kp
     ki: 
@@ -69,6 +70,7 @@ number:
       name: ${name}_${minipid_name}_output_min
     output_max: 
       name: ${name}_${minipid_name}_output_max      
+
 
 
 
