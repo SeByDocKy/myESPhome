@@ -54,7 +54,6 @@ number:
       icon: mdi:current-ac
        
 sensor:
-
   - platform: emerson_r48
     output_voltage:
       name: ${name}_${emmerson_name}_output_voltage
