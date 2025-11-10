@@ -5,6 +5,7 @@
 #include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/canbus/canbus.h"
+#include "esphome/components/output/float_output.h"
 
 namespace esphome {
 namespace emerson_r48 {
