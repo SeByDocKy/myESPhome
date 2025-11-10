@@ -10,7 +10,7 @@
 namespace esphome {
 namespace emerson_r48 {
 
-class EmersonR48MaxCurrentOutput;
+// class EmersonR48MaxCurrentOutput;
 
 class EmersonR48Component : public PollingComponent {
 
