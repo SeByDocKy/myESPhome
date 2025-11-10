@@ -10,7 +10,7 @@ class EmersonR48MaxCurrentOutput : public output::FloatOutput, public Component 
  public:
   void set_parent(EmersonR48Component *parent) {this->parent_ = parent; }
 
- protected:
+ private:
   EmersonR48Component *parent_;
   void write_state(float value) override;
 };
