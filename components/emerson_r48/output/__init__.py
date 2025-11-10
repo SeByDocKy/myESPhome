@@ -7,7 +7,7 @@ from esphome.const import (
 
 from .. import EmersonR48Component, emerson_r48_ns, CONF_EMERSON_R48_ID
 
-CONF_MAX_CURRENT_OUTPUT = "max_current_output"
+CONF_MAX_CURRENT = "max_current"
 
 EmersonR48MaxCurrentOutput = emerson_r48_ns.class_(
     "EmersonR48MaxCurrentOutput", output.FloatOutput, cg.Component
@@ -16,7 +16,7 @@ EmersonR48MaxCurrentOutput = emerson_r48_ns.class_(
 CONFIG_SCHEMA = {
      
     cv.GenerateID(CONF_EMERSON_R48_ID): cv.use_id(EmersonR48Component),
-    cv.Optional(CONF_MAX_CURRENT_OUTPUT): output.FLOAT_OUTPUT_SCHEMA.extend({
+    cv.Optional(CONF_MAX_CURRENT): output.FLOAT_OUTPUT_SCHEMA.extend({
               cv.Required(CONF_ID): cv.declare_id(EmersonR48MaxCurrentOutput),
     }),
 }
