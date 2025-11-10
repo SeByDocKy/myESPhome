@@ -10,6 +10,11 @@ namespace esphome {
 namespace emerson_r48 {
 
 class EmersonR48Component : public PollingComponent {
+
+#ifdef USE_OUTPUT
+SUB_OUTPUT(max_current)
+
+
  public:
   EmersonR48Component(canbus::Canbus *canbus);
   void setup() override;
