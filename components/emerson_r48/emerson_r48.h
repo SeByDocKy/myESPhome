@@ -18,7 +18,7 @@ class EmersonR48Component : public PollingComponent {
  public:
   EmersonR48Component(canbus::Canbus *canbus);
 
-  EmersonR48MaxCurrentOutput;
+  // EmersonR48MaxCurrentOutput;
 
   void setup() override;
   void update() override;
