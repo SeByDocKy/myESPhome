@@ -62,7 +62,7 @@ class EmersonR48Component : output::FloatOutput, public PollingComponent {
   void set_control(uint8_t msgv);
 
   void set_max_current_output(EmersonR48MaxCurrentOutput* output){this->max_current_output_ = output;}
-  void write_float(float value);
+  void write_float(float value) override;
 
   void sendSync();
   void sendSync2();
