@@ -6,6 +6,7 @@ from esphome.const import (
     DEVICE_CLASS_POWER,
     ENTITY_CATEGORY_CONFIG,
     ICON_POWER,
+    ICON_PERCENT,
     UNIT_WATT,
 )
 
@@ -60,11 +61,13 @@ CONFIG_SCHEMA = {
     
     cv.Optional(CONF_OUTPUT_MIN): number.number_schema(
         OutputMinNumber,
+        icon=ICON_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_OUTPUT_MAX): number.number_schema(
         OutputMaxNumber,
+        icon=ICON_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
 }
@@ -118,6 +121,7 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, minipid_component)
         cg.add(minipid_component.set_output_max_number(n))
+
 
 
 
