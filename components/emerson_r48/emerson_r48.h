@@ -12,7 +12,7 @@ namespace emerson_r48 {
 
 class EmersonR48MaxCurrentOutput;
 
-class EmersonR48Component : public output::FloatOutput, public PollingComponent {
+class EmersonR48Component : output::FloatOutput, public PollingComponent {
 
 // #ifdef USE_FLOATOUTPUT
 // SUB_OUTPUT(max_current)
