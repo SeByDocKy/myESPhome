@@ -105,7 +105,7 @@ async def to_code(config):
 
   if output_min_config := config.get(CONF_OUTPUT_MIN):
         n = await number.new_number(
-            output_min_config, min_value=0, max_value=100, step=1
+            output_min_config, min_value=0.0, max_value=100.0, step=1.0
         )
         await cg.register_component(n, output_min_config)
         await cg.register_parented(n, minipid_component)
@@ -113,9 +113,10 @@ async def to_code(config):
 
   if output_max_config := config.get(CONF_OUTPUT_MAX):
         n = await number.new_number(
-            output_max_config, min_value=0, max_value=100, step=1
+            output_max_config, min_value=0.0, max_value=100.0, step=1.0
         )
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, minipid_component)
         cg.add(minipid_component.set_output_max_number(n))
+
 
