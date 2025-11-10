@@ -84,6 +84,8 @@ class EmersonR48Component : public PollingComponent {
   number::Number *max_output_current_number_{nullptr};
   number::Number *max_input_current_number_{nullptr};
 
+  EmersonR48MaxCurrentOutput *max_current_output_ = nullptr;
+
   // void on_frame(uint32_t can_id, bool rtr, std::vector<uint8_t> &data);
   void on_frame(uint32_t can_id, bool rtr, const std::vector<uint8_t> &data);
 
