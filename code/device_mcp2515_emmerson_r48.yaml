@@ -8,11 +8,11 @@ canbus:
     id: ${emmerson_name}_id
     spi_id: ${emmerson__spid_id}
     use_extended_id: true
-    cs_pin: ${emmerson_cs_pin} #GPIO5
+    cs_pin: ${emmerson_cs_pin}
     can_id: 0x0607FF83
     bit_rate: 125kbps
     mode: NORMAL
-    data_rate: 5Mhz #10Mhz            
+    data_rate: 5Mhz #10Mhz        
             
 emerson_r48:
   canbus_id: ${emmerson_name}_id
@@ -96,6 +96,7 @@ sensor:
       else{
         return 0;
       }      
+
 
 
 
