@@ -42,7 +42,7 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(
                         CONF_UNIT_OF_MEASUREMENT, default=UNIT_VOLT
                     ): cv.string_strict,
-                    cv.Optional(CONF_MODE, default="BOX"): cv.enum(
+                    cv.Optional(CONF_MODE, default="SLIDER"): cv.enum(
                         number.NUMBER_MODES, upper=True
                     ),
                     cv.Optional(
