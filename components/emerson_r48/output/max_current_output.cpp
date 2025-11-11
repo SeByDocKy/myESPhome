@@ -5,7 +5,8 @@ namespace esphome {
 namespace emerson_r48 {
 
 void EmersonR48MaxCurrentOutput::write_state(float value) {
-	this->parent_->set_max_input_current(value);
+	this->parent_->set_max_output_current(value);
+	// ESP_LOGI("
 }
 
 }  // namespace emerson_r48
