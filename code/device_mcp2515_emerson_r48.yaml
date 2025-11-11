@@ -1,0 +1,104 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [emerson_r48]
+    refresh: 0s
+               
+canbus:
+  - platform: mcp2515
+    id: ${emerson_name}_id
+    spi_id: ${emerson__spid_id}
+    use_extended_id: true
+    cs_pin: ${emerson_cs_pin}
+    can_id: 0x0607FF83
+    bit_rate: 125kbps
+    mode: NORMAL
+    data_rate: 10Mhz        
+            
+emerson_r48:
+  canbus_id: ${emerson_name}_id
+  update_interval: ${emerson_update_interval}
+
+output:
+  - platform: emerson_r48
+    max_current:
+      id: ${emerson_name}_max_current  
+
+switch:
+  - platform: emerson_r48
+    ac_sw:
+      name: ${name}_${emerson_name}_ac_switch_turn_off
+      restore_mode: ALWAYS_ON
+    dc_sw:
+      name: ${name}_${emerson_name}_dc_switch_turn_off
+      restore_mode: ALWAYS_ON
+    fan_sw:
+      name: ${name}_${emerson_name}_fan_switch_max
+    led_sw:
+      name: ${name}_${emerson_name}_led_switch
+      
+button:
+  - platform: emerson_r48
+    set_offline_values:
+      name: ${name}_${emerson_name}_set_offline_values
+
+number:
+  - platform: emerson_r48
+    output_voltage:
+      name: ${name}_${emerson_name}_set_output_voltage
+      icon: mdi:sine-wave
+      unit_of_measurement: 'V'
+    max_output_current:
+      name: ${name}_${emerson_name}_max_output_current
+      unit_of_measurement: '%'
+      icon: mdi:percent
+    max_input_current:
+      name: ${name}_${emerson_name}_max_input_current
+      unit_of_measurement: 'A'
+      icon: mdi:current-ac
+       
+sensor:
+  - platform: emerson_r48
+    output_voltage:
+      name: ${name}_${emerson_name}_output_voltage
+      id: ${emerson_name}_output_voltage
+      unit_of_measurement: 'V'
+      icon: mdi:sine-wave
+      accuracy_decimals: 1
+    output_current:
+      name: ${name}_${emerson_name}_output_current
+      id: ${emerson_name}_output_current
+      unit_of_measurement: 'A'
+      icon: mdi:current-dc      
+      accuracy_decimals: 1
+    output_temp:
+      name: ${name}_${emerson_name}_temperature
+      unit_of_measurement: '°C'
+      icon: mdi:thermometer
+      accuracy_decimals: 1
+    input_voltage:
+      name: ${name}_${emerson_name}_ac_voltage
+      unit_of_measurement: 'V'
+      icon: mdi:sine-wave      
+      accuracy_decimals: 1
+    max_output_current:
+      name: ${name}_${emerson_name}_dc_max_current
+      unit_of_measurement: '%'
+      icon: mdi:percent
+      
+  - platform: template
+    name: ${name}_${emerson_name}_outpower
+    id: ${emerson_name}_outpower
+    unit_of_measurement: W
+    device_class: power
+    update_interval: ${emerson_template_update_interval} 
+    accuracy_decimals: 1
+    icon: mdi:power
+    lambda: |-
+      if(id(${emerson_name}_output_current).state>0) { 
+        return ( id(${emerson_name}_output_current).state * id(${emerson_name}_output_voltage).state ); 
+      } 
+      else{
+        return 0;
+      }      
+
+
