@@ -63,7 +63,7 @@ sensor:
       name: ${name}_${emmerson_name}_output_voltage
       id: ${emmerson_name}_output_voltage
       unit_of_measurement: 'V'
-      icon: mdi:percent
+      icon: mdi:sine-wave
       accuracy_decimals: 1
     output_current:
       name: ${name}_${emmerson_name}_output_current
@@ -101,6 +101,7 @@ sensor:
       else{
         return 0;
       }      
+
 
 
 
