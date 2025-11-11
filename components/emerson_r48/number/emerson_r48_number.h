@@ -14,7 +14,7 @@ class EmersonR48Number : public number::Number, public Component {
     this->parent_ = parent;
     this->functionCode_ = functionCode;
   };
-  // void setup() override;
+  void setup() override;
 
  protected:
   EmersonR48Component *parent_;
