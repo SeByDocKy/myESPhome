@@ -386,7 +386,7 @@ void EmersonR48Component::set_offline_values() {
 //}
 
 void EmersonR48Component::set_control(uint8_t msgv) {
-  uint8_t msg[8] = {0, 0xF0, msgv, 0x80, 0, 0, 0, 0};
+  // uint8_t msg[8] = {0, 0xF0, msgv, 0x80, 0, 0, 0, 0};
 
   std::vector<uint8_t> data = { 0x00, 0xF0, msgv, 0x80, 0, 0, 0, 0 };
   
