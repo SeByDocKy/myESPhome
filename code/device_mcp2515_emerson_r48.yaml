@@ -2,6 +2,12 @@ external_components:
   - source: "github://SeByDocKy/myESPhome/"
     components: [emerson_r48]
     refresh: 0s
+
+fan:
+  - platform: speed
+    id: ${emerson_name}_command
+    name: ${name}_${emerson_name}_command
+    output: ${emerson_name}_max_current
                
 canbus:
   - platform: mcp2515
@@ -21,7 +27,7 @@ emerson_r48:
 output:
   - platform: emerson_r48
     max_current:
-      id: ${emerson_name}_max_current  
+      id: ${emerson_name}_max_current
 
 switch:
   - platform: emerson_r48
@@ -100,5 +106,6 @@ sensor:
       else{
         return 0;
       }      
+
 
 
