@@ -12,10 +12,12 @@ class EmersonR48Number : public number::Number, public Component {
     this->parent_ = parent;
     this->functionCode_ = functionCode;
   };
+  // void setup() override;
 
  protected:
   EmersonR48Component *parent_;
   int8_t functionCode_;
+  ESPPreferenceObject pref_;
 
   void control(float value) override;
 };
