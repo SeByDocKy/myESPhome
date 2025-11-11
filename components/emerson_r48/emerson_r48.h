@@ -47,15 +47,12 @@ class EmersonR48Component : public PollingComponent {
   void set_output_power_sensor(sensor::Sensor *output_power_sensor) { output_power_sensor_ = output_power_sensor; }
   void set_output_temp_sensor(sensor::Sensor *output_temp_sensor) { output_temp_sensor_ = output_temp_sensor; }
 
-  void set_output_voltage_number(number::Number *output_voltage_number) {
-    output_voltage_number_ = output_voltage_number;
-  }
-  void set_max_output_current_number(number::Number *max_output_current_number) {
-    max_output_current_number_ = max_output_current_number;
-  }
-  void set_max_input_current_number(number::Number *max_input_current_number) {
-    max_input_current_number_ = max_input_current_number;
-  }
+  void set_output_voltage_number(number::Number *output_voltage_number) {this->output_voltage_number_ = output_voltage_number;}
+  void get_output_voltage_number(number::Number *output_voltage_number) {return this->output_voltage_number_;}
+  void set_max_output_current_number(number::Number *max_output_current_number) {this->max_output_current_number_ = max_output_current_number;}
+  void get_max_output_current_number(number::Number *max_output_current_number) {return this->max_output_current_number_;}
+  void set_max_input_current_number(number::Number *max_input_current_number) {this->max_input_current_number_ = max_input_current_number;}
+  void get_max_input_current_number(number::Number *max_input_current_number) {return this->max_input_current_number_;}
 
   void set_control(uint8_t msgv);
 
