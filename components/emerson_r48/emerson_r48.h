@@ -48,6 +48,21 @@ class EmersonR48Component : public PollingComponent {
   void set_max_input_current_number(number::Number *max_input_current_number) {this->max_input_current_number_ = max_input_current_number;}
   // void get_max_input_current_number(number::Number *max_input_current_number) {return this->max_input_current_number_;}
 
+#ifdef USE_NUMBER
+  void set_current_output_voltage(float value) {this->current_output_voltage_ = value;}
+  void get_current_output_voltage() {return this->current_output_voltage_ ;}
+
+  void set_current_max_output_current(float value) {this->current_max_output_current_ = value;}
+  void get_current_max_output_current() {return this->current_max_output_current_ ;}
+
+  void set_current_max_input_current(float value) {this->current_max_input_current_ = value;}
+  void get_current_max_input_current() {return this->current_max_input_current_ ;}
+
+  float current_output_voltage_ = 56.0f;
+  float current_max_input_current_ = 20.0f;
+  float current_max_output_current_ = 10.0f;
+#endif
+
   void set_control(uint8_t msgv);
 
   void sendSync();
