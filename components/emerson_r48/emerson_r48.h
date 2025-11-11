@@ -59,8 +59,6 @@ class EmersonR48Component : public PollingComponent {
 
   void set_control(uint8_t msgv);
 
-  void write_float(float value);
-
   void sendSync();
   void sendSync2();
   void gimme5();
