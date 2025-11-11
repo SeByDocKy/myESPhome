@@ -55,12 +55,12 @@ CONFIG_SCHEMA = cv.All(
                     cv.GenerateID(): cv.declare_id(EmersonR48Number),
                     cv.Optional(CONF_MIN_VALUE, default=2): cv.float_,
                     cv.Optional(CONF_MAX_VALUE, default=121): cv.float_,
-                    cv.Optional(CONF_STEP, default=0.01): cv.float_,
+                    cv.Optional(CONF_STEP, default=0.5): cv.float_,
                     cv.Optional(CONF_ICON, default=ICON_FLASH): cv.icon,
                     cv.Optional(
                         CONF_UNIT_OF_MEASUREMENT, default=UNIT_AMPERE
                     ): cv.string_strict,
-                    cv.Optional(CONF_MODE, default="BOX"): cv.enum(
+                    cv.Optional(CONF_MODE, default="SLIDER"): cv.enum(
                         number.NUMBER_MODES, upper=True
                     ),
                     cv.Optional(
@@ -78,7 +78,7 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(
                         CONF_UNIT_OF_MEASUREMENT, default=UNIT_AMPERE
                     ): cv.string_strict,
-                    cv.Optional(CONF_MODE, default="BOX"): cv.enum(
+                    cv.Optional(CONF_MODE, default="SLIDER"): cv.enum(
                         number.NUMBER_MODES, upper=True
                     ),
                     cv.Optional(
