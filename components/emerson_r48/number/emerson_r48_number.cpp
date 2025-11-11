@@ -8,6 +8,15 @@ static const int8_t SET_VOLTAGE_FUNCTION = 0x0;
 static const int8_t SET_CURRENT_FUNCTION = 0x3;
 static const int8_t SET_INPUT_CURRENT_FUNCTION = 0x4;
 
+void EmersonR48Number::setup() {
+  float value;
+  this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+  if (!this->pref_.load(&value)) value = this->parent_->get_output_max();
+  this->parent_->set_output_max(value*0.01);
+  this->publish_state(value);	
+}
+
+
 void EmersonR48Number::control(float value) {
   switch (this->functionCode_) {
     case SET_VOLTAGE_FUNCTION:
