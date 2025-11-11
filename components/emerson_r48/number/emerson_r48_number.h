@@ -2,6 +2,8 @@
 #include "../emerson_r48.h"
 #include "esphome/core/component.h"
 #include "esphome/components/number/number.h"
+#include "esphome/core/preferences.h"
+#include "esphome/core/hal.h"
 
 namespace esphome {
 namespace emerson_r48 {
