@@ -16,31 +16,33 @@ from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 ActivationSwitch = offsr_ns.class_("ActivationSwitch", switch.Switch, cg.Component)
 ManualOverrideSwitch = offsr_ns.class_("ManualOverrideSwitch", switch.Switch, cg.Component)
 PidModeSwitch = offsr_ns.class_("PidModeSwitch", switch.Switch, cg.Component)
+ReverseSwitch = offsr_ns.class_("ReverseSwitch", switch.Switch, cg.Component)
 
 CONF_ACTIVATION = "activation"
 CONF_MANUAL_OVERRIDE = "manual_override"
 CONF_PID_MODE = "pid_mode"
+CONF_REVERSE = "reverse"
 
 CONFIG_SCHEMA = {
-#     cv.GenerateID(): cv.declare_id(OFFSRSwitch),
-
     cv.GenerateID(CONF_OFFSR_ID): cv.use_id(OFFSRComponent),
     
     cv.Optional(CONF_ACTIVATION): switch.switch_schema(
         ActivationSwitch,
-#        OFFSRSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_MANUAL_OVERRIDE): switch.switch_schema(
         ManualOverrideSwitch,
-#        OFFSRSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_PID_MODE): switch.switch_schema(
         PidModeSwitch,
-#        OFFSRSwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,    
+    ).extend(cv.COMPONENT_SCHEMA),
+     cv.Optional(CONF_REVERSE): switch.switch_schema(
+        ReverseSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
@@ -65,4 +67,12 @@ async def to_code(config):
         s = await switch.new_switch(pid_mode_config)
         await cg.register_component(s, pid_mode_config)
         await cg.register_parented(s, offsr_component)
-        cg.add(offsr_component.set_pid_mode_switch(s))        
+        cg.add(offsr_component.set_pid_mode_switch(s)) 
+        
+    if reverse_config := config.get(CONF_REVERSE):
+        s = await switch.new_switch(reverse_config)
+        await cg.register_component(s, reverse_config)
+        await cg.register_parented(s, offsr_component)
+        cg.add(offsr_component.set_reverse_switch(s)) 
+  
+
