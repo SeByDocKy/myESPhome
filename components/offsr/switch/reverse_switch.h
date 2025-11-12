@@ -6,7 +6,7 @@
 namespace esphome {
 namespace offsr {
 
-class ReverseSwitch : public switch_::Switch, public Component, public Parented<MINIPIDComponent> {
+class ReverseSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
  public:
   void setup() override;
 
@@ -18,4 +18,5 @@ class ReverseSwitch : public switch_::Switch, public Component, public Parented<
 }  // namespace minipid
 
 }  // namespace esphome
+
 
