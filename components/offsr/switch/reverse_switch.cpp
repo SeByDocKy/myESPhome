@@ -1,7 +1,7 @@
 #include "reverse_switch.h"
 
 namespace esphome {
-namespace minipid {
+namespace offsr {
 void ReverseSwitch::setup() {
   bool state;
   this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
@@ -18,4 +18,5 @@ void ReverseSwitch::write_state(bool state) {
 
 }  // namespace minipid
 }  // namespace esphome
+
 
