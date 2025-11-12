@@ -12,7 +12,7 @@ fan:
 canbus:
   - platform: mcp2515
     id: ${emerson_name}_id
-    spi_id: ${emerson__spid_id}
+    spi_id: ${emerson_spid_id}
     use_extended_id: true
     cs_pin: ${emerson_cs_pin}
     can_id: 0x0607FF83
@@ -106,3 +106,4 @@ sensor:
       else{
         return 0;
       }      
+
