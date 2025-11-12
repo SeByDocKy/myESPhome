@@ -4,7 +4,7 @@
 #include "../minipid.h"
 
 namespace esphome {
-namespace minipid {
+namespace offsr {
 
 class ReverseSwitch : public switch_::Switch, public Component, public Parented<MINIPIDComponent> {
  public:
@@ -16,4 +16,5 @@ class ReverseSwitch : public switch_::Switch, public Component, public Parented<
 };
 
 }  // namespace minipid
+
 }  // namespace esphome
