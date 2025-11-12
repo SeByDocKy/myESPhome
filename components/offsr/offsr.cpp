@@ -77,9 +77,11 @@ void OFFSRComponent::pid_update() {
 #endif
     dt_ = float(now - this->last_time_)/1000.0f;
     error_ = -(this->current_target_ - this->current_battery_current_);
+#ifdef USE_SWITCH	  
 	if (this->current_reverse_){
 		error_ = -error_;
-	}	  
+	}
+#endif	  
 	this->current_error_ = error_;
 	
     tmp = (error_ * dt_);
@@ -161,6 +163,7 @@ void OFFSRComponent::pid_update() {
 
  }  // namespace offsr
 }  // namespace esphome
+
 
 
 
