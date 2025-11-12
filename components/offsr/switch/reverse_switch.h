@@ -1,7 +1,7 @@
 #pragma once
 
 #include "esphome/components/switch/switch.h"
-#include "../minipid.h"
+#include "../offsr.h"
 
 namespace esphome {
 namespace offsr {
@@ -18,3 +18,4 @@ class ReverseSwitch : public switch_::Switch, public Component, public Parented<
 }  // namespace minipid
 
 }  // namespace esphome
+
