@@ -77,8 +77,11 @@ void OFFSRComponent::pid_update() {
 #endif
     dt_ = float(now - this->last_time_)/1000.0f;
     error_ = -(this->current_target_ - this->current_battery_current_);
+	if (this->current_reverse_){
+		error_ = -error_;
+	}	  
 	this->current_error_ = error_;
-		
+	
     tmp = (error_ * dt_);
     if (!std::isnan(tmp)){
       integral_ += tmp;
@@ -158,5 +161,6 @@ void OFFSRComponent::pid_update() {
 
  }  // namespace offsr
 }  // namespace esphome
+
 
 
