@@ -50,9 +50,11 @@ void MINIPIDComponent::pid_update() {
 #endif
     dt_ = float(now - this->last_time_)/1000.0f;
     error_ = -(this->current_setpoint_ - this->current_input_);
+#ifdef USE_SWITCH 	  
 	if (this->current_reverse_){
 		error_ = -error_;
 	}
+#endif	  
 	this->current_error_ = error_;
 		
     tmp = (error_ * dt_);
@@ -116,6 +118,7 @@ void MINIPIDComponent::pid_update() {
 
  }  // namespace minipid
 }  // namespace esphome
+
 
 
 
