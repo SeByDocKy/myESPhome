@@ -15,8 +15,9 @@ class ReverseSwitch : public switch_::Switch, public Component, public Parented<
   ESPPreferenceObject pref_;
 };
 
-}  // namespace minipid
+}  // namespace offsr
 
 }  // namespace esphome
+
 
 
