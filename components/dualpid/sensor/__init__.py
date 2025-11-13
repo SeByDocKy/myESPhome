@@ -6,6 +6,7 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
     DEVICE_CLASS_CURRENT,
     UNIT_AMPERE,
+    UNIT_WATT,
     UNIT_PERCENT,
 )
 
@@ -89,6 +90,7 @@ async def to_code(config):
     if CONF_TARGET in config:
         sens = await sensor.new_sensor(config[CONF_TARGET])
         cg.add(var.set_target_sensor(sens))
+
 
 
 
