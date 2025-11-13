@@ -163,8 +163,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	}
 	ESP_LOGVV(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	
-    this->device_output_charging_->set_level(this->output_charging_);
-	this->device_output_discharging_->set_level(this->output_discharging_);
+    this->device_charging_output_->set_level(this->output_charging_);
+	this->device_discharging_output_->set_level(this->output_discharging_);
 	this->current_output_ = this->output_;
 	
     this->pid_computed_callback_.call();
@@ -176,6 +176,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
