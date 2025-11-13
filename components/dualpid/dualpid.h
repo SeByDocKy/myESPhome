@@ -157,8 +157,8 @@ SUB_NUMBER(output_restart)
   
   sensor::Sensor *input_sensor_;
   sensor::Sensor *battery_voltage_sensor_;
-  output::FloatOutput *device_output_charging_;
-  output::FloatOutput *device_output_discharging_;
+  output::FloatOutput *device_charging_output_; 
+  output::FloatOutput *device_discharging_output_;
   
   CallbackManager<void()> pid_computed_callback_;
 
@@ -208,6 +208,7 @@ SUB_NUMBER(output_restart)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
