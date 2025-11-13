@@ -147,7 +147,7 @@ SUB_NUMBER(output_restart)
   float derivative_ = 0.0f;
   
   float current_charging_epoint_ = 50.0f;
-  float current_absorbing_epoint_ = 20f;
+  float current_absorbing_epoint_ = 20.0f;
   float current_floating_epoint_ = 0.0f;
   
   float current_input_ = 0.0f;
@@ -208,6 +208,7 @@ SUB_NUMBER(output_restart)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
