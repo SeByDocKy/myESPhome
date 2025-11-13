@@ -75,18 +75,18 @@ void OFFSRComponent::pid_update() {
 #ifdef USE_SWITCH  
   if (!this->current_manual_override_){
 #endif
-    dt_ = float(now - this->last_time_)/1000.0f;
+    this->dt_ = float(now - this->last_time_)/1000.0f;
     this->error_ = -(this->current_target_ - this->current_battery_current_);
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
-		error_ = -error_;
+		this->error_ = -this->error_;
 	}
 #endif	  
 	this->current_error_ = this->error_;
 	
     tmp = (this->error_ * this->dt_);
     if (!std::isnan(tmp)){
-      integral_ += tmp;
+      this->integral_ += tmp;
     }
     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
@@ -103,7 +103,7 @@ void OFFSRComponent::pid_update() {
 	alphaD = coeffD*this->current_kd_ * this->derivative_;
 	alpha  = alphaP + alphaI + alphaD;
 	
-    output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
+    this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
 	
     ESP_LOGVV(TAG, "Pcoeff = %3.8f" , alphaP );
 	ESP_LOGVV(TAG, "Icoeff = %3.8f" , alphaI );
@@ -135,7 +135,7 @@ void OFFSRComponent::pid_update() {
     this->previous_error_ = this->error_;
     this->previous_output_ = this->output_;
     
-	ESP_LOGVV(TAG, "activation %d", current_activation_);
+	ESP_LOGVV(TAG, "activation %d", this->current_activation_);
 	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
@@ -162,6 +162,7 @@ void OFFSRComponent::pid_update() {
 
  }  // namespace offsr
 }  // namespace esphome
+
 
 
 
