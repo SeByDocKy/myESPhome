@@ -19,3 +19,4 @@ void KpDischargingNumber::control(float value) {
 }  // namespace dualpid
 }  // namespace esphome
 
+
