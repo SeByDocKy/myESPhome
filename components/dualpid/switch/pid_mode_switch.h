@@ -6,7 +6,7 @@
 namespace esphome {
 namespace dualpid {
 
-class PidModeSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
+class PidModeSwitch : public switch_::Switch, public Component, public Parented<DUALPIDComponent> {
  public:
   void setup() override;
 
@@ -17,3 +17,4 @@ class PidModeSwitch : public switch_::Switch, public Component, public Parented<
 
 }  // namespace dualpid
 }  // namespace esphome
+
