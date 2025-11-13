@@ -12,9 +12,10 @@ void KpDischargingNumber::setup() {
 
 void KpDischargingNumber::control(float value) {
   this->publish_state(value);
-  this->parent_->set_kp(value);
+  this->parent_->set_kp_discharging(value);
   this->pref_.save(&value);
 }
 
 }  // namespace dualpid
 }  // namespace esphome
+
