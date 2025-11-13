@@ -54,13 +54,13 @@ CONF_STARTING_BATTERY_VOLTAGE = "starting_battery_voltage"
 CONF_CHARGED_BATTERY_VOLTAGE = "charged_battery_voltage"
 CONF_DISCHARGED_BATTERY_VOLTAGE = "discharged_battery_voltage"
 
-CONF_KP = "kp_charging"
-CONF_KI = "ki_charging"
-CONF_KD = "kd_charging"
+CONF_KP_CHARGING = "kp_charging"
+CONF_KI_CHARGING = "ki_charging"
+CONF_KD_CHARGING = "kd_charging"
 
-CONF_KP = "kp_discharging"
-CONF_KI = "ki_discharging"
-CONF_KD = "kd_discharging"
+CONF_KP_DISCHARGING = "kp_discharging"
+CONF_KI_DISCHARGING = "ki_discharging"
+CONF_KD_DISCHARGING = "kd_discharging"
 
 CONF_OUTPUT_MIN = "output_min"
 CONF_OUTPUT_MAX = "output_max"
@@ -300,5 +300,6 @@ async def to_code(config):
         await cg.register_component(n, output_restart_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_restart_number(n))        
+
 
 
