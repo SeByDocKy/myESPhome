@@ -10,9 +10,7 @@
 #ifdef USE_NUMBER
 #include "esphome/components/number/number.h"
 #endif
-#ifdef USE_BINARY_SENSOR
-#include "esphome/components/binary_sensor/binary_sensor.h"
-#endif
+
 
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
@@ -36,6 +34,10 @@ SUB_SWITCH(reverse)
 #ifdef USE_NUMBER
 
 SUB_NUMBER(setpoint)
+
+SUB_NUMBER(charging_epoint)
+SUB_NUMBER(absorbing_epoint)
+SUB_NUMBER(floatint_epoint)
 
 SUB_NUMBER(starting_battery_voltage)
 SUB_NUMBER(charged_battery_voltage)
@@ -208,6 +210,7 @@ SUB_NUMBER(output_restart)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
