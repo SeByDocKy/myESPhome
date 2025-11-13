@@ -1,7 +1,7 @@
 #include "pid_mode_switch.h"
 
 namespace esphome {
-namespace offsr {
+namespace dualpid {
 	
 void PidModeSwitch::setup() {
   bool state;
@@ -18,3 +18,4 @@ void PidModeSwitch::write_state(bool state) {
 
 }  // namespace offsr
 }  // namespace esphome
+
