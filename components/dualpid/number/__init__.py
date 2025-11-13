@@ -146,7 +146,7 @@ CONFIG_SCHEMA = {
     ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_KI_DISCHARGING): number.number_schema(
-        KiDishargingNumber,
+        KiDischargingNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     
@@ -300,6 +300,7 @@ async def to_code(config):
         await cg.register_component(n, output_restart_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_restart_number(n))        
+
 
 
 
