@@ -71,7 +71,7 @@ CONFIG_SCHEMA = {
     
     cv.Optional(CONF_SETPOINT): number.number_schema(
         SetpointNumber,
-        device_class=DEVICE_POWER,
+        device_class=DEVICE_CLASS_POWER,
         icon = ICON_POWER,
         unit_of_measurement=UNIT_WATT,
         entity_category=ENTITY_CATEGORY_CONFIG
@@ -300,4 +300,5 @@ async def to_code(config):
         await cg.register_component(n, output_restart_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_restart_number(n))        
+
 
