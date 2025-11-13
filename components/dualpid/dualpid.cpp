@@ -22,7 +22,7 @@ void DUALPIDComponent::setup() {
       this->current_input_ = state;
       this->pid_update();
     });
-    this->current_input_ = this->power_sensor_->state;
+    this->current_input_ = this->input_sensor_->state;
   }
   
   if (this->battery_voltage_sensor_ != nullptr) {
@@ -176,6 +176,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
