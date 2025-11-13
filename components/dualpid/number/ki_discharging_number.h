@@ -6,7 +6,7 @@
 namespace esphome {
 namespace dualpid {
 
-class KiChargingNumber : public number::Number, public Component, public Parented<DUALPIDComponent> {
+class KiDishargingNumber : public number::Number, public Component, public Parented<DUALPIDComponent> {
  public:
   void setup() override;
 
@@ -17,3 +17,4 @@ class KiChargingNumber : public number::Number, public Component, public Parente
 
 }  // namespace dualpid
 }  // namespace esphome
+
