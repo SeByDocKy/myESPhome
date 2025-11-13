@@ -16,7 +16,8 @@ void ReverseSwitch::write_state(bool state) {
   this->pref_.save(&state);
 }
 
-}  // namespace minipid
+}  // namespace offsr
 }  // namespace esphome
+
 
 
