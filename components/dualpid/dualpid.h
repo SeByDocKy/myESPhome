@@ -53,7 +53,6 @@ SUB_NUMBER(kd_discharging)
 
 SUB_NUMBER(output_min)
 SUB_NUMBER(output_max)
-SUB_NUMBER(output_restart)
 #endif
 
  public:
@@ -121,8 +120,6 @@ SUB_NUMBER(output_restart)
   float get_output_min(void){return this->current_output_min_;}
   void set_output_max(float value) {this->current_output_max_ = value;}
   float get_output_max(void){return this->current_output_max_;}
-  void set_output_restart(float value) {this->current_output_restart_ = value;}
-  float get_output_restart(void){return this->current_output_restart_;}
   
 #endif
 
@@ -183,7 +180,7 @@ SUB_NUMBER(output_restart)
 #ifdef USE_NUMBER
 
   float current_setpoint_ = 0.0f;
-  float current_epoint_ = 50.0f;
+  float current_epoint_ = 0.5f;
 
   float current_starting_battery_voltage_ = 53.5f;
   float current_charged_battery_voltage_ = 55.8f;
@@ -210,6 +207,7 @@ SUB_NUMBER(output_restart)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
