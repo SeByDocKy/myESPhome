@@ -145,8 +145,8 @@ SUB_NUMBER(output_max)
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
   
-  float current_charging_epoint_ = 50.0f;
-  float current_absorbing_epoint_ = 20.0f;
+  float current_charging_epoint_ = 0.5f;
+  float current_absorbing_epoint_ = 0.2f;
   float current_floating_epoint_ = 0.0f;
   
   float current_input_ = 0.0f;
@@ -206,6 +206,7 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
