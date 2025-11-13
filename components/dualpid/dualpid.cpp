@@ -74,31 +74,31 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
     dt_         = float(now - this->last_time_)/1000.0f;
 	tmp         = (this->current_input_ - this->current_setpoint_);
 	if (e){
-		error = tmp;
+		this->error_ = tmp;
 	}
 	else{
-		error = -tmp;
+		this->error_ = -tmp;
     }
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
-		error_ = -error_;
+		this->error_ = -this->error_;
 	}
 #endif	  
-	this->current_error_ = error_;
+	this->current_error_ = this->error_;
 	
-    tmp = (error_ * dt_);
+    tmp = (this->error_ * dt_);
     if (!std::isnan(tmp)){
-      integral_ += tmp;
+      this->integral_ += tmp;
     }
-    derivative_ = (error_ - previous_error_) / dt_;
+    this->derivative_ = (this->error_ - this->previous_error_) / dt_;
 
     tmp = 0.0f;
-    if( !std::isnan(previous_output_) && !this->current_pid_mode_){
-        tmp = previous_output_;
+    if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
+        tmp = this->previous_output_;
     }
 	
 	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
-	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
+	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
 	if (e){
 	  this->current_kp = this->current_kp_charging;
@@ -176,6 +176,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
