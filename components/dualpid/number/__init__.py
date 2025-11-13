@@ -44,7 +44,7 @@ OutputMinNumber = dualpid_ns.class_("OutputMinNumber", number.Number, cg.Compone
 OutputMaxNumber = dualpid_ns.class_("OutputMaxNumber", number.Number, cg.Component)
 
 
-CONF_SETPOINT = "charging_epoint"
+CONF_SETPOINT = "setpoint"
 
 CONF_CHARGING_EPOINT = "charging_epoint"
 CONF_ABSORBING_EPOINT = "absorbing_epoint"
@@ -300,6 +300,7 @@ async def to_code(config):
         await cg.register_component(n, output_restart_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_restart_number(n))        
+
 
 
 
