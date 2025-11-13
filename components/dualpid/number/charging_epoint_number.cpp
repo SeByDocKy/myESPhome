@@ -1,7 +1,7 @@
 #include "charging_epoint_number.h"
 
 namespace esphome {
-namespace duapid {
+namespace dualpid {
 
 void ChargingEpointNumber::setup() {	
 	float value;
@@ -19,5 +19,6 @@ void ChargingEpointNumber::control(float value) {
 
 }  // namespace dualpid
 }  // namespace esphome
+
 
 
