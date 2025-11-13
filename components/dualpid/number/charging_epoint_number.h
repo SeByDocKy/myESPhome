@@ -17,3 +17,4 @@ class ChargingEpointNumber : public number::Number, public Component, public Par
 }  // namespace dualpid
 }  // namespace esphome
 
+
