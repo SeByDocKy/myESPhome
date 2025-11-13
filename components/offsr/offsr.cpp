@@ -76,19 +76,19 @@ void OFFSRComponent::pid_update() {
   if (!this->current_manual_override_){
 #endif
     dt_ = float(now - this->last_time_)/1000.0f;
-    error_ = -(this->current_target_ - this->current_battery_current_);
+    this->error_ = -(this->current_target_ - this->current_battery_current_);
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
 		error_ = -error_;
 	}
 #endif	  
-	this->current_error_ = error_;
+	this->current_error_ = this->error_;
 	
-    tmp = (error_ * dt_);
+    tmp = (this->error_ * dt_);
     if (!std::isnan(tmp)){
       integral_ += tmp;
     }
-    derivative_ = (error_ - previous_error_) / dt_;
+    this->derivative_ = (this->error_ - this->previous_error_) / dt_;
 
     tmp = 0.0f;
     if( !std::isnan(previous_output_) && !this->current_pid_mode_){
@@ -98,9 +98,9 @@ void OFFSRComponent::pid_update() {
 	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
 	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
 	
-	alphaP = coeffP*this->current_kp_ * error_;
-	alphaI = coeffI*this->current_ki_ * integral_;
-	alphaD = coeffD*this->current_kd_ * derivative_;
+	alphaP = coeffP*this->current_kp_ * this->error_;
+	alphaI = coeffI*this->current_ki_ * this->integral_;
+	alphaD = coeffD*this->current_kd_ * this->derivative_;
 	alpha  = alphaP + alphaI + alphaD;
 	
     output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
@@ -114,7 +114,7 @@ void OFFSRComponent::pid_update() {
 	
 	ESP_LOGVV(TAG, "PIDcoeff = %3.8f" , alpha );
 	
-	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , output_);
+	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , this->output_);
   
     // if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
     if ( (this->power_sensor_ != nullptr) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {  		
@@ -132,8 +132,8 @@ void OFFSRComponent::pid_update() {
     }
   
     last_time_ = now;
-    previous_error_ = error_;
-    previous_output_ = output_;
+    this->previous_error_ = this->error_;
+    this->previous_output_ = this->output_;
     
 	ESP_LOGVV(TAG, "activation %d", current_activation_);
 	
@@ -149,11 +149,10 @@ void OFFSRComponent::pid_update() {
         output_ = 0.0f;
       }
     }
-    ESP_LOGVV(TAG, "Final computed output=%1.6f" , output_);
+    ESP_LOGVV(TAG, "Final computed output=%1.6f" , this->output_);
 	
-    this->device_output_->set_level(output_);
-	this->current_output_ = output_;
-	
+    this->device_output_->set_level(this->output_);
+	this->current_output_ = this->output_;
     this->pid_computed_callback_.call();
 #ifdef USE_SWITCH	
   } 
@@ -163,6 +162,7 @@ void OFFSRComponent::pid_update() {
 
  }  // namespace offsr
 }  // namespace esphome
+
 
 
 
