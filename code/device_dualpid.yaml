@@ -1,0 +1,89 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [dualpid]
+    refresh: 0s
+    
+dualpid:
+  - id: ${dualpid_id}
+    input_id: ${dualpid_name}_input_smoothed 
+    battery_voltage_id: ${dualpid_battery_voltage_id}
+    charging_output_id: ${dualpid_charging_output_id}
+    discharging_output_id: ${dualpid_discharging_output_id}
+    
+sensor:
+  - platform: copy
+    source_id: ${dualpid_input_id}
+    name: ${name}_${dualpid_name}_input_smoothed
+    id: ${dualpid_name}_input_smoothed
+    device_class: energy
+    icon: mdi:power
+    unit_of_measurement: 'W'
+    accuracy_decimals: 1
+    filters:
+      - sliding_window_moving_average:
+          window_size: ${dualpid_windows_size}
+          send_every: 1
+          
+  - platform: dualpid
+    dualpid_id: ${dualpid_id}
+    error: 
+      name: ${name}_${dualpid_name}_error    
+    output: 
+      name: ${name}_${dualpid_name}_output
+    output_charging: 
+      name: ${name}_${dualpid_name}_output_charging
+    output_discharging: 
+      name: ${name}_${dualpid_name}_output_discharging      
+    target:
+      name: ${name}_${dualpid_name}_target
+
+
+switch:
+  - platform: dualpid
+    dualpid_id: ${dualpid_id}
+    activation: 
+      name: ${name}_${dualpid_name}_activation
+      id: activation
+    manual_override: 
+      name: ${name}_${dualpid_name}_manual_override
+      id: manual_override
+    pid_mode: 
+      name: ${name}_${dualpid_name}_pid_mode
+      id: pid_mode
+    reverse: 
+      name: ${name}_${dualpid_name}_reverse
+      id: reverse
+          
+number:
+  - platform: dualpid
+    dualpid_id: ${dualpid_id}
+    setpoint:
+      name: ${name}_${dualpid_name}_setpoint
+    charging_epoint: 
+      name: ${name}_${dualpid_name}_charging_epoint
+    absorbing_epoint: 
+      name: ${name}_${dualpid_name}_absorbing_epoint
+    floating_epoint: 
+      name: ${name}_${dualpid_name}_floating_epoint
+    starting_battery_voltage: 
+      name: ${name}_${dualpid_name}_starting_battery_voltage
+    charged_battery_voltage: 
+      name: ${name}_${dualpid_name}_charged_battery_voltage
+    discharged_battery_voltage: 
+      name: ${name}_${dualpid_name}_discharged_battery_voltage
+    kp_charging: 
+      name: ${name}_${dualpid_name}_kp_charging
+    ki_charging: 
+      name: ${name}_${dualpid_name}_ki_charging
+    kd_charging: 
+      name: ${name}_${dualpid_name}_kd_charging
+    kp_discharging: 
+      name: ${name}_${dualpid_name}_kp_discharging
+    ki_discharging: 
+      name: ${name}_${dualpid_name}_ki_discharging
+    kd_discharging: 
+      name: ${name}_${dualpid_name}_kd_discharging      
+    output_min: 
+      name: ${name}_${dualpid_name}_output_min
+    output_max: 
+      name: ${name}_${dualpid_name}_output_max
