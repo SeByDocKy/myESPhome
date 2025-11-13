@@ -101,12 +101,12 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
 	if (e){
-	  this->current_kp_ = this->current_kp_charging;
+	  this->current_kp_ = this->current_kp_charging_;
 	  this->current_ki_ = this->current_ki_charging_;
 	  this->current_kd_ = this->current_kd_charging_;
 	}
 	else{
-	  this->current_kp_ = this->current_kp_discharging;
+	  this->current_kp_ = this->current_kp_discharging_;
 	  this->current_ki_ = this->current_ki_discharging_;
 	  this->current_kd_ = this->current_kd_discharging_;
 	}
@@ -176,6 +176,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
