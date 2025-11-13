@@ -24,10 +24,11 @@ class DUALPIDSensor : public Component, public Parented<DUALPIDComponent> {
   sensor::Sensor *output_charging_sensor_{nullptr};
   sensor::Sensor *output_discharging_sensor_{nullptr};
   sensor::Sensor *target_sensor_{nullptr};
-  OFFSRComponent *parent_;
+  DUALPIDComponent *parent_;
   
   void publish_data_();
 };	
 	
 } // dualpid
 } // esphome
+
