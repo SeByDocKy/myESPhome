@@ -1,20 +1,21 @@
-#include "ki_charging_number.h"
+#include "ki_discharging_number.h"
 
 namespace esphome {
 namespace dualpid {
-void KiChargingNumber::setup() {
+void KiDischargingNumber::setup() {
   float value;
   this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
-  if (!this->pref_.load(&value)) value = this->parent_->get_ki_charging();
-  this->parent_->set_ki_charging(value);
+  if (!this->pref_.load(&value)) value = this->parent_->get_ki_discharging();
+  this->parent_->set_ki_discharging(value);
   this->publish_state(value);	
 }
 
-void KiChargingNumber::control(float value) {
+void KiDischargingNumber::control(float value) {
   this->publish_state(value);
-  this->parent_->set_ki_charging(value);
+  this->parent_->set_ki_discharging(value);
   this->pref_.save(&value);
 }
 
 }  // namespace offsr
 }  // namespace esphome
+
