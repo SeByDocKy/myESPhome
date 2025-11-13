@@ -13,9 +13,10 @@ void OutputMaxNumber::setup() {
 
 void OutputMaxNumber::control(float value) {
   this->publish_state(value);
-  this->parent_->set_output_max(value);
+  this->parent_->set_output_max(value*0.01);
   this->pref_.save(&value);
 }
 
 }  // namespace dualpid
 }  // namespace esphome
+
