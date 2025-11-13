@@ -2,6 +2,7 @@
 
 namespace esphome {
 namespace dualpid {
+
 void KpDischargingNumber::setup() {
   float value;
   this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
@@ -18,5 +19,6 @@ void KpDischargingNumber::control(float value) {
 
 }  // namespace dualpid
 }  // namespace esphome
+
 
 
