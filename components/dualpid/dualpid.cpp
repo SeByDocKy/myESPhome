@@ -12,10 +12,10 @@ static const float coeffD = 0.001f;
 void DUALPIDComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up DUALPIDComponent...");
   
-  last_time_ =  millis();
-  integral_  = 0.0f;
-  previous_output_ = 0.0f;
-  previous_error_ = 0.0f;
+  this->last_time_ =  millis();
+  this->integral_  = 0.0f;
+  this->previous_output_ = 0.0f;
+  this->previous_error_ = 0.0f;
   
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
@@ -176,6 +176,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
