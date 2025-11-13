@@ -16,8 +16,6 @@ from esphome.const import (
 )
 
 DEPENDENCIES = ["dualpid"]
-
-# ICON_CURRENT_DC = "mdi:current-dc"
 ICON_SINE_WAVE = "mdi:sine-wave"
 
 from .. import CONF_DUALPID_ID, DUALPIDComponent, dualpid_ns
@@ -292,5 +290,6 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_number(n))
+
 
 
