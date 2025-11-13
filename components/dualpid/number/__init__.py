@@ -198,7 +198,7 @@ async def to_code(config):
         )
         await cg.register_component(n, floating_epoint_config)
         await cg.register_parented(n, dualpid_component)
-        cg.add(dualpid_component.set_floating_setpoint_number(n))     
+        cg.add(dualpid_component.set_floating_epoint_number(n))     
         
   if starting_battery_voltage_config := config.get(CONF_STARTING_BATTERY_VOLTAGE):
         n = await number.new_number(
@@ -290,6 +290,7 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_number(n))
+
 
 
 
