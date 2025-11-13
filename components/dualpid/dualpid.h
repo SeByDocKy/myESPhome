@@ -35,6 +35,8 @@ SUB_SWITCH(reverse)
 
 #ifdef USE_NUMBER
 
+SUB_NUMBER(setpoint)
+
 SUB_NUMBER(starting_battery_voltage)
 SUB_NUMBER(charged_battery_voltage)
 SUB_NUMBER(discharged_battery_voltage)
@@ -206,5 +208,6 @@ SUB_NUMBER(output_restart)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
