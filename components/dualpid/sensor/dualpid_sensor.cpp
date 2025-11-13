@@ -24,15 +24,16 @@ void DUALPIDSensor::publish_data_() {
   if (this->error_sensor_ != nullptr)
     this->error_sensor_->publish_state(this->parent_->get_error()); 
   if (this->output_sensor_ != nullptr)
-    this->output_sensor_->publish_state(this->parent_->get_output());
+    this->output_sensor_->publish_state(this->parent_->get_output()*100.0f);
   if (this->output_charging_sensor_ != nullptr)
-    this->output_charging_sensor_->publish_state(this->parent_->get_output_charging());
+    this->output_charging_sensor_->publish_state(this->parent_->get_output_charging()*100.0f);
   if (this->output_discharging_sensor_ != nullptr)
-    this->output_discharging_sensor_->publish_state(this->parent_->get_output_discharging());
+    this->output_discharging_sensor_->publish_state(this->parent_->get_output_discharging()*100.0f);
   if (this->target_sensor_ != nullptr)
     this->target_sensor_->publish_state(this->parent_->get_target()); 
 }
 
 } // dualpid
 } // esphome
+
 
