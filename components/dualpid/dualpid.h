@@ -37,7 +37,7 @@ SUB_NUMBER(setpoint)
 
 SUB_NUMBER(charging_epoint)
 SUB_NUMBER(absorbing_epoint)
-SUB_NUMBER(floatint_epoint)
+SUB_NUMBER(floating_epoint)
 
 SUB_NUMBER(starting_battery_voltage)
 SUB_NUMBER(charged_battery_voltage)
@@ -200,13 +200,13 @@ SUB_NUMBER(output_max)
   
   float current_output_max_ = 1.0f;
   float current_output_min_ = 0.00f;
-  float current_output_restart_ = 0.4f;
 #endif
 
 };
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
