@@ -56,10 +56,10 @@ CONFIG_SCHEMA = {
                 state_class=STATE_CLASS_MEASUREMENT,
              ),             
     cv.Optional(CONF_TARGET): sensor.sensor_schema(
-                unit_of_measurement=UNIT_AMPERE,
+                unit_of_measurement=UNIT_WATT,
                 icon=ICON_TARGET,
                 accuracy_decimals=1,
-                device_class=DEVICE_CLASS_CURRENT,
+                device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),         
 }
@@ -89,5 +89,6 @@ async def to_code(config):
     if CONF_TARGET in config:
         sens = await sensor.new_sensor(config[CONF_TARGET])
         cg.add(var.set_target_sensor(sens))
+
 
 
