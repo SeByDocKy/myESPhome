@@ -1,4 +1,4 @@
-#include "offsr_sensor.h"
+#include "dualpid_sensor.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
@@ -35,3 +35,4 @@ void DUALPIDSensor::publish_data_() {
 
 } // dualpid
 } // esphome
+
