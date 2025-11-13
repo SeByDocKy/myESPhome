@@ -13,10 +13,10 @@ static const float power_mini = 2.0f;
 void OFFSRComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up OFFSRComponent...");
   
-  last_time_ =  millis();
-  integral_  = 0.0f;
-  previous_output_ = 0.0f;
-  previous_error_ = 0.0f;
+  this->last_time_ =  millis();
+  this->integral_  = 0.0f;
+  this->previous_output_ = 0.0f;
+  this->previous_error_ = 0.0f;
   
   if (this->battery_current_sensor_ != nullptr) {
     this->battery_current_sensor_->add_on_state_callback([this](float state) {
@@ -84,19 +84,19 @@ void OFFSRComponent::pid_update() {
 #endif	  
 	this->current_error_ = this->error_;
 	
-    tmp = (this->error_ * dt_);
+    tmp = (this->error_ * this->dt_);
     if (!std::isnan(tmp)){
       integral_ += tmp;
     }
-    this->derivative_ = (this->error_ - this->previous_error_) / dt_;
+    this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
     tmp = 0.0f;
     if( !std::isnan(previous_output_) && !this->current_pid_mode_){
-        tmp = previous_output_;
+        tmp = this->previous_output_;
     }
 	
 	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
-	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
+	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
 	alphaP = coeffP*this->current_kp_ * this->error_;
 	alphaI = coeffI*this->current_ki_ * this->integral_;
@@ -118,7 +118,7 @@ void OFFSRComponent::pid_update() {
   
     // if ( (!std::isnan(this->current_power_)) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {
     if ( (this->power_sensor_ != nullptr) && (this->current_power_ < power_mini) &&  (this->previous_output_ >= this->current_output_restart_) ) {  		
-		output_ = this->current_output_restart_;
+		this->output_ = this->current_output_restart_;
 #ifdef USE_BINARY_SENSOR 	  
       this->current_thermostat_cut_= true;
 #endif
@@ -131,7 +131,7 @@ void OFFSRComponent::pid_update() {
       ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f, current_power = %3.2f", this->current_target_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ , this->current_power_);  
     }
   
-    last_time_ = now;
+    this->last_time_ = now;
     this->previous_error_ = this->error_;
     this->previous_output_ = this->output_;
     
@@ -139,14 +139,14 @@ void OFFSRComponent::pid_update() {
 	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
-      output_ = 0.0f;
+      this->output_ = 0.0f;
     }
 #endif  
 
     if (!std::isnan(this->current_battery_voltage_)){
 	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-        output_ = 0.0f;
+        this->output_ = 0.0f;
       }
     }
     ESP_LOGVV(TAG, "Final computed output=%1.6f" , this->output_);
@@ -162,6 +162,7 @@ void OFFSRComponent::pid_update() {
 
  }  // namespace offsr
 }  // namespace esphome
+
 
 
 
