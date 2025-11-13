@@ -4,7 +4,7 @@
 #include "../dualpid.h"
 
 namespace esphome {
-namespace minipid {
+namespace dualpid {
 
 class SetpointNumber : public number::Number, public Component, public Parented<DUALPIDComponent> {
  public:
@@ -17,3 +17,4 @@ class SetpointNumber : public number::Number, public Component, public Parented<
 
 }  // namespace dualpid
 }  // namespace esphome
+
