@@ -75,13 +75,13 @@ output:
     # inverted: true
     
   - platform: template
-    id: fakeoutput_charging
+    id: fakecharging_output
     type: float
     write_action:
       - lambda: 'return;'
       
   - platform: template
-    id: fakeoutput_discharging
+    id: fakedischarging_output
     type: float
     write_action:
       - lambda: 'return;'      
@@ -89,13 +89,13 @@ output:
 fan:
   - platform: speed
     id: fakeoutput_charging_command
-    name: ${name}_fakeoutput_charging_command
-    output: fakeoutput_charging
+    name: ${name}_fakecharging_output_command
+    output: fakecharging_output
     
   - platform: speed
     id: fakeoutput_discharging_command
-    name: ${name}_fakeoutput_discharging_command
-    output: fakeoutput_discharging    
+    name: ${name}_fakedischarging_output_command
+    output: fakedischarging_output    
 
 button:
   - platform: restart
@@ -103,14 +103,14 @@ button:
 
 dualpid:
   - id: my_dualpid
-    power_input_id: fake_power_input 
+    input_id: fake_power_input 
     battery_voltage_id: fake_battery_voltage
-    output_charging_id: fakeoutput_charging
-    output_discharging_id: fakeoutput_discharging 
+    charging_output_id: fakecharging_output
+    discharging_output_id: fakedischarging_output 
      
 sensor:
   - platform: dualpid
-    dualpid_id: my_offsr1
+    dualpid_id: my_dualpid
     error: 
       name: ${name}_error    
     output: 
@@ -229,8 +229,8 @@ number:
  
 
   - platform: template
-    name: ${name}_fake_output_number  
-    id: fake_output_number
+    name: ${name}_fake_charging_output_number  
+    id: fakee_charging_output_number
     optimistic: true
     icon: mdi:numeric
     min_value: 0.0
@@ -242,26 +242,26 @@ number:
     on_value:
        then:
          - output.set_level:
-             id: fakeoutput
+             id: fakecharging_output
              level: !lambda 'return x;'
-
+             
   - platform: template
-    name: ${name}_fake_battery_current_number  
-    id: fake_battery_current_number
+    name: ${name}_fake_discharging_output_number  
+    id: fakee_discharging_output_number
     optimistic: true
-    unit_of_measurement: 'A'
-    icon: mdi:current-dc
-    min_value: -10
-    max_value: 30
-    step: 0.4
+    icon: mdi:numeric
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.05
     mode: 'slider'
-    initial_value: 12
+    initial_value: 0.0
     restore_value: true
     on_value:
        then:
-         - sensor.template.publish:
-             id: fake_battery_current
-             state: !lambda 'return x;'
+         - output.set_level:
+             id: fakedischarging_output
+             level: !lambda 'return x;'           
+
              
   - platform: template
     name: ${name}_fake_battery_voltage_number  
