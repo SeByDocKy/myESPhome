@@ -20,3 +20,4 @@ void ChargingEpointNumber::control(float value) {
 }  // namespace dualpid
 }  // namespace esphome
 
+
