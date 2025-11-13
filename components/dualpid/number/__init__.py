@@ -282,27 +282,15 @@ async def to_code(config):
             output_min_config, min_value=0.0, max_value=1.0, step=0.01
         )
         await cg.register_component(n, output_min_config)
-        await cg.register_parented(n, offsr_component)
-        cg.add(offsr_component.set_output_min_number(n))
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_output_min_number(n))
 
   if output_max_config := config.get(CONF_OUTPUT_MAX):
         n = await number.new_number(
             output_max_config, min_value=0.0, max_value=1.0, step=0.01
         )
         await cg.register_component(n, output_max_config)
-        await cg.register_parented(n, offsr_component)
-        cg.add(offsr_component.set_output_max_number(n))
-
-  if output_restart_config := config.get(CONF_OUTPUT_RESTART):
-        n = await number.new_number(
-            output_restart_config, min_value=0.0, max_value=1.0, step=0.01
-        )
-        await cg.register_component(n, output_restart_config)
-        await cg.register_parented(n, offsr_component)
-        cg.add(offsr_component.set_output_restart_number(n))        
-
-
-
-
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_output_max_number(n))
 
 
