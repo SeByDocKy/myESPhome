@@ -13,12 +13,13 @@ void ChargingEpointNumber::setup() {
 
 void ChargingEpointNumber::control(float value) {
   this->publish_state(value);
-  this->parent_->set_charging_epoint(value);
+  this->parent_->set_charging_epoint(value*0.01);
   this->pref_.save(&value);
 }
 
 }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
