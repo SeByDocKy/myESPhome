@@ -12,10 +12,10 @@ static const float coeffD = 0.001f;
 void MINIPIDComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up MINIPIDComponent...");
   
-  last_time_ =  millis();
-  integral_  = 0.0f;
-  previous_output_ = 0.0f;
-  previous_error_ = 0.0f;
+  this->last_time_ =  millis();
+  this->integral_  = 0.0f;
+  this->previous_output_ = 0.0f;
+  this->previous_error_ = 0.0f;
   
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
@@ -48,35 +48,35 @@ void MINIPIDComponent::pid_update() {
 #ifdef USE_SWITCH  
   if (!this->current_manual_override_){
 #endif
-    dt_ = float(now - this->last_time_)/1000.0f;
-    error_ = -(this->current_setpoint_ - this->current_input_);
+    this->dt_ = float(now - this->last_time_)/1000.0f;
+    this->error_ = -(this->current_setpoint_ - this->current_input_);
 #ifdef USE_SWITCH 	  
 	if (this->current_reverse_){
-		error_ = -error_;
+		this->error_ = -this->error_;
 	}
 #endif	  
-	this->current_error_ = error_;
+	this->current_error_ = this->error_;
 		
-    tmp = (error_ * dt_);
+    tmp = (this->error_ * this->dt_);
     if (!std::isnan(tmp)){
-      integral_ += tmp;
+      this->integral_ += tmp;
     }
-    derivative_ = (error_ - previous_error_) / dt_;
+    this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
     tmp = 0.0f;
-    if( !std::isnan(previous_output_) && !this->current_pid_mode_){
-        tmp = previous_output_;
+    if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
+        tmp = this->previous_output_;
     }
 	
 	ESP_LOGVV(TAG, "previous output = %2.8f" , tmp );
-	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , error_ , integral_ , derivative_ , tmp);
+	ESP_LOGVV(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
-	alphaP = coeffP*this->current_kp_ * error_;
-	alphaI = coeffI*this->current_ki_ * integral_;
-	alphaD = coeffD*this->current_kd_ * derivative_;
+	alphaP = coeffP*this->current_kp_ * this->error_;
+	alphaI = coeffI*this->current_ki_ * this->integral_;
+	alphaD = coeffD*this->current_kd_ * this->derivative_;
 	alpha  = alphaP + alphaI + alphaD;
 	
-    output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
+    this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_  ) , this->current_output_max_);
 	
     ESP_LOGVV(TAG, "Pcoeff = %3.8f" , alphaP );
 	ESP_LOGVV(TAG, "Icoeff = %3.8f" , alphaI );
@@ -87,27 +87,27 @@ void MINIPIDComponent::pid_update() {
 	
 	ESP_LOGVV(TAG, "PIDcoeff = %3.8f" , alpha );
 	
-	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , output_);
+	ESP_LOGVV(TAG, "Intermediate computed output=%1.6f" , this->output_);
   
-    ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_setpoint_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , previous_output_ , output_ , error_ , integral_ , derivative_ );  
+    ESP_LOGVV(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_setpoint_ , coeff*this->current_kp_ , coeff*this->current_ki_ , coeff*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_ );  
 
   
-    last_time_ = now;
-    previous_error_ = error_;
-    previous_output_ = output_;
+    this->last_time_ = now;
+    this->previous_error_ = this->error_;
+    this->previous_output_ = this->output_;
     
-	ESP_LOGVV(TAG, "activation %d", current_activation_);
+	ESP_LOGVV(TAG, "activation %d", this->current_activation_);
 	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
-      output_ = 0.0f;
+      this->output_ = 0.0f;
     }
 #endif  
 
-    ESP_LOGVV(TAG, "Final computed output=%1.6f" , output_);
+    ESP_LOGVV(TAG, "Final computed output=%1.6f" , this->output_);
 	
-    this->device_output_->set_level(output_);
-	this->current_output_ = output_;
+    this->device_output_->set_level(this->output_);
+	this->current_output_ = this->output_;
 	
     this->pid_computed_callback_.call();
 #ifdef USE_SWITCH	
@@ -118,6 +118,7 @@ void MINIPIDComponent::pid_update() {
 
  }  // namespace minipid
 }  // namespace esphome
+
 
 
 
