@@ -74,7 +74,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   }
   cd = 1.0f/(1.0f - this->current_epoint_);
 	
-  e = (this->current_epoint_ >= this->current_output_);
+  e = (this->current_epoint_ < this->current_output_);
+	
   ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
 
 #ifdef USE_SWITCH  
@@ -86,7 +87,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 		this->error_ = tmp;
 	}
 	else{
-		this->error_ = -tmp;
+		this->error_ = tmp; // -tmp;
     }
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
@@ -193,6 +194,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
