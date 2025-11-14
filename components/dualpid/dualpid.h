@@ -199,13 +199,14 @@ SUB_NUMBER(output_max)
   float current_kd_discharging_ = 0.0f;  
   
   float current_output_max_ = 1.0f;
-  float current_output_min_ = 0.00f;
+  float current_output_min_ = 0.0f;
 #endif
 
 };
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
