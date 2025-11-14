@@ -66,7 +66,12 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   else{
       this->current_epoint_ = this->current_floating_epoint_;
   }   
+  if(this->current_epoint_ != 0.0f){	
   cc = 1.0f/this->current_epoint_;
+  }
+  else{
+	cc = 0.0f;
+  }
   cd = 1.0f/(1.0f - this->current_epoint_);
 	
   e = (this->current_epoint_ < this->current_output_);
@@ -186,6 +191,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
