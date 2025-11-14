@@ -13,9 +13,10 @@ void AbsorbingEpointNumber::setup() {
 
 void AbsorbingEpointNumber::control(float value) {
   this->publish_state(value);
-  this->parent_->set_absorbing_epoint(value);
+  this->parent_->set_absorbing_epoint(value*0.01);
   this->pref_.save(&value);
 }
 
 }  // namespace dualpid
 }  // namespace esphome
+
