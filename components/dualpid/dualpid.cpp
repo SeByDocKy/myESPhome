@@ -167,12 +167,12 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	
 	
 	if (e){
-	  this->output_charging_    = 0.0f;    //-cc*tmp;
-	  this->output_discharging_ = -cc*tmp; //0.0f;
+	  this->output_charging_    = -cc*tmp; //0.0f;    //;
+	  this->output_discharging_ = 0.0f; //0.0f;
 	}
 	else{
-	  this->output_charging_    = cd*tmp; //0.0f;
-	  this->output_discharging_ = 0.0f;   // cd*tmp;	
+	  this->output_charging_    = 0.0f //0.0f;
+	  this->output_discharging_ = cd*tmp;   // cd*tmp;	
 	}
 	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	
@@ -193,6 +193,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
