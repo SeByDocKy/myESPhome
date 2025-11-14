@@ -81,7 +81,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   if (!this->current_manual_override_){
 #endif
     this->dt_   = float(now - this->last_time_)/1000.0f;
-	tmp         = (this->current_input_ - this->current_setpoint_);
+	tmp         = -(this->current_input_ - this->current_setpoint_);
 	if (e){
 		this->error_ = tmp;
 	}
@@ -193,6 +193,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
