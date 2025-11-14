@@ -165,8 +165,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
     this->device_charging_output_->set_level(this->output_charging_);
 	this->device_discharging_output_->set_level(this->output_discharging_);
 	this->current_output_ = this->output_;
-	this->current_output_charging_ = this->this->output_charging_;
-	this->current_output_discharging_ = this->this->output_discharging_;  
+	this->current_output_charging_ = this->output_charging_;
+	this->current_output_discharging_ = this->output_discharging_;  
 	
     this->pid_computed_callback_.call();
 #ifdef USE_SWITCH	
@@ -177,6 +177,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
