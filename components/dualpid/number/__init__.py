@@ -178,7 +178,7 @@ async def to_code(config):
   
   if charging_epoint_config := config.get(CONF_CHARGING_EPOINT):
         n = await number.new_number(
-            charging_epoint_config, min_value=0.0, max_value=0.5, step=0.05
+            charging_epoint_config, min_value=0.0, max_value=100.0, step=1.0
         )
         await cg.register_component(n, charging_epoint_config)
         await cg.register_parented(n, dualpid_component)
@@ -186,7 +186,7 @@ async def to_code(config):
         
   if absorbing_epoint_config := config.get(CONF_ABSORBING_EPOINT):
         n = await number.new_number(
-            absorbing_epoint_config, min_value=0.0, max_value=0.5, step=0.05
+            absorbing_epoint_config, min_value=0.0, max_value=100.0, step=1.0
         )
         await cg.register_component(n, absorbing_epoint_config)
         await cg.register_parented(n, dualpid_component)
@@ -194,7 +194,7 @@ async def to_code(config):
 
   if floating_epoint_config := config.get(CONF_FLOATING_EPOINT):
         n = await number.new_number(
-            floating_epoint_config, min_value=0, max_value=0.5, step=0.05
+            floating_epoint_config, min_value=0.0, max_value=100.0, step=1.0
         )
         await cg.register_component(n, floating_epoint_config)
         await cg.register_parented(n, dualpid_component)
@@ -290,6 +290,7 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_number(n))
+
 
 
 
