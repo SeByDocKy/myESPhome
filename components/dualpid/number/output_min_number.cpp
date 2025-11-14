@@ -12,13 +12,14 @@ void OutputMinNumber::setup() {
 }
 
 void OutputMinNumber::control(float value) {
-  this->publish_state(value*100.0f);
-  this->parent_->set_output_min(value);
+  this->publish_state(value);
+  this->parent_->set_output_min(value*0.01f);
   this->pref_.save(&value);
 }
 
 }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
