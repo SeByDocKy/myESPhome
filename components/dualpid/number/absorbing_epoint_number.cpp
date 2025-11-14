@@ -8,7 +8,7 @@ void AbsorbingEpointNumber::setup() {
   this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
   if (!this->pref_.load(&value)) value = this->parent_->get_absorbing_epoint();
   this->parent_->set_absorbing_epoint(value);
-  this->publish_state(value*100.0f);
+  this->publish_state(value);
 }
 
 void AbsorbingEpointNumber::control(float value) {
@@ -19,6 +19,7 @@ void AbsorbingEpointNumber::control(float value) {
 
 }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
