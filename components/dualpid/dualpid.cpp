@@ -66,7 +66,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
       this->current_epoint_ = this->current_floating_epoint_;
   }   
   
-  e = (this->current_epoint_ < this->current_output_); 
+  e = (this->current_epoint_ < this->current_output_);
+  ESP_LOGI(TAG, "previous current_epoint: %2.5f, e: %d" , this->current_epoint_, e );	
 
 #ifdef USE_SWITCH  
   if (!this->current_manual_override_){
@@ -177,6 +178,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
