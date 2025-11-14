@@ -197,36 +197,3 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
