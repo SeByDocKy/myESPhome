@@ -143,7 +143,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 #endif  
 
     if (!std::isnan(this->current_battery_voltage_)){
-	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
+	  ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         this->output_ = 0.5f;
       }
@@ -158,7 +158,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	}
 	else{
 	  this->output_charging_ = 0.0f;
-	  this->output_discharging_ = -2.0f*tmp;	
+	  this->output_discharging_ = 2.0f*tmp;	
 	}
 	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	
@@ -175,6 +175,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
