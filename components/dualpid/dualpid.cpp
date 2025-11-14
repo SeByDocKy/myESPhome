@@ -71,7 +71,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 #ifdef USE_SWITCH  
   if (!this->current_manual_override_){
 #endif
-    dt_         = float(now - this->last_time_)/1000.0f;
+    this->dt_   = float(now - this->last_time_)/1000.0f;
 	tmp         = (this->current_input_ - this->current_setpoint_);
 	if (e){
 		this->error_ = tmp;
@@ -86,11 +86,11 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 #endif	  
 	this->current_error_ = this->error_;
 	
-    tmp = (this->error_ * dt_);
+    tmp = (this->error_ * this->dt_);
     if (!std::isnan(tmp)){
       this->integral_ += tmp;
     }
-    this->derivative_ = (this->error_ - this->previous_error_) / dt_;
+    this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
     tmp = 0.0f;
     if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
@@ -110,11 +110,10 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	  this->current_ki_ = this->current_ki_discharging_;
 	  this->current_kd_ = this->current_kd_discharging_;
 	}
-	alphaP = coeffP*this->current_kp_ * error_;
-	alphaI = coeffI*this->current_ki_ * integral_;
-	alphaD = coeffD*this->current_kd_ * derivative_;
+	alphaP = coeffP*this->current_kp_ * this->error_;
+	alphaI = coeffI*this->current_ki_ * this->integral_;
+	alphaD = coeffD*this->current_kd_ * this->derivative_;
 	alpha  = alphaP + alphaI + alphaD;
-	
 	
     this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
 	
@@ -132,8 +131,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
   
     this->last_time_       = now;
-    this->previous_error_  = error_;
-    this->previous_output_ = output_;
+    this->previous_error_  = this->error_;
+    this->previous_output_ = this->output_;
     
 	ESP_LOGVV(TAG, "activation %d", this->current_activation_);
 	
@@ -176,6 +175,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
