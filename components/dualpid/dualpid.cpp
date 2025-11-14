@@ -145,7 +145,21 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
     this->previous_output_ = this->output_;
     
 	ESP_LOGI(TAG, "activation %d", this->current_activation_);
+
+	e   = (this->current_epoint_ < this->output_);
+	tmp = (this->current_epoint_ - this->output_);
 	
+	
+	if (e){
+	  this->output_charging_    = -cc*tmp; //0.0f;    //;
+	  this->output_discharging_ = 0.0f; //0.0f;
+	}
+	else{
+	  this->output_charging_    = 0.0f; //0.0f;
+	  this->output_discharging_ = cd*tmp;   // cd*tmp;	
+	}
+
+	  
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
       this->output_             = 0.5f;
@@ -163,18 +177,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
       }
     }
 
-	e   = (this->current_epoint_ < this->output_);
-	tmp = (this->current_epoint_ - this->output_);
-	
-	
-	if (e){
-	  this->output_charging_    = -cc*tmp; //0.0f;    //;
-	  this->output_discharging_ = 0.0f; //0.0f;
-	}
-	else{
-	  this->output_charging_    = 0.0f; //0.0f;
-	  this->output_discharging_ = cd*tmp;   // cd*tmp;	
-	}
+
 	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	
     this->device_charging_output_->set_level(this->output_charging_);
@@ -194,6 +197,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
