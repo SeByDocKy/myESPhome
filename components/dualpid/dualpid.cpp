@@ -140,6 +140,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
       this->output_ = 0.5f;
+	  this->output_charging_ = 0.0f;
+	  this->output_discharging_ = 0.0f;	
     }
 #endif  
 
@@ -178,6 +180,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
