@@ -147,8 +147,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
-      this->output_ = 0.5f;
-	  this->output_charging_ = 0.0f;
+      this->output_             = 0.5f;
+	  this->output_charging_    = 0.0f;
 	  this->output_discharging_ = 0.0f;	
     }
 #endif  
@@ -156,8 +156,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
     if (!std::isnan(this->current_battery_voltage_)){
 	  ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-        this->output_ = 0.5f;
-		this->output_charging_ = 0.0f;
+        this->output_             = 0.5f;
+		this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;  
       }
     }
@@ -167,22 +167,24 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	
 	
 	if (e){
-	  this->output_charging_ = -cc*tmp;
+	  this->output_charging_    = -cc*tmp;
 	  this->output_discharging_ = 0.0f;
 	}
 	else{
-	  this->output_charging_ = 0.0f;
+	  this->output_charging_    = 0.0f;
 	  this->output_discharging_ = cd*tmp;	
 	}
 	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	
     this->device_charging_output_->set_level(this->output_charging_);
 	this->device_discharging_output_->set_level(this->output_discharging_);
-	this->current_output_ = this->output_;
-	this->current_output_charging_ = this->output_charging_;
+	
+	this->current_output_             = this->output_;
+	this->current_output_charging_    = this->output_charging_;
 	this->current_output_discharging_ = this->output_discharging_;  
 	
     this->pid_computed_callback_.call();
+	  
 #ifdef USE_SWITCH	
   } 
 #endif  
@@ -191,6 +193,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
