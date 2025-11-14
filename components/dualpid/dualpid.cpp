@@ -50,6 +50,7 @@ void DUALPIDComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
   float alphaP, alphaI, alphaD, alpha;
+  float cc, cd;
   bool e;
   
   ESP_LOGVV(TAG, "Entered in pid_update()");
@@ -65,9 +66,11 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   else{
       this->current_epoint_ = this->current_floating_epoint_;
   }   
-  
+  cc = 1.0f/this->current_epoint_;
+  cd = 1.0f/(1.0f - this->current_epoint_);
+	
   e = (this->current_epoint_ < this->current_output_);
-  ESP_LOGI(TAG, "previous current_epoint: %2.5f, e: %d" , this->current_epoint_, e );	
+  ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cf, e );	
 
 #ifdef USE_SWITCH  
   if (!this->current_manual_override_){
@@ -157,13 +160,14 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	e   = (this->current_epoint_ < this->output_);
 	tmp = (this->current_epoint_ - this->output_);
 	
+	
 	if (e){
-	  this->output_charging_ = -2.0f*tmp;
+	  this->output_charging_ = -cc*tmp;
 	  this->output_discharging_ = 0.0f;
 	}
 	else{
 	  this->output_charging_ = 0.0f;
-	  this->output_discharging_ = 2.0f*tmp;	
+	  this->output_discharging_ = cd*tmp;	
 	}
 	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	
@@ -182,6 +186,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
