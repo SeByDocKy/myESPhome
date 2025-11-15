@@ -63,6 +63,25 @@ class EmersonR48Component : public PollingComponent {
   float current_max_input_current_ = 20.0f;
   float current_max_output_current_ = 10.0f;
 #endif
+#ifdef USE_SWITCH
+  void set_current_ac_switch(bool state){this->current_ac_switch = state;}
+  bool set_current_ac_switch() {return this->current_ac_switch;}
+
+  void set_current_dc_switch(bool state){this->current_ac_switch = state;}
+  bool set_current_dc_switch() {return this->current_ac_switch;}
+
+  void set_current_fan_switch(bool state){this->current_fan_switch = state;}
+  bool set_current_fan_switch() {return this->current_fan_switch;}
+
+  void set_current_led_switch(bool state){this->current_led_switch = state;}
+  bool set_current_led_switch() {return this->current_led_switch;}
+
+  bool current_ac_switch = false;
+  bool current_dc_switch = false;
+  bool current_fan_switch = false;
+  bool current_led_switch = false;
+
+#endif
 
   void set_control(uint8_t msgv);
 
