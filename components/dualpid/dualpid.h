@@ -130,6 +130,7 @@ SUB_NUMBER(output_max)
   float get_output_charging(void) { return this->current_output_charging_; }
   float get_output_discharging(void) { return this->current_output_discharging_; }  
   float get_target(void) { return this->current_target_; }
+  float get_epoint(void) { return this->current_epoint_; }
 #endif
 
  protected:
@@ -167,6 +168,7 @@ SUB_NUMBER(output_max)
   float current_output_charging_ = 0.0f;
   float current_output_discharging_ = 0.0f;
   float current_target_ = 0.0f;
+  float current_epoint_ = 0.5f;
 #endif   
 
 
@@ -206,6 +208,7 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
