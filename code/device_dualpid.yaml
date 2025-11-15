@@ -36,6 +36,8 @@ sensor:
       name: ${name}_${dualpid_name}_output_discharging      
     target:
       name: ${name}_${dualpid_name}_target
+    epoint:
+      name: ${name}_${dualpid_name}_epoint  
 
 
 switch:
@@ -86,4 +88,5 @@ number:
     output_min: 
       name: ${name}_${dualpid_name}_output_min
     output_max: 
+
       name: ${name}_${dualpid_name}_output_max
