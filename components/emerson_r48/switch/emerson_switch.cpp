@@ -54,6 +54,8 @@ void EmersonR48Switch::setup() {
         msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
         this->parent_->set_control(msgv);
     }
+    this->parent_->sendSync();
+    this->parent_->gimme5();   
 }
 
 void EmersonR48Switch::write_state(bool state) {
