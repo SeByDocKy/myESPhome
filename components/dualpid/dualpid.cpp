@@ -74,7 +74,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   }
   cd = 1.0f/(1.0f - this->current_epoint_);
 	
-  e = (this->current_epoint_ < this->current_output_);
+  e = (this->current_output_ < this->current_epoint_ );
 	
   ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
 
@@ -198,5 +198,6 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
