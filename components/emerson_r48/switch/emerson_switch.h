@@ -28,6 +28,7 @@ class EmersonR48Switch : public switch_::Switch, public Component {
  protected:
   EmersonR48Component *parent_;
   int8_t functionCode_;
+  ESPPreferenceObject pref_;
   
   //void control(float value) override;
 };
