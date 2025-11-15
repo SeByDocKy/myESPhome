@@ -33,11 +33,12 @@ void DUALPIDSensor::publish_data_() {
   if (this->target_sensor_ != nullptr)
     this->target_sensor_->publish_state(this->parent_->get_target());
   if (this->epoint_sensor_ != nullptr)
-    this->epoint_sensor_->publish_state(this->parent_->get_epoint());	
+    this->epoint_sensor_->publish_state(this->parent_->get_epoint()*100.0f);	
 }
 
 } // dualpid
 } // esphome
+
 
 
 
