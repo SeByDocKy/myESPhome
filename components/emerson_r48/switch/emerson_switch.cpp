@@ -62,7 +62,7 @@ void EmersonR48Switch::write_state(bool state) {
     switch (this->functionCode_) {
         case SET_AC_FUNCTION: 
             this->parent_->acOff_ = state;
-            msgv = parent_->dcOff_ << 7 | parent_->fanFull_ << 4 | parent_->flashLed_ << 3 | parent_->acOff_ << 2 | 1;
+            msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
             this->parent_->set_control(msgv);
             this->publish_state(state);
             this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
@@ -70,7 +70,7 @@ void EmersonR48Switch::write_state(bool state) {
             break;
         case SET_DC_FUNCTION:
             this->parent_->dcOff_ = state;
-            msgv = parent_->dcOff_ << 7 | parent_->fanFull_ << 4 | parent_->flashLed_ << 3 | parent_->acOff_ << 2 | 1;
+            msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
             this->parent_->set_control(msgv);
             this->publish_state(state);
             this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
@@ -78,7 +78,7 @@ void EmersonR48Switch::write_state(bool state) {
             break;
         case SET_FAN_FUNCTION:
             this->parent_->fanFull_ = state;
-            msgv = parent_->dcOff_ << 7 | parent_->fanFull_ << 4 | parent_->flashLed_ << 3 | parent_->acOff_ << 2 | 1;
+            msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
             this->parent_->set_control(msgv);
             this->publish_state(state);
             this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
@@ -86,7 +86,7 @@ void EmersonR48Switch::write_state(bool state) {
             break;
         case SET_LED_FUNCTION:
             this->parent_->flashLed_ = state;
-            msgv = parent_->dcOff_ << 7 | parent_->fanFull_ << 4 | parent_->flashLed_ << 3 | parent_->acOff_ << 2 | 1;
+            msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
             this->parent_->set_control(msgv);
             this->publish_state(state);
             this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
