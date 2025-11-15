@@ -74,7 +74,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   }
   cd = 1.0f/(1.0f - this->current_epoint_);
 	
-  e = (this->current_epoint_ >= this->current_output_);
+  e = (this->current_epoint_ < this->current_output_);
 	
   ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
 
@@ -83,8 +83,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 #endif
     this->dt_   = float(now - this->last_time_)/1000.0f;
 	tmp         = (this->current_input_ - this->current_setpoint_);
-	if (e){
-		this->error_ = tmp;
+	if (e & tmp>0){
+		this->error_ = -tmp;
 	}
 	else{
 		this->error_ = tmp; // -tmp;
@@ -197,3 +197,4 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
