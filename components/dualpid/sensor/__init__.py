@@ -18,6 +18,7 @@ CONF_OUTPUT_CHARGING = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_ERROR  = "error"
 CONF_TARGET = "target"
+CONF_EPOINT = "epoint"
 
 ICON_EPSILON = "mdi:epsilon"
 ICON_PERCENT = "mdi:percent"
@@ -65,7 +66,13 @@ CONFIG_SCHEMA = {
                 accuracy_decimals=1,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
-             ),         
+             ),
+     cv.Optional(CONF_EPOINT): sensor.sensor_schema(
+                accuracy_decimals=1,
+                unit_of_measurement=UNIT_PERCENT,
+                icon = ICON_PERCENT,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
 }
 
 async def to_code(config):
@@ -93,6 +100,12 @@ async def to_code(config):
     if CONF_TARGET in config:
         sens = await sensor.new_sensor(config[CONF_TARGET])
         cg.add(var.set_target_sensor(sens))
+   
+    if CONF_EPOINT in config:
+        sens = await sensor.new_sensor(config[CONF_EPOINT])
+        cg.add(var.set_epoint_sensor(sens))
+   
+
 
 
 
