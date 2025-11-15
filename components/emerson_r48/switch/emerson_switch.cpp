@@ -1,5 +1,7 @@
 #include "esphome/core/log.h"
 #include "emerson_switch.h"
+#include "esphome/core/preferences.h"
+#include "esphome/core/hal.h"
 
 namespace esphome {
 namespace emerson_r48 {
