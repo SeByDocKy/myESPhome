@@ -84,7 +84,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
     this->dt_   = float(now - this->last_time_)/1000.0f;
 	tmp         = (this->current_input_ - this->current_setpoint_);  // error initial estimation
 	  
-	if (e & tmp>0.0f){
+	if (e & tmp<0.0f){
 		this->error_ = -tmp;
 	}
 	else{
@@ -203,6 +203,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
