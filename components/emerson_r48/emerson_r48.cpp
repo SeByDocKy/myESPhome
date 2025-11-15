@@ -174,7 +174,6 @@ void EmersonR48Component::update() {
      this->set_control(msgv);
 
     if (millis() - this->lastCtlSent_ > DELAY_CONTROL) {
-
       this->lastCtlSent_ = millis();
     }
     this->sendSync();
