@@ -138,7 +138,6 @@ SUB_NUMBER(output_max)
   float dt_;
   float error_ = 0.0f;
   float previous_error_ = 0.0f;
-  // float diff_;
   float output_;
   float output_charging_;
   float output_discharging_;
@@ -171,7 +170,6 @@ SUB_NUMBER(output_max)
   float current_epoint_ = 0.5f;
 #endif   
 
-
 #ifdef USE_SWITCH  
   bool current_activation_ = false;
   bool current_manual_override_ = false;
@@ -180,7 +178,6 @@ SUB_NUMBER(output_max)
 #endif  
   
 #ifdef USE_NUMBER
-
   float current_setpoint_ = 0.0f;
 
   float current_starting_battery_voltage_ = 53.5f;
@@ -207,6 +204,7 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
