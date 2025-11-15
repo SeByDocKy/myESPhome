@@ -14,6 +14,11 @@ static const int8_t SET_FAN_FUNCTION = 0x2;
 static const int8_t SET_LED_FUNCTION = 0x3;
 
 void EmersonR48Switch::setup() {
+    bool state;
+    switch (this->functionCode_) {
+
+
+    }
     // this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
     // if (!this->pref_.load(&state)) {
     //     state = this->parent_->get_current_ac_switch(); 
