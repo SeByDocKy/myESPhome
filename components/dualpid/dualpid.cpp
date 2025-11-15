@@ -82,12 +82,13 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   if (!this->current_manual_override_){
 #endif
     this->dt_   = float(now - this->last_time_)/1000.0f;
-	tmp         = (this->current_input_ - this->current_setpoint_);
-	if (e & tmp>0){
+	tmp         = (this->current_input_ - this->current_setpoint_);  // error initial estimation
+	  
+	if (e & tmp>0.0f){
 		this->error_ = -tmp;
 	}
 	else{
-		this->error_ = tmp; // -tmp;
+		this->error_ = tmp; 
     }
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
@@ -197,4 +198,5 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
