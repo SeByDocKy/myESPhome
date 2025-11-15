@@ -182,7 +182,6 @@ SUB_NUMBER(output_max)
 #ifdef USE_NUMBER
 
   float current_setpoint_ = 0.0f;
-  float current_epoint_ = 0.5f;
 
   float current_starting_battery_voltage_ = 53.5f;
   float current_charged_battery_voltage_ = 55.8f;
@@ -208,6 +207,7 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
