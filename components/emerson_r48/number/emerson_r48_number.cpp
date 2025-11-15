@@ -18,6 +18,7 @@ void EmersonR48Number::setup() {
       }
       this->parent_->set_current_output_voltage(value);
       this->publish_state(value);
+      break;
     
     case SET_CURRENT_FUNCTION:
       this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
@@ -26,6 +27,7 @@ void EmersonR48Number::setup() {
       }
       this->parent_->set_current_max_output_current(value);
       this->publish_state(value);
+      break;
 
     case SET_INPUT_CURRENT_FUNCTION:
       this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
@@ -33,7 +35,8 @@ void EmersonR48Number::setup() {
         value = this->parent_->get_current_max_input_current(); 
       }
       this->parent_->set_current_max_input_current(value);
-      this->publish_state(value); 
+      this->publish_state(value);
+      break;
   }  
 }
 
