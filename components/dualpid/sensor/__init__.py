@@ -35,6 +35,7 @@ CONFIG_SCHEMA = {
     cv.Optional(CONF_ERROR): sensor.sensor_schema(
                 accuracy_decimals=2,
                 icon = ICON_EPSILON,
+                device_class: DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
     cv.Optional(CONF_OUTPUT): sensor.sensor_schema(
@@ -91,6 +92,7 @@ async def to_code(config):
     if CONF_TARGET in config:
         sens = await sensor.new_sensor(config[CONF_TARGET])
         cg.add(var.set_target_sensor(sens))
+
 
 
 
