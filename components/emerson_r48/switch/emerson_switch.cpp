@@ -22,30 +22,29 @@ void EmersonR48Switch::setup() {
           state = this->parent_->get_current_ac_switch(); 
         }
         this->parent_->set_current_ac_switch(state);
-        this->publish_state(value);
+        this->publish_state(state);
       case SET_DC_FUNCTION: 
         this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
         if (!this->pref_.load(&state)) {
           state = this->parent_->get_current_dc_switch(); 
         }
         this->parent_->set_current_dc_switch(state);
-        this->publish_state(value);
+        this->publish_state(state);
       case SET_FAN_FUNCTION:
         this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
         if (!this->pref_.load(&state)) {
           state = this->parent_->get_current_fan_switch(); 
         }
         this->parent_->set_current_fan_switch(state);
-        this->publish_state(value);
+        this->publish_state(state);
       case SET_LED_FUNCTION: 
         this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
         if (!this->pref_.load(&state)) {
           state = this->parent_->get_current_led_switch(); 
         }
         this->parent_->set_current_led_switch(state);
-        this->publish_state(value);
+        this->publish_state(state);
     }
-
 }
 
 void EmersonR48Switch::write_state(bool state) {
