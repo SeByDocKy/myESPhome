@@ -65,16 +65,16 @@ class EmersonR48Component : public PollingComponent {
 #endif
 #ifdef USE_SWITCH
   void set_current_ac_switch(bool state){this->current_ac_switch = state;}
-  bool set_current_ac_switch() {return this->current_ac_switch;}
+  bool get_current_ac_switch() {return this->current_ac_switch;}
 
   void set_current_dc_switch(bool state){this->current_ac_switch = state;}
-  bool set_current_dc_switch() {return this->current_ac_switch;}
+  bool get_current_dc_switch() {return this->current_ac_switch;}
 
   void set_current_fan_switch(bool state){this->current_fan_switch = state;}
-  bool set_current_fan_switch() {return this->current_fan_switch;}
+  bool get_current_fan_switch() {return this->current_fan_switch;}
 
   void set_current_led_switch(bool state){this->current_led_switch = state;}
-  bool set_current_led_switch() {return this->current_led_switch;}
+  bool get_current_led_switch() {return this->current_led_switch;}
 
   bool current_ac_switch = false;
   bool current_dc_switch = false;
