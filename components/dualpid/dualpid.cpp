@@ -148,7 +148,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	ESP_LOGI(TAG, "activation %d", this->current_activation_);
 
 	e   = (this->output_ < this->current_epoint_ );
-	tmp = (this->current_epoint_ - this->output_);
+	tmp = (this->output_ - this->current_epoint_ );
 	
 	
 	if (e){
@@ -198,6 +198,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
