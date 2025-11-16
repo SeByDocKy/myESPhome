@@ -138,10 +138,10 @@ SUB_NUMBER(output_max)
   float dt_;
   float error_ = 0.0f;
   float previous_error_ = 0.0f;
-  float output_;
-  float output_charging_;
-  float output_discharging_;
-  float previous_output_ = 0.0f;
+  float output_ = 0.5f;
+  float output_charging_ = 0.0f;
+  float output_discharging_ = 0.0f;
+  float previous_output_ = 0.5f;
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
   
@@ -204,6 +204,7 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
