@@ -26,6 +26,9 @@ void EmersonR48Switch::setup() {
         this->publish_state(state);
         msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
         this->parent_->set_control(msgv);
+        this->parent_->sendSync();
+        this->parent_->gimme5();
+        break;
       case SET_DC_FUNCTION: 
         this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
         if (!this->pref_.load(&state)) {
@@ -35,6 +38,9 @@ void EmersonR48Switch::setup() {
         this->publish_state(state);
         msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
         this->parent_->set_control(msgv);
+        this->parent_->sendSync();
+        this->parent_->gimme5();
+        break;
       case SET_FAN_FUNCTION:
         this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
         if (!this->pref_.load(&state)) {
@@ -44,6 +50,9 @@ void EmersonR48Switch::setup() {
         this->publish_state(state);
         msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
         this->parent_->set_control(msgv);
+        this->parent_->sendSync();
+        this->parent_->gimme5();
+        break;
       case SET_LED_FUNCTION: 
         this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
         if (!this->pref_.load(&state)) {
@@ -53,9 +62,11 @@ void EmersonR48Switch::setup() {
         this->publish_state(state);
         msgv = this->parent_->dcOff_ << 7 | this->parent_->fanFull_ << 4 | this->parent_->flashLed_ << 3 | this->parent_->acOff_ << 2 | 1;
         this->parent_->set_control(msgv);
+        this->parent_->sendSync();
+        this->parent_->gimme5();
+        break;
     }
-    this->parent_->sendSync();
-    this->parent_->gimme5();   
+   
 }
 
 void EmersonR48Switch::write_state(bool state) {
