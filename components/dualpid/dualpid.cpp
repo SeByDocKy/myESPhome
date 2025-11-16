@@ -156,7 +156,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	else{
        tmp = (this->output_ - this->current_epoint_ );
 	   this->output_charging_    = 0.0f; //0.0f;
-	    this->output_discharging_ = cd*tmp;   // cd*tmp;		
+	   this->output_discharging_ = cd*tmp;   // cd*tmp;		
 	}
 	// tmp is a positive value
 
@@ -208,6 +208,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
