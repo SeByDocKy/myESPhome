@@ -14,17 +14,17 @@ canbus:
 emerson_r48:
   canbus_id: ${emerson_name}_id
   update_interval: ${emerson_update_interval}
-  
-output:
-  - platform: emerson_r48
-    max_current:
-      id: ${emerson_name}_max_current
 
 fan:
   - platform: speed
     id: ${emerson_name}_command
     name: ${name}_${emerson_name}_command
-    output: ${emerson_name}_max_current      
+    output: ${emerson_name}_max_current   
+  
+output:
+  - platform: emerson_r48
+    max_current:
+      id: ${emerson_name}_max_current
     
 switch:
   - platform: emerson_r48
@@ -103,4 +103,5 @@ sensor:
       else{
         return 0;
       } 
+
 
