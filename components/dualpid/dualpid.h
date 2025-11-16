@@ -10,8 +10,6 @@
 #ifdef USE_NUMBER
 #include "esphome/components/number/number.h"
 #endif
-
-
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/output/float_output.h"
@@ -204,6 +202,7 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
