@@ -45,16 +45,20 @@ switch:
     dualpid_id: ${dualpid_id}
     activation: 
       name: ${name}_${dualpid_name}_activation
-      id: activation
+      id: ${dualpid_name}_activation
     manual_override: 
       name: ${name}_${dualpid_name}_manual_override
-      id: manual_override
+      id:  ${dualpid_name}_manual_override
     pid_mode: 
       name: ${name}_${dualpid_name}_pid_mode
-      id: pid_mode
+      id:  ${dualpid_name}_pid_mode
     reverse: 
       name: ${name}_${dualpid_name}_reverse
-      id: reverse
+      id:  ${dualpid_name}_reverse
+    r48: 
+      name: ${name}_${dualpid_name}_r48
+      id:  ${dualpid_name}_reverse  
+      
           
 number:
   - platform: dualpid
@@ -89,4 +93,5 @@ number:
       name: ${name}_${dualpid_name}_output_min
     output_max: 
       name: ${name}_${dualpid_name}_output_max
+
 
