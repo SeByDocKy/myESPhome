@@ -9,6 +9,7 @@ dualpid:
     battery_voltage_id: ${dualpid_battery_voltage_id}
     charging_output_id: ${dualpid_charging_output_id}
     discharging_output_id: ${dualpid_discharging_output_id}
+    r48_general_switch_id: ${dualpid_r48_general_switch_id}
     
 sensor:
   - platform: copy
@@ -55,9 +56,9 @@ switch:
     reverse: 
       name: ${name}_${dualpid_name}_reverse
       id:  ${dualpid_name}_reverse
-    r48: 
-      name: ${name}_${dualpid_name}_r48
-      id:  ${dualpid_name}_r48
+    # r48: 
+    #   name: ${name}_${dualpid_name}_r48
+    #   id:  ${dualpid_name}_r48
       
 number:
   - platform: dualpid
@@ -92,6 +93,7 @@ number:
       name: ${name}_${dualpid_name}_output_min
     output_max: 
       name: ${name}_${dualpid_name}_output_max
+
 
 
 
