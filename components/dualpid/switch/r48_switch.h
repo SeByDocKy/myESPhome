@@ -6,7 +6,7 @@
 namespace esphome {
 namespace dualpid {
 
-class R48witch : public switch_::Switch, public Component, public Parented<DUALPIDComponent> {
+class R48Switch : public switch_::Switch, public Component, public Parented<DUALPIDComponent> {
  public:
   void setup() override;
 
@@ -18,4 +18,5 @@ class R48witch : public switch_::Switch, public Component, public Parented<DUALP
 }  // namespace dualpid
 
 }  // namespace esphome
+
 
