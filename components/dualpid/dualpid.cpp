@@ -151,12 +151,14 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	if(e){ // Discharge <-> Battery DC 48V->HMS->ACout (230V)
        tmp =  (this->current_epoint_  - this->output_);
 	   this->output_charging_    = cc*tmp; //0.0f;    //;
-	   this->output_discharging_ = 0.0f; //0.0f;	
+	   this->output_discharging_ = 0.0f; //0.0f;
+	   this->output_charging_ = std::min(std::max( tmp + alpha, this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	}
 	else{ // Charge <-> ACin (230V) ->R48->DC 48V
        tmp = (this->output_ - this->current_epoint_ );
 	   this->output_charging_    = 0.0f; //0.0f;
-	   this->output_discharging_ = cd*tmp;   // cd*tmp;		
+	   this->output_discharging_ = cd*tmp;   // cd*tmp;
+	   this->output_discharging_ = std::min(std::max( tmp + alpha, this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 	}
 	// tmp is a positive value
 
@@ -196,8 +198,6 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	 }
     }
 
-	  
-
     if (!std::isnan(this->current_battery_voltage_)){
 	  ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
@@ -228,6 +228,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
