@@ -28,7 +28,7 @@ SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 SUB_SWITCH(pid_mode)
 SUB_SWITCH(reverse)
-SUB_SWITCH(r48)
+// SUB_SWITCH(r48)
 
 #endif
 
@@ -81,8 +81,8 @@ SUB_NUMBER(output_max)
   bool get_pid_mode(void){return this->current_pid_mode_;}
   void set_reverse(bool enable) {this->current_reverse_ = enable;}
   bool get_reverse(void){return this->current_reverse_;}
-  void set_r48(bool enable) {this->current_r48_ = enable;}
-  bool get_r48(void){return this->current_r48_;}
+  // void set_r48(bool enable) {this->current_r48_ = enable;}
+  // bool get_r48(void){return this->current_r48_;}
 #endif
 
 #ifdef USE_NUMBER
@@ -178,7 +178,7 @@ SUB_NUMBER(output_max)
   bool current_manual_override_ = false;
   bool current_pid_mode_ = false;
   bool current_reverse_ = false;
-  bool current_r48_ = false;
+  // bool current_r48_ = false;
 #endif  
   
 #ifdef USE_NUMBER
@@ -208,4 +208,5 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
