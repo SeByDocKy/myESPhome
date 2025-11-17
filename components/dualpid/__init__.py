@@ -18,7 +18,7 @@ CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
 CONF_CHARGING_OUTPUT_ID = 'charging_output_id'
 CONF_DISCHARGING_OUTPUT_ID = 'discharging_output_id'
 # CONF_POWER_ID = 'power_id'
-CONF_R48_GENERAL_SWITCH = 'r48_general_switch'
+CONF_R48_GENERAL_SWITCH_ID = 'r48_general_switch_id'
 
 # PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 
@@ -58,4 +58,5 @@ async def to_code(config):
     cg.add(var.set_device_discharging_output(out))
 
         
+
 
