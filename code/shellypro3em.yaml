@@ -1,0 +1,264 @@
+substitutions:
+  name: 'shellypro3em'
+  shelly_ip_address: '192.168.1.45'
+  shelly_modbus_address: '1'
+
+esphome:
+  name: ${name}
+  
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    # type: esp-idf
+    # version: 5.5.1
+    # platform_version: 55.03.31-2
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  
+
+ota:
+  - platform: esphome
+  
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "A7670E Fallback Hotspot"
+    password: !secret ap_password
+
+external_components:
+  - source: github://creepystefan/esphome_tcp
+    refresh: 0s
+
+modbustcp:
+  - id: modbustesttcp
+    host: ${shelly_ip_address}
+    port: 502
+    send_wait_time: 100ms
+
+modbustcp_controller:
+  - id: modbus_device
+    modbustcp_id: modbustesttcp
+    address: ${shelly_modbus_address} # Unit-ID
+    update_interval: 2s   #default 60sec
+    command_throttle: 100ms
+
+sensor:
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_total_current
+    address: 1012  #31011
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: current
+    icon: mdi:current-ac
+    unit_of_measurement: 'A'
+  
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_total_active_power
+    address: 1014  #31013
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_total_apparent_power
+    address: 1016  #31015
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: apparent_power
+    icon: mdi:flash
+    unit_of_measurement: 'VA'
+    force_new_range: true
+
+  ######### Phase A ##########
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseA_voltage
+    address: 1021  #31020
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: voltage
+    icon: mdi:sine-wave
+    unit_of_measurement: 'V'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseA_current
+    address: 1023  #31022
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: current
+    icon: mdi:current-ac
+    unit_of_measurement: 'A'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseA_active_power
+    address: 1025  #31024
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
+    force_new_range: true
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseA_apparent_power
+    address: 1027  #31026
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: apparent_power
+    icon: mdi:flash
+    unit_of_measurement: 'VA'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseA_power_factor
+    address: 1029  #31024
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power_factor
+    icon: mdi:angle-acute
+    unit_of_measurement: ''
+
+
+    ######### Phase B ##########
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseB_voltage
+    address: 1041  #31020
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: voltage
+    icon: mdi:sine-wave
+    unit_of_measurement: 'V'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseB_current
+    address: 1043  #31022
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: current
+    icon: mdi:current-ac
+    unit_of_measurement: 'A'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseB_active_power
+    address: 1045  #31024
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
+    force_new_range: true
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseB_apparent_power
+    address: 1047  #31026
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: apparent_power
+    icon: mdi:flash
+    unit_of_measurement: 'VA'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseB_power_factor
+    address: 1049  #31024
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power_factor
+    icon: mdi:angle-acute
+    unit_of_measurement: ''
+
+   ######### Phase C ##########
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseC_voltage
+    address: 1061  #31020
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: voltage
+    icon: mdi:sine-wave
+    unit_of_measurement: 'V'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseC_current
+    address: 1063  #31022
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: current
+    icon: mdi:current-ac
+    unit_of_measurement: 'A'
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseC_active_power
+    address: 1065  #31024
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
+    force_new_range: true
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseC_apparent_power
+    address: 1067  #31026
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: apparent_power
+    icon: mdi:flash
+    unit_of_measurement: 'VA'        
+
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device
+    name: ${name}_phaseC_power_factor
+    address: 1069  #31024
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power_factor
+    icon: mdi:angle-acute
+    unit_of_measurement: ''
+
+    
