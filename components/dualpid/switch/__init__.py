@@ -80,10 +80,9 @@ async def to_code(config):
         await cg.register_parented(s, dualpid_component)
         cg.add(dualpid_component.set_reverse_switch(s))
     
-    if r48_config := config.get(CONF_REVERSE):
+    if r48_config := config.get(CONF_R48):
         s = await switch.new_switch(r48_config)
         await cg.register_component(s, r48_config)
         await cg.register_parented(s, dualpid_component)
         cg.add(dualpid_component.set_r48_switch(s))
   
-
