@@ -191,8 +191,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	   this->r48_general_switch_->publish_state(true);	
      }
 	 else if  ((this->output_discharging_ > 0.0f) & (this->r48_general_switch_->state==true)){
-       this->r48_general_switch_->control(fase);
-	   this->r48_general_switch_->publish_state(fase);
+       this->r48_general_switch_->control(false);
+	   this->r48_general_switch_->publish_state(false);
 	 }
     }
 
@@ -228,6 +228,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
