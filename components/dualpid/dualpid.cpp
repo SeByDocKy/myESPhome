@@ -184,8 +184,18 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 //    else if ((this->output_discharging_ > 0.0f) & (this->get_r48()==true)){
 //       this->set_r48(false);
 //    } 
-// #endif  
-	  
+// #endif
+    if (this->r48_general_switch_ != nullptr) {
+ 	 if((this->output_charging_ > 0.0f) & (this->r48_general_switch_->state==false)){
+       this->r48_general_switch_->control(true);
+	   this->r48_general_switch_->publish_state(true);	
+     }
+	 else if  ((this->output_discharging_ > 0.0f) & (this->r48_general_switch_->state==true)){
+       this->r48_general_switch_->control(fase);
+	   this->r48_general_switch_->publish_state(fase);
+	 }
+    }
+
 	  
 
     if (!std::isnan(this->current_battery_voltage_)){
@@ -218,6 +228,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
