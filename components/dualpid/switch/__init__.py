@@ -15,11 +15,13 @@ ActivationSwitch = dualpid_ns.class_("ActivationSwitch", switch.Switch, cg.Compo
 ManualOverrideSwitch = dualpid_ns.class_("ManualOverrideSwitch", switch.Switch, cg.Component)
 PidModeSwitch = dualpid_ns.class_("PidModeSwitch", switch.Switch, cg.Component)
 ReverseSwitch = dualpid_ns.class_("ReverseSwitch", switch.Switch, cg.Component)
+R48Switch = dualpid_ns.class_("R48Switch", switch.Switch, cg.Component)
 
 CONF_ACTIVATION = "activation"
 CONF_MANUAL_OVERRIDE = "manual_override"
 CONF_PID_MODE = "pid_mode"
 CONF_REVERSE = "reverse"
+CONF_R48 = "r48"
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_DUALPID_ID): cv.use_id(DUALPIDComponent),
@@ -41,6 +43,11 @@ CONFIG_SCHEMA = {
     ).extend(cv.COMPONENT_SCHEMA),
      cv.Optional(CONF_REVERSE): switch.switch_schema(
         ReverseSwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,    
+    ).extend(cv.COMPONENT_SCHEMA),
+    cv.Optional(CONF_R48): switch.switch_schema(
+        R48Switch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
@@ -71,4 +78,12 @@ async def to_code(config):
         s = await switch.new_switch(reverse_config)
         await cg.register_component(s, reverse_config)
         await cg.register_parented(s, dualpid_component)
-        cg.add(dualpid_component.set_reverse_switch(s)) 
+        cg.add(dualpid_component.set_reverse_switch(s))
+    
+    if r48_config := config.get(CONF_REVERSE):
+        s = await switch.new_switch(r48_config)
+        await cg.register_component(s, r48_config)
+        await cg.register_parented(s, dualpid_component)
+        cg.add(dualpid_component.set_r48_switch(s))
+  
+
