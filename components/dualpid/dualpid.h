@@ -4,9 +4,6 @@
 #include "esphome/core/component.h"
 #include "esphome/core/preferences.h"
 #include "esphome/core/hal.h"
-#ifdef USE_SWITCH
-#include "esphome/components/switch/switch.h"
-#endif
 #ifdef USE_NUMBER
 #include "esphome/components/number/number.h"
 #endif
@@ -14,6 +11,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/components/output/float_output.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 
 
@@ -65,6 +63,7 @@ SUB_NUMBER(output_max)
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) {this->battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_device_charging_output(output::FloatOutput *output) {this->device_charging_output_ = output; }
   void set_device_discharging_output(output::FloatOutput *output) {this->device_discharging_output_ = output; }
+  void set_r48_general_switch(switch_::Switch *switch) {r48_general_switch_ = switch;}
   
   void pid_update();
   
@@ -161,6 +160,7 @@ SUB_NUMBER(output_max)
   sensor::Sensor *battery_voltage_sensor_;
   output::FloatOutput *device_charging_output_; 
   output::FloatOutput *device_discharging_output_;
+  switch_::Switch  *r48_general_switch_;
   
   CallbackManager<void()> pid_computed_callback_;
 
@@ -208,5 +208,6 @@ SUB_NUMBER(output_max)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
