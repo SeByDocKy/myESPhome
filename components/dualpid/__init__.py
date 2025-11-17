@@ -59,11 +59,3 @@ async def to_code(config):
 
     sw = await cg.get_variable(config[CONF_R48_GENERAL_SWITCH_ID])
 	cg.add(var.set_r48_general_switch(sw))
-
-	
-
-        
-
-
-
-
