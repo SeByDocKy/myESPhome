@@ -93,6 +93,15 @@ number:
       name: ${name}_${dualpid_name}_output_min
     output_max: 
       name: ${name}_${dualpid_name}_output_max
+    output_min_charging: 
+      name: ${name}_${dualpid_name}_output_min_charging
+    output_max_charging: 
+      name: ${name}_${dualpid_name}_output_max_charging
+    output_min_discharging: 
+      name: ${name}_${dualpid_name}_output_min_discharging
+    output_max_discharging: 
+      name: ${name}_${dualpid_name}_output_max_discharging
+
 
 
 
