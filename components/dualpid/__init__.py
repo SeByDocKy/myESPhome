@@ -36,7 +36,7 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_BATTERY_VOLTAGE_ID): cv.use_id(sensor.Sensor),     
           cv.Required(CONF_CHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
           cv.Required(CONF_DISCHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
-		  cv.Required(CONF_R48_GENERAL_SWITCH): cv.use_id(switch.switch_),	
+		  cv.Optional(CONF_R48_GENERAL_SWITCH): cv.use_id(switch.Switch),	
         }
     )
  )
@@ -57,6 +57,12 @@ async def to_code(config):
     out = await cg.get_variable(config[CONF_DISCHARGING_OUTPUT_ID])
     cg.add(var.set_device_discharging_output(out))
 
+    sw = await cg.get_variable(config[CONF_R48_GENERAL_SWITCH_ID])
+	cg.add(var.set_r48_general_switch(sw))
+
+	
+
         
+
 
 
