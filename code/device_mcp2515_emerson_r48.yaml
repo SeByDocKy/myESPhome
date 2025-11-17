@@ -33,9 +33,11 @@ switch:
   - platform: emerson_r48
     ac_sw:
       name: ${name}_${emerson_name}_ac_switch_turn_off
+      id: ${emerson_name}_ac_switch_turn_off
       restore_mode: ALWAYS_ON
     dc_sw:
       name: ${name}_${emerson_name}_dc_switch_turn_off
+      id: ${emerson_name}_dc_switch_turn_off
       restore_mode: ALWAYS_ON
     fan_sw:
       name: ${name}_${emerson_name}_fan_switch_max
@@ -106,4 +108,5 @@ sensor:
       else{
         return 0;
       }      
+
 
