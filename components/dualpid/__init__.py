@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import sensor, output, time
+from esphome.components import sensor, output, switch, time
 
 CODEOWNERS = ["@sebydocky"]
 DEPENDENCIES = ["time"]
@@ -18,6 +18,7 @@ CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
 CONF_CHARGING_OUTPUT_ID = 'charging_output_id'
 CONF_DISCHARGING_OUTPUT_ID = 'discharging_output_id'
 # CONF_POWER_ID = 'power_id'
+CONF_R48_GENERAL_SWITCH = 'r48_general_switch'
 
 # PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 
@@ -35,6 +36,7 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_BATTERY_VOLTAGE_ID): cv.use_id(sensor.Sensor),     
           cv.Required(CONF_CHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
           cv.Required(CONF_DISCHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
+		  cv.Required(CONF_R48_GENERAL_SWITCH): cv.use_id(switch.switch_),	
         }
     )
  )
@@ -56,3 +58,4 @@ async def to_code(config):
     cg.add(var.set_device_discharging_output(out))
 
         
+
