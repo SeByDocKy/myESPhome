@@ -58,4 +58,5 @@ async def to_code(config):
     cg.add(var.set_device_discharging_output(out))
 
     sw = await cg.get_variable(config[CONF_R48_GENERAL_SWITCH_ID])
-	cg.add(var.set_r48_general_switch(sw))
+    cg.add(var.set_r48_general_switch(sw))
+
