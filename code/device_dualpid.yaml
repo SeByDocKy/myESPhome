@@ -57,9 +57,8 @@ switch:
       id:  ${dualpid_name}_reverse
     r48: 
       name: ${name}_${dualpid_name}_r48
-      id:  ${dualpid_name}_reverse  
+      id:  ${dualpid_name}_r48
       
-          
 number:
   - platform: dualpid
     dualpid_id: ${dualpid_id}
@@ -93,5 +92,6 @@ number:
       name: ${name}_${dualpid_name}_output_min
     output_max: 
       name: ${name}_${dualpid_name}_output_max
+
 
 
