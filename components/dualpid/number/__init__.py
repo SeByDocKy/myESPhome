@@ -41,6 +41,12 @@ KdDischargingNumber = dualpid_ns.class_("KdDischargingNumber", number.Number, cg
 OutputMinNumber = dualpid_ns.class_("OutputMinNumber", number.Number, cg.Component)
 OutputMaxNumber = dualpid_ns.class_("OutputMaxNumber", number.Number, cg.Component)
 
+OutputMinChargingNumber = dualpid_ns.class_("OutputMinChargingNumber", number.Number, cg.Component)
+OutputMaxChargingNumber = dualpid_ns.class_("OutputMaxChargingNumber", number.Number, cg.Component)
+
+OutputMinDischargingNumber = dualpid_ns.class_("OutputMinDischargingNumber", number.Number, cg.Component)
+OutputMaxDischargingNumber = dualpid_ns.class_("OutputMaxDischargingNumber", number.Number, cg.Component)
+
 
 CONF_SETPOINT = "setpoint"
 
@@ -62,6 +68,12 @@ CONF_KD_DISCHARGING = "kd_discharging"
 
 CONF_OUTPUT_MIN = "output_min"
 CONF_OUTPUT_MAX = "output_max"
+
+CONF_OUTPUT_MIN_CHARGING = "output_min_charging"
+CONF_OUTPUT_MAX_CHARGING = "output_max_charging"
+
+CONF_OUTPUT_MIN_DISCHARGING = "output_min_discharging"
+CONF_OUTPUT_MAX_DISCHARGING = "output_max_discharging"
 
 
 CONFIG_SCHEMA = {
@@ -162,6 +174,26 @@ CONFIG_SCHEMA = {
         OutputMaxNumber,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
+
+    cv.Optional(CONF_OUTPUT_MIN_CHARGING): number.number_schema(
+        OutputMinChargingNumber,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
+    
+    cv.Optional(CONF_OUTPUT_MAX_CHARGING): number.number_schema(
+        OutputMaxChargingNumber,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
+
+    cv.Optional(CONF_OUTPUT_MIN_DISCHARGING): number.number_schema(
+        OutputMinDischargingNumber,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
+    
+    cv.Optional(CONF_OUTPUT_MAX_DISCHARGING): number.number_schema(
+        OutputMaxDischargingNumber,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),  
                     
 }
 
@@ -274,7 +306,6 @@ async def to_code(config):
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_kd_discharging_number(n))        
 
-
   if output_min_config := config.get(CONF_OUTPUT_MIN):
         n = await number.new_number(
             output_min_config, min_value=0.0, max_value=100.0, step=1.0
@@ -291,9 +322,34 @@ async def to_code(config):
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_number(n))
 
+  if output_min_charging_config := config.get(CONF_OUTPUT_MIN_CHARGING):
+        n = await number.new_number(
+            output_min_charging_config, min_value=0.0, max_value=100.0, step=1.0
+        )
+        await cg.register_component(n, output_min_charging_config)
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_output_min_charging_number(n))
 
+  if output_max_charging_config := config.get(CONF_OUTPUT_MAX_CHARGING):
+        n = await number.new_number(
+            output_max_charging_config, min_value=0.0, max_value=100.0, step=1.0
+        )
+        await cg.register_component(n, output_max_charging_config)
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_output_max_charging_number(n))
 
+  if output_min_discharging_config := config.get(CONF_OUTPUT_MIN_DISCHARGING):
+        n = await number.new_number(
+            output_min_discharging_config, min_value=0.0, max_value=100.0, step=1.0
+        )
+        await cg.register_component(n, output_min_discharging_config)
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_output_min_discharging_number(n))
 
-
-
-
+  if output_max_discharging_config := config.get(CONF_OUTPUT_MAX_DISCHARGING):
+        n = await number.new_number(
+            output_max_discharging_config, min_value=0.0, max_value=100.0, step=1.0
+        )
+        await cg.register_component(n, output_max_discharging_config)
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_output_max_discharging_number(n))
