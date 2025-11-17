@@ -178,11 +178,11 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
     }
 #endif  
 #ifdef USE_SWITCH 
-   if((this->output_charging_ > 0.0f) & (this->current_r48_->get_r48()==false)){
-      this->current_r48_->set_r48(true);
+   if((this->output_charging_ > 0.0f) & (this->get_r48()==false)){
+      this->set_r48(true);
    }
-   else if ((this->output_discharging_ > 0.0f) & (this->current_r48_->get_r48()==true)){
-      this->current_r48_->set_r48(false);
+   else if ((this->output_discharging_ > 0.0f) & (this->get_r48()==true)){
+      this->set_r48(false);
    } 
 #endif  
 	  
@@ -218,6 +218,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
