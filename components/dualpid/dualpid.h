@@ -52,6 +52,11 @@ SUB_NUMBER(kd_discharging)
 
 SUB_NUMBER(output_min)
 SUB_NUMBER(output_max)
+SUB_NUMBER(output_min_charging)
+SUB_NUMBER(output_max_charging)
+SUB_NUMBER(output_min_discharging)
+SUB_NUMBER(output_max_discharging)
+
 #endif
 
  public:
@@ -122,6 +127,16 @@ SUB_NUMBER(output_max)
   float get_output_min(void){return this->current_output_min_;}
   void set_output_max(float value) {this->current_output_max_ = value;}
   float get_output_max(void){return this->current_output_max_;}
+
+  void set_output_min_charging(float value) {this->current_output_min_charging_ = value;}
+  float get_output_min_charging(void){return this->current_output_min_charging_;}
+  void set_output_max_charging(float value) {this->current_output_max_charging_ = value;}
+  float get_output_max_charging(void){return this->current_output_max_charging_;}
+
+  void set_output_min_discharging(float value) {this->current_output_min_discharging_ = value;}
+  float get_output_min_discharging(void){return this->current_output_min_discharging_;}
+  void set_output_max_discharging(float value) {this->current_output_max_discharging_ = value;}
+  float get_output_max_discharging(void){return this->current_output_max_discharging_;}
   
 #endif
 
@@ -202,12 +217,20 @@ SUB_NUMBER(output_max)
   
   float current_output_max_ = 1.0f;
   float current_output_min_ = 0.0f;
+
+  float current_output_max_charging_ = 1.0f;
+  float current_output_min_charging_ = 0.02f;
+
+  float current_output_max_discharging_ = 1.0f;
+  float current_output_min_discharging_ = 0.05f;
+
 #endif
 
 };
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
