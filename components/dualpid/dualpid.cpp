@@ -214,8 +214,14 @@ void DUALPIDComponent::pid_update() {
 	
 	this->current_output_             = this->output_;
 	this->current_output_charging_    = this->output_charging_;
+	  
+#ifdef USE_BINARY_SENSOR
+	if (this->producing_binary_sensor_ != nullptr & this->producing_binary_sensor_->state==true){ // control HMS only when it's starting to produce if not... HMS is blocked
+#endif		
 	this->current_output_discharging_ = this->output_discharging_;  
-	
+#ifdef USE_BINARY_SENSOR
+	}
+#endif
     this->pid_computed_callback_.call();
 	  
 #ifdef USE_SWITCH	
@@ -226,6 +232,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
