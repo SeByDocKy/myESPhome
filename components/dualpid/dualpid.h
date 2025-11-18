@@ -69,8 +69,8 @@ SUB_NUMBER(output_max_discharging)
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) {this->battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_device_charging_output(output::FloatOutput *output) {this->device_charging_output_ = output; }
   void set_device_discharging_output(output::FloatOutput *output) {this->device_discharging_output_ = output; }
-  void set_r48_general_switch(switch_::Switch *sw) {r48_general_switch_ = sw;}
-  void set_producing_binary_sensor (binary_sensor::BinarySensor *bs) {producing_binary_sensor_ = bs;}
+  void set_r48_general_switch(switch_::Switch *sw) {this->r48_general_switch_ = sw;}
+  void set_producing_binary_sensor(binary_sensor::BinarySensor *bs) {this->producing_binary_sensor_ = bs;}
   
   void pid_update();
   
@@ -233,6 +233,7 @@ SUB_NUMBER(output_max_discharging)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
