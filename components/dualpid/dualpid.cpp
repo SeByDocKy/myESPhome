@@ -53,11 +53,10 @@ void DUALPIDComponent::pid_update() {
   float cc, cd;
   bool e;
   
-  ESP_LOGVV(TAG, "Entered in pid_update()");
-  ESP_LOGVV(TAG, "Current pid mode %d" , this->current_pid_mode_);
+  ESP_LOGI(TAG, "Entered in pid_update()");
+  ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
   
-  
-if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
+  if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	  this->current_epoint_ = this->current_charging_epoint_;
   }
   else if((this->current_battery_voltage_ >= this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ < this->current_charged_battery_voltage_)){
@@ -67,14 +66,14 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
       this->current_epoint_ = this->current_floating_epoint_;
   }   
   if(this->current_epoint_ != 0.0f){	
-  cc = 1.0f/this->current_epoint_;
+    cc = 1.0f/this->current_epoint_;
   }
   else{
 	cc = 0.0f;
   }
   cd = 1.0f/(1.0f - this->current_epoint_);
 	
-  e = (this->current_output_ < this->current_epoint_ );
+  e = (this->current_output_ < this->current_epoint_ ); // test if general regulation point is in charging domain or not
 	
   ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
 
@@ -82,7 +81,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
   if (!this->current_manual_override_){
 #endif
     this->dt_   = float(now - this->last_time_)/1000.0f;
-	tmp         = (this->current_input_ - this->current_setpoint_);  // error initial estimation
+	tmp         = (this->current_input_ - this->current_setpoint_);  // initial error estimation
 	  
 	if (e & tmp<0.0f){
 		this->error_ = -tmp;
@@ -137,10 +136,8 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	
 	ESP_LOGI(TAG, "PIDcoeff = %3.8f" , alpha );
 	
-  
     ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);  
 
-  
     this->last_time_       = now;
     this->previous_error_  = this->error_;
     this->previous_output_ = this->output_;
@@ -149,15 +146,15 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
 	e   = (this->output_ < this->current_epoint_ );
 	if(e){ // Charge <-> ACin (230V)->R48->DC 48V
-       tmp =  (this->current_epoint_  - this->output_);
-	   this->output_charging_    = cc*tmp; //0.0f;    //;
-	   this->output_discharging_ = 0.0f; //0.0f;
-	   this->output_charging_ = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+       tmp =  (this->current_epoint_  - this->output_); // tmp is positive
+	   this->output_charging_    = cc*tmp; 
+	   this->output_discharging_ = 0.0f; 
+	   this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	}
 	else{ // Discharge <-> Battery DC 48V->HMS->ACout (230V)
-       tmp = (this->output_ - this->current_epoint_ );
-	   this->output_charging_    = 0.0f; //0.0f;
-	   this->output_discharging_ = cd*tmp;   // cd*tmp;
+       tmp = (this->output_ - this->current_epoint_ ); // tmp is positive
+	   this->output_charging_    = 0.0f; 
+	   this->output_discharging_ = cd*tmp;   
 	   this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 	}
 	// tmp is a positive value
@@ -229,6 +226,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
