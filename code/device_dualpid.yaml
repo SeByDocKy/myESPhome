@@ -10,6 +10,7 @@ dualpid:
     charging_output_id: ${dualpid_charging_output_id}
     discharging_output_id: ${dualpid_discharging_output_id}
     r48_general_switch_id: ${dualpid_r48_general_switch_id}
+    producing_id: ${dualpid_producing_id}
     
 sensor:
   - platform: copy
@@ -101,6 +102,7 @@ number:
       name: ${name}_${dualpid_name}_output_min_discharging
     output_max_discharging: 
       name: ${name}_${dualpid_name}_output_max_discharging
+
 
 
 
