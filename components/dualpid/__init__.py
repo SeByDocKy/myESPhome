@@ -64,3 +64,4 @@ async def to_code(config):
 
     bs = await cg.get_variable(config[CONF_PRODUCING_ID])
     cg.add(var.set_producing_binary_sensor(bs))
+
