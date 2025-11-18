@@ -11,6 +11,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/components/output/float_output.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/sensor/binary_sensor.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 
@@ -232,6 +233,7 @@ SUB_NUMBER(output_max_discharging)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
