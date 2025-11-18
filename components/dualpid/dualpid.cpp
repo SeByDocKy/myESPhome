@@ -148,13 +148,13 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	ESP_LOGI(TAG, "activation %d", this->current_activation_);
 
 	e   = (this->output_ < this->current_epoint_ );
-	if(e){ // Discharge <-> Battery DC 48V->HMS->ACout (230V)
+	if(e){ // Charge <-> ACin (230V)->R48->DC 48V
        tmp =  (this->current_epoint_  - this->output_);
 	   this->output_charging_    = cc*tmp; //0.0f;    //;
 	   this->output_discharging_ = 0.0f; //0.0f;
 	   this->output_charging_ = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	}
-	else{ // Charge <-> ACin (230V) ->R48->DC 48V
+	else{ // Discharge <-> Battery DC 48V->HMS->ACout (230V)
        tmp = (this->output_ - this->current_epoint_ );
 	   this->output_charging_    = 0.0f; //0.0f;
 	   this->output_discharging_ = cd*tmp;   // cd*tmp;
@@ -187,12 +187,13 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 //       this->set_r48(false);
 //    } 
 // #endif
+	  
     if (this->r48_general_switch_ != nullptr) {
- 	 if((this->output_charging_ > 0.0f) & (this->r48_general_switch_->state==false)){
+ 	 if((this->output_charging_ >= this->current_output_min_charging_) & (this->r48_general_switch_->state==false)){
        this->r48_general_switch_->control(true);
 	   this->r48_general_switch_->publish_state(true);	
      }
-	 else if  ((this->output_discharging_ > 0.0f) & (this->r48_general_switch_->state==true)){
+	 else if  ((this->output_discharging_ >= this->current_output_min_discharging_) & (this->r48_general_switch_->state==true)){
        this->r48_general_switch_->control(false);
 	   this->r48_general_switch_->publish_state(false);
 	 }
@@ -228,6 +229,7 @@ if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
