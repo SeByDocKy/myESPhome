@@ -178,7 +178,7 @@ SUB_NUMBER(output_max_discharging)
   output::FloatOutput *device_charging_output_; 
   output::FloatOutput *device_discharging_output_;
   switch_::Switch  *r48_general_switch_;
-  binary_sensor::BinarySensor producing_binary_sensor_;
+  binary_sensor::BinarySensor *producing_binary_sensor_;
   
   CallbackManager<void()> pid_computed_callback_;
 
@@ -233,6 +233,7 @@ SUB_NUMBER(output_max_discharging)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
