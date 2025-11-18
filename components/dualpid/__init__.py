@@ -19,6 +19,7 @@ CONF_CHARGING_OUTPUT_ID = 'charging_output_id'
 CONF_DISCHARGING_OUTPUT_ID = 'discharging_output_id'
 # CONF_POWER_ID = 'power_id'
 CONF_R48_GENERAL_SWITCH_ID = 'r48_general_switch_id'
+CONF_PRODUCING_ID = 'producing_id'
 
 # PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 
@@ -36,7 +37,8 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_BATTERY_VOLTAGE_ID): cv.use_id(sensor.Sensor),     
           cv.Required(CONF_CHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
           cv.Required(CONF_DISCHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
-		  cv.Optional(CONF_R48_GENERAL_SWITCH_ID): cv.use_id(switch.Switch),	
+		  cv.Optional(CONF_R48_GENERAL_SWITCH_ID): cv.use_id(switch.Switch),
+		  cv.Optional(CONF_PRODUCING_ID): cv.use_id(binary_sensor.BinarySensor),
         }
     )
  )
@@ -60,3 +62,5 @@ async def to_code(config):
     sw = await cg.get_variable(config[CONF_R48_GENERAL_SWITCH_ID])
     cg.add(var.set_r48_general_switch(sw))
 
+    bs = await cg.get_variable(config[CONF_PRODUCING_ID])
+    cg.add(var.set_producing_binary_sensor(bs))
