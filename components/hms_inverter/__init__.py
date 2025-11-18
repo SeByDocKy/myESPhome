@@ -53,6 +53,7 @@ CONF_LIMIT_ABSOLUTE = "limit_absolute"
 CONF_PERCENT_OUTPUT = "percent_output" 
 CONF_PALEVEL = "palevel"
 CONF_REACHABLE = "reachable"
+CONF_PRODUCING = "producing"
 CONF_RESTART = "restart"
 
 CONF_POWER = "power"
@@ -137,6 +138,11 @@ INVERTER_SCHEMA = cv.Schema({
         unit_of_measurement="dBm",
     ),
     cv.Optional(CONF_REACHABLE): binary_sensor.binary_sensor_schema(
+        binary_sensor.BinarySensorInitiallyOff,
+        entity_category="diagnostic",
+        device_class="connectivity",
+    )
+    cv.Optional(CONF_PRODUCING): binary_sensor.binary_sensor_schema(
         binary_sensor.BinarySensorInitiallyOff,
         entity_category="diagnostic",
         device_class="connectivity",
@@ -247,6 +253,8 @@ async def to_code(config):
             cg.add(btn.set_parent(inv_var))
         if CONF_REACHABLE in inv_conf:
             cg.add(inv_var.set_is_reachable_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_REACHABLE])))
+        if CONF_PRODUCING in inv_conf:
+            cg.add(inv_var.set_is_producing_sensor(await binary_sensor.new_binary_sensor(inv_conf[CONF_PRODUCING])))    
 
     cg.add(var.set_sdio(await cg.gpio_pin_expression(config[CONF_PINS][CONF_SDIO])))
     cg.add(var.set_clk(await cg.gpio_pin_expression(config[CONF_PINS][CONF_CLK])))
