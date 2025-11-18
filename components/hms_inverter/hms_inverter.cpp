@@ -136,6 +136,9 @@ void HmsInverter::loop() {
     if (is_reachable_sensor_ != nullptr) {
         is_reachable_sensor_->publish_state(this->inverter_->isReachable());
     }
+    if (is_producing_sensor_ != nullptr) {
+        is_producing_sensor_->publish_state(this->inverter_->isProducing());
+    }
     // if (check_updated(this->inverter_->DevInfo(), dev_info_last_update_)) {
     //     dev_info_last_update_ = this->inverter_->DevInfo()->getLastUpdate();
     //     ESP_LOGD(TAG, "loop(): DevInfo updated: %s, %d, %d", this->inverter_->DevInfo()->getHwVersion(), this->inverter_->isProducing(), this->inverter_->isReachable());
