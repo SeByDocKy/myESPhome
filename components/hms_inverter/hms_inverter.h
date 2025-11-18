@@ -133,6 +133,7 @@ class HmsInverter : public esphome::Component {
 
 
         esphome::binary_sensor::BinarySensor *is_reachable_sensor_ = nullptr;
+        esphome::binary_sensor::BinarySensor *is_producing_sensor_ = nullptr;
         esphome::sensor::Sensor *rssi_ = nullptr;
  
         std::shared_ptr<InverterAbstract> inverter_ = nullptr;
@@ -170,6 +171,7 @@ class HmsInverter : public esphome::Component {
         int8_t get_oldpalevel() {return this->former_palevel_ ;}
 
         void set_is_reachable_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_reachable_sensor_ = sensor; }
+        void set_is_producing_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_producing_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
         uint64_t serial() { return this->serial_; }
         void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
