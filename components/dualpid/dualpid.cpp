@@ -146,13 +146,13 @@ void DUALPIDComponent::pid_update() {
 
 	e   = (this->output_ < this->current_epoint_ );
 	if(e){ // Charge <-> ACin (230V)->R48->DC 48V
-       tmp =  (this->current_epoint_  - this->output_); // tmp is positive
+       tmp                       = (this->current_epoint_ - this->output_); // tmp is positive
 	   this->output_charging_    = cc*tmp; 
 	   this->output_discharging_ = 0.0f; 
 	   this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	}
 	else{ // Discharge <-> Battery DC 48V->HMS->ACout (230V)
-       tmp = (this->output_ - this->current_epoint_ ); // tmp is positive
+       tmp                       = (this->output_ - this->current_epoint_ ); // tmp is positive
 	   this->output_charging_    = 0.0f; 
 	   this->output_discharging_ = cd*tmp;   
 	   this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
@@ -209,8 +209,8 @@ void DUALPIDComponent::pid_update() {
 
 	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	
-    this->device_charging_output_->set_level(this->output_charging_);
-	this->device_discharging_output_->set_level(this->output_discharging_);
+    this->device_charging_output_->set_level(this->output_charging_);          // send command to r48
+	this->device_discharging_output_->set_level(this->output_discharging_);    // send command to HMS
 	
 	this->current_output_             = this->output_;
 	this->current_output_charging_    = this->output_charging_;
@@ -232,26 +232,3 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
