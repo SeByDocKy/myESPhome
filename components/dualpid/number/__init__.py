@@ -167,31 +167,43 @@ CONFIG_SCHEMA = {
     
     cv.Optional(CONF_OUTPUT_MIN): number.number_schema(
         OutputMinNumber,
+        icon = ICON_PERCENT,
+        unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_OUTPUT_MAX): number.number_schema(
         OutputMaxNumber,
+        icon = ICON_PERCENT,
+        unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
 
     cv.Optional(CONF_OUTPUT_MIN_CHARGING): number.number_schema(
         OutputMinChargingNumber,
+        icon = ICON_PERCENT,
+        unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_OUTPUT_MAX_CHARGING): number.number_schema(
         OutputMaxChargingNumber,
+        icon = ICON_PERCENT,
+        unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
 
     cv.Optional(CONF_OUTPUT_MIN_DISCHARGING): number.number_schema(
         OutputMinDischargingNumber,
+        icon = ICON_PERCENT,
+        unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_OUTPUT_MAX_DISCHARGING): number.number_schema(
         OutputMaxDischargingNumber,
+        icon = ICON_PERCENT,
+        unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),  
                     
@@ -353,3 +365,4 @@ async def to_code(config):
         await cg.register_component(n, output_max_discharging_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_discharging_number(n))
+
