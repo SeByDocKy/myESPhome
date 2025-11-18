@@ -58,11 +58,12 @@ async def to_code(config):
     
     out = await cg.get_variable(config[CONF_DISCHARGING_OUTPUT_ID])
     cg.add(var.set_device_discharging_output(out))
+    if CONF_R48_GENERAL_SWITCH_ID in config:
+      sw = await cg.get_variable(config[CONF_R48_GENERAL_SWITCH_ID])
+      cg.add(var.set_r48_general_switch(sw))
+    if CONF_PRODUCING_ID in config:
+      bs = await cg.get_variable(config[CONF_PRODUCING_ID])
+      cg.add(var.set_producing_binary_sensor(bs))
 
-    sw = await cg.get_variable(config[CONF_R48_GENERAL_SWITCH_ID])
-    cg.add(var.set_r48_general_switch(sw))
-
-    bs = await cg.get_variable(config[CONF_PRODUCING_ID])
-    cg.add(var.set_producing_binary_sensor(bs))
 
 
