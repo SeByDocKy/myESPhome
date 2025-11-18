@@ -69,6 +69,7 @@ SUB_NUMBER(output_max_discharging)
   void set_device_charging_output(output::FloatOutput *output) {this->device_charging_output_ = output; }
   void set_device_discharging_output(output::FloatOutput *output) {this->device_discharging_output_ = output; }
   void set_r48_general_switch(switch_::Switch *sw) {r48_general_switch_ = sw;}
+  void set_producing_binary_sensor (binary_sensor::BinarySensor *bs) {producing_binary_sensor_ = bs;}
   
   void pid_update();
   
@@ -176,6 +177,7 @@ SUB_NUMBER(output_max_discharging)
   output::FloatOutput *device_charging_output_; 
   output::FloatOutput *device_discharging_output_;
   switch_::Switch  *r48_general_switch_;
+  binary_sensor::BinarySensor producing_binary_sensor_;
   
   CallbackManager<void()> pid_computed_callback_;
 
@@ -230,6 +232,7 @@ SUB_NUMBER(output_max_discharging)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
