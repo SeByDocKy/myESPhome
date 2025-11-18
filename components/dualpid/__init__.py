@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import sensor, output, switch, time
+from esphome.components import binary_sensor, sensor, output, switch, time
 
 CODEOWNERS = ["@sebydocky"]
 DEPENDENCIES = ["time"]
@@ -64,4 +64,5 @@ async def to_code(config):
 
     bs = await cg.get_variable(config[CONF_PRODUCING_ID])
     cg.add(var.set_producing_binary_sensor(bs))
+
 
