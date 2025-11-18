@@ -26,6 +26,8 @@ hm_hms_inverter:
         id: ${hoymiles_inverter_name}_restart
       reachable: # Binary Sensor
         name: ${name}_${hoymiles_inverter_name}_reachable
+      producing: # Binary Sensor
+        name: ${name}_${hoymiles_inverter_name}_producing  
       dc_channels:
         - power: # Power in W
             name: ${name}_${hoymiles_inverter_name}_pv0_power
@@ -77,3 +79,4 @@ hm_hms_inverter:
           unit_of_measurement: 'kWh'
           filters: 
             - multiply: 0.001
+
