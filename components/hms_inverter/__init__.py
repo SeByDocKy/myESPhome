@@ -141,7 +141,7 @@ INVERTER_SCHEMA = cv.Schema({
         binary_sensor.BinarySensorInitiallyOff,
         entity_category="diagnostic",
         device_class="connectivity",
-    )
+    ),
     cv.Optional(CONF_PRODUCING): binary_sensor.binary_sensor_schema(
         binary_sensor.BinarySensorInitiallyOff,
         entity_category="diagnostic",
