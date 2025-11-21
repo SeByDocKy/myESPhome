@@ -22,7 +22,7 @@ interval:
          condition:
            and:
              - lambda: |-
-                return ( id(${automation_hms_reachable}).has_state() );
+                return ( id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_on: ${automation_producing}       
          then:
