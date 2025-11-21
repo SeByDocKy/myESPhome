@@ -214,7 +214,7 @@ async def to_code(config):
   
   if setpoint_config := config.get(CONF_SETPOINT):
         n = await number.new_number(
-            setpoint_config, min_value=-400, max_value=400, step=10
+            setpoint_config, min_value=-400, max_value=400, step=5
         )
         await cg.register_component(n, setpoint_config)
         await cg.register_parented(n, dualpid_component)
@@ -365,4 +365,5 @@ async def to_code(config):
         await cg.register_component(n, output_max_discharging_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_discharging_number(n))
+
 
