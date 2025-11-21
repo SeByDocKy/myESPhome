@@ -1,0 +1,29 @@
+interval:
+  - interval: ${automation_time_interval}    
+    then:
+    - if:
+         condition:
+           and:
+             - lambda: |-
+                return ( !id(${automation_hms_reachable}).has_state() ); 
+         then:
+           - switch.turn_off: ${automation_dualpid_activation}
+    - if:
+         condition:
+           and:
+             - lambda: |-
+                return ( id(${automation_hms_reachable}).has_state() );
+             - binary_sensor.is_on: ${automation_hms_reachable}
+             - binary_sensor.is_off: ${automation_hms_producing}     
+         then:
+           - button.press: ${automation_hms_restart}
+
+    - if:
+         condition:
+           and:
+             - lambda: |-
+                return ( id(${automation_hms_reachable}).has_state() );
+             - binary_sensor.is_on: ${automation_hms_reachable}
+             - binary_sensor.is_on: ${automation_hms_producing}       
+         then:
+           - switch.turn_on: ${automation_dualpid_activation}
