@@ -16,6 +16,7 @@ interval:
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_off: ${automation_producing}     
          then:
+           - switch.turn_off: ${automation_activation}
            - button.press: ${automation_restart}
 
     - if:
@@ -27,3 +28,4 @@ interval:
              - binary_sensor.is_on: ${automation_producing}       
          then:
            - switch.turn_on: ${automation_activation}
+
