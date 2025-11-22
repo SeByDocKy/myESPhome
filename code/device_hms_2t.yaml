@@ -1,3 +1,20 @@
+globals:
+  - id: ${hms_inverter_name}_energy_yesterday_global
+    type: float
+    restore_value: yes
+    
+time:
+  - platform: homeassistant #sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:  
+          - globals.set:
+              id: ${hms_inverter_name}_energy_yesterday_global
+              value: !lambda return ( id(${hms_inverter_name}_energy_yesterday_global) =  float( id(${hms_inverter_name}_energy_today).state) );
+            
 fan:
   - platform: speed
     id: ${hms_inverter_name}_command
@@ -72,6 +89,7 @@ hms_inverter:
           name: ${name}_${hms_inverter_name}_temperature
         power:
           name: ${name}_${hms_inverter_name}_inverter_power
+          id: ${hms_inverter_name}_inverter_power
         energy: # Today's Energy in Wh
           name: ${name}_${hms_inverter_name}_inverter_energy_today
           device_class: energy
@@ -80,8 +98,26 @@ hms_inverter:
           filters: 
             - multiply: 0.001
 
-
-
-
-
-
+sensor:
+  - platform: total_daily_energy
+    name: ${name}_${hms_inverter_name}_energy_today
+    id: ${hms_inverter_name}_energy_today
+    power_id: ${hms_inverter_name}_inverter_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: right
+    restore: true
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${hms_inverter_name}_energy_yesterday
+    id: ${hms_inverter_name}_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    # update_interval: ${hms_inverter_template_update}
+    lambda: |-
+      return (id(${hms_inverter_name}_energy_yesterday).state = id(${hms_inverter_name}_energy_yesterday_global));
