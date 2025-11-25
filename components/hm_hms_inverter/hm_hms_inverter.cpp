@@ -147,6 +147,9 @@ void HmHmsInverter::loop() {
         auto dc_channels = this->inverter_->Statistics()->getChannelsByType(ChannelType_t::TYPE_DC);
         auto ac_channels = this->inverter_->Statistics()->getChannelsByType(ChannelType_t::TYPE_AC);
         auto inv_channels = this->inverter_->Statistics()->getChannelsByType(ChannelType_t::TYPE_INV);
+		if (is_producing_sensor_ != nullptr) {
+          is_producing_sensor_->publish_state(this->inverter_->isProducing());
+        }
         uint8_t i = 0;
         for (auto &it : dc_channels) {
             if (this->channels_.size() > i) {
@@ -338,6 +341,7 @@ void HmHmsPlatform::loop() {
 }
 
 }
+
 
 
 
