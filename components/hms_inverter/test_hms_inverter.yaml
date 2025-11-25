@@ -60,6 +60,8 @@ hoymiles_inverter:
         name: ${name}_absolute_power_limit
       reachable: # Binary Sensor
         name: ${name}_reachable
+      producing: # Binary Sensor
+        name: ${name}_producing  
       dc_channels:
         - power: # Power in W
             name: ${name}_pv0_power
@@ -137,3 +139,4 @@ hoymiles_inverter:
           unit_of_measurement: 'kWh'
           filters: 
             - multiply: 0.001
+
