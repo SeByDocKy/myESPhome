@@ -192,7 +192,7 @@ async def to_code(config):
 
     ############# with new OpenDTU lib #############
     # cg.add_library("SPI", None)  ### Works with arduino v2.0.x no more from arduino v3.1.x... 
-    # cg.add_library("RF24", None, "https://github.com/nRF24/RF24") # needed for SPImanager version
+    cg.add_library("RF24", None, "https://github.com/nRF24/RF24") # needed for SPImanager version
     # cg.add_library("SpiManager", None, "https://github.com/SeByDocKy/SpiManager") # needed for SPImanager version
     # cg.add_library("CMT2300A", None, "https://github.com/SeByDocKy/CMT2300A") # -> Use new SPImanager framework...
     # cg.add_library("Hoymiles-lib", None, "https://github.com/SeByDocKy/Hoymiles-lib")
