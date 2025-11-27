@@ -1,0 +1,280 @@
+substitutions:
+  name: bioffsr
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    
+logger:
+  # baud_rate: 0
+  # level: verbose    
+  
+ota:
+  - platform: esphome  
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [bioffsr]
+    refresh: 0s
+    
+api:
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time  
+
+# uart:
+  # - id: uart_2
+    # tx_pin: GPIO18
+    # rx_pin: GPIO19
+    # baud_rate: 9600
+    # stop_bits: 2 
+
+  # - id: uart_0
+    # tx_pin: GPIO01
+    # rx_pin: GPIO03
+    # baud_rate: 19200
+    # stop_bits: 1
+    # rx_buffer_size: 256
+
+# modbus:
+   # id: modbus2
+   # uart_id: uart_2
+
+# victron_smart_shunt:
+  # uart_id: uart_0
+
+# i2c:
+  # - id: bus_i2c
+    # sda: GPIO22
+    # scl: GPIO21
+    # scan: true
+    # frequency: 800kHz
+
+# sx1509:
+  # - id: sx1509_hub0
+    # address: 0x3E
+    # i2c_id: bus_i2c
+
+output:
+  # - platform: sx1509
+    # sx1509_id: sx1509_hub0
+    # id: output_sx1509
+    # pin: 0
+    # inverted: true
+    
+  - platform: template
+    id: fakeoutput
+    type: float
+    write_action:
+      - lambda: 'return;'
+
+fan:
+  - platform: speed
+    id: fakeoutput_command
+    name: ${name}_fakeoutput_command
+    output: fakeoutput
+
+button:
+  - platform: restart
+    name: ${name}_restart
+
+bioffsr:
+  - id: my_bioffsr
+    battery_current_id: fake_battery_current #smartshunt_battery_current
+    battery_voltage_id: fake_battery_voltage #smartshunt_battery_voltage
+    output1_id: fakeoutput #output_sx1509
+    output2_id: fakeoutput #output_sx1509
+    power_id: fake_power_feedback #pzem_power
+    
+binary_sensor:
+  - platform: bioffsr
+    offsr_id: my_bioffsr
+    thermostat_cut: 
+      name: thermostat_cut
+      
+sensor:
+  - platform: bioffsr
+    offsr_id: my_bioffsr
+    error: 
+      name: ${name}_regulation_error    
+    output: 
+      name: ${name}_output_lsa
+    target:
+      name: ${name}_target_current
+   
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+    
+  - platform: uptime
+    id: uptime_sec  
+   
+  - platform: template
+    name: ${name}_fake_battery_voltage
+    id: fake_battery_voltage
+
+  - platform: template
+    name: ${name}_fake_battery_current
+    id: fake_battery_current
+
+  - platform: template
+    name: ${name}_fake_power_feedback
+    id: fake_power_feedback
+    
+  # - platform: homeassistant
+    # name: ${name}_fake_battery_voltage
+    # entity_id: sensor.pvbrain2_smartshunt_battery_voltage
+    # id: fake_battery_voltage
+
+  # - platform: homeassistant
+    # name: ${name}_fake_battery_current
+    # entity_id: sensor.pvbrain2_smartshunt_battery_current
+    # id: fake_battery_current
+
+  # - platform: homeassistant
+    # name: ${name}_fake_power_feedback
+    # entity_id: sensor.pvbrain2_pvbrain2_pzem_router_power
+    # id: fake_power_feedback    
+
+  # - platform: pzemac
+    # address: 1
+    # power:
+      # name: puissance
+      # unit_of_measurement: W
+      # accuracy_decimals: 1
+      # id: pzem_power
+    # id: pzem_id
+    # modbus_id: modbus2
+
+  # - platform: victron_smart_shunt
+    # battery_voltage:
+      # name: smartshunt_battery_voltage
+      # id: smartshunt_battery_voltage
+      
+    # battery_current:
+      # name: smartshunt_battery_current
+      # id: smartshunt_battery_current
+  
+
+switch:
+  - platform: bioffsr
+    offsr_id: my_bioffsr
+    activation: 
+      name: ${name}_activation
+      id: activation
+    manual_override: 
+      name: ${name}_manual_override
+      id: manual_override
+    pid_mode: 
+      name: ${name}_pid_mode
+      id: pid_mode
+          
+number:
+  - platform: bioffsr
+    offsr_id: my_bioffsr
+    charging_setpoint: 
+      name: ${name}_charging_setpoint
+    absorbing_setpoint: 
+      name: ${name}_absorbing_setpoint
+    floating_setpoint: 
+      name: ${name}_floating_setpoint
+    starting_battery_voltage: 
+      name: ${name}_starting_battery_voltage
+    charged_battery_voltage: 
+      name: ${name}_charged_battery_voltage
+    discharged_battery_voltage: 
+      name: ${name}_discharged_battery_voltage
+    kp: 
+      name: ${name}_kp
+    ki: 
+      name: ${name}_ki
+    kd: 
+      name: ${name}_kd
+    output_min: 
+      name: ${name}_output_min
+    output_max: 
+      name: ${name}_output_max
+    output_restart: 
+      name: ${name}_output_restart
+
+  - platform: template
+    name: ${name}_fake_output_number  
+    id: fake_output_number
+    optimistic: true
+    icon: mdi:numeric
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.05
+    mode: 'slider'
+    initial_value: 0.0
+    restore_value: true
+    on_value:
+       then:
+         - output.set_level:
+             id: fakeoutput
+             level: !lambda 'return x;'
+
+  - platform: template
+    name: ${name}_fake_battery_current_number  
+    id: fake_battery_current_number
+    optimistic: true
+    unit_of_measurement: 'A'
+    icon: mdi:current-dc
+    min_value: -10
+    max_value: 30
+    step: 0.4
+    mode: 'slider'
+    initial_value: 12
+    restore_value: true
+    on_value:
+       then:
+         - sensor.template.publish:
+             id: fake_battery_current
+             state: !lambda 'return x;'
+             
+  - platform: template
+    name: ${name}_fake_battery_voltage_number  
+    id: fake_battery_voltage_number
+    optimistic: true
+    unit_of_measurement: 'V'
+    icon: mdi:sine-wave
+    min_value: 53.0
+    max_value: 57.0
+    step: 0.2
+    mode: 'slider'
+    initial_value: 54.0
+    restore_value: true
+    on_value:
+       then:
+         - sensor.template.publish:
+             id: fake_battery_voltage
+             state: !lambda 'return x;'
+             
+  - platform: template
+    name: ${name}_fake_power_feedback_number  
+    id: fake_power_feedback_number
+    optimistic: true
+    unit_of_measurement: 'W'
+    icon: mdi:sine-wave
+    min_value: 0
+    max_value: 3200
+    step: 100
+    mode: 'slider'
+    initial_value: 300
+    restore_value: true
+    on_value:
+       then:
+         - sensor.template.publish:
+             id: fake_power_feedback
+             state: !lambda 'return x;'
