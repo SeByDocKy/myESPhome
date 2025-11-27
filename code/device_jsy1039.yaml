@@ -59,7 +59,6 @@ sensor:
       id: ${powermeter_name}_neg_energy
       accuracy_decimals: 1
 
-
   - platform: template
     name: ${name}_${powermeter_name}_pos_power
     id: ${powermeter_name}_pos_power
@@ -130,5 +129,3 @@ sensor:
     update_interval: ${powermeter_template_update}
     lambda: |-
       return (id(${powermeter_name}_neg_energy_yesterday).state = id(${powermeter_name}_neg_energy_yesterday_global));
-
-
