@@ -81,18 +81,19 @@ async def to_code(config):
         await cg.register_parented(s, bioffsr_component)
         cg.add(bioffsr_component.set_pid_mode_switch(s)) 
         
-    if output1_enable_config := config.get(CONF_OUTPUT1_ACTIVATION):
+    if output1_enable_config := config.get(CONF_OUTPUT1_ENABLE):
         s = await switch.new_switch(output1_enable_config)
         await cg.register_component(s, output1_enable_config)
         await cg.register_parented(s, bioffsr_component)
         cg.add(bioffsr_component.set_output1_enable_switch(s))
      
-    if output2_enable_config := config.get(CONF_OUTPUT2_ACTIVATION):
+    if output2_enable_config := config.get(CONF_OUTPUT2_ENABLE):
         s = await switch.new_switch(output2_enable_config)
         await cg.register_component(s, output2_enable_config)
         await cg.register_parented(s, bioffsr_component)
         cg.add(bioffsr_component.set_output2_enable_switch(s))   
   
+
 
 
 
