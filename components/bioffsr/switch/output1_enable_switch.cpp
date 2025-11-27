@@ -1,4 +1,4 @@
-#include "output1_activation_switch.h"
+#include "output1_enable_switch.h"
 
 namespace esphome {
 namespace bioffsr {
@@ -19,6 +19,7 @@ void Output1EnableSwitch::write_state(bool state) {
 
 }  // namespace bioffsr
 }  // namespace esphome
+
 
 
 
