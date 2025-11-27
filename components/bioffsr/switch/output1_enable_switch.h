@@ -6,7 +6,7 @@
 namespace esphome {
 namespace bioffsr {
 
-class Output1ActivationSwitch : public switch_::Switch, public Component, public Parented<BIOFFSRComponent> {
+class Output1EnableSwitch : public switch_::Switch, public Component, public Parented<BIOFFSRComponent> {
  public:
   void setup() override;
 
@@ -17,5 +17,6 @@ class Output1ActivationSwitch : public switch_::Switch, public Component, public
 
 }  // namespace bioffsr
 }  // namespace esphome
+
 
 
