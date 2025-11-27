@@ -2,7 +2,7 @@
 #include "esphome/core/log.h"
 
 namespace esphome {
-namespace offsr {
+namespace bioffsr {
 
 static const char *const TAG = "offsr";
 static const float coeffP = 0.001f;
@@ -168,6 +168,7 @@ void BIOFFSRComponent::pid_update() {
 
  }  // namespace bioffsr
 }  // namespace esphome
+
 
 
 
