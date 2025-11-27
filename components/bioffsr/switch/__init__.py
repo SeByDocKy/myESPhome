@@ -53,7 +53,6 @@ CONFIG_SCHEMA = {
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
-    ,
     cv.Optional(CONF_OUTPUT2_ACTIVATION): switch.switch_schema(
         Output2ActivationSwitch,
         device_class=DEVICE_CLASS_SWITCH,
@@ -94,4 +93,5 @@ async def to_code(config):
         await cg.register_parented(s, bioffsr_component)
         cg.add(bioffsr_component.set_output2_activation_switch(s))   
   
+
 
