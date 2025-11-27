@@ -3,7 +3,7 @@
 namespace esphome {
 namespace bioffsr {
 	
-void Output1ActivationSwitch::setup() {
+void Output1EnableSwitch::setup() {
   bool state;
   this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
   if (!this->pref_.load(&state)) state = this->parent_->get_output1_enable();
@@ -11,7 +11,7 @@ void Output1ActivationSwitch::setup() {
   this->parent_->set_output1_enable(state);
 }
 
-void Output1ActivationSwitch::write_state(bool state) {
+void Output1EnableSwitch::write_state(bool state) {
   this->publish_state(state);
   this->parent_->set_output1_enable(state);
   this->pref_.save(&state);
@@ -19,5 +19,6 @@ void Output1ActivationSwitch::write_state(bool state) {
 
 }  // namespace bioffsr
 }  // namespace esphome
+
 
 
