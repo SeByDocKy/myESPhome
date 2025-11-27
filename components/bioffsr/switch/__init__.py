@@ -1,4 +1,4 @@
-bimport esphome.codegen as cg
+import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import switch
 from esphome.const import (
@@ -93,6 +93,7 @@ async def to_code(config):
         await cg.register_parented(s, bioffsr_component)
         cg.add(bioffsr_component.set_output2_enable_switch(s))   
   
+
 
 
 
