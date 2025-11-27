@@ -4,7 +4,7 @@
 #include "esphome/components/sensor/sensor.h"
 
 namespace esphome {
-namespace offsr {
+namespace bioffsr {
 
 class BIOFFSRSensor : public Component, public Parented<BIOFFSRComponent> {
  public:
@@ -26,4 +26,5 @@ class BIOFFSRSensor : public Component, public Parented<BIOFFSRComponent> {
 };	
 	
 } // bioffsr
+
 } // esphome
