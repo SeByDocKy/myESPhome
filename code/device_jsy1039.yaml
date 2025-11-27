@@ -43,7 +43,7 @@ sensor:
     power:
       name: ${name}_${powermeter_name}_power
       id: ${powermeter_name}_power
-      accuracy_decimals: 2
+      accuracy_decimals: 1
     frequency:
       name: ${name}_${powermeter_name}_frequency
       accuracy_decimals: 1
@@ -129,4 +129,5 @@ sensor:
     update_interval: ${powermeter_template_update}
     lambda: |-
       return (id(${powermeter_name}_neg_energy_yesterday).state = id(${powermeter_name}_neg_energy_yesterday_global));
+
 
