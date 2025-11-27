@@ -39,7 +39,7 @@ void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
     float power_factor = static_cast<float>(jsy1039_get_16bit(14))/1000.0f;   // max 65.535
     float frequency = static_cast<float>(jsy1039_get_16bit(16))/100.0f;  // max 655.35 Hz
   
-    ESP_LOGVV(TAG, "modbus address=%d, V=%.1f V, I=%.3f A, P=%.1f W, E+=%.1f kWh , E-=%.1f kWh, F=%.1f Hz, PF=%.2f", int(this->address_), voltage, current, power, pos_energy, neg_energy, frequency, power_factor);
+    ESP_LOGVV(TAG, "modbus address=%d, V=%.1f V, I=%.3f A, P=%2.1f W, E+=%.1f kWh , E-=%.1f kWh, F=%.1f Hz, PF=%.2f", int(this->address_), voltage, current, power, pos_energy, neg_energy, frequency, power_factor);
 
     if (this->voltage_sensor_ != nullptr)
       this->voltage_sensor_->publish_state(voltage);
