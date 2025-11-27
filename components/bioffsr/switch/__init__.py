@@ -49,12 +49,12 @@ CONFIG_SCHEMA = {
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_OUTPUT1_ENABLE): switch.switch_schema(
-        Output1ActivationSwitch,
+        Output1EnableSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_OUTPUT2_ENABLE): switch.switch_schema(
-        Output2ActivationSwitch,
+        Output2EnableSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
@@ -93,6 +93,7 @@ async def to_code(config):
         await cg.register_parented(s, bioffsr_component)
         cg.add(bioffsr_component.set_output2_enable_switch(s))   
   
+
 
 
 
