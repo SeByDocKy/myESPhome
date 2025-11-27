@@ -11,7 +11,7 @@ static const float coeffD = 0.001f;
 static const float power_mini = 2.0f;
 
 void OFFSRComponent::setup() { 
-  ESP_LOGCONFIG(TAG, "Setting up OFFSRComponent...");
+  ESP_LOGCONFIG(TAG, "Setting up OFFSR component...");
   
   this->last_time_ =  millis();
   this->integral_  = 0.0f;
@@ -159,9 +159,9 @@ void OFFSRComponent::pid_update() {
 #endif  
   
  }
-
  }  // namespace offsr
 }  // namespace esphome
+
 
 
 
