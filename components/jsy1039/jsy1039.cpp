@@ -33,7 +33,7 @@ void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
   if (this->read_data_ == 1){
     float voltage = static_cast<float>(jsy1039_get_16bit(0))/100.0f;  // max 655.35 V
     float current = static_cast<float>(jsy1039_get_16bit(2))/100.0f;
-    float power   = static_cast<float>(jsy1039_get_16bit(4));  //  /100.0f  min 65535 W max 65535 W
+    float power   = static_cast<float>(jsy1039_get_16bit(4))*10;  //  /100.0f  min 65535 W max 65535 W
     float pos_energy = static_cast<float>(jsy1039_get_32bit(6))/100.0f; // max 42 949 673 kWh
     float neg_energy = static_cast<float>(jsy1039_get_32bit(10))/100.0f; // max 42 949 673 kWh
     float power_factor = static_cast<float>(jsy1039_get_16bit(14))/1000.0f;   // max 65.535
