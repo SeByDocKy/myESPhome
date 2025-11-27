@@ -98,13 +98,13 @@ bioffsr:
     
 binary_sensor:
   - platform: bioffsr
-    offsr_id: my_bioffsr
+    bioffsr_id: my_bioffsr
     thermostat_cut: 
       name: thermostat_cut
       
 sensor:
   - platform: bioffsr
-    offsr_id: my_bioffsr
+    bioffsr_id: my_bioffsr
     error: 
       name: ${name}_regulation_error    
     output: 
@@ -169,7 +169,7 @@ sensor:
 
 switch:
   - platform: bioffsr
-    offsr_id: my_bioffsr
+    bioffsr_id: my_bioffsr
     activation: 
       name: ${name}_activation
       id: activation
@@ -179,10 +179,16 @@ switch:
     pid_mode: 
       name: ${name}_pid_mode
       id: pid_mode
+    output1_enable:
+      name: ${name}_output1_enable
+      id: output1_enable
+    output2_enable:
+      name: ${name}_output2_enable
+      id: output2_enable  
           
 number:
   - platform: bioffsr
-    offsr_id: my_bioffsr
+    bioffsr_id: my_bioffsr
     charging_setpoint: 
       name: ${name}_charging_setpoint
     absorbing_setpoint: 
