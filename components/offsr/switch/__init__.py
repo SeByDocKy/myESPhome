@@ -11,8 +11,6 @@ DEPENDENCIES = ["offsr"]
 
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
-# OFFSRSwitch = offsr_ns.class_("OFFSRSwitch", switch.Switch)
-
 ActivationSwitch = offsr_ns.class_("ActivationSwitch", switch.Switch, cg.Component)
 ManualOverrideSwitch = offsr_ns.class_("ManualOverrideSwitch", switch.Switch, cg.Component)
 PidModeSwitch = offsr_ns.class_("PidModeSwitch", switch.Switch, cg.Component)
@@ -41,7 +39,7 @@ CONFIG_SCHEMA = {
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
-     cv.Optional(CONF_REVERSE): switch.switch_schema(
+    cv.Optional(CONF_REVERSE): switch.switch_schema(
         ReverseSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
@@ -75,4 +73,5 @@ async def to_code(config):
         await cg.register_parented(s, offsr_component)
         cg.add(offsr_component.set_reverse_switch(s)) 
   
+
 
