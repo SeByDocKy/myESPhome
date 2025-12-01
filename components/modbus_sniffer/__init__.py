@@ -4,7 +4,7 @@ from esphome.components import uart
 from esphome.const import CONF_ID, CONF_ADDRESS
 
 DEPENDENCIES = ['uart']
-AUTO_LOAD = ['sensor']
+AUTO_LOAD = ['sensor', 'binary_sensor']
 CODEOWNERS = ['@yourusername']
 MULTI_CONF = True
 

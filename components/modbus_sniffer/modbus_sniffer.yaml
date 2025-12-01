@@ -120,4 +120,26 @@ sensor:
     # unit_of_measurement: "A"
     # accuracy_decimals: 3
     # device_class: current
-    # state_class: measurement
+    # state_class: 
+    
+    
+# Binary Sensors Modbus
+binary_sensor:
+  # Exemple 1: Vérifier un bit spécifique (bit 0)
+  - platform: modbus_sniffer
+    modbus_sniffer_id: my_sniffer
+    name: ${name}_relay_1_status
+    id: relay1
+    address: 0x0600
+    bitmask: 0x0001  # Bit 0
+    register_type: holding
+
+  # # Exemple 2: Vérifier bit 3
+  # - platform: modbus_sniffer
+    # modbus_sniffer_id: my_sniffer
+    # name: "Alarm Active"
+    # id: alarm
+    # address: 0x0601
+    # bitmask: 0x0008  # Bit 3 (0x0008 = 0b0000000000001000)
+    # register_type: holding
+    # device_class: problem    

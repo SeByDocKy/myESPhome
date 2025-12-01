@@ -9,6 +9,7 @@ namespace modbus_sniffer {
 
 // Forward declaration
 class ModbusSnifferSensor;
+class ModbusSnifferBinarySensor;
 
 enum ModbusFunction {
   READ_COILS = 0x01,
@@ -45,6 +46,7 @@ class ModbusSnifferHub : public Component, public uart::UARTDevice {
   
   // Enregistrement des sensors
   void register_sensor(ModbusSnifferSensor *sensor);
+  void register_binary_sensor(ModbusSnifferBinarySensor *sensor);
   
   // Méthode pour permettre aux sensors de récupérer les données
   bool get_register_data(uint16_t address, uint8_t count, RegisterType type, std::vector<uint8_t> &out_data);
@@ -59,6 +61,7 @@ class ModbusSnifferHub : public Component, public uart::UARTDevice {
   
   // Liste des sensors enregistrés
   std::vector<ModbusSnifferSensor*> sensors_;
+  std::vector<ModbusSnifferBinarySensor*> binary_sensors_;
   
   // Dernière requête capturée
   uint8_t last_request_slave_{0};

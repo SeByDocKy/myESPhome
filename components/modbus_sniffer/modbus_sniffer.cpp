@@ -1,5 +1,6 @@
 #include "modbus_sniffer.h"
 #include "sensor/modbus_sniffer_sensor.h"
+#include "binary_sensor/modbus_sniffer_binary_sensor.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -17,11 +18,18 @@ void ModbusSnifferHub::dump_config() {
     ESP_LOGCONFIG(TAG, "  Slave Address Filter: 0x%02X", slave_address_);
   }
   ESP_LOGCONFIG(TAG, "  Registered Sensors: %d", sensors_.size());
+  ESP_LOGCONFIG(TAG, "  Registered Binary Sensors: %d", binary_sensors_.size());
 }
 
 void ModbusSnifferHub::register_sensor(ModbusSnifferSensor *sensor) {
   sensors_.push_back(sensor);
   ESP_LOGD(TAG, "Registered sensor at address 0x%04X", sensor->get_register_address());
+}
+
+void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor) {
+  binary_sensors_.push_back(sensor);
+  ESP_LOGD(TAG, "Registered binary sensor at address 0x%04X with bitmask 0x%04X", 
+           sensor->get_register_address(), sensor->get_bitmask());
 }
 
 void ModbusSnifferHub::loop() {
@@ -197,6 +205,7 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
                                       RegisterType type) {
   uint16_t reg_count = data.size() / 2; // Nombre de registres 16-bit
   
+  // Notifier les sensors normaux
   for (auto *sensor : sensors_) {
     if (sensor->get_register_type() != type) {
       continue;
@@ -214,6 +223,27 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
         std::vector<uint8_t> sensor_data(data.begin() + offset, 
                                          data.begin() + offset + sensor_count * 2);
         sensor->process_data(sensor_addr, sensor_data);
+      }
+    }
+  }
+  
+  // Notifier les binary sensors
+  for (auto *binary_sensor : binary_sensors_) {
+    if (binary_sensor->get_register_type() != type) {
+      continue;
+    }
+    
+    uint16_t sensor_addr = binary_sensor->get_register_address();
+    
+    // Vérifier si le registre du binary sensor est dans cette réponse
+    if (sensor_addr >= reg_addr && sensor_addr < (reg_addr + reg_count)) {
+      uint16_t offset = (sensor_addr - reg_addr) * 2; // Offset en bytes
+      
+      // Vérifier qu'on a assez de données (2 bytes = 1 registre)
+      if ((offset + 2) <= data.size()) {
+        std::vector<uint8_t> sensor_data(data.begin() + offset, 
+                                         data.begin() + offset + 2);
+        binary_sensor->process_data(sensor_addr, sensor_data);
       }
     }
   }
