@@ -71,7 +71,7 @@ sensor:
   # # Exemple 2: Lecture d'un registre 16 bits signé
   # - platform: modbus_sniffer
     # modbus_sniffer_id: my_sniffer
-    # name: "Temperature"
+    # name: ${name}_temperature
     # id: temperature
     # address: 0x0200
     # value_type: S_WORD
@@ -86,7 +86,7 @@ sensor:
   # # Exemple 3: Lecture d'un registre 32 bits (2 registres consécutifs)
   # - platform: modbus_sniffer
     # modbus_sniffer_id: my_sniffer
-    # name: "Energy Total"
+    # name: ${name}_energy_total
     # id: energy
     # address: 0x0300
     # value_type: U_DWORD  # 32-bit unsigned
@@ -99,7 +99,7 @@ sensor:
   # # Exemple 4: Lecture d'un float 32 bits
   # - platform: modbus_sniffer
     # modbus_sniffer_id: my_sniffer
-    # name: "Voltage"
+    # name: ${name}_voltage
     # id: voltage
     # address: 0x0400
     # value_type: FP32  # Float 32-bit
@@ -112,7 +112,7 @@ sensor:
   # # Exemple 5: Float 32 bits avec registres inversés
   # - platform: modbus_sniffer
     # modbus_sniffer_id: my_sniffer
-    # name: "Current"
+    # name: ${name}_current
     # id: current
     # address: 0x0500
     # value_type: FP32_R  # Float 32-bit reversed (low word first)
@@ -137,7 +137,7 @@ binary_sensor:
   # # Exemple 2: Vérifier bit 3
   # - platform: modbus_sniffer
     # modbus_sniffer_id: my_sniffer
-    # name: "Alarm Active"
+    # name: ${name}_alarm_active
     # id: alarm
     # address: 0x0601
     # bitmask: 0x0008  # Bit 3 (0x0008 = 0b0000000000001000)
