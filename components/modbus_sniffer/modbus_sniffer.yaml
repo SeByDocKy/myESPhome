@@ -13,6 +13,7 @@ api:
 logger:
   level: DEBUG
 ota:
+  - platform: esphome
 
 # Configuration UART pour le bus Modbus
 uart:
@@ -26,10 +27,9 @@ uart:
 
 # Composant externe
 external_components:
-  - source:
-      type: local
-      path: custom_components
-    components: [ modbus_sniffer ]
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [modbus_sniffer]
+    refresh: 0s
 
 # Hub Modbus Sniffer
 modbus_sniffer:
