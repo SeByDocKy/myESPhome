@@ -1,4 +1,5 @@
 #include "modbus_sniffer.h"
+#include "sensor/modbus_sniffer_sensor.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
