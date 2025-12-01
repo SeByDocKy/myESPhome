@@ -187,11 +187,13 @@ void DUALPIDComponent::pid_update() {
 	  
     if (this->r48_general_switch_ != nullptr) {
  	 if((this->output_charging_ >= this->current_output_min_charging_) & (this->r48_general_switch_->state==false)){
-       this->r48_general_switch_->control(true);
+       # this->r48_general_switch_->control(true);
+	   this->r48_general_switch_->turn_on();	 
 	   this->r48_general_switch_->publish_state(true);	
      }
 	 else if  ((this->output_discharging_ >= this->current_output_min_discharging_) & (this->r48_general_switch_->state==true)){
-       this->r48_general_switch_->control(false);
+       # this->r48_general_switch_->control(false);
+	   this->r48_general_switch_->turn_off();	 
 	   this->r48_general_switch_->publish_state(false);
 	 }
     }
@@ -232,6 +234,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
