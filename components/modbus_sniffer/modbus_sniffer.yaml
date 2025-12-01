@@ -48,9 +48,10 @@ sensor:
     value_type: U_WORD
     register_type: holding
     unit_of_measurement: "W"
-    accuracy_decimals: 0
+    accuracy_decimals: 1
     device_class: power
     state_class: measurement
+    icon: mdi:power
 
   # Exemple 2: Lecture d'un registre 16 bits signé
   - platform: modbus_sniffer
