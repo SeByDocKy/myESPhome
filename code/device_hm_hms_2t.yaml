@@ -74,6 +74,7 @@ hm_hms_inverter:
           name: ${name}_${hm_hms_inverter_name}_temperature
         power:
           name: ${name}_${hm_hms_inverter_name}_inverter_power
+          id: ${hm_hms_inverter_name}_inverter_power
         energy: # Today's Energy in Wh
           name: ${name}_${hm_hms_inverter_name}_inverter_energy_today
           device_class: energy
@@ -81,5 +82,6 @@ hm_hms_inverter:
           unit_of_measurement: 'kWh'
           filters: 
             - multiply: 0.001
+
 
 
