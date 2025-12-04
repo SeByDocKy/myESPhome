@@ -119,6 +119,7 @@ hm_inverter:
           name: ${name}_${hm_inverter_name}_temperature
         power:
           name: ${name}_${hm_inverter_name}_inverter_power
+          id: ${hm_inverter_name}_inverter_power
         energy: # Today's Energy in Wh
           name: ${name}_${hm_inverter_name}_inverter_energy_today
           device_class: energy
@@ -150,3 +151,4 @@ sensor:
     # update_interval: ${hms_inverter_template_update}
     lambda: |-
       return (id(${hm_inverter_name}_energy_yesterday).state = id(${hm_inverter_name}_energy_yesterday_global));
+
