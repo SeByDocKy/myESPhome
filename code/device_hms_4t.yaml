@@ -91,7 +91,6 @@ hms_inverter:
               - multiply: 0.001
         - power:
             name: ${name}_${hms_inverter_name}_pv3_power
-            id: ${hms_inverter_name}_inverter_power
           current: # Current in A
             name: ${name}_${hms_inverter_name}_pv3_current
             icon: mdi:current-dc
@@ -119,6 +118,7 @@ hms_inverter:
           name: ${name}_${hms_inverter_name}_temperature
         power:
           name: ${name}_${hms_inverter_name}_inverter_power
+          id: ${hms_inverter_name}_inverter_power
         energy: # Today's Energy in Wh
           name: ${name}_${hms_inverter_name}_inverter_energy_today
           device_class: energy
@@ -150,5 +150,6 @@ sensor:
     # update_interval: ${hms_inverter_template_update}
     lambda: |-
       return (id(${hms_inverter_name}_energy_yesterday).state = id(${hms_inverter_name}_energy_yesterday_global));
+
 
 
