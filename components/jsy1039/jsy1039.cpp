@@ -33,12 +33,12 @@ void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
   if (this->read_data_ == 1){
     float voltage = static_cast<float>(jsy1039_get_16bit(0))/100.0f;  // max 655.35 V
     float current = static_cast<float>(jsy1039_get_16bit(2))/100.0f;
-    // float power   = static_cast<float>(jsy1039_get_16bit(4))*10.0f;  //   10W of precision, better to collect power with voltage, current and power_factor
+    float power   = static_cast<float>(jsy1039_get_16bit(4))*10.0f;  //   10W of precision, better to collect power with voltage, current and power_factor
     float pos_energy = static_cast<float>(jsy1039_get_32bit(6))/100.0f; // max 42 949 673 kWh
     float neg_energy = static_cast<float>(jsy1039_get_32bit(10))/100.0f; // max 42 949 673 kWh
     float power_factor = static_cast<float>(jsy1039_get_16bit(14))/1000.0f;   // max 65.535
     float frequency = static_cast<float>(jsy1039_get_16bit(16))/100.0f;  // max 655.35 Hz
-	float power   = voltage*current*power_factor;
+	// float power   = voltage*current*power_factor;
   
     ESP_LOGVV(TAG, "modbus address=%d, V=%.1f V, I=%.3f A, P=%2.1f W, E+=%.1f kWh , E-=%.1f kWh, F=%.1f Hz, PF=%.2f", int(this->address_), voltage, current, power, pos_energy, neg_energy, frequency, power_factor);
 
