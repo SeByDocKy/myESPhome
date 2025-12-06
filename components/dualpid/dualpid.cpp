@@ -214,7 +214,7 @@ void DUALPIDComponent::pid_update() {
     this->device_charging_output_->set_level(this->output_charging_);          // send command to r48, must be in [0.0 - 1.0] //
 	this->device_discharging_output_->set_level(this->output_discharging_);    // send command to HMS, must be in [0.0 - 1.0] //
 	
-	this->current_output_             = this->output_;
+	this->current_output_             = this->output_;  // must be in [0.0 - 1.0] //
 	this->current_output_charging_    = this->output_charging_;
 	  
 #ifdef USE_BINARY_SENSOR
@@ -234,6 +234,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
