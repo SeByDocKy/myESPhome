@@ -45,7 +45,7 @@ hm_hms_inverter:
       reachable: # Binary Sensor
         name: ${name}_${hm_hms_inverter_name}_reachable
         id: ${hm_hms_inverter_name}_reachable
-       producing: # Binary Sensor
+      producing: # Binary Sensor
         name: ${name}_${hm_hms_inverter_name}_producing
         id: ${hm_hms_inverter_name}_producing  
       dc_channels:
@@ -124,6 +124,7 @@ sensor:
     # update_interval: ${hms_inverter_template_update}
     lambda: |-
       return (id(${hm_hms_inverter_name}_energy_yesterday).state = id(${hm_hms_inverter_name}_energy_yesterday_global));
+
 
 
 
