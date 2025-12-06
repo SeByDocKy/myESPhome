@@ -105,6 +105,8 @@ void MINIPIDComponent::pid_update() {
 #endif  
 
     ESP_LOGVV(TAG, "Final computed output=%1.6f" , this->output_);
+
+	/// Output must be in [0.0 - 1.0] ////
 	
     this->device_output_->set_level(this->output_);
 	this->current_output_ = this->output_;
@@ -118,6 +120,7 @@ void MINIPIDComponent::pid_update() {
 
  }  // namespace minipid
 }  // namespace esphome
+
 
 
 
