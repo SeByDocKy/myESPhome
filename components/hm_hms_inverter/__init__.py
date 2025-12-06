@@ -212,8 +212,8 @@ async def to_code(config):
     cg.add_build_flag("-std=c++17")
     cg.add_build_flag("-std=gnu++17")
     cg.add_build_flag("-fexceptions")
-    cg.add_build_flag("-D_TASK_STD_FUNCTION=1")
-    cg.add_build_flag("-D_TASK_THREAD_SAFE=1")
+    # cg.add_build_flag("-D_TASK_STD_FUNCTION=1")
+    # cg.add_build_flag("-D_TASK_THREAD_SAFE=1")
     # cg.add_build_flag("-Wall -Wextra -Wunused -Wmisleading-indentation -Wduplicated-cond -Wlogical-op -Wnull-dereference")
     
     
@@ -307,6 +307,7 @@ async def to_code(config):
     cg.add(var.set_nrf_cs(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_CS])))
     cg.add(var.set_nrf_en(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_EN])))
     cg.add(var.set_nrf_irq(await cg.gpio_pin_expression(config[CONF_PINS][CONF_NRF_IRQ])))
+
 
 
 
