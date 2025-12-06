@@ -218,14 +218,14 @@ SUB_NUMBER(output_max_discharging)
   float current_ki_discharging_ = 0.0f;
   float current_kd_discharging_ = 0.0f;  
   
-  float current_output_max_ = 1.0f;
+  float current_output_max_ = 100.0f;
   float current_output_min_ = 0.0f;
 
-  float current_output_max_charging_ = 1.0f;
-  float current_output_min_charging_ = 0.02f;
+  float current_output_max_charging_ = 100.0f;
+  float current_output_min_charging_ = 2.0f;
 
-  float current_output_max_discharging_ = 1.0f;
-  float current_output_min_discharging_ = 0.05f;
+  float current_output_max_discharging_ = 100.0f;
+  float current_output_min_discharging_ = 5.0f;
 
 #endif
 
@@ -233,6 +233,7 @@ SUB_NUMBER(output_max_discharging)
 		
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
