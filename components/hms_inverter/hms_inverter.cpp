@@ -89,7 +89,7 @@ void HmsInverter::doretart(){
 
 void HmsInverter::write_float(float value){
      if (value != NULL){ //NAN
-       this->inverter_->sendActivePowerControlRequest(value*100, PowerLimitControlType::RelativNonPersistent);
+       this->inverter_->sendActivePowerControlRequest(value*100.0f, PowerLimitControlType::RelativNonPersistent);
        this->active_ = true;
      }
 }
