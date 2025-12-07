@@ -14,7 +14,7 @@ void DUALPIDComponent::setup() {
   
   this->last_time_ =  millis();
   this->integral_  = 0.0f;
-  this->previous_output_ = 0.0f;
+  this->previous_output_ = this->current_epoint_;
   this->previous_error_ = 0.0f;
   
   if (this->input_sensor_ != nullptr) {
@@ -138,9 +138,9 @@ void DUALPIDComponent::pid_update() {
 	
     ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);  
 
-    this->last_time_       = now;
-    this->previous_error_  = this->error_;
-    this->previous_output_ = this->output_;
+    // this->last_time_       = now;
+    // this->previous_error_  = this->error_;
+    // this->previous_output_ = this->output_;
     
 	ESP_LOGI(TAG, "activation %d", this->current_activation_);
 
@@ -225,6 +225,10 @@ void DUALPIDComponent::pid_update() {
 	}
 #endif
     this->pid_computed_callback_.call();
+
+    this->last_time_       = now;
+    this->previous_error_  = this->error_;
+    this->previous_output_ = this->output_;
 	  
 #ifdef USE_SWITCH	
   } 
@@ -234,6 +238,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
