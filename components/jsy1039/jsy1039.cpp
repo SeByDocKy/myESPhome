@@ -18,6 +18,7 @@ void JSY1039::setup() {
 }
 
 void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
+  
   if ((this->read_data_ == 1) & (data.size() < JSY1039_REGISTER_DATA_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY1039 data!");
     return;
@@ -29,11 +30,15 @@ void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
   auto jsy1039_get_32bit = [&](size_t i) -> uint32_t {
     return (uint32_t(jsy1039_get_16bit(i + 0)) << 16) | (uint32_t(jsy1039_get_16bit(i + 2)) << 0);
   };
- 
+	
   if (this->read_data_ == 1){
     float voltage = static_cast<float>(jsy1039_get_16bit(0))/100.0f;  // max 655.35 V
-    float current = static_cast<float>(jsy1039_get_16bit(2))/100.0f;
-    float power   = static_cast<float>(jsy1039_get_16bit(4))*10.0f;  //   10W of precision, better to collect power with voltage, current and power_factor
+	
+	uint16_t raw_current = jsy1039_get_16bit(2);
+	uint8_t signe = (raw_current >> 15) & 0x01;
+	float current = static_cast<float>(raw_current & 0x7FFF)/100.0f;  
+    // float current = static_cast<float>(jsy1039_get_16bit(2))/100.0f;
+    float power   = static_cast<float>(jsy1039_get_16bit(4))*10.0f*float(signe);  //   10W of precision, better to collect power with voltage, current and power_factor
     float pos_energy = static_cast<float>(jsy1039_get_32bit(6))/100.0f; // max 42 949 673 kWh
     float neg_energy = static_cast<float>(jsy1039_get_32bit(10))/100.0f; // max 42 949 673 kWh
     float power_factor = static_cast<float>(jsy1039_get_16bit(14))/1000.0f;   // max 65.535
