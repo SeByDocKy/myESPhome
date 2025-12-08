@@ -37,18 +37,17 @@ void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
 	
 	int16_t raw_current = jsy1039_get_16bit(2);
 	if ((raw_current >> 15) & 0x01){
-		sign = -1.0f;}
+		sign = -1.0f;
+	}
 	else{
 		sign = 1.0f;
 	}
-	float current = static_cast<float>(raw_current)/100.0f;
-	// float current = static_cast<float>(raw_current & 0x7FFF)/100.0f;  
-    // float current = static_cast<float>(jsy1039_get_16bit(2))/100.0f;
-    float power   = static_cast<float>(jsy1039_get_16bit(4))*10.0f*sign;  //   10W of precision, better to collect power with voltage, current and power_factor
-    float pos_energy = static_cast<float>(jsy1039_get_32bit(6))/100.0f; // max 42 949 673 kWh
-    float neg_energy = static_cast<float>(jsy1039_get_32bit(10))/100.0f; // max 42 949 673 kWh
+	float current      = static_cast<float>(raw_current)/100.0f;
+    float power        = static_cast<float>(jsy1039_get_16bit(4))*10.0f*sign;  //   10W of precision, better to collect power with voltage, current and power_factor
+    float pos_energy   = static_cast<float>(jsy1039_get_32bit(6))/100.0f; // max 42 949 673 kWh
+    float neg_energy   = static_cast<float>(jsy1039_get_32bit(10))/100.0f; // max 42 949 673 kWh
     float power_factor = static_cast<float>(jsy1039_get_16bit(14))/1000.0f;   // max 65.535
-    float frequency = static_cast<float>(jsy1039_get_16bit(16))/100.0f;  // max 655.35 Hz
+    float frequency    = static_cast<float>(jsy1039_get_16bit(16))/100.0f;  // max 655.35 Hz
 	// float power   = voltage*current*power_factor;
   
     ESP_LOGVV(TAG, "modbus address=%d, V=%.1f V, I=%.3f A, P=%2.1f W, E+=%.1f kWh , E-=%.1f kWh, F=%.1f Hz, PF=%.2f", int(this->address_), voltage, current, power, pos_energy, neg_energy, frequency, power_factor);
