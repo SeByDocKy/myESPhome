@@ -173,7 +173,7 @@ SUB_NUMBER(output_restart)
   float current_absorbing_setpoint_ = 5.0f;
   float current_floating_setpoint_ = 0.0f;
   
-  float current_starting_battery_voltage_ = 53.5f;
+  float current_starting_battery_voltage_ = 53.0f;
   float current_charged_battery_voltage_ = 55.8f;
   float current_discharged_battery_voltage_ = 55.6f;
   
@@ -191,5 +191,6 @@ SUB_NUMBER(output_restart)
 
  }  // namespace bioffsr
 }  // namespace esphome
+
 
 
