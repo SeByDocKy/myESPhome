@@ -79,7 +79,7 @@ async def to_code(config):
   minipid_component = await cg.get_variable(config[CONF_MINIPID_ID])
   if setpoint_config := config.get(CONF_SETPOINT):
         n = await number.new_number(
-            setpoint_config, min_value=-200.0, max_value=200.0, step=1
+            setpoint_config, min_value=-4000.0, max_value=4000.0, step=10
         )
         await cg.register_component(n, setpoint_config)
         await cg.register_parented(n, minipid_component)
@@ -124,6 +124,7 @@ async def to_code(config):
         await cg.register_component(n, output_max_config)
         await cg.register_parented(n, minipid_component)
         cg.add(minipid_component.set_output_max_number(n))
+
 
 
 
