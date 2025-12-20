@@ -24,11 +24,12 @@ void ModbusSnifferHub::dump_config() {
   ESP_LOGCONFIG(TAG, "  Registered Sensors: %d", sensors_.size());
   ESP_LOGCONFIG(TAG, "  Registered Binary Sensors: %d", binary_sensors_.size());
 }
-
+#ifdef USE_SENSOR
 void ModbusSnifferHub::register_sensor(ModbusSnifferSensor *sensor) {
   sensors_.push_back(sensor);
   ESP_LOGD(TAG, "Registered sensor at address 0x%04X", sensor->get_register_address());
 }
+#endif
 #ifdef USE_BINARY_SENSOR
 void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor) {
   binary_sensors_.push_back(sensor);
@@ -209,7 +210,7 @@ void ModbusSnifferHub::process_read_response(uint8_t slave, uint8_t function,
 void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8_t> &data, 
                                       RegisterType type) {
   uint16_t reg_count = data.size() / 2; // Nombre de registres 16-bit
-  
+#ifdef USE_SENSOR  
   // Notifier les sensors normaux
   for (auto *sensor : sensors_) {
     if (sensor->get_register_type() != type) {
@@ -231,6 +232,7 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
       }
     }
   }
+#endif
 #ifdef USE_BINARY_SENSOR  
   // Notifier les binary sensors
   
