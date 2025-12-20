@@ -79,6 +79,7 @@ class ModbusSnifferHub : public Component, public uart::UARTDevice {
   
   // Méthodes de traitement des trames
   void process_frame();
+  bool is_frame_complete();
   uint16_t calculate_crc(const uint8_t *data, uint8_t len);
   bool verify_crc(const std::vector<uint8_t> &frame);
   void parse_modbus_frame(const std::vector<uint8_t> &frame);
