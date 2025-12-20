@@ -3,7 +3,7 @@
 #include "sensor/modbus_sniffer_sensor.h"
 #endif
 #ifdef USE_BINARY_SENSOR
-#include "binary_sensor/modbus_sniffer_binary_sensor.h
+#include "binary_sensor/modbus_sniffer_binary_sensor.h"
 #endif
 #include "esphome/core/log.h"
 
