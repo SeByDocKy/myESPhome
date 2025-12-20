@@ -39,6 +39,8 @@ void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor)
 #endif
 
 void ModbusSnifferHub::loop() {
+
+  const uint32_t now = millis();
   // Debug: vérifier périodiquement si available() fonctionne
   static uint32_t last_check = 0;
   if (now - last_check > 5000) {
