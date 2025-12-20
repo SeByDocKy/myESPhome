@@ -39,27 +39,56 @@ void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor)
 #endif
 
 void ModbusSnifferHub::loop() {
-  const uint32_t now = millis();
-  bool b;
+  // Debug: vérifier périodiquement si available() fonctionne
+  static uint32_t last_check = 0;
+  if (now - last_check > 5000) {
+    ESP_LOGV(TAG, "UART check - available: %s", available() ? "YES" : "NO");
+    last_check = now;
+  }
   
   // Lecture des données disponibles sur UART
-  b = available();
-  ESP_LOGCONFIG(TAG, "available %d", b);
   while (available()) {
     uint8_t byte;
-    read_byte(&byte);
+    if (!read_byte(&byte)) {
+      ESP_LOGW(TAG, "Failed to read byte from UART");
+      break;
+    }
     rx_buffer_.push_back(byte);
     last_byte_time_ = now;
+    
+    // Debug: logger les octets reçus
+    ESP_LOGVV(TAG, "RX byte: 0x%02X", byte);
   }
-
-  ESP_LOGCONFIG(TAG, "Buffer length %d", rx_buffer_.size());
-  // ESP_LOGI("Sniffer buffer length", "Buffer length %d " , rx_buffer_.length());
   
   // Détection de fin de trame (timeout Modbus)
   if (!rx_buffer_.empty() && (now - last_byte_time_) > MODBUS_FRAME_TIMEOUT) {
+    ESP_LOGD(TAG, "Frame timeout, processing %d bytes", rx_buffer_.size());
     process_frame();
     rx_buffer_.clear();
   }
+
+  
+  // const uint32_t now = millis();
+  // bool b;
+  
+  // // Lecture des données disponibles sur UART
+  // b = available();
+  // ESP_LOGCONFIG(TAG, "available %d", b);
+  // while (available()) {
+  //   uint8_t byte;
+  //   read_byte(&byte);
+  //   rx_buffer_.push_back(byte);
+  //   last_byte_time_ = now;
+  // }
+
+  // ESP_LOGCONFIG(TAG, "Buffer length %d", rx_buffer_.size());
+  // // ESP_LOGI("Sniffer buffer length", "Buffer length %d " , rx_buffer_.length());
+  
+  // // Détection de fin de trame (timeout Modbus)
+  // if (!rx_buffer_.empty() && (now - last_byte_time_) > MODBUS_FRAME_TIMEOUT) {
+  //   process_frame();
+  //   rx_buffer_.clear();
+  // }
 }
 
 void ModbusSnifferHub::process_frame() {
