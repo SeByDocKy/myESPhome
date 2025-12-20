@@ -49,6 +49,7 @@ void ModbusSnifferHub::loop() {
     last_byte_time_ = now;
   }
 
+  // ESP_LOGI("Sniffer", "Went in process_frame");
   
   // Détection de fin de trame (timeout Modbus)
   if (!rx_buffer_.empty() && (now - last_byte_time_) > MODBUS_FRAME_TIMEOUT) {
@@ -63,7 +64,7 @@ void ModbusSnifferHub::process_frame() {
     return;
   }
 
-   ESP_LOGI("Sniffer", "Went in process_frame");
+   
   
   // Vérification CRC
   if (!verify_crc(rx_buffer_)) {
