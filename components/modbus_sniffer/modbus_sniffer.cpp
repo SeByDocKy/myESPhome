@@ -212,6 +212,65 @@ void ModbusSnifferHub::parse_modbus_frame(const std::vector<uint8_t> &frame) {
   }
 }
 
+bool ModbusSnifferHub::is_frame_complete() {
+  // Besoin d'au moins 4 bytes pour analyser
+  if (rx_buffer_.size() < 4) {
+    return false;
+  }
+  
+  uint8_t function = rx_buffer_[1];
+  
+  // Gestion des erreurs Modbus (bit 7 = 1)
+  if (function & 0x80) {
+    // Erreur: Slave(1) + Func(1) + ErrorCode(1) + CRC(2) = 5 bytes
+    return rx_buffer_.size() >= 5;
+  }
+  
+  // Calcul de la longueur attendue selon la fonction
+  switch (function) {
+    case READ_HOLDING_REGISTERS:
+    case READ_INPUT_REGISTERS:
+      if (rx_buffer_.size() >= 3) {
+        // Vérifier si c'est une requête ou une réponse
+        // Requête: Slave + Func + Addr(2) + Count(2) + CRC(2) = 8 bytes
+        if (rx_buffer_.size() >= 8) {
+          // Pourrait être une requête complète
+          return true;
+        }
+        
+        // Réponse: Slave + Func + ByteCount + Data(N) + CRC(2)
+        uint8_t byte_count = rx_buffer_[2];
+        if (byte_count <= 250) {  // Valeur raisonnable pour un byte_count
+          size_t expected_length = 3 + byte_count + 2; // Slave + Func + ByteCount + Data + CRC
+          if (rx_buffer_.size() >= expected_length) {
+            return true;
+          }
+        }
+      }
+      return false;
+      
+    case WRITE_SINGLE_COIL:
+    case WRITE_SINGLE_REGISTER:
+      // Slave + Func + Addr(2) + Value(2) + CRC(2) = 8 bytes
+      return rx_buffer_.size() >= 8;
+      
+    case WRITE_MULTIPLE_COILS:
+    case WRITE_MULTIPLE_REGISTERS:
+      if (rx_buffer_.size() >= 7) {
+        uint8_t byte_count = rx_buffer_[6];
+        size_t expected_length = 7 + byte_count + 2;
+        if (rx_buffer_.size() >= expected_length) {
+          return true;
+        }
+      }
+      return false;
+      
+    default:
+      // Pour les autres fonctions, on attend le timeout
+      return false;
+  }
+}
+
 void ModbusSnifferHub::process_read_response(uint8_t slave, uint8_t function, 
                                              const std::vector<uint8_t> &frame) {
   uint8_t byte_count = frame[2];
