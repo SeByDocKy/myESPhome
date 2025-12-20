@@ -1,9 +1,14 @@
 #include "modbus_sniffer.h"
+#include "esphome/core/log.h"
+
+// Includes conditionnels pour les sous-composants
+#ifdef USE_SENSOR
 #include "sensor/modbus_sniffer_sensor.h"
+#endif
+
 #ifdef USE_BINARY_SENSOR
 #include "binary_sensor/modbus_sniffer_binary_sensor.h"
 #endif
-#include "esphome/core/log.h"
 
 namespace esphome {
 namespace modbus_sniffer {
@@ -36,16 +41,19 @@ void ModbusSnifferHub::dump_config() {
 }
 
 void ModbusSnifferHub::register_sensor(ModbusSnifferSensor *sensor) {
+#ifdef USE_SENSOR
   sensors_.push_back(sensor);
   ESP_LOGD(TAG, "Registered sensor at address 0x%04X", sensor->get_register_address());
+#endif
 }
-#ifdef USE_BINARY_SENSOR
+
 void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor) {
+#ifdef USE_BINARY_SENSOR
   binary_sensors_.push_back(sensor);
   ESP_LOGD(TAG, "Registered binary sensor at address 0x%04X with bitmask 0x%04X", 
            sensor->get_register_address(), sensor->get_bitmask());
-}
 #endif
+}
 
 void ModbusSnifferHub::loop() {
   const uint32_t now = millis();
@@ -250,6 +258,7 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
                                       RegisterType type) {
   uint16_t reg_count = data.size() / 2; // Nombre de registres 16-bit
   
+#ifdef USE_SENSOR
   // Notifier les sensors normaux
   for (auto *sensor : sensors_) {
     if (sensor->get_register_type() != type) {
@@ -271,7 +280,9 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
       }
     }
   }
-#ifdef USE_BINARY_SENSOR  
+#endif
+  
+#ifdef USE_BINARY_SENSOR
   // Notifier les binary sensors
   for (auto *binary_sensor : binary_sensors_) {
     if (binary_sensor->get_register_type() != type) {
