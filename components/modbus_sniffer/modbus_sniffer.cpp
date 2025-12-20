@@ -29,12 +29,13 @@ void ModbusSnifferHub::register_sensor(ModbusSnifferSensor *sensor) {
   sensors_.push_back(sensor);
   ESP_LOGD(TAG, "Registered sensor at address 0x%04X", sensor->get_register_address());
 }
-
+#ifdef USE_BINARY_SENSOR
 void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor) {
   binary_sensors_.push_back(sensor);
   ESP_LOGD(TAG, "Registered binary sensor at address 0x%04X with bitmask 0x%04X", 
            sensor->get_register_address(), sensor->get_bitmask());
 }
+#endif
 
 void ModbusSnifferHub::loop() {
   const uint32_t now = millis();
