@@ -36,8 +36,9 @@ void ModbusSnifferHub::dump_config() {
   ESP_LOGCONFIG(TAG, "  Registered Sensors: %d", sensors_.size());
   ESP_LOGCONFIG(TAG, "  Registered Binary Sensors: %d", binary_sensors_.size());
   
-  // Vérifier que l'UART est bien configuré
-  this->check_uart_settings();
+  // Vérifier la configuration UART (optionnel - peut être commenté)
+  // Les paramètres typiques Modbus RTU sont: 9600 baud, 1 stop bit, no parity
+  // this->check_uart_settings(9600, 1, uart::UART_CONFIG_PARITY_NONE, 8);
 }
 
 void ModbusSnifferHub::register_sensor(ModbusSnifferSensor *sensor) {
