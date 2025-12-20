@@ -49,7 +49,7 @@ void ModbusSnifferHub::loop() {
     last_byte_time_ = now;
   }
 
-  // ESP_LOGI("Sniffer", "Went in process_frame");
+  ESP_LOGI("Sniffer buffer length", "Buffer length %d " , rx_buffer_.length());
   
   // Détection de fin de trame (timeout Modbus)
   if (!rx_buffer_.empty() && (now - last_byte_time_) > MODBUS_FRAME_TIMEOUT) {
