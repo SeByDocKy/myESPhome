@@ -40,8 +40,11 @@ void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor)
 
 void ModbusSnifferHub::loop() {
   const uint32_t now = millis();
+  bool b;
   
   // Lecture des données disponibles sur UART
+  b = available();
+  ESP_LOGCONFIG(TAG, "available %d", b);
   while (available()) {
     uint8_t byte;
     read_byte(&byte);
