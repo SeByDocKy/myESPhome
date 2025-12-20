@@ -1,6 +1,8 @@
 #include "modbus_sniffer.h"
 #include "sensor/modbus_sniffer_sensor.h"
+#ifdef USE_BINARY_SENSOR
 #include "binary_sensor/modbus_sniffer_binary_sensor.h"
+#endif
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -268,7 +270,7 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
       }
     }
   }
-  
+#ifdef USE_BINARY_SENSOR  
   // Notifier les binary sensors
   for (auto *binary_sensor : binary_sensors_) {
     if (binary_sensor->get_register_type() != type) {
@@ -289,6 +291,7 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
       }
     }
   }
+#endif
 }
 
 bool ModbusSnifferHub::get_register_data(uint16_t address, uint8_t count, 
