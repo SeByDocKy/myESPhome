@@ -48,6 +48,8 @@ void ModbusSnifferHub::loop() {
     rx_buffer_.push_back(byte);
     last_byte_time_ = now;
   }
+
+  ESPLOGI("Sniffer", "Went here");
   
   // Détection de fin de trame (timeout Modbus)
   if (!rx_buffer_.empty() && (now - last_byte_time_) > MODBUS_FRAME_TIMEOUT) {
@@ -210,7 +212,7 @@ void ModbusSnifferHub::process_read_response(uint8_t slave, uint8_t function,
 void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8_t> &data, 
                                       RegisterType type) {
   uint16_t reg_count = data.size() / 2; // Nombre de registres 16-bit
-#ifdef USE_SENSOR  
+// #ifdef USE_SENSOR  
   // Notifier les sensors normaux
   for (auto *sensor : sensors_) {
     if (sensor->get_register_type() != type) {
@@ -232,7 +234,7 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
       }
     }
   }
-#endif
+// #endif
 #ifdef USE_BINARY_SENSOR  
   // Notifier les binary sensors
   
