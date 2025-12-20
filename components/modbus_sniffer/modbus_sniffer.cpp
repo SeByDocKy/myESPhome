@@ -40,7 +40,8 @@ void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor)
 
 void ModbusSnifferHub::loop() {
 
-  const uint32_t now = millis();
+ const uint32_t now = millis();
+  
   // Debug: vérifier périodiquement si available() fonctionne
   static uint32_t last_check = 0;
   if (now - last_check > 5000) {
@@ -55,18 +56,27 @@ void ModbusSnifferHub::loop() {
       ESP_LOGW(TAG, "Failed to read byte from UART");
       break;
     }
+    
+    // Si le buffer est vide ET qu'il y a eu un délai depuis la dernière trame,
+    // c'est le début d'une nouvelle trame
+    if (rx_buffer_.empty() && (now - last_frame_time_) > MODBUS_INTER_FRAME_DELAY) {
+      ESP_LOGVV(TAG, ">>> Start of new frame");
+    }
+    
     rx_buffer_.push_back(byte);
     last_byte_time_ = now;
     
     // Debug: logger les octets reçus
-    ESP_LOGVV(TAG, "RX byte: 0x%02X", byte);
+    ESP_LOGVV(TAG, "RX byte: 0x%02X (buffer size: %d)", byte, rx_buffer_.size());
   }
   
   // Détection de fin de trame (timeout Modbus)
+  // Le timeout doit être court pour séparer requête et réponse
   if (!rx_buffer_.empty() && (now - last_byte_time_) > MODBUS_FRAME_TIMEOUT) {
-    ESP_LOGD(TAG, "Frame timeout, processing %d bytes", rx_buffer_.size());
+    ESP_LOGD(TAG, "Frame complete, processing %d bytes", rx_buffer_.size());
     process_frame();
     rx_buffer_.clear();
+    last_frame_time_ = now;
   }
 
   
