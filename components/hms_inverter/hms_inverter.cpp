@@ -309,8 +309,8 @@ void HmsPlatform::setup() {
         ESP_LOGI(TAG, "Current inverter serial# %" PRIu64, inv->serial());
         if (invp != nullptr) {
             inv->set_inverter(invp);
-            ESP_LOGI(TAG, "Added inverter model: %s", invp->typeName().c_str());
             invp->init();
+            ESP_LOGI(TAG, "Added inverter model: %s", invp->typeName().c_str());
         } else {
             ESP_LOGW(TAG, "Invalid inverter serial# %" PRIu64, inv->serial());
         }
