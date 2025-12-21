@@ -5,7 +5,7 @@ from esphome.const import CONF_ID, CONF_ADDRESS
 
 DEPENDENCIES = ['uart']
 AUTO_LOAD = ['sensor', 'binary_sensor']
-CODEOWNERS = ['@yourusername']
+CODEOWNERS = ['@SeByDocKy','@claude']
 MULTI_CONF = True
 
 # Namespace
@@ -29,4 +29,5 @@ async def to_code(config):
     await uart.register_uart_device(var, config)
     
     if CONF_ADDRESS in config:
+
         cg.add(var.set_slave_address(config[CONF_ADDRESS]))
