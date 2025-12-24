@@ -31,6 +31,7 @@ void ModbusListenerHub::dump_config() {
   ESP_LOGCONFIG(TAG, "    Use Comma: %s", use_comma_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "    Use Hexa Prefix: %s", use_hexa_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "    Use Brackets: %s", use_bracket_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "    Use Quotes: %s", use_quote_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "  Registered Text Sensors: %d", text_sensors_.size());
 }
 
@@ -237,6 +238,11 @@ void ModbusListenerHub::notify_text_sensors(const std::vector<uint8_t> &frame, F
 std::string ModbusListenerHub::format_hex(const std::vector<uint8_t> &data) {
   std::string result;
   
+  // Ajouter les guillemets d'ouverture si nécessaire
+  if (use_quote_) {
+    result += "'";
+  }
+  
   // Ajouter le crochet d'ouverture si nécessaire
   if (use_bracket_) {
     result += "[";
@@ -267,6 +273,11 @@ std::string ModbusListenerHub::format_hex(const std::vector<uint8_t> &data) {
   // Ajouter le crochet de fermeture si nécessaire
   if (use_bracket_) {
     result += "]";
+  }
+  
+  // Ajouter les guillemets de fermeture si nécessaire
+  if (use_quote_) {
+    result += "'";
   }
   
   return result;
