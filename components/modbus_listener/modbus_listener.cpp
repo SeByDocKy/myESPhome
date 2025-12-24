@@ -27,6 +27,10 @@ void ModbusListenerHub::dump_config() {
   if (slave_address_ > 0) {
     ESP_LOGCONFIG(TAG, "  Slave Address Filter: 0x%02X", slave_address_);
   }
+  ESP_LOGCONFIG(TAG, "  Formatting Options:");
+  ESP_LOGCONFIG(TAG, "    Use Comma: %s", use_comma_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "    Use Hexa Prefix: %s", use_hexa_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "    Use Brackets: %s", use_bracket_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "  Registered Text Sensors: %d", text_sensors_.size());
 }
 
@@ -231,13 +235,41 @@ void ModbusListenerHub::notify_text_sensors(const std::vector<uint8_t> &frame, F
 }
 
 std::string ModbusListenerHub::format_hex(const std::vector<uint8_t> &data) {
-  char buf[data.size() * 3 + 1];
-  char *p = buf;
-  for (uint8_t byte : data) {
-    p += sprintf(p, "%02X ", byte);
+  std::string result;
+  
+  // Ajouter le crochet d'ouverture si nécessaire
+  if (use_bracket_) {
+    result += "[";
   }
-  if (p > buf) *(p-1) = '\0';
-  return std::string(buf);
+  
+  for (size_t i = 0; i < data.size(); i++) {
+    // Ajouter le préfixe 0x si nécessaire
+    if (use_hexa_) {
+      char buf[8];
+      sprintf(buf, "0x%02X", data[i]);
+      result += buf;
+    } else {
+      char buf[4];
+      sprintf(buf, "%02X", data[i]);
+      result += buf;
+    }
+    
+    // Ajouter la virgule ou l'espace selon l'option
+    if (i < data.size() - 1) {
+      if (use_comma_) {
+        result += ", ";
+      } else {
+        result += " ";
+      }
+    }
+  }
+  
+  // Ajouter le crochet de fermeture si nécessaire
+  if (use_bracket_) {
+    result += "]";
+  }
+  
+  return result;
 }
 
 }  // namespace modbus_listener
