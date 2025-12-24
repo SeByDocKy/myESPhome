@@ -35,6 +35,9 @@ class ModbusListenerHub : public Component, public uart::UARTDevice {
 
   // Configuration
   void set_slave_address(uint8_t address) { slave_address_ = address; }
+  void set_use_comma(bool use_comma) { use_comma_ = use_comma; }
+  void set_use_hexa(bool use_hexa) { use_hexa_ = use_hexa; }
+  void set_use_bracket(bool use_bracket) { use_bracket_ = use_bracket; }
   
   // Enregistrement des text sensors
   void register_text_sensor(ModbusListenerTextSensor *sensor);
@@ -47,6 +50,9 @@ class ModbusListenerHub : public Component, public uart::UARTDevice {
   
   // Configuration
   uint8_t slave_address_{0};
+  bool use_comma_{false};
+  bool use_hexa_{false};
+  bool use_bracket_{false};
   
   // Liste des text sensors enregistrés
   std::vector<ModbusListenerTextSensor*> text_sensors_;
