@@ -1,0 +1,83 @@
+substitutions:
+  name: modbus_listerner
+
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 5.5.1
+    platform_version: 55.03.31-2
+      
+logger:
+  level: verbose
+
+# Configuration WiFi
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+
+# API et OTA
+api:
+  
+ota:
+  - platform: esphome
+  
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [modbus_listener]
+    refresh: 0s  
+
+# Configuration UART
+uart:
+  - id: uart_0
+    tx_pin: GPIO01
+    rx_pin: GPIO03
+    baud_rate: 9600
+    data_bits: 8
+    stop_bits: 1
+    parity: NONE
+
+# Composant externe
+
+
+# Hub Modbus Listener
+modbus_listener:
+  - id: my_listener
+    uart_id: uart_0
+    address: 1  # Optionnel: filtre sur l'adresse esclave
+
+# Text Sensors pour TX et RX
+text_sensor:
+  # Exemple 1: Capturer TX et RX séparément
+  - platform: modbus_listener
+    modbus_listener_id: my_listener
+    tx:
+      name: ${name}_tx
+      id: ${name}_tx
+      icon: "mdi:arrow-right-bold"
+    rx:
+      name: ${name}_rx
+      id: ${name}_rx
+      icon: "mdi:arrow-left-bold"
+
+  # # Exemple 2: Capturer uniquement les requêtes (TX)
+  # - platform: modbus_listener
+    # modbus_listener_id: my_listener
+    # tx:
+      # name: "Modbus Requests Only"
+      # id: modbus_requests
+      # icon: "mdi:transmit"
+
+  # # Exemple 3: Capturer uniquement les réponses (RX)
+  # - platform: modbus_listener
+    # modbus_listener_id: my_listener
+    # rx:
+      # name: "Modbus Responses Only"
+      # id: modbus_responses
+      # icon: "mdi:receive"
