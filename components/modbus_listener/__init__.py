@@ -22,6 +22,8 @@ CONF_USE_COMMA = 'use_comma'
 CONF_USE_HEXA = 'use_hexa'
 CONF_USE_BRACKET = 'use_bracket'
 CONF_USE_QUOTE = 'use_quote'
+CONF_ADD_CRC = 'add_crc'
+CONF_PAYLOAD_LENGTH = 'payload_length'
 
 # Schema de configuration
 CONFIG_SCHEMA = cv.Schema({
@@ -31,6 +33,8 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_USE_HEXA, default=False): cv.boolean,
     cv.Optional(CONF_USE_BRACKET, default=False): cv.boolean,
     cv.Optional(CONF_USE_QUOTE, default=False): cv.boolean,
+    cv.Optional(CONF_ADD_CRC, default=True): cv.boolean,
+    cv.Optional(CONF_PAYLOAD_LENGTH): cv.int_range(min=1, max=255),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
 async def to_code(config):
@@ -45,3 +49,7 @@ async def to_code(config):
     cg.add(var.set_use_hexa(config[CONF_USE_HEXA]))
     cg.add(var.set_use_bracket(config[CONF_USE_BRACKET]))
     cg.add(var.set_use_quote(config[CONF_USE_QUOTE]))
+    cg.add(var.set_add_crc(config[CONF_ADD_CRC]))
+    
+    if CONF_PAYLOAD_LENGTH in config:
+        cg.add(var.set_payload_length(config[CONF_PAYLOAD_LENGTH]))
