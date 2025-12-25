@@ -107,6 +107,14 @@ void ModbusListenerHub::process_frame() {
            rx_buffer_.size());
   ESP_LOGD(TAG, "  Data: %s", format_hex(rx_buffer_).c_str());
   
+  // Stocker la trame capturée
+  last_frame_ = rx_buffer_;
+  if (frame_type == FRAME_REQUEST) {
+    last_tx_frame_ = rx_buffer_;
+  } else {
+    last_rx_frame_ = rx_buffer_;
+  }
+  
   // Notifier les text sensors
   notify_text_sensors(rx_buffer_, frame_type);
 }
