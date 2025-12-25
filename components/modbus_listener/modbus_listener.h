@@ -42,6 +42,16 @@ class ModbusListenerHub : public Component, public uart::UARTDevice {
   
   // Enregistrement des text sensors
   void register_text_sensor(ModbusListenerTextSensor *sensor);
+  
+  // Méthodes pour récupérer les dernières trames capturées
+  std::vector<uint8_t> get_last_tx_frame() const { return last_tx_frame_; }
+  std::vector<uint8_t> get_last_rx_frame() const { return last_rx_frame_; }
+  std::vector<uint8_t> get_last_frame() const { return last_frame_; }
+  
+  // Vérifier si des trames sont disponibles
+  bool has_tx_frame() const { return !last_tx_frame_.empty(); }
+  bool has_rx_frame() const { return !last_rx_frame_.empty(); }
+  bool has_frame() const { return !last_frame_.empty(); }
 
  protected:
   // Buffer de réception UART
@@ -58,6 +68,11 @@ class ModbusListenerHub : public Component, public uart::UARTDevice {
   
   // Liste des text sensors enregistrés
   std::vector<ModbusListenerTextSensor*> text_sensors_;
+  
+  // Dernières trames capturées (pour accès externe)
+  std::vector<uint8_t> last_tx_frame_;  // Dernière requête (client → serveur)
+  std::vector<uint8_t> last_rx_frame_;  // Dernière réponse (serveur → client)
+  std::vector<uint8_t> last_frame_;     // Dernière trame (TX ou RX)
   
   // Timeouts
   static const uint32_t MODBUS_FRAME_TIMEOUT = 10; // ms
