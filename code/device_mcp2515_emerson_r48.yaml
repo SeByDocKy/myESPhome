@@ -18,7 +18,7 @@ canbus:
     can_id: 0x0607FF83
     bit_rate: 125kbps
     mode: NORMAL
-    data_rate: 10Mhz        
+    data_rate: 5Mhz        
             
 emerson_r48:
   canbus_id: ${emerson_name}_id
@@ -108,5 +108,6 @@ sensor:
       else{
         return 0;
       }      
+
 
 
