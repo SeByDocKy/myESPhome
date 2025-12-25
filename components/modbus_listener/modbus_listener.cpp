@@ -32,6 +32,10 @@ void ModbusListenerHub::dump_config() {
   ESP_LOGCONFIG(TAG, "    Use Hexa Prefix: %s", use_hexa_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "    Use Brackets: %s", use_bracket_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "    Use Quotes: %s", use_quote_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "    Add CRC: %s", add_crc_ ? "YES" : "NO");
+  if (has_payload_length_) {
+    ESP_LOGCONFIG(TAG, "    Payload Length: %d bytes", payload_length_);
+  }
   ESP_LOGCONFIG(TAG, "  Registered Text Sensors: %d", text_sensors_.size());
 }
 
@@ -107,16 +111,19 @@ void ModbusListenerHub::process_frame() {
            rx_buffer_.size());
   ESP_LOGD(TAG, "  Data: %s", format_hex(rx_buffer_).c_str());
   
-  // Stocker la trame capturée
-  last_frame_ = rx_buffer_;
+  // Traiter les données (enlever CRC et/ou ajuster la longueur)
+  std::vector<uint8_t> processed_frame = process_frame_data(rx_buffer_);
+  
+  // Stocker la trame capturée (après traitement)
+  last_frame_ = processed_frame;
   if (frame_type == FRAME_REQUEST) {
-    last_tx_frame_ = rx_buffer_;
+    last_tx_frame_ = processed_frame;
   } else {
-    last_rx_frame_ = rx_buffer_;
+    last_rx_frame_ = processed_frame;
   }
   
-  // Notifier les text sensors
-  notify_text_sensors(rx_buffer_, frame_type);
+  // Notifier les text sensors (avec la trame traitée)
+  notify_text_sensors(processed_frame, frame_type);
 }
 
 bool ModbusListenerHub::is_frame_complete() {
@@ -205,6 +212,34 @@ bool ModbusListenerHub::verify_crc(const std::vector<uint8_t> &frame) {
   uint16_t received_crc = (frame[frame.size() - 1] << 8) | frame[frame.size() - 2];
   
   return calculated_crc == received_crc;
+}
+
+std::vector<uint8_t> ModbusListenerHub::process_frame_data(const std::vector<uint8_t> &frame) {
+  std::vector<uint8_t> result = frame;
+  
+  // 1. Enlever le CRC si add_crc_ est false
+  if (!add_crc_ && result.size() >= 2) {
+    // Enlever les 2 derniers octets (CRC)
+    result.erase(result.end() - 2, result.end());
+    ESP_LOGV(TAG, "CRC removed, new size: %d bytes", result.size());
+  }
+  
+  // 2. Ajuster la longueur selon payload_length_ si défini
+  if (has_payload_length_) {
+    if (result.size() < payload_length_) {
+      // Compléter avec des zéros
+      size_t padding = payload_length_ - result.size();
+      result.insert(result.end(), padding, 0x00);
+      ESP_LOGV(TAG, "Padded with %d zeros, new size: %d bytes", padding, result.size());
+    } else if (result.size() > payload_length_) {
+      // Tronquer
+      size_t removed = result.size() - payload_length_;
+      result.resize(payload_length_);
+      ESP_LOGV(TAG, "Truncated %d bytes, new size: %d bytes", removed, result.size());
+    }
+  }
+  
+  return result;
 }
 
 FrameType ModbusListenerHub::detect_frame_type(const std::vector<uint8_t> &frame) {
