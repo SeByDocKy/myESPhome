@@ -86,7 +86,7 @@ void DUALPIDComponent::pid_update() {
   if (!this->current_manual_override_){
 #endif
     this->dt_   = float(now - this->last_time_)/1000.0f;
-	tmp         = (this->current_input_ - this->current_setpoint_);  // initial error estimation
+	tmp         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	  
 	if (e & tmp<0.0f){
 		this->error_ = tmp; //-tmp;
@@ -258,6 +258,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
