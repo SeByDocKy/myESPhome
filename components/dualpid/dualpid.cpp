@@ -84,7 +84,7 @@ void DUALPIDComponent::pid_update() {
 	tmp         = (this->current_input_ - this->current_setpoint_);  // initial error estimation
 	  
 	if (e & tmp<0.0f){
-		this->error_ = tmp; //-tmp;
+		this->error_ = -tmp; //-tmp;
 	}
 	else{
 		this->error_ = tmp; 
@@ -243,6 +243,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
