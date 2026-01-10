@@ -5,9 +5,14 @@ namespace esphome {
 namespace dualpid {
 
 static const char *const TAG = "dualpid";
-static const float coeffP = 0.001f;
-static const float coeffI = 0.0001f;
-static const float coeffD = 0.001f;
+
+static const float coeffPcharging = 0.0001f;
+static const float coeffIcharging = 0.0001f;
+static const float coeffDcharging = 0.001f;
+
+static const float coeffPdischarging = 0.001f;
+static const float coeffIdischarging = 0.0001f;
+static const float coeffDdischarging = 0.001f;
 
 void DUALPIDComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up DUALPIDComponent...");
@@ -114,15 +119,25 @@ void DUALPIDComponent::pid_update() {
 	  this->current_kp_ = this->current_kp_charging_;
 	  this->current_ki_ = this->current_ki_charging_;
 	  this->current_kd_ = this->current_kd_charging_;
+
+	  alphaP = coeffPcharging*this->current_kp_ * this->error_;
+	  alphaI = coeffIcharging*this->current_ki_ * this->integral_;
+	  alphaD = coeffDcharging*this->current_kd_ * this->derivative_;
+	
 	}
 	else{
 	  this->current_kp_ = this->current_kp_discharging_;
 	  this->current_ki_ = this->current_ki_discharging_;
 	  this->current_kd_ = this->current_kd_discharging_;
+
+	  alphaP = coeffPdischarging*this->current_kp_ * this->error_;
+	  alphaI = coeffIdischarging*this->current_ki_ * this->integral_;
+	  alphaD = coeffDdischarging*this->current_kd_ * this->derivative_;	
 	}
-	alphaP = coeffP*this->current_kp_ * this->error_;
-	alphaI = coeffI*this->current_ki_ * this->integral_;
-	alphaD = coeffD*this->current_kd_ * this->derivative_;
+	
+	// alphaP = coeffP*this->current_kp_ * this->error_;
+	// alphaI = coeffI*this->current_ki_ * this->integral_;
+	// alphaD = coeffD*this->current_kd_ * this->derivative_;
 	alpha  = alphaP + alphaI + alphaD;
 	
     this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
@@ -243,6 +258,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
