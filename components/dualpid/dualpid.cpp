@@ -6,7 +6,7 @@ namespace dualpid {
 
 static const char *const TAG = "dualpid";
 
-static const float coeffPcharging = 0.0001f;
+static const float coeffPcharging = 0.00001f;
 static const float coeffIcharging = 0.0001f;
 static const float coeffDcharging = 0.001f;
 
@@ -258,6 +258,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
