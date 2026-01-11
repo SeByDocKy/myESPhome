@@ -268,7 +268,6 @@ async def to_code(config):
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_discharged_battery_voltage_number(n))  
 
-
   if kp_charging_config := config.get(CONF_KP_CHARGING):
         n = await number.new_number(
             kp_charging_config, min_value=0.0, max_value=10.0, step=0.1
@@ -292,7 +291,6 @@ async def to_code(config):
         await cg.register_component(n, kd_charging_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_kd_charging_number(n))
-        
         
   if kp_discharging_config := config.get(CONF_KP_DISCHARGING):
         n = await number.new_number(
@@ -365,5 +363,3 @@ async def to_code(config):
         await cg.register_component(n, output_max_discharging_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_discharging_number(n))
-
-
