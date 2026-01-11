@@ -6,7 +6,7 @@ namespace dualpid {
 
 static const char *const TAG = "dualpid";
 
-static const float coeffPcharging = 0.00001f;
+static const float coeffPcharging = 0.0001f;
 static const float coeffIcharging = 0.0001f;
 static const float coeffDcharging = 0.001f;
 
@@ -163,14 +163,16 @@ void DUALPIDComponent::pid_update() {
 	if(e){ // Charge <-> ACin (230V)->R48->DC 48V
        tmp                       = (this->current_epoint_ - this->output_); // tmp is positive
 	   this->output_charging_    = tmp; //cc*tmp; ?
-	   this->output_discharging_ = 0.0f; 
+	   this->output_discharging_ = 0.0f;	
 	   this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+	   this->previous_output_    = this->current_epoint_;
 	}
 	else{ // Discharge <-> Battery DC 48V->HMS->ACout (230V)
        tmp                       = (this->output_ - this->current_epoint_ ); // tmp is positive
-	   this->output_charging_    = 0.0f; 
+	   this->output_charging_    = 0.0f;
 	   this->output_discharging_ = cd*tmp; // tmp;?
 	   this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
+	   this->previous_output_    = this->current_epoint_;
 	}
 	// tmp is a positive value
 
@@ -258,6 +260,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
