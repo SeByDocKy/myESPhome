@@ -1,0 +1,354 @@
+########################## Currently need to be be compiled with ESPhome 2025.6.3 maximum #######
+
+substitutions:
+  name: "bd"
+  name_controller: "lora_meter"
+  device_description: "Bidirectional battery AC coupling "
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+ 
+esphome:
+  name: ${name}
+  comment: ${device_description}
+  # friendly_name: test_water_tank
+  # libraries:
+    # - RF24=https://github.com/nRF24/RF24
+  min_version: 2025.10.1
+  platformio_options:
+    # build_flags: -DBOARD_HAS_PSRAM
+    board_build.arduino.memory_type: qio_opi
+    board_build.f_flash: 80000000L
+    board_build.flash_mode: qio
+    # lib_compat_mode: "off"
+    # build_flags: -DUSE_ARDUINO
+  on_boot:
+     priority: -100
+     then: 
+        - output.set_level: 
+            id: r48_max_current
+            level: '4%'
+        - output.set_level:
+            id: output_combined
+            level: '2%'            
+
+esp32:
+  # board: esp32-s3-devkitc-1
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  cpu_frequency: 240Mhz
+  framework:
+    type: arduino
+    # version: latest
+    # type: esp-idf
+    # version: 5.5.1
+    # platform_version: 55.03.31-2
+    # components:
+      # - espressif/esp_wifi_remote^0.13.*
+      # - espressif/arduino-esp32^3.3.3
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "battery_bidirectional"
+    password: !secret ap_password
+    
+time:
+  - platform: sntp
+    id: my_time    
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+  
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+  # level: verbose
+  level: none
+    
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [hms_inverter]
+    refresh: 10s
+     
+uart: 
+  - id: uart_0
+    tx_pin: GPIO43 #GPIO43
+    rx_pin: GPIO44 #GPIO44
+    baud_rate: 115200 #115200
+    parity: none
+    data_bits: 8
+    stop_bits: 1
+
+spi:
+
+ #### when connected with the B2B connector (no change vs direct wiring)
+  - id: shared_spi
+    mosi_pin: GPIO09
+    miso_pin: GPIO08
+    clk_pin: GPIO07
+    # interface: software
+    interface: spi3   #### spi2 is for CMT2300A
+
+    
+sx126x:
+  id: sx1262
+  spi_id: shared_spi
+  
+  #### when connected with tge B2B connector #####
+  
+  dio1_pin: GPIO39   
+  busy_pin: GPIO40
+  rst_pin: GPIO42
+  cs_pin: GPIO41
+  
+  pa_power: 10
+  bandwidth: 31_3kHz #125_0kHz
+  crc_enable: true
+  frequency: 868000000
+  modulation: LORA
+  hw_version: sx1262
+  rf_switch: true
+  sync_value: [0x14, 0x24]
+  preamble_size: 8
+  spreading_factor: 9
+  coding_rate: CR_4_6
+  tcxo_voltage: 1_8V
+  tcxo_delay: 5ms
+  data_rate: '5MHz'
+  on_packet:
+    then:
+      - lambda: |-
+          ESP_LOGD("lambda", "packet %s", format_hex(x).c_str());
+          ESP_LOGD("lambda", "rssi %.2f", rssi);
+          ESP_LOGD("lambda", "snr %.2f", snr);
+
+packet_transport:
+  platform: sx126x
+  update_interval: '1500ms'
+  providers:
+    - name: ${name_controller}
+      encryption: !secret encryption_key
+
+debug:
+  update_interval: 5s
+
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+    
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: packet_transport
+    id:  ${name}_power
+    name: ${name}_power_imported
+    provider: ${name_controller}
+    remote_id: jsy1039_power
+    internal: false
+    device_class: power
+    unit_of_measurement: 'W'
+    icon: mdi:power
+    accuracy_decimals: 1
+    
+  # - platform: homeassistant
+    # name: ${name}_battery_voltage_from_ha
+    # id: battery_voltage_from_ha
+    # entity_id: sensor.pvbrain2_smartshunt_battery_voltage  
+    
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+    
+binary_sensor:
+  - platform: status
+    name: ${name}_esp_status
+    
+button:
+  - platform: restart
+    name: ${name}_restart
+    
+  - platform: template
+    name: ${name}_general_hoymiles_restart
+    id: general_hoymiles_restart
+    on_press:
+      - button.press: hms_1000_restart 
+      
+switch:
+  - platform: template
+    name: ${name}_general_r48_switch
+    id: general_r48_switch
+    optimistic: true
+    turn_on_action:
+      - switch.turn_off: r48_ac_switch_turn_off
+      - switch.turn_off: r48_dc_switch_turn_off
+    turn_off_action:
+      - switch.turn_on: r48_ac_switch_turn_off
+      - switch.turn_on: r48_dc_switch_turn_off
+
+output:
+  - platform: template
+    id: output_combined
+    type: float
+    write_action:
+      - output.set_level:
+          id: hms_1000_percent_output
+          level: !lambda return state;
+          
+      # - output.set_level:
+          # id: hms2_1000_percent_output
+          # level: !lambda return state;    
+      
+fan:
+  - platform: speed
+    id: ${name}_output_combined_command
+    name: ${name}_output_combined_command
+    output: output_combined
+
+hms_inverter:
+  id: hoymiles_id
+  update_interval: '1500ms'#'1200ms'
+  pins:
+    cs: GPIO02
+    fcs: GPIO03
+    sdio: GPIO04
+    clk: GPIO05
+    
+packages: 
+
+  hms_inverter1: 
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_hms_2t.yaml' 
+        vars:
+          hms_inverter_id: 'hoymiles_id'
+          hms_inverter_name: 'hms_1000'
+          hms_inverter_sn: !secret hms1000_sn1
+          
+  # hms_inverter2: 
+    # url: https://github.com/SeByDocKy/myESPhome/
+    # ref: main
+    # refresh: 0s
+    # files:
+      # - path: 'code/device_hms_2t.yaml' 
+        # vars:
+          # hms_inverter_id: 'hoymiles_id'
+          # hms_inverter_name: 'hms2_1000'
+          # hms_inverter_sn: !secret hms1000_sn2        
+
+  emerson:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_mcp2515_emerson_r48.yaml' 
+        vars:
+          emerson_name: 'r48'
+          emerson_spid_id: 'shared_spi'
+          emerson_cs_pin: 'GPIO06' #06
+          emerson_update_interval: '3s'
+          emerson_template_update_interval: '3s'
+          
+  modbus_115200:
+    url: https://github.com/SeByDocKy/pvbrain2/
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'pvbrain2/base/device_modbus.yaml'
+        vars:
+          modbus_id: 'modbus_115200_id'
+          modbus_uart_id: uart_0
+          modbus_send_wait_time: '100ms'          
+          
+  bms: 
+    url: https://github.com/SeByDocKy/pvbrain2/
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'pvbrain2/bms/jikong/device_jkpbbms.yaml'
+        vars:
+          bms_name: 'jkpbbms'
+          bms_modbus_id: 'modbus_115200_id'
+          bms_modbus_address: '1'
+          bms_update_interval: '3s'
+          bms_template_update: '3s'
+          bms_text_update: '60s'
+          bms_modbus_throttle: '50ms'          
+
+  # sniffer:
+    # url: https://github.com/SeByDocKy/pvbrain2/
+    # ref: main
+    # refresh: 0s
+    # files:
+      # - path: 'pvbrain2/bms/jikong/device_JK-PB_RS485_sniffer.yaml'
+        # vars:
+          # sniffer_name: 'sniffer'
+          # sniffer_protocol: 'JK02_32S'
+          # sniffer_uart_id: uart_0
+         
+  # bms: #!include
+    # url: https://github.com/SeByDocKy/pvbrain2/
+    # ref: main
+    # refresh: 0s
+    # files:
+      # - path: 'pvbrain2/bms/jikong/device_JK-PB_RS485_entities.yaml'
+        # vars:
+          # bms_id: '1' # must be a number
+          # bms_name: 'jkpbbms'
+          # bms_sniffer_id: 'sniffer_jkpb'
+          # bms_address: '0x01' # BMS 1 DIP switch
+          # bms_update_interval: '3s' # going below '3s' can cause problems
+
+  # minipid1:
+    # url: https://github.com/SeByDocKy/myESPhome/
+    # ref: main
+    # refresh: 0s
+    # files:
+      # - path: 'code/device_minipid.yaml' 
+        # vars:
+          # minipid_id: 'pid1_id'
+          # minipid_name: 'pid1'
+          # minipid_input_id: 'bd_power' #'jsy1039_power' # 
+          # minipid_output_id: 'output_combined' #'hms1_1000_percent_output'
+          # minipid_windows_size: '1'
+
+  dualpid:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_dualpid.yaml'
+        vars:
+          dualpid_id: 'pid_id'
+          dualpid_name: 'pid'
+          dualpid_input_id: 'bd_power'
+          dualpid_battery_voltage_id: 'jkpbbms_battery_voltage' #'battery_voltage_from_ha'
+          dualpid_charging_output_id: 'r48_max_current'
+          dualpid_discharging_output_id: 'output_combined'
+          dualpid_r48_general_switch_id: 'general_r48_switch'
+          dualpid_producing_id: 'hms_1000_producing'
+          dualpid_windows_size: '1'
+          
+  automation:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/automation_dualpid.yaml'
+        vars: 
+          automation_time_interval: '30s'
+          automation_activation: 'pid_activation'
+          automation_reachable: 'hms_1000_reachable'
+          automation_producing: 'hms_1000_producing'
+          automation_restart: 'hms_1000_restart'

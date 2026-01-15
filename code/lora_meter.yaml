@@ -1,0 +1,125 @@
+substitutions:
+  name: "lora_meter"
+  device_description: "Read JSY1039 data and transmit power over LoRa"
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+ 
+esphome:
+  name: ${name}
+  comment: ${device_description}
+  # friendly_name: test_water_tank
+  min_version: 2025.10.3
+
+esp32:
+  # board: esp32-s3-devkitc-1
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 5.5.2
+    platform_version: 55.03.35
+    advanced:
+      enable_idf_experimental_features: yes
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "lora_meter"
+    password: !secret ap_password
+    
+time:
+  - platform: sntp
+    id: my_time    
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+  
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+  level: verbose
+  
+  
+button:
+  - platform: restart
+    name: ${name}_restart  
+
+spi:
+
+ #### when connected with the B2B connector (no change vs direct wiring)
+  - id: spi_0
+    mosi_pin: GPIO09
+    miso_pin: GPIO08
+    clk_pin: GPIO07
+    
+sx126x:
+  id: sx1262
+  spi_id: spi_0
+  
+  #### when connected with tge B2B connector #####
+  
+  dio1_pin: GPIO39   
+  busy_pin: GPIO40
+  rst_pin: GPIO42
+  cs_pin: GPIO41
+  
+  pa_power: 22
+  bandwidth: 31_3kHz #125_0kHz
+  crc_enable: true
+  frequency: 868000000
+  modulation: LORA
+  hw_version: sx1262
+  rf_switch: true
+  sync_value: [0x14, 0x24]
+  preamble_size: 8
+  spreading_factor: 9 #7
+  coding_rate: CR_4_6
+  tcxo_voltage: 1_8V
+  tcxo_delay: 5ms
+  data_rate: '10MHz'
+  on_packet:
+    then:
+      - lambda: |-
+          ESP_LOGD("lambda", "packet %s", format_hex(x).c_str());
+          ESP_LOGD("lambda", "rssi %.2f", rssi);
+          ESP_LOGD("lambda", "snr %.2f", snr);
+
+packet_transport:
+  platform: sx126x
+  encryption: !secret encryption_key
+  rolling_code_enable: true
+  sensors:
+    - jsy1039_power
+
+uart: 
+  - id: uart_0
+    tx_pin: GPIO43
+    rx_pin: GPIO44
+    baud_rate: 9600
+    stop_bits: 1
+    
+modbus:
+  - id: modbus_9600
+    send_wait_time: 100ms
+    uart_id: uart_0
+
+packages:
+  powermeter:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_jsy1039.yaml' 
+        vars:
+          powermeter_name: 'jsy1039'
+          powermeter_modbus_id: 'modbus_9600'
+          powermeter_address: '1'
+          powermeter_update_interval: '3000ms'
+          powermeter_template_update: '3000ms'      
+   
