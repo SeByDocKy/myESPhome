@@ -269,23 +269,3 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
