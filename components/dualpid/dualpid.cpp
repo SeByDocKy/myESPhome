@@ -89,12 +89,13 @@ void DUALPIDComponent::pid_update() {
     this->dt_   = float(now - this->last_time_)/1000.0f;
 	tmp         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	  
-	if (e & tmp<0.0f){
-		this->error_ = tmp; //-tmp;
-	}
-	else{
-		this->error_ = tmp; 
-    }
+	// if (e & tmp<0.0f){
+	// 	this->error_ = tmp; //-tmp;
+	// }
+	// else{
+	// 	this->error_ = tmp; 
+ //    }
+	  
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
 		this->error_ = -this->error_;
@@ -270,6 +271,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
