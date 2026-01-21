@@ -1,5 +1,3 @@
-########################## Currently need to be be compiled with ESPhome 2025.6.3 maximum #######
-
 substitutions:
   name: "bd"
   name_controller: "lora_meter"
@@ -12,9 +10,6 @@ substitutions:
 esphome:
   name: ${name}
   comment: ${device_description}
-  # friendly_name: test_water_tank
-  # libraries:
-    # - RF24=https://github.com/nRF24/RF24
   min_version: 2025.10.1
   platformio_options:
     # build_flags: -DBOARD_HAS_PSRAM
@@ -366,4 +361,5 @@ packages:
           automation_activation: 'pid_activation'
           automation_reachable: 'hms_1000_reachable'
           automation_producing: 'hms_1000_producing'
+
           automation_restart: 'hms_1000_restart'
