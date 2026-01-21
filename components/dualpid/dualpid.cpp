@@ -55,6 +55,7 @@ void DUALPIDComponent::pid_update() {
   uint32_t now = millis();
   float tmp;
   float alphaP, alphaI, alphaD, alpha;
+  float coeffP, coeffI, coeffD;
   float cc, cd;
   bool e;
   
@@ -119,10 +120,14 @@ void DUALPIDComponent::pid_update() {
 	  this->current_kp_ = this->current_kp_charging_;
 	  this->current_ki_ = this->current_ki_charging_;
 	  this->current_kd_ = this->current_kd_charging_;
-
-	  alphaP = coeffPcharging*this->current_kp_ * this->error_;
-	  alphaI = coeffIcharging*this->current_ki_ * this->integral_;
-	  alphaD = coeffDcharging*this->current_kd_ * this->derivative_;
+      
+	  coeffP = coeffPcharging*this->current_kp_;
+	  coeffI = coeffIcharging*this->current_kp_;
+	  coeffD = coeffDcharging*this->current_kd_;
+		
+	  alphaP = coeffP * this->error_;
+	  alphaI = coeffI * this->integral_;
+	  alphaD = coeffD * this->derivative_;
 	
 	}
 	else{
@@ -130,9 +135,13 @@ void DUALPIDComponent::pid_update() {
 	  this->current_ki_ = this->current_ki_discharging_;
 	  this->current_kd_ = this->current_kd_discharging_;
 
-	  alphaP = coeffPdischarging*this->current_kp_ * this->error_;
-	  alphaI = coeffIdischarging*this->current_ki_ * this->integral_;
-	  alphaD = coeffDdischarging*this->current_kd_ * this->derivative_;	
+	  coeffP = coeffPdischarging*this->current_kp_;
+	  coeffI = coeffIdischarging*this->current_kp_;
+	  coeffD = coeffDdischarging*this->current_kd_;	
+
+	  alphaP = coeffP * this->error_;
+	  alphaI = coeffI * this->integral_;
+	  alphaD = coeffD * this->derivative_;
 	}
 	
 	// alphaP = coeffP*this->current_kp_ * this->error_;
@@ -151,8 +160,9 @@ void DUALPIDComponent::pid_update() {
 	
 	ESP_LOGI(TAG, "PIDcoeff = %3.8f" , alpha );
 	
-    ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);  
+    // ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);  
 
+	ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);    
     // this->last_time_       = now;
     // this->previous_error_  = this->error_;
     // this->previous_output_ = this->output_;
@@ -260,6 +270,7 @@ void DUALPIDComponent::pid_update() {
 
  }  // namespace dualpid
 }  // namespace esphome
+
 
 
 
