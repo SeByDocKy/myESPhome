@@ -7,6 +7,7 @@ substitutions:
   my_hours: '23'
   my_minute: '59'
   my_second: '59'
+  baud_rate: 115200 #9600 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
  
 esphome:
   name: ${name}
@@ -78,7 +79,7 @@ uart:
   - id: uart_0
     tx_pin: GPIO43 #GPIO43
     rx_pin: GPIO44 #GPIO44
-    baud_rate: 115200 #115200
+    baud_rate: ${baud_rate}
     parity: none
     data_bits: 8
     stop_bits: 1
@@ -181,7 +182,9 @@ button:
     name: ${name}_general_hoymiles_restart
     id: general_hoymiles_restart
     on_press:
-      - button.press: hms_1000_restart 
+      - button.press: hms_1000_restart
+      # - button.press: hms_2000_restart
+      
       
 switch:
   - platform: template
@@ -202,6 +205,7 @@ output:
     write_action:
       - output.set_level:
           id: hms_1000_percent_output
+          # id: hms_2000_percent_output
           level: !lambda return state;
           
       # - output.set_level:
@@ -236,6 +240,17 @@ packages:
           hms_inverter_name: 'hms_1000'
           hms_inverter_sn: !secret hms1000_sn1
           
+  # hms_inverter1: 
+    # url: https://github.com/SeByDocKy/myESPhome/
+    # ref: main
+    # refresh: 0s
+    # files:
+      # - path: 'code/device_hms_4t.yaml' 
+        # vars:
+          # hms_inverter_id: 'hoymiles_id'
+          # hms_inverter_name: 'hms_2000'
+          # hms_inverter_sn: !secret hms2000_sn1         
+          
   # hms_inverter2: 
     # url: https://github.com/SeByDocKy/myESPhome/
     # ref: main
@@ -260,14 +275,14 @@ packages:
           emerson_update_interval: '3s'
           emerson_template_update_interval: '3s'
           
-  modbus_115200:
+  modbus:
     url: https://github.com/SeByDocKy/pvbrain2/
     ref: main
     refresh: 0s
     files: 
       - path: 'pvbrain2/base/device_modbus.yaml'
         vars:
-          modbus_id: 'modbus_115200_id'
+          modbus_id: 'modbus_id'
           modbus_uart_id: uart_0
           modbus_send_wait_time: '100ms'          
           
@@ -279,7 +294,7 @@ packages:
       - path: 'pvbrain2/bms/jikong/device_jkpbbms.yaml'
         vars:
           bms_name: 'jkpbbms'
-          bms_modbus_id: 'modbus_115200_id'
+          bms_modbus_id: 'modbus_id'
           bms_modbus_address: '1'
           bms_update_interval: '3s'
           bms_template_update: '3s'
