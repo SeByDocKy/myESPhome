@@ -158,7 +158,7 @@ async def to_code(config):
         
   if starting_battery_voltage_config := config.get(CONF_STARTING_BATTERY_VOLTAGE):
         n = await number.new_number(
-            starting_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
+            starting_battery_voltage_config, min_value=45.0, max_value=60.0, step=0.1
         )
         await cg.register_component(n, starting_battery_voltage_config)
         await cg.register_parented(n, offsr_component)
@@ -174,7 +174,7 @@ async def to_code(config):
 
   if discharged_battery_voltage_config := config.get(CONF_DISCHARGED_BATTERY_VOLTAGE):
         n = await number.new_number(
-            discharged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
+            discharged_battery_voltage_config, min_value=45.0, max_value=60.0, step=0.1
         )
         await cg.register_component(n, discharged_battery_voltage_config)
         await cg.register_parented(n, offsr_component)
@@ -229,3 +229,4 @@ async def to_code(config):
         await cg.register_component(n, output_restart_config)
         await cg.register_parented(n, offsr_component)
         cg.add(offsr_component.set_output_restart_number(n))        
+
