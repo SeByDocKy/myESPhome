@@ -544,22 +544,22 @@ output:
               0x00, 0x00
             };
 
-  # - platform: template
-    # id: discharging_current_output
-    # name: {pcm_name}_discharging_current_output
-    # type: float
-    # write_action:
-      # - canbus.send:
-          # canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A32
-          # use_extended_id: true
-          # data: !lambda |-
-            # uint16_t current = (uint16_t)(x * 10);
-            # return {
-              # ${pcm_address}, 0x00, 0x00, 0x00,
-              # (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
-              # 0x00, 0x00
-            # };
+  - platform: template
+    id: discharging_current_output
+    name: {pcm_name}_discharging_current_output
+    type: float
+    write_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02000A32
+          use_extended_id: true
+          data: !lambda |-
+            uint16_t current = (uint16_t)(x * 10);
+            return {
+              ${pcm_address}, 0x00, 0x00, 0x00,
+              (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
+              0x00, 0x00
+            };
 
 
 # Number Controls for Parameters
@@ -844,4 +844,5 @@ interval:
           use_extended_id: true
 
           data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]    
+
 
