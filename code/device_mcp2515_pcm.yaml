@@ -462,7 +462,7 @@ select:
   - platform: template
     name: ${pcm_name}_frequency_setting
     id: frequency_select
-    icon: mdi:sine-wave
+    icon: mdi:metronome
     optimistic: true
     options:
       - "50 Hz"
@@ -844,5 +844,6 @@ interval:
           use_extended_id: true
 
           data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]    
+
 
 
