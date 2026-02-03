@@ -254,6 +254,7 @@ sensor:
     id: inverter_frequency_sensor
     name: ${pcm_name}_inverter_frequency_value
     accuracy_decimals: 0
+    icon: mdi:metronome
     internal: true
 
 
@@ -844,6 +845,7 @@ interval:
           use_extended_id: true
 
           data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]    
+
 
 
 
