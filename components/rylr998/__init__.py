@@ -11,6 +11,8 @@ from esphome.const import (
 DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@yourusername"]
 
+CONF_RYLR998_ID = "rylr998_id"
+
 CONF_ADDRESS = "address"
 CONF_SPREADING_FACTOR = "spreading_factor"
 CONF_SIGNAL_BANDWIDTH = "signal_bandwidth"
