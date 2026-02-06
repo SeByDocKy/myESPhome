@@ -40,6 +40,15 @@ BANDWIDTH_MAP = {
     500000: 500000,
 }
 
+def validate_raw_data(value):
+    if isinstance(value, str):
+        return value.encode("utf-8")
+    if isinstance(value, list):
+        return cv.Schema([cv.hex_uint8_t])(value)
+    raise cv.Invalid(
+        "data must either be a string wrapped in quotes or a list of bytes"
+    )
+
 def validate_bandwidth(value):
     value = cv.frequency(value)
     if value not in BANDWIDTH_MAP:
@@ -119,7 +128,8 @@ async def to_code(config):
         {
             cv.GenerateID(): cv.use_id(RYLR998Component),
             cv.Required(CONF_DESTINATION): cv.templatable(cv.int_range(min=0, max=65535)),
-            cv.Required(CONF_DATA): cv.templatable(cv.ensure_list(cv.uint8_t)),
+            # cv.Required(CONF_DATA): cv.templatable(cv.ensure_list(cv.uint8_t)),
+            cv.Required(CONF_DATA): cv.templatable(validate_raw_data),
         }
     ),
 )
