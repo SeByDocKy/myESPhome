@@ -40,15 +40,6 @@ BANDWIDTH_MAP = {
     500000: 500000,
 }
 
-def validate_raw_data(value):
-    if isinstance(value, str):
-        return value.encode("utf-8")
-    if isinstance(value, list):
-        return cv.Schema([cv.hex_uint8_t])(value)
-    raise cv.Invalid(
-        "data must either be a string wrapped in quotes or a list of bytes"
-    )
-
 def validate_bandwidth(value):
     value = cv.frequency(value)
     if value not in BANDWIDTH_MAP:
@@ -128,8 +119,7 @@ async def to_code(config):
         {
             cv.GenerateID(): cv.use_id(RYLR998Component),
             cv.Required(CONF_DESTINATION): cv.templatable(cv.int_range(min=0, max=65535)),
-            # cv.Required(CONF_DATA): cv.templatable(cv.ensure_list(cv.uint8_t)),
-            cv.Required(CONF_DATA): cv.templatable(validate_raw_data),
+            cv.Required(CONF_DATA): cv.templatable(cv.ensure_list(cv.uint8_t)),
         }
     ),
 )
@@ -140,7 +130,11 @@ async def rylr998_send_packet_to_code(config, action_id, template_arg, args):
     template_ = await cg.templatable(config[CONF_DESTINATION], args, cg.uint16)
     cg.add(var.set_destination(template_))
     
-    template_ = await cg.templatable(config[CONF_DATA], args, cg.std_vector.template(cg.uint8))
-    cg.add(var.set_data(template_))
+    data = config[CONF_DATA]
+    if isinstance(data, cv.Lambda):
+        template_ = await cg.templatable(data, args, cg.std_vector.template(cg.uint8))
+        cg.add(var.set_data_template(template_))
+    else:
+        cg.add(var.set_data_static(data))
     
     return var

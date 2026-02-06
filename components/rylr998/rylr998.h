@@ -61,34 +61,8 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   CallbackManager<void(uint16_t, std::vector<uint8_t>, int, int)> packet_callback_;
 };
 
-// Automation actions
-template<typename... Ts>
-class RYLR998SendPacketAction : public Action<Ts...> {
- public:
-  explicit RYLR998SendPacketAction(RYLR998Component *parent) : parent_(parent) {}
-
-  TEMPLATABLE_VALUE(uint16_t, destination)
-  TEMPLATABLE_VALUE(std::vector<uint8_t>, data)
-
-  void play(Ts... x) override {
-    auto dest = this->destination_.value(x...);
-    auto data = this->data_.value(x...);
-    this->parent_->send_data(dest, data);
-  }
-
- protected:
-  RYLR998Component *parent_;
-};
-
-// Automation trigger
-class RYLR998PacketTrigger : public Trigger<uint16_t, std::vector<uint8_t>, int, int> {
- public:
-  explicit RYLR998PacketTrigger(RYLR998Component *parent) {
-    parent->add_on_packet_callback([this](uint16_t address, std::vector<uint8_t> data, int rssi, int snr) {
-      this->trigger(address, data, rssi, snr);
-    });
-  }
-};
-
 }  // namespace rylr998
 }  // namespace esphome
+
+// Include automation after the main class definition
+#include "automation.h"
