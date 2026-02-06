@@ -7,7 +7,7 @@
 namespace esphome {
 namespace rylr998 {
 
-class RYLR998PacketTransportComponent : public Component, public packet_transport::PacketTransport {
+class RYLR998PacketTransportComponent : public packet_transport::PacketTransport, public Parented<RYLR998>, public RYLR998Listener {
  public:
   void set_parent(RYLR998Component *parent) { this->parent_ = parent; }
   
