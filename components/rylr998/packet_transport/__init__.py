@@ -48,9 +48,16 @@ CONFIG_SCHEMA = transport_schema(RYLR998PacketTransportComponent).extend(
 #     cg.add(var.set_parent(parent))
 
 
+
+# async def to_code(config):
+#     parent = await cg.get_variable(config[CONF_RYLR998_ID])
+#     var = await new_packet_transport(config, parent)
+#     parent = await cg.get_variable(config[CONF_RYLR998_ID])
+#     cg.add(var.set_parent(parent)) 
+
+
 async def to_code(config):
-    parent = await cg.get_variable(config[CONF_RYLR998_ID])
-    var = await new_packet_transport(config, parent)
-    parent = await cg.get_variable(config[CONF_RYLR998_ID])
-    cg.add(var.set_parent(parent)) 
+    var, _ = await new_packet_transport(config)
+    rylr998 = await cg.get_variable(config[CONF_RYLR998_ID])
+    cg.add(var.set_parent(rylr998))
 
