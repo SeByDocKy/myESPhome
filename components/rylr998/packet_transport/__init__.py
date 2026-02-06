@@ -12,12 +12,12 @@ from .. import CONF_RYLR998_ID, RYLR998Component, rylr998_ns
 
 DEPENDENCIES = ["rylr998"]
 
-RYLR998PacketTransportComponent = rylr998_ns.class_(
-    "RYLR998PacketTransportComponent", PacketTransport
+RYLR998Transport = rylr998_ns.class_(
+    "RYLR998Transport", PacketTransport
 )
 
 
-CONFIG_SCHEMA = transport_schema(RYLR998PacketTransportComponent).extend(
+CONFIG_SCHEMA = transport_schema(RYLR998Transport).extend(
     {
         cv.GenerateID(CONF_RYLR998_ID): cv.use_id(RYLR998Component),
     }
