@@ -4,7 +4,9 @@
 namespace esphome {
 namespace rylr998 {
 
-void RYLR998PacketTransportComponent::setup() {
+static const char *const TAG = "rylr998_transport";
+
+void RYLR998PTransport::setup() {
   // Register callback to receive packets
   this->parent_->add_on_packet_callback(
       [this](uint16_t address, std::vector<uint8_t> data, int rssi, int snr) {
@@ -26,12 +28,12 @@ void RYLR998PacketTransportComponent::setup() {
       });
 }
 
-void RYLR998PacketTransportComponent::dump_config() {
+void RYLR998PTransport::dump_config() {
   ESP_LOGCONFIG(TAG_PT, "RYLR998 Packet Transport:");
   this->dump_config_();
 }
 
-void RYLR998PacketTransportComponent::send_packet_(
+void RYLR998PTransport::send_packet_(
     const packet_transport::PacketTransportHeader &header,
     const uint8_t *data, uint8_t data_len) {
   
