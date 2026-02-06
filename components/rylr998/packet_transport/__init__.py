@@ -33,11 +33,11 @@ RYLR998PacketTransportComponent = rylr998_ns.class_(
 # )
 
 
-# CONFIG_SCHEMA = transport_schema(RYLR998PacketTransportComponent).extend(
-#     {
-#         cv.GenerateID(CONF_RYLR998_ID): cv.use_id(RYLR998Component),
-#     }
-# )
+CONFIG_SCHEMA = transport_schema(RYLR998PacketTransportComponent).extend(
+    {
+        cv.GenerateID(CONF_RYLR998_ID): cv.use_id(RYLR998Component),
+    }
+)
 
 
 # async def to_code(config):
