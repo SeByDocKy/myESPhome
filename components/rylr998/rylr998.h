@@ -3,7 +3,6 @@
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/automation.h"
-#include "esphome/components/packet_transport/packet_transport.h"
 
 namespace esphome {
 namespace rylr998 {
@@ -89,23 +88,6 @@ class RYLR998PacketTrigger : public Trigger<uint16_t, std::vector<uint8_t>, int,
       this->trigger(address, data, rssi, snr);
     });
   }
-};
-
-// Packet Transport Component
-class RYLR998PacketTransportComponent : public packet_transport::PacketTransportComponent {
- public:
-  void set_parent(RYLR998Component *parent) { this->parent_ = parent; }
-  
-  void setup() override;
-  void dump_config() override;
-  
-  bool can_proceed() override { return this->parent_ != nullptr; }
-  
- protected:
-  void send_packet_(const packet_transport::PacketTransportHeader &header, 
-                   const uint8_t *data, uint8_t data_len) override;
-  
-  RYLR998Component *parent_{nullptr};
 };
 
 }  // namespace rylr998

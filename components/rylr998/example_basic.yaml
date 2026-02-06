@@ -1,0 +1,47 @@
+esphome:
+  name: test-rylr998
+  platform: ESP32
+  board: esp32dev
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Configuration UART pour le RYLR998
+uart:
+  id: uart_bus
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 115200
+
+# Configuration du module RYLR998
+rylr998:
+  id: lora
+  uart_id: uart_bus
+  address: 100
+  frequency: 868MHz
+  spreading_factor: 9
+  signal_bandwidth: 125kHz
+  coding_rate: 1
+  preamble_length: 12
+  network_id: 10
+  tx_power: 14
+  on_packet:
+    then:
+      - logger.log:
+          format: "Paquet reçu de %d: RSSI=%d SNR=%d"
+          args: ['address', 'rssi', 'snr']
+      - lambda: |-
+          std::string msg(data.begin(), data.end());
+          ESP_LOGI("main", "Données reçues: %s", msg.c_str());
+
+# Bouton pour envoyer un message de test
+button:
+  - platform: template
+    name: "Envoyer Test LoRa"
+    on_press:
+      - rylr998.send_packet:
+          id: lora
+          destination: 200
+          data: [0x48, 0x45, 0x4C, 0x4C, 0x4F]  # "HELLO"
+      - logger.log: "Message envoyé!"

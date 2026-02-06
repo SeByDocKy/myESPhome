@@ -2,13 +2,42 @@
 
 Composant ESPHome natif pour les modules LoRa RYLR998 et RYLR498.
 
+## Structure du composant
+
+Ce composant est divisé en deux parties :
+
+### 1. Composant de base (obligatoire)
+- `__init__.py` - Configuration Python ESPHome
+- `rylr998.h` - Header C++ du composant principal
+- `rylr998.cpp` - Implémentation C++ du composant principal
+
+### 2. Support Packet Transport (optionnel)
+- `packet_transport.py` - Configuration Python pour packet_transport
+- `rylr998_packet_transport.h` - Header C++ pour packet_transport
+- `rylr998_packet_transport.cpp` - Implémentation C++ pour packet_transport
+
+**Note** : Les fichiers packet_transport sont optionnels et ne doivent être copiés que si vous voulez utiliser la fonctionnalité de transport de paquets entre nœuds ESPHome. Pour une utilisation basique du RYLR998, seuls les fichiers de base sont nécessaires.
+
 ## Installation
 
+### Installation de base
+
 1. Créez un dossier `custom_components/rylr998/` dans votre configuration ESPHome
-2. Copiez les fichiers suivants dans ce dossier :
+2. Copiez les fichiers **de base** dans ce dossier :
    - `__init__.py`
    - `rylr998.h`
    - `rylr998.cpp`
+
+### Installation avec Packet Transport (optionnel)
+
+Si vous voulez utiliser le packet_transport pour la communication inter-nœuds :
+
+1. Suivez d'abord l'installation de base ci-dessus
+2. Ajoutez également les fichiers **packet_transport** :
+   - `packet_transport.py`
+   - `rylr998_packet_transport.h`
+   - `rylr998_packet_transport.cpp`
+3. Consultez le [README_PACKET_TRANSPORT.md](./README_PACKET_TRANSPORT.md) pour la documentation complète
 
 ## Configuration YAML
 

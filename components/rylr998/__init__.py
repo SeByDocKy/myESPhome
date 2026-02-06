@@ -9,7 +9,7 @@ from esphome.const import (
 )
 
 DEPENDENCIES = ["uart"]
-CODEOWNERS = ["@sebydocky,@claude"]
+CODEOWNERS = ["@yourusername"]
 
 CONF_ADDRESS = "address"
 CONF_SPREADING_FACTOR = "spreading_factor"
