@@ -1,6 +1,11 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import packet_transport
+# from esphome.components import packet_transport
+from esphome.components.packet_transport import (
+    PacketTransport,
+    new_packet_transport,
+    transport_schema,
+)
 from esphome.const import CONF_ID
 
 # Import from parent rylr998 component
