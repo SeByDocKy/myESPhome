@@ -2,7 +2,8 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/packet_transport/packet_transport.h"
-#include "rylr998.h"
+#include "../rylr998.h"
+
 
 namespace esphome {
 namespace rylr998 {
