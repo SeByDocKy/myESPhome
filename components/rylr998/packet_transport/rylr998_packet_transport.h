@@ -11,7 +11,7 @@ namespace rylr998 {
 static const char *const TAG_PT = "rylr998.packet_transport";
 
 // Packet Transport Component
-class RYLR998PacketTransportComponent : public packet_transport::PacketTransportComponent {
+class RYLR998PacketTransportComponent : public Component,  public packet_transport::PacketTransport  {  // public packet_transport::PacketTransportComponent
  public:
   void set_parent(RYLR998Component *parent) { this->parent_ = parent; }
   
