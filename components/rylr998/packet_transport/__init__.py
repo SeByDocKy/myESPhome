@@ -13,9 +13,14 @@ from .. import RYLR998Component, rylr998_ns
 
 DEPENDENCIES = ["rylr998"]
 
+# RYLR998PacketTransportComponent = rylr998_ns.class_(
+#     "RYLR998PacketTransportComponent", packet_transport.PacketTransportComponent
+# )
+
 RYLR998PacketTransportComponent = rylr998_ns.class_(
-    "RYLR998PacketTransportComponent", packet_transport.PacketTransportComponent
+    "RYLR998PacketTransportComponent", PacketTransport
 )
+
 
 CONFIG_SCHEMA = packet_transport.PACKET_TRANSPORT_SCHEMA.extend(
     {
