@@ -1,29 +1,23 @@
 #pragma once
 
-#include "esphome/core/component.h"
+#include "esphome.h"
 #include "esphome/components/packet_transport/packet_transport.h"
 #include "../rylr998.h"
-
 
 namespace esphome {
 namespace rylr998 {
 
-static const char *const TAG_PT = "rylr998.packet_transport";
-
-// Packet Transport Component
-class RYLR998PacketTransportComponent : public Component,  public packet_transport::PacketTransport  {  // public packet_transport::PacketTransportComponent
+class RYLR998PacketTransportComponent : public Component,
+                                        public packet_transport::PacketTransport {
  public:
   void set_parent(RYLR998Component *parent) { this->parent_ = parent; }
   
   void setup() override;
   void dump_config() override;
   
-  bool can_proceed() override { return this->parent_ != nullptr; }
+  void send_packet(const uint8_t *data, size_t len) override;
   
  protected:
-  void send_packet_(const packet_transport::PacketTransportHeader &header, 
-                   const uint8_t *data, uint8_t data_len) override;
-  
   RYLR998Component *parent_{nullptr};
 };
 
