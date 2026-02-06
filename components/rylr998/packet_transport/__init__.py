@@ -9,7 +9,7 @@ from esphome.components.packet_transport import (
 from esphome.const import CONF_ID
 
 # Import from parent rylr998 component
-from .. import CONF_SX127X_ID, RYLR998Component, rylr998_ns
+from .. import CONF_RYLR998_ID, RYLR998Component, rylr998_ns
 
 DEPENDENCIES = ["rylr998"]
 
