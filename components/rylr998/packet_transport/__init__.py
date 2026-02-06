@@ -22,12 +22,19 @@ RYLR998PacketTransportComponent = rylr998_ns.class_(
 )
 
 
-CONFIG_SCHEMA = packet_transport.PACKET_TRANSPORT_SCHEMA.extend(
+# CONFIG_SCHEMA = packet_transport.PACKET_TRANSPORT_SCHEMA.extend(
+#     {
+#         cv.GenerateID(): cv.declare_id(RYLR998PacketTransportComponent),
+#         cv.GenerateID(packet_transport.CONF_PACKET_TRANSPORT_ID): cv.use_id(
+#             RYLR998Component
+#         ),
+#     }
+# )
+
+
+CONFIG_SCHEMA = transport_schema(RYLR998PacketTransportComponent).extend(
     {
-        cv.GenerateID(): cv.declare_id(RYLR998PacketTransportComponent),
-        cv.GenerateID(packet_transport.CONF_PACKET_TRANSPORT_ID): cv.use_id(
-            RYLR998Component
-        ),
+        cv.GenerateID(CONF_RYLR998_ID): cv.use_id(RYLR998Component),
     }
 )
 
