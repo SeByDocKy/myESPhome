@@ -1,34 +1,34 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import packet_transport
 from esphome.const import CONF_ID
 from esphome.components.polling_component import PollingComponent
+from esphome.components.packet_transport import (
+    PacketTransport,
+    new_packet_transport,
+    transport_schema,
+)
 
 # Import from parent rylr998 component
 from .. import RYLR998Component, rylr998_ns
 
 DEPENDENCIES = ["rylr998"]
 
+CONF_RYLR998_ID = "rylr998_id"
+
 RYLR998Transport = rylr998_ns.class_(
     "RYLR998Transport", 
-    packet_transport.PacketTransport, 
-    PollingComponent, 
-    # RYLR998Listener is already inherited in C++
+    PacketTransport, 
+    PollingComponent,
 )
 
-CONFIG_SCHEMA = packet_transport.packet_transport_schema(RYLR998Transport).extend(
+CONFIG_SCHEMA = transport_schema(RYLR998Transport).extend(
     {
-        cv.GenerateID(packet_transport.CONF_PACKET_TRANSPORT_ID): cv.use_id(
-            RYLR998Component
-        ),
+        cv.GenerateID(CONF_RYLR998_ID): cv.use_id(RYLR998Component),
     }
 )
 
 
 async def to_code(config):
-    var = cg.new_Pvariable(config[CONF_ID])
-    await packet_transport.register_packet_transport(var, config)
-    await cg.register_component(var, config)
-    
-    parent = await cg.get_variable(config[packet_transport.CONF_PACKET_TRANSPORT_ID])
-    cg.add(var.set_parent(parent))
+    var, _ = await new_packet_transport(config)
+    rylr998 = await cg.get_variable(config[CONF_RYLR998_ID])
+    cg.add(var.set_parent(rylr998))
