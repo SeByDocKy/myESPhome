@@ -97,11 +97,12 @@ async def to_code(config):
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
 
     for conf in config.get(CONF_ON_PACKET, []):
-        # Use the component's trigger directly
-        trigger = await cg.get_variable(var.get_packet_trigger())
+        trigger = var.Pget_packet_trigger()
         await automation.build_automation(
-            trigger, [(cg.std_vector.template(cg.uint8), "data"), 
-                     (cg.float_, "rssi"), (cg.float_, "snr")], conf
+            trigger,
+            [(cg.std_vector.template(cg.uint8), "data"), 
+             (cg.float_, "rssi"), (cg.float_, "snr")], 
+            conf
         )
 
 
