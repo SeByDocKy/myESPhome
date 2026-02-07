@@ -1,6 +1,6 @@
 substitutions:
   name: "test_rylr998"
-  # name_controller: "lora_meter"
+  name_controller: "lora_meter"
   device_description: "RYLR998 LoRa module over UART"
   my_hours: '23'
   my_minute: '59'
@@ -10,7 +10,7 @@ substitutions:
 esphome:
   name: ${name}
   comment: ${device_description}
-  min_version: 2025.10.1
+  min_version: 2026.1.0
 
 
 esp32:
@@ -58,10 +58,56 @@ rylr998:
   id: lora
   uart_id: uart_bus
   address: 100
-  frequency: 915MHz
+  frequency: 868MHz
   spreading_factor: 9
   signal_bandwidth: 125kHz
   coding_rate: 1
   preamble_length: 12
-  network_id: 18
-  tx_power: 22    
+  network_id: 10
+  tx_power: 14
+  on_packet:
+    then:
+      - logger.log:
+          format: "Paquet reçu: RSSI=%d SNR=%d"
+          args: ['rssi', 'snr']
+      - lambda: |-
+          std::string msg(data.begin(), data.end());
+          ESP_LOGI("main", "Données reçues: %s", msg.c_str());
+
+# Bouton pour envoyer un message de test
+button:
+  - platform: template
+    name: "Envoyer Test LoRa"
+    on_press:
+      - rylr998.send_packet:
+          id: lora
+          destination: 200
+          data: [0x48, 0x45, 0x4C, 0x4C, 0x4F]
+      - logger.log: "Message envoyé!"
+      
+      
+packet_transport:
+  platform: rylr998
+  update_interval: 30s
+  encryption: "MySecretKey123"
+  sensors:
+    - room_temperature
+  providers:
+    - name: ${name_controller}
+      encryption: "loralora"
+
+# Capteur à transmettre via LoRa
+sensor:
+  - platform: dht
+    pin: GPIO4
+    temperature:
+      name: "Température"
+      id: room_temperature
+    humidity:
+      name: "Humidité"
+ 
+  - platform: packet_transport
+    provider: ${name_controller}
+    id: local_active_power
+    remote_id: active_power 
+      
