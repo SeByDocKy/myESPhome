@@ -1,7 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
-from esphome.components.polling_component import PollingComponent
 from esphome.components.packet_transport import (
     PacketTransport,
     new_packet_transport,
@@ -14,6 +13,9 @@ from .. import RYLR998Component, rylr998_ns
 DEPENDENCIES = ["rylr998"]
 
 CONF_RYLR998_ID = "rylr998_id"
+
+# PollingComponent is imported via cg
+PollingComponent = cg.PollingComponent
 
 RYLR998Transport = rylr998_ns.class_(
     "RYLR998Transport", 

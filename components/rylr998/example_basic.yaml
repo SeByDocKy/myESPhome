@@ -29,19 +29,30 @@ rylr998:
   on_packet:
     then:
       - logger.log:
-          format: "Paquet reçu de %d: RSSI=%d SNR=%d"
-          args: ['address', 'rssi', 'snr']
+          format: "Paquet reçu: RSSI=%d SNR=%d"
+          args: ['rssi', 'snr']
       - lambda: |-
           std::string msg(data.begin(), data.end());
           ESP_LOGI("main", "Données reçues: %s", msg.c_str());
 
-# Bouton pour envoyer un message de test
+# Bouton pour envoyer un message de test (syntaxe simple)
 button:
   - platform: template
-    name: "Envoyer Test LoRa"
+    name: "Envoyer Test LoRa (simple)"
     on_press:
       - rylr998.send_packet:
           id: lora
           destination: 200
           data: [0x48, 0x45, 0x4C, 0x4C, 0x4F]  # "HELLO"
       - logger.log: "Message envoyé!"
+  
+  # Exemple avec lambda pour données dynamiques
+  - platform: template
+    name: "Envoyer Test LoRa (lambda)"
+    on_press:
+      - rylr998.send_packet:
+          id: lora
+          destination: 200
+          data: !lambda |-
+            return std::vector<uint8_t>{'W', 'O', 'R', 'L', 'D'};
+      - logger.log: "Message lambda envoyé!"
