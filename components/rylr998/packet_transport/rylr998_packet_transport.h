@@ -10,8 +10,8 @@ namespace rylr998 {
 static const char *const TAG_PT = "rylr998.packet_transport";
 
 // Packet Transport - exactly like SX127xTransport
+// Note: PacketTransport already inherits from PollingComponent
 class RYLR998Transport : public packet_transport::PacketTransport, 
-                         public PollingComponent,
                          public RYLR998Listener {
  public:
   void set_parent(RYLR998Component *parent) { 
@@ -22,8 +22,12 @@ class RYLR998Transport : public packet_transport::PacketTransport,
   void setup() override {}
   void dump_config() override;
   
+  // PollingComponent interface
+  void update() override {}
+  
   // PacketTransport interface
   void send_packet(const std::vector<uint8_t> &buf) const override;
+  size_t get_max_packet_size() override { return 240; }  // RYLR998 max packet size
   
   // RYLR998Listener interface
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;

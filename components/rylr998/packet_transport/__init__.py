@@ -14,13 +14,10 @@ DEPENDENCIES = ["rylr998"]
 
 CONF_RYLR998_ID = "rylr998_id"
 
-# PollingComponent is imported via cg
-PollingComponent = cg.PollingComponent
-
+# PacketTransport already inherits from PollingComponent
 RYLR998Transport = rylr998_ns.class_(
     "RYLR998Transport", 
-    PacketTransport, 
-    PollingComponent,
+    PacketTransport,
 )
 
 CONFIG_SCHEMA = transport_schema(RYLR998Transport).extend(
