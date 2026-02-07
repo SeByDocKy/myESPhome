@@ -200,9 +200,29 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
     ESP_LOGD(TAG, "Received message from %d: %s (RSSI: %d, SNR: %d)", 
              address, data_str.c_str(), rssi, snr);
     
-    // Trigger callback
+    // Notify all listeners (like RYLR998Transport)
+    float rssi_f = static_cast<float>(rssi);
+    float snr_f = static_cast<float>(snr);
+    
+    for (auto *listener : this->listeners_) {
+      listener->on_packet(data, rssi_f, snr_f);
+    }
+    
+    // Trigger automation
+    this->packet_trigger_.trigger(data, rssi_f, snr_f);
+    
+    // Legacy callback support
     this->packet_callback_.call(address, data, rssi, snr);
   }
+}
+
+bool RYLR998Component::transmit_packet(const std::vector<uint8_t> &data) {
+  // Use broadcast address (0) when no specific destination
+  return this->transmit_packet(0, data);
+}
+
+bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<uint8_t> &data) {
+  return this->send_data(destination, data);
 }
 
 bool RYLR998Component::send_data(uint16_t destination, const std::vector<uint8_t> &data) {

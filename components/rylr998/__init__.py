@@ -11,8 +11,6 @@ from esphome.const import (
 DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@yourusername"]
 
-CONF_RYLR998_ID = "rylr998_id"
-
 CONF_ADDRESS = "address"
 CONF_SPREADING_FACTOR = "spreading_factor"
 CONF_SIGNAL_BANDWIDTH = "signal_bandwidth"
@@ -32,7 +30,7 @@ RYLR998Component = rylr998_ns.class_(
 RYLR998SendPacketAction = rylr998_ns.class_("RYLR998SendPacketAction", automation.Action)
 RYLR998PacketTrigger = rylr998_ns.class_(
     "RYLR998PacketTrigger",
-    automation.Trigger.template(cg.uint16, cg.std_vector.template(cg.uint8), cg.int_, cg.int_),
+    automation.Trigger.template(cg.std_vector.template(cg.uint8), cg.float_, cg.float_),
 )
 
 # Bandwidth mapping
@@ -108,8 +106,8 @@ async def to_code(config):
     for conf in config.get(CONF_ON_PACKET, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(
-            trigger, [(cg.uint16, "address"), (cg.std_vector.template(cg.uint8), "data"), 
-                     (cg.int_, "rssi"), (cg.int_, "snr")], conf
+            trigger, [(cg.std_vector.template(cg.uint8), "data"), 
+                     (cg.float_, "rssi"), (cg.float_, "snr")], conf
         )
 
 

@@ -6,12 +6,12 @@
 namespace esphome {
 namespace rylr998 {
 
-// Automation trigger
-class RYLR998PacketTrigger : public Trigger<uint16_t, std::vector<uint8_t>, int, int> {
+// Automation trigger - uses the component's trigger
+class RYLR998PacketTrigger : public Trigger<std::vector<uint8_t>, float, float> {
  public:
   explicit RYLR998PacketTrigger(RYLR998Component *parent) {
-    parent->add_on_packet_callback([this](uint16_t address, std::vector<uint8_t> data, int rssi, int snr) {
-      this->trigger(address, data, rssi, snr);
+    parent->get_packet_trigger()->add_on_trigger_callback([this](std::vector<uint8_t> data, float rssi, float snr) {
+      this->trigger(data, rssi, snr);
     });
   }
 };
@@ -37,7 +37,7 @@ class RYLR998SendPacketAction : public Action<Ts...> {
   void play(Ts... x) override {
     auto dest = this->destination_.value(x...);
     auto data = this->static_ ? this->data_static_ : this->data_func_(x...);
-    this->parent_->send_data(dest, data);
+    this->parent_->transmit_packet(dest, data);
   }
 
  protected:
