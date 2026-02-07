@@ -6,16 +6,6 @@
 namespace esphome {
 namespace rylr998 {
 
-// Automation trigger - uses the component's trigger
-class RYLR998PacketTrigger : public Trigger<std::vector<uint8_t>, float, float> {
- public:
-  explicit RYLR998PacketTrigger(RYLR998Component *parent) {
-    parent->get_packet_trigger()->add_on_trigger_callback([this](std::vector<uint8_t> data, float rssi, float snr) {
-      this->trigger(data, rssi, snr);
-    });
-  }
-};
-
 // Automation action for sending packets
 template<typename... Ts>
 class RYLR998SendPacketAction : public Action<Ts...> {

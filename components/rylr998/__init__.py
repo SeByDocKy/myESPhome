@@ -5,7 +5,6 @@ from esphome.components import uart
 from esphome.const import (
     CONF_ID,
     CONF_FREQUENCY,
-    CONF_TRIGGER_ID,
 )
 
 DEPENDENCIES = ["uart"]
@@ -28,10 +27,8 @@ RYLR998Component = rylr998_ns.class_(
 )
 
 RYLR998SendPacketAction = rylr998_ns.class_("RYLR998SendPacketAction", automation.Action)
-RYLR998PacketTrigger = rylr998_ns.class_(
-    "RYLR998PacketTrigger",
-    automation.Trigger.template(cg.std_vector.template(cg.uint8), cg.float_, cg.float_),
-)
+
+# Use the component's trigger directly, no wrapper needed
 
 # Bandwidth mapping
 BANDWIDTH_MAP = {
@@ -77,11 +74,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_PREAMBLE_LENGTH, default=12): cv.int_range(min=4, max=24),
             cv.Optional(CONF_NETWORK_ID, default=18): validate_network_id,
             cv.Optional(CONF_TX_POWER, default=22): cv.int_range(min=0, max=22),
-            cv.Optional(CONF_ON_PACKET): automation.validate_automation(
-                {
-                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(RYLR998PacketTrigger),
-                }
-            ),
+            cv.Optional(CONF_ON_PACKET): automation.validate_automation(),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -104,7 +97,8 @@ async def to_code(config):
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
 
     for conf in config.get(CONF_ON_PACKET, []):
-        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        # Use the component's trigger directly
+        trigger = await cg.get_variable(var.get_packet_trigger())
         await automation.build_automation(
             trigger, [(cg.std_vector.template(cg.uint8), "data"), 
                      (cg.float_, "rssi"), (cg.float_, "snr")], conf
