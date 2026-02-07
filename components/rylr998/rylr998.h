@@ -3,6 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/automation.h"
+#include "./automation.h"
 
 namespace esphome {
 namespace rylr998 {
@@ -88,4 +89,4 @@ class RYLR998Listener {
 }  // namespace esphome
 
 // Include automation after the main class definition
-#include "automation.h"
+// #include "automation.h"
