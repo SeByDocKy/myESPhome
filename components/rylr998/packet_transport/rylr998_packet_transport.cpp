@@ -4,13 +4,8 @@
 namespace esphome {
 namespace rylr998 {
 
-void RYLR998Transport::setup() {
-  ESP_LOGCONFIG(TAG_PT, "Setting up RYLR998 Packet Transport...");
-}
-
 void RYLR998Transport::dump_config() {
-  ESP_LOGCONFIG(TAG_PT, "RYLR998 Packet Transport:");
-  this->dump_config_();
+  ESP_LOGCONFIG(TAG_PT, "RYLR998 Packet Transport");
 }
 
 void RYLR998Transport::send_packet(const std::vector<uint8_t> &buf) const {

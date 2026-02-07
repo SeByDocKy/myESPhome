@@ -9,7 +9,7 @@ namespace rylr998 {
 
 static const char *const TAG_PT = "rylr998.packet_transport";
 
-// Packet Transport Component - Listener pattern like SX127x
+// Packet Transport - exactly like SX127xTransport
 class RYLR998Transport : public packet_transport::PacketTransport, 
                          public PollingComponent,
                          public RYLR998Listener {
@@ -19,7 +19,7 @@ class RYLR998Transport : public packet_transport::PacketTransport,
     parent->register_listener(this);
   }
   
-  void setup() override;
+  void setup() override {}
   void dump_config() override;
   
   // PacketTransport interface
