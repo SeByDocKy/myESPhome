@@ -95,7 +95,7 @@ rylr998:
 
 ### Envoyer des paquets
 
-#### Via bouton
+#### Syntaxe simple (liste statique)
 
 ```yaml
 button:
@@ -108,17 +108,22 @@ button:
           data: [0x48, 0x45, 0x4C, 0x4C, 0x4F]  # "HELLO"
 ```
 
-#### Via lambda
+#### Syntaxe lambda (données dynamiques)
 
 ```yaml
 button:
   - platform: template
     name: "Envoyer température"
     on_press:
-      - lambda: |-
-          std::string msg = "TEMP:25.5";
-          std::vector<uint8_t> data(msg.begin(), msg.end());
-          id(lora).send_data(200, data);
+      - rylr998.send_packet:
+          id: lora
+          destination: 200
+          data: !lambda |-
+            char buffer[32];
+            float temp = id(temperature).state;
+            snprintf(buffer, sizeof(buffer), "TEMP:%.1f", temp);
+            std::string msg(buffer);
+            return std::vector<uint8_t>(msg.begin(), msg.end());
 ```
 
 #### Broadcast (envoi à tous)
@@ -131,9 +136,7 @@ button:
       - rylr998.send_packet:
           id: lora
           destination: 0  # 0 = broadcast
-          data: !lambda |-
-            std::string msg = "ALERT";
-            return std::vector<uint8_t>(msg.begin(), msg.end());
+          data: [0x41, 0x4C, 0x45, 0x52, 0x54]  # "ALERT"
 ```
 
 ## Exemple complet
