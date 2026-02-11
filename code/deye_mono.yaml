@@ -90,7 +90,7 @@ packages:
           modbus_uart_id: uart_0
           modbus_send_wait_time: '100ms'          
           
-  inverter:
+  deye_main:
     url: https://github.com/SeByDocKy/pvbrain2/
     ref: main
     refresh: 10s
@@ -104,3 +104,18 @@ packages:
           inverter_update_interval: '2s'
           inverter_template_update: '2s'
           inverter_text_update: '5s'
+          
+  deye_advanced:
+    url: https://github.com/SeByDocKy/pvbrain2/
+    ref: main
+    refresh: 10s
+    files: 
+      - path: 'pvbrain2/inverter/deye/device_deye_advanced.yaml'
+        vars:
+          inverter_name: 'deye'
+          inverter_modbus_id: 'modbus_id'
+          inverter_modbus_address: '1'
+          inverter_modbus_throttle: '100ms'
+          inverter_update_interval: '2s'
+          inverter_template_update: '2s'
+          inverter_text_update: '5s'      
