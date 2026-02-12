@@ -18,7 +18,7 @@ esp32:
   framework:
     type: esp-idf
     version: 5.5.2
-    platform_version: 55.03.36
+    platform_version: 55.03.37
 
 wifi:
   ssid: !secret wifi_ssid
@@ -118,4 +118,5 @@ packages:
           inverter_modbus_throttle: '100ms'
           inverter_update_interval: '2s'
           inverter_template_update: '2s'
+
           inverter_text_update: '5s'      
