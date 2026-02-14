@@ -84,6 +84,10 @@ void EmersonR48Component::setup() {
   this->canbus->add_callback([this](uint32_t can_id, bool extended_id, bool rtr, const std::vector<uint8_t> &data) {
     ESP_LOGV(TAG, "callback canbus id=0x%08X ext=%d rtr=%d size=%d", can_id, extended_id, rtr, (int)data.size());
     this->on_frame(can_id, rtr, data);
+
+  set_max_output_current(2.5, true);
+
+    
   });
 
 
