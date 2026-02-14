@@ -1,6 +1,6 @@
 substitutions:
-  name: "deye_mono"
-  device_description: "ESPhome Deye hybrid 1-phase inverter"
+  name: "deye_tri"
+  device_description: "ESPhome Deye hybrid 3-phases inverter"
   my_hours: '23'
   my_minute: '59'
   my_second: '59'
@@ -92,7 +92,7 @@ packages:
     ref: main
     refresh: 10s
     files: 
-      - path: 'pvbrain2/inverter/deye/device_deye.yaml'
+      - path: 'pvbrain2/inverter/deye/device_deye_tri.yaml'
         vars:
           inverter_name: 'deye'
           inverter_modbus_id: 'modbus_id'
@@ -102,17 +102,17 @@ packages:
           inverter_template_update: '2s'
           inverter_text_update: '5s'
           
-  deye_advanced:
-    url: https://github.com/SeByDocKy/pvbrain2/
-    ref: main
-    refresh: 10s
-    files: 
-      - path: 'pvbrain2/inverter/deye/device_deye_advanced.yaml'
-        vars:
-          inverter_name: 'deye'
-          inverter_modbus_id: 'modbus_id'
-          inverter_modbus_address: '1'
-          inverter_modbus_throttle: '100ms'
-          inverter_update_interval: '2s'
-          inverter_template_update: '2s'
-          inverter_text_update: '5s'      
+  # deye_advanced:
+    # url: https://github.com/SeByDocKy/pvbrain2/
+    # ref: main
+    # refresh: 10s
+    # files: 
+      # - path: 'pvbrain2/inverter/deye/device_deye_tri_advanced.yaml'
+        # vars:
+          # inverter_name: 'deye'
+          # inverter_modbus_id: 'modbus_id'
+          # inverter_modbus_address: '1'
+          # inverter_modbus_throttle: '100ms'
+          # inverter_update_interval: '2s'
+          # inverter_template_update: '2s'
+          # inverter_text_update: '5s'      
