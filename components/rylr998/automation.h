@@ -6,6 +6,11 @@
 namespace esphome {
 namespace rylr998 {
 
+// Trigger fired when a LoRa packet is received
+class RYLR998PacketTrigger : public Trigger<std::vector<uint8_t>, float, float> {
+  // No extra members needed - Trigger base class handles everything
+};
+
 // Automation action for sending packets
 template<typename... Ts>
 class RYLR998SendPacketAction : public Action<Ts...> {

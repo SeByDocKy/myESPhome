@@ -5,6 +5,7 @@ from esphome.components import uart
 from esphome.const import (
     CONF_ID,
     CONF_FREQUENCY,
+    CONF_TRIGGER_ID,
 )
 
 DEPENDENCIES = ["uart"]
@@ -23,10 +24,21 @@ CONF_DESTINATION = "destination"
 CONF_DATA = "data"
 
 rylr998_ns = cg.esphome_ns.namespace("rylr998")
+
 RYLR998Component = rylr998_ns.class_(
     "RYLR998Component", cg.Component, uart.UARTDevice
 )
-RYLR998SendPacketAction = rylr998_ns.class_("RYLR998SendPacketAction", automation.Action)
+
+RYLR998PacketTrigger = rylr998_ns.class_(
+    "RYLR998PacketTrigger",
+    automation.Trigger.template(
+        cg.std_vector.template(cg.uint8), cg.float_, cg.float_
+    ),
+)
+
+RYLR998SendPacketAction = rylr998_ns.class_(
+    "RYLR998SendPacketAction", automation.Action
+)
 
 
 def validate_bandwidth(value):
@@ -70,7 +82,11 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_PREAMBLE_LENGTH, default=12): cv.int_range(min=4, max=24),
             cv.Optional(CONF_NETWORK_ID, default=18): validate_network_id,
             cv.Optional(CONF_TX_POWER, default=22): cv.int_range(min=0, max=22),
-            cv.Optional(CONF_ON_PACKET): automation.validate_automation(),
+            cv.Optional(CONF_ON_PACKET): automation.validate_automation(
+                {
+                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(RYLR998PacketTrigger),
+                }
+            ),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -93,18 +109,19 @@ async def to_code(config):
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
 
     for conf in config.get(CONF_ON_PACKET, []):
-        trigger = cg.new_Pvariable(conf[CONF_ID])
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID])
         cg.add(var.set_packet_trigger(trigger))
         await automation.build_automation(
             trigger,
-            [(cg.std_vector.template(cg.uint8), "data"),
-             (cg.float_, "rssi"),
-             (cg.float_, "snr")],
+            [
+                (cg.std_vector.template(cg.uint8), "data"),
+                (cg.float_, "rssi"),
+                (cg.float_, "snr"),
+            ],
             conf,
         )
 
 
-# Action for sending a packet
 @automation.register_action(
     "rylr998.send_packet",
     RYLR998SendPacketAction,
