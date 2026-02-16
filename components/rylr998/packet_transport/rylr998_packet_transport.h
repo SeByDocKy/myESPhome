@@ -15,26 +15,28 @@ class RYLR998Transport : public packet_transport::PacketTransport,
                          public RYLR998Listener {
  public:
   void set_parent(RYLR998Component *parent) {
-    ESP_LOGD(TAG_PT, "set_parent called: parent=%p", (void*)parent);
-    this->parent_ = parent;
+    ESP_LOGD(TAG_PT, "set_parent: transport=%p parent=%p", (void*)this, (void*)parent);
+    this->rylr998_parent_ = parent;
     parent->register_listener(this);
   }
   
-  void setup() override {}
+  void setup() override { this->PacketTransport::setup(); }
   void dump_config() override;
   
-  // PollingComponent: appelé à chaque update_interval pour envoyer les données
-  void update() override { this->send_data_(false); }
+  void update() override {
+    ESP_LOGD(TAG_PT, "update: rylr998_parent_=%p", (void*)this->rylr998_parent_);
+    this->send_data_(false);
+  }
   
   // PacketTransport interface
   void send_packet(const std::vector<uint8_t> &buf) const override;
-  size_t get_max_packet_size() override { return 240; }  // RYLR998 max packet size
+  size_t get_max_packet_size() override { return 240; }
   
   // RYLR998Listener interface
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
   
  protected:
-  RYLR998Component *parent_{nullptr};
+  RYLR998Component *rylr998_parent_{nullptr};
 };
 
 }  // namespace rylr998

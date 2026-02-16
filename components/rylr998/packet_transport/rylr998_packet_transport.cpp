@@ -9,8 +9,12 @@ void RYLR998Transport::dump_config() {
 }
 
 void RYLR998Transport::send_packet(const std::vector<uint8_t> &buf) const {
-  // Send packet using the parent RYLR998 component
-  this->parent_->transmit_packet(buf);
+  if (this->rylr998_parent_ == nullptr) {
+    ESP_LOGW(TAG_PT, "send_packet: rylr998_parent_ is null!");
+    return;
+  }
+  ESP_LOGD(TAG_PT, "send_packet: calling transmit on %p", (void*)this->rylr998_parent_);
+  this->rylr998_parent_->transmit_packet(buf);
 }
 
 void RYLR998Transport::on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) {
