@@ -22,7 +22,7 @@ RYLR998Transport = rylr998_ns.class_(
 
 CONFIG_SCHEMA = transport_schema(RYLR998Transport).extend(
     {
-        cv.GenerateID(CONF_RYLR998_ID): cv.use_id(RYLR998Component),
+        cv.Required(CONF_RYLR998_ID): cv.use_id(RYLR998Component),
     }
 )
 

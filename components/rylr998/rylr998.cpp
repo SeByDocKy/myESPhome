@@ -66,7 +66,7 @@ void RYLR998Component::setup() {
   delay(COMMAND_DELAY_MS);
 
   this->initialized_ = true;
-  ESP_LOGCONFIG(TAG, "RYLR998 setup complete");
+  ESP_LOGCONFIG(TAG, "RYLR998 setup complete (this=%p)", (void*)this);
 }
 
 void RYLR998Component::loop() {
@@ -227,8 +227,10 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
     listener->on_packet(data, rssi_f, snr_f);
   }
 
-  // Fire automation trigger
-  this->packet_trigger_.trigger(data, rssi_f, snr_f);
+  // Fire automation trigger (only if set)
+  if (this->packet_trigger_ != nullptr) {
+    this->packet_trigger_->trigger(data, rssi_f, snr_f);
+  }
 
   // Legacy callbacks
   this->packet_callback_.call(address, data, rssi, snr);
@@ -240,7 +242,7 @@ bool RYLR998Component::transmit_packet(const std::vector<uint8_t> &data) {
 
 bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<uint8_t> &data) {
   if (!this->initialized_) {
-    ESP_LOGW(TAG, "Module not initialized");
+    ESP_LOGW(TAG, "Module not initialized (this=%p)", (void*)this);
     return false;
   }
   if (data.size() > 240) {

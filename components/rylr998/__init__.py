@@ -8,7 +8,8 @@ from esphome.const import (
 )
 
 DEPENDENCIES = ["uart"]
-CODEOWNERS = ["@yourusername"]
+CODEOWNERS = ["@SeByDocKy"]
+AUTO_LOAD = ["packet_transport"]
 
 CONF_ADDRESS = "address"
 CONF_SPREADING_FACTOR = "spreading_factor"
@@ -25,23 +26,15 @@ rylr998_ns = cg.esphome_ns.namespace("rylr998")
 RYLR998Component = rylr998_ns.class_(
     "RYLR998Component", cg.Component, uart.UARTDevice
 )
-
 RYLR998SendPacketAction = rylr998_ns.class_("RYLR998SendPacketAction", automation.Action)
 
-# Use the component's trigger directly, no wrapper needed
-
-# Bandwidth mapping
-BANDWIDTH_MAP = {
-    125000: 125000,
-    250000: 250000,
-    500000: 500000,
-}
 
 def validate_bandwidth(value):
     value = cv.frequency(value)
-    if value not in BANDWIDTH_MAP:
-        raise cv.Invalid(f"Bandwidth must be one of {list(BANDWIDTH_MAP.keys())}")
+    if value not in (125000, 250000, 500000):
+        raise cv.Invalid("Bandwidth must be 125kHz, 250kHz or 500kHz")
     return value
+
 
 def validate_spreading_factor(value):
     value = cv.int_(value)
@@ -49,20 +42,23 @@ def validate_spreading_factor(value):
         raise cv.Invalid("Spreading factor must be between 5 and 11")
     return value
 
+
 def validate_coding_rate(value):
     value = cv.int_(value)
     if value < 1 or value > 4:
         raise cv.Invalid("Coding rate must be between 1 and 4")
     return value
 
+
 def validate_network_id(value):
     value = cv.int_(value)
     valid_ids = list(range(3, 16)) + [18]
     if value not in valid_ids:
-        raise cv.Invalid(f"Network ID must be 3-15 or 18")
+        raise cv.Invalid("Network ID must be 3-15 or 18")
     return value
 
-CONFIG_SCHEMA = cv.All(
+
+CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(RYLR998Component),
@@ -86,36 +82,35 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
-    
-    # Add global include for automation.h
-    cg.add_global(cg.RawStatement('#include "esphome/components/rylr998/automation.h"'))
 
     cg.add(var.set_address(config[CONF_ADDRESS]))
-    cg.add(var.set_frequency(config[CONF_FREQUENCY]))
+    cg.add(var.set_frequency(int(config[CONF_FREQUENCY])))
     cg.add(var.set_spreading_factor(config[CONF_SPREADING_FACTOR]))
-    cg.add(var.set_bandwidth(config[CONF_SIGNAL_BANDWIDTH]))
+    cg.add(var.set_bandwidth(int(config[CONF_SIGNAL_BANDWIDTH])))
     cg.add(var.set_coding_rate(config[CONF_CODING_RATE]))
     cg.add(var.set_preamble_length(config[CONF_PREAMBLE_LENGTH]))
     cg.add(var.set_network_id(config[CONF_NETWORK_ID]))
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
 
     for conf in config.get(CONF_ON_PACKET, []):
-        trigger = var.Pget_packet_trigger()
+        trigger = cg.new_Pvariable(conf[CONF_ID])
+        cg.add(var.set_packet_trigger(trigger))
         await automation.build_automation(
             trigger,
-            [(cg.std_vector.template(cg.uint8), "data"), 
-             (cg.float_, "rssi"), (cg.float_, "snr")], 
-            conf
+            [(cg.std_vector.template(cg.uint8), "data"),
+             (cg.float_, "rssi"),
+             (cg.float_, "snr")],
+            conf,
         )
 
 
-# Action for sending data
+# Action for sending a packet
 @automation.register_action(
     "rylr998.send_packet",
     RYLR998SendPacketAction,
     cv.Schema(
         {
-            cv.GenerateID(): cv.use_id(RYLR998Component),
+            cv.Required(CONF_ID): cv.use_id(RYLR998Component),
             cv.Required(CONF_DESTINATION): cv.templatable(cv.int_range(min=0, max=65535)),
             cv.Required(CONF_DATA): cv.templatable(cv.ensure_list(cv.uint8_t)),
         }
@@ -124,15 +119,12 @@ async def to_code(config):
 async def rylr998_send_packet_to_code(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, paren)
-    
     template_ = await cg.templatable(config[CONF_DESTINATION], args, cg.uint16)
     cg.add(var.set_destination(template_))
-    
     data = config[CONF_DATA]
     if isinstance(data, cv.Lambda):
         template_ = await cg.templatable(data, args, cg.std_vector.template(cg.uint8))
         cg.add(var.set_data_template(template_))
     else:
         cg.add(var.set_data_static(data))
-    
     return var

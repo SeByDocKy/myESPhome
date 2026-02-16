@@ -14,7 +14,8 @@ static const char *const TAG_PT = "rylr998.packet_transport";
 class RYLR998Transport : public packet_transport::PacketTransport, 
                          public RYLR998Listener {
  public:
-  void set_parent(RYLR998Component *parent) { 
+  void set_parent(RYLR998Component *parent) {
+    ESP_LOGD(TAG_PT, "set_parent called: parent=%p", (void*)parent);
     this->parent_ = parent;
     parent->register_listener(this);
   }

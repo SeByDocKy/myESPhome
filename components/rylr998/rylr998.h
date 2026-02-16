@@ -38,8 +38,10 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   // Register listener for packet reception
   void register_listener(RYLR998Listener *listener) { this->listeners_.push_back(listener); }
 
-  // Get trigger for automation
-  Trigger<std::vector<uint8_t>, float, float> *get_packet_trigger() { return &this->packet_trigger_; }
+  // Register packet trigger (set from Python codegen)
+  void set_packet_trigger(Trigger<std::vector<uint8_t>, float, float> *trigger) {
+    this->packet_trigger_ = trigger;
+  }
 
   // Legacy callback support (for backward compatibility)
   void add_on_packet_callback(std::function<void(uint16_t, std::vector<uint8_t>, int, int)> callback) {
@@ -72,8 +74,8 @@ class RYLR998Component : public Component, public uart::UARTDevice {
 
   // Listeners and callbacks
   std::vector<RYLR998Listener *> listeners_;
-  Trigger<std::vector<uint8_t>, float, float> packet_trigger_;
-  
+  Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{nullptr};
+
   // Legacy callback support
   CallbackManager<void(uint16_t, std::vector<uint8_t>, int, int)> packet_callback_;
 };
