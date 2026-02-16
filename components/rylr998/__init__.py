@@ -8,7 +8,7 @@ from esphome.const import (
 )
 
 DEPENDENCIES = ["uart"]
-CODEOWNERS = ["@sebydocky,@claude,@swoboda1337"]
+CODEOWNERS = ["@yourusername"]
 
 CONF_ADDRESS = "address"
 CONF_SPREADING_FACTOR = "spreading_factor"
@@ -86,6 +86,9 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
+    
+    # Add global include for automation.h
+    cg.add_global(cg.RawStatement('#include "esphome/components/rylr998/automation.h"'))
 
     cg.add(var.set_address(config[CONF_ADDRESS]))
     cg.add(var.set_frequency(config[CONF_FREQUENCY]))

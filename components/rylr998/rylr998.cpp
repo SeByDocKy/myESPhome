@@ -20,11 +20,6 @@ void RYLR998Component::setup() {
     return;
   }
 
-  // Reset module
-  // ESP_LOGD(TAG, "Resetting module...");
-  // this->send_command_("AT+RESET", 2000);
-  // delay(1000);
-
   // Configure module with AT commands
   ESP_LOGD(TAG, "Configuring module...");
 
@@ -36,15 +31,15 @@ void RYLR998Component::setup() {
   }
   delay(COMMAND_DELAY_MS);
 
-  // Set frequency
-  char freq_cmd[64];
-  snprintf(freq_cmd, sizeof(freq_cmd), "AT+BAND=%lu,M", this->frequency_);
+  // Set frequency - RYLR998 uses Hz directly, no suffix
+  char freq_cmd[32];
+  snprintf(freq_cmd, sizeof(freq_cmd), "AT+BAND=%lu", this->frequency_);
   if (!this->send_command_(freq_cmd, 1000)) {
     ESP_LOGW(TAG, "Failed to set frequency");
   }
   delay(COMMAND_DELAY_MS);
 
-  // Set RF parameters
+  // Set RF parameters: SF, BW, CR, Preamble
   uint8_t bw_code = this->bandwidth_to_code_(this->bandwidth_);
   char param_cmd[64];
   snprintf(param_cmd, sizeof(param_cmd), "AT+PARAMETER=%d,%d,%d,%d",
@@ -79,18 +74,19 @@ void RYLR998Component::loop() {
   while (this->available()) {
     uint8_t c;
     this->read_byte(&c);
-    
+
     if (c == '\n') {
-      // Process complete line
+      // Process complete line - strip trailing \r if present
       if (!this->rx_buffer_.empty()) {
-        // Remove \r if present
         if (this->rx_buffer_.back() == '\r') {
           this->rx_buffer_.pop_back();
         }
-        this->process_rx_line_(this->rx_buffer_);
+        if (!this->rx_buffer_.empty()) {
+          this->process_rx_line_(this->rx_buffer_);
+        }
         this->rx_buffer_.clear();
       }
-    } else if (c != '\r') {
+    } else {
       this->rx_buffer_ += (char) c;
     }
   }
@@ -106,7 +102,7 @@ void RYLR998Component::dump_config() {
   ESP_LOGCONFIG(TAG, "  Preamble Length: %d", this->preamble_length_);
   ESP_LOGCONFIG(TAG, "  Network ID: %d", this->network_id_);
   ESP_LOGCONFIG(TAG, "  TX Power: %d dBm", this->tx_power_);
-  
+
   if (this->is_failed()) {
     ESP_LOGE(TAG, "Communication with RYLR998 failed!");
   }
@@ -125,99 +121,110 @@ bool RYLR998Component::send_command_(const std::string &command, uint32_t timeou
   this->write_str(full_command.c_str());
   this->flush();
 
-  ESP_LOGV(TAG, "Sent command: %s", command.c_str());
+  ESP_LOGV(TAG, "TX: %s", command.c_str());
 
-  // Wait for response
-  return this->wait_for_response_("+OK", timeout_ms) || 
-         this->wait_for_response_("+READY", timeout_ms);
-}
+  // Wait for +OK or +READY in a single pass
+  uint32_t start = millis();
+  std::string line;
 
-bool RYLR998Component::wait_for_response_(const std::string &expected, uint32_t timeout_ms) {
-  uint32_t start_time = millis();
-  std::string response_buffer;
-
-  while (millis() - start_time < timeout_ms) {
+  while (millis() - start < timeout_ms) {
     while (this->available()) {
       uint8_t c;
       this->read_byte(&c);
-      
+
       if (c == '\n') {
-        // Check if response matches expected
-        if (response_buffer.find(expected) != std::string::npos) {
-          ESP_LOGV(TAG, "Received expected response: %s", response_buffer.c_str());
+        // Strip trailing \r
+        if (!line.empty() && line.back() == '\r') {
+          line.pop_back();
+        }
+        ESP_LOGV(TAG, "RX cmd: %s", line.c_str());
+        if (line.find("+OK") != std::string::npos ||
+            line.find("+READY") != std::string::npos) {
           return true;
         }
-        response_buffer.clear();
-      } else if (c != '\r') {
-        response_buffer += (char) c;
+        // Error responses
+        if (line.find("+ERR") != std::string::npos) {
+          ESP_LOGW(TAG, "Module returned error: %s", line.c_str());
+          return false;
+        }
+        line.clear();
+      } else {
+        line += (char) c;
       }
     }
-    delay(10);
+    delay(5);
   }
 
-  ESP_LOGW(TAG, "Timeout waiting for response: %s", expected.c_str());
+  ESP_LOGW(TAG, "Timeout waiting for +OK after: %s", command.c_str());
   return false;
 }
 
+// Helper to strip leading/trailing spaces from a string
+static std::string trim_(const std::string &s) {
+  size_t start = s.find_first_not_of(" \t\r\n");
+  if (start == std::string::npos) return "";
+  size_t end = s.find_last_not_of(" \t\r\n");
+  return s.substr(start, end - start + 1);
+}
+
 void RYLR998Component::process_rx_line_(const std::string &line) {
-  ESP_LOGV(TAG, "RX: %s", line.c_str());
+  ESP_LOGV(TAG, "RX: '%s'", line.c_str());
 
   // Check for received message: +RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>
-  if (line.find("+RCV=") == 0) {
-    // Parse the received message
-    size_t pos = 5;  // Skip "+RCV="
-    
-    // Parse address
-    size_t comma1 = line.find(',', pos);
-    if (comma1 == std::string::npos) return;
-    uint16_t address = std::stoi(line.substr(pos, comma1 - pos));
-    
-    // Parse length
-    pos = comma1 + 1;
-    size_t comma2 = line.find(',', pos);
-    if (comma2 == std::string::npos) return;
-    int length = std::stoi(line.substr(pos, comma2 - pos));
-    
-    // Parse data
-    pos = comma2 + 1;
-    size_t comma3 = line.find(',', pos);
-    if (comma3 == std::string::npos) return;
-    std::string data_str = line.substr(pos, comma3 - pos);
-    
-    // Parse RSSI
-    pos = comma3 + 1;
-    size_t comma4 = line.find(',', pos);
-    if (comma4 == std::string::npos) return;
-    int rssi = std::stoi(line.substr(pos, comma4 - pos));
-    
-    // Parse SNR
-    pos = comma4 + 1;
-    int snr = std::stoi(line.substr(pos));
-    
-    // Convert data string to bytes
-    std::vector<uint8_t> data(data_str.begin(), data_str.end());
-    
-    ESP_LOGD(TAG, "Received message from %d: %s (RSSI: %d, SNR: %d)", 
-             address, data_str.c_str(), rssi, snr);
-    
-    // Notify all listeners (like RYLR998Transport)
-    float rssi_f = static_cast<float>(rssi);
-    float snr_f = static_cast<float>(snr);
-    
-    for (auto *listener : this->listeners_) {
-      listener->on_packet(data, rssi_f, snr_f);
-    }
-    
-    // Trigger automation
-    this->packet_trigger_.trigger(data, rssi_f, snr_f);
-    
-    // Legacy callback support
-    this->packet_callback_.call(address, data, rssi, snr);
+  // Note: RYLR998 may output spaces after commas: "+RCV=50, 5, HELLO, -99, 40"
+  if (line.find("+RCV=") != 0) {
+    return;
   }
+
+  std::string payload = line.substr(5);  // skip "+RCV="
+
+  // We need to find the last two commas (RSSI and SNR) counting from the end
+  // because <Data> itself may contain commas.
+  // Format: <Address>,<Length>,<Data>,<RSSI>,<SNR>
+
+  // Find last comma -> SNR
+  size_t snr_comma = payload.rfind(',');
+  if (snr_comma == std::string::npos) return;
+
+  // Find second-to-last comma -> RSSI
+  size_t rssi_comma = payload.rfind(',', snr_comma - 1);
+  if (rssi_comma == std::string::npos) return;
+
+  // Find first comma -> Address end
+  size_t addr_comma = payload.find(',');
+  if (addr_comma == std::string::npos) return;
+
+  // Find second comma -> Length end
+  size_t len_comma = payload.find(',', addr_comma + 1);
+  if (len_comma == std::string::npos) return;
+
+  // Parse fields
+  uint16_t address = (uint16_t) std::stoi(trim_(payload.substr(0, addr_comma)));
+  // length field present but we use actual data size
+  std::string data_str = trim_(payload.substr(len_comma + 1, rssi_comma - len_comma - 1));
+  int rssi = std::stoi(trim_(payload.substr(rssi_comma + 1, snr_comma - rssi_comma - 1)));
+  int snr  = std::stoi(trim_(payload.substr(snr_comma + 1)));
+
+  std::vector<uint8_t> data(data_str.begin(), data_str.end());
+
+  ESP_LOGD(TAG, "RCV from %d: '%s' (RSSI: %d, SNR: %d)", address, data_str.c_str(), rssi, snr);
+
+  float rssi_f = static_cast<float>(rssi);
+  float snr_f  = static_cast<float>(snr);
+
+  // Notify all listeners (e.g. RYLR998Transport for packet_transport)
+  for (auto *listener : this->listeners_) {
+    listener->on_packet(data, rssi_f, snr_f);
+  }
+
+  // Fire automation trigger
+  this->packet_trigger_.trigger(data, rssi_f, snr_f);
+
+  // Legacy callbacks
+  this->packet_callback_.call(address, data, rssi, snr);
 }
 
 bool RYLR998Component::transmit_packet(const std::vector<uint8_t> &data) {
-  // Use broadcast address (0) when no specific destination
   return this->transmit_packet(0, data);
 }
 
@@ -230,37 +237,33 @@ bool RYLR998Component::send_data(uint16_t destination, const std::vector<uint8_t
     ESP_LOGW(TAG, "Module not initialized");
     return false;
   }
-
   if (data.size() > 240) {
-    ESP_LOGE(TAG, "Data too large (max 240 bytes)");
+    ESP_LOGE(TAG, "Data too large (max 240 bytes), got %d", (int) data.size());
     return false;
   }
 
-  // Convert data to ASCII string
   std::string data_str(data.begin(), data.end());
-  
-  // Build AT+SEND command
+
   char send_cmd[300];
   snprintf(send_cmd, sizeof(send_cmd), "AT+SEND=%d,%d,%s",
-           destination, (int)data.size(), data_str.c_str());
-  
-  ESP_LOGD(TAG, "Sending to %d: %s", destination, data_str.c_str());
-  
+           destination, (int) data.size(), data_str.c_str());
+
+  ESP_LOGD(TAG, "TX to %d: '%s'", destination, data_str.c_str());
+
   return this->send_command_(send_cmd, 2000);
 }
 
 bool RYLR998Component::send_data(uint16_t destination, const std::string &data) {
-  std::vector<uint8_t> data_bytes(data.begin(), data.end());
-  return this->send_data(destination, data_bytes);
+  return this->send_data(destination, std::vector<uint8_t>(data.begin(), data.end()));
 }
 
 uint8_t RYLR998Component::bandwidth_to_code_(uint32_t bandwidth) {
   switch (bandwidth) {
-    case 125000: return 7;  // 125 KHz
-    case 250000: return 8;  // 250 KHz
-    case 500000: return 9;  // 500 KHz
+    case 125000: return 7;
+    case 250000: return 8;
+    case 500000: return 9;
     default:
-      ESP_LOGW(TAG, "Invalid bandwidth %lu, using 125 KHz", bandwidth);
+      ESP_LOGW(TAG, "Unknown bandwidth %lu Hz, defaulting to 125 kHz", bandwidth);
       return 7;
   }
 }
@@ -270,7 +273,7 @@ std::string RYLR998Component::bandwidth_to_string_(uint32_t bandwidth) {
     case 125000: return "125 KHz";
     case 250000: return "250 KHz";
     case 500000: return "500 KHz";
-    default: return "Unknown";
+    default:     return "Unknown";
   }
 }
 
