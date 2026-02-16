@@ -21,9 +21,9 @@ void RYLR998Component::setup() {
   }
 
   // Reset module
-  ESP_LOGD(TAG, "Resetting module...");
-  this->send_command_("AT+RESET", 2000);
-  delay(1000);
+  // ESP_LOGD(TAG, "Resetting module...");
+  // this->send_command_("AT+RESET", 2000);
+  // delay(1000);
 
   // Configure module with AT commands
   ESP_LOGD(TAG, "Configuring module...");
