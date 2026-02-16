@@ -24,7 +24,8 @@ class RYLR998Transport : public packet_transport::PacketTransport,
   void dump_config() override;
   
   void update() override {
-    ESP_LOGD(TAG_PT, "update: rylr998_parent_=%p", (void*)this->rylr998_parent_);
+    // ESP_LOGD(TAG_PT, "update: rylr998_parent_=%p", (void*)this->rylr998_parent_);
+    ESP_LOGD(TAG_PT, "update: this=%p rylr998_parent_=%p", (void*)this, (void*)this->rylr998_parent_);
     this->send_data_(false);
   }
   
