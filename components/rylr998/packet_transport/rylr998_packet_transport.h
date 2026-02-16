@@ -23,7 +23,7 @@ class RYLR998Transport : public packet_transport::PacketTransport,
   void dump_config() override;
   
   // PollingComponent: appelé à chaque update_interval pour envoyer les données
-  void update() override { this->send_data_(); }
+  void update() override { this->send_data_(false); }
   
   // PacketTransport interface
   void send_packet(const std::vector<uint8_t> &buf) const override;
