@@ -65,6 +65,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
 
   // Helper methods
   bool send_command_(const std::string &command, uint32_t timeout_ms = 1000);
+  void send_raw_(const std::string &command);  // Non-blocking, fire-and-forget for TX
   void process_rx_line_(const std::string &line);
   uint8_t bandwidth_to_code_(uint32_t bandwidth);
   std::string bandwidth_to_string_(uint32_t bandwidth);

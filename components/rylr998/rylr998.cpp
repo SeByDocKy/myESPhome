@@ -170,6 +170,16 @@ static std::string trim_(const std::string &s) {
 void RYLR998Component::process_rx_line_(const std::string &line) {
   ESP_LOGV(TAG, "RX: '%s'", line.c_str());
 
+  // Acknowledge responses from AT+SEND (non-blocking transmit)
+  if (line.find("+OK") != std::string::npos) {
+    ESP_LOGV(TAG, "TX acknowledged");
+    return;
+  }
+  if (line.find("+ERR") != std::string::npos) {
+    ESP_LOGW(TAG, "Module error: %s", line.c_str());
+    return;
+  }
+
   // Check for received message: +RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>
   // Note: RYLR998 may output spaces after commas: "+RCV=50, 5, HELLO, -99, 40"
   if (line.find("+RCV=") != 0) {
@@ -229,10 +239,6 @@ bool RYLR998Component::transmit_packet(const std::vector<uint8_t> &data) {
 }
 
 bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<uint8_t> &data) {
-  return this->send_data(destination, data);
-}
-
-bool RYLR998Component::send_data(uint16_t destination, const std::vector<uint8_t> &data) {
   if (!this->initialized_) {
     ESP_LOGW(TAG, "Module not initialized");
     return false;
@@ -250,11 +256,23 @@ bool RYLR998Component::send_data(uint16_t destination, const std::vector<uint8_t
 
   ESP_LOGD(TAG, "TX to %d: '%s'", destination, data_str.c_str());
 
-  return this->send_command_(send_cmd, 2000);
+  // Use non-blocking write - do NOT wait for +OK here, loop() will consume it
+  this->send_raw_(send_cmd);
+  return true;
+}
+
+void RYLR998Component::send_raw_(const std::string &command) {
+  std::string full = command + "\r\n";
+  this->write_str(full.c_str());
+  this->flush();
+}
+
+bool RYLR998Component::send_data(uint16_t destination, const std::vector<uint8_t> &data) {
+  return this->transmit_packet(destination, data);
 }
 
 bool RYLR998Component::send_data(uint16_t destination, const std::string &data) {
-  return this->send_data(destination, std::vector<uint8_t>(data.begin(), data.end()));
+  return this->transmit_packet(destination, std::vector<uint8_t>(data.begin(), data.end()));
 }
 
 uint8_t RYLR998Component::bandwidth_to_code_(uint32_t bandwidth) {
