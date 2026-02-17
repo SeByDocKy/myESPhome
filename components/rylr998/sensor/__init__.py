@@ -15,8 +15,6 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
     CONF_ID,
-    CONF_SNR,
-    CONF_RSSI,
     DEVICE_CLASS_SIGNAL_STRENGTH,
     STATE_CLASS_MEASUREMENT,
     UNIT_DECIBEL_MILLIWATT,
@@ -29,8 +27,9 @@ from .. import rylr998_ns, RYLR998Component, CONF_RYLR998_ID
 
 DEPENDENCIES = ["rylr998"]
 
-# ── C++ class for this sensor platform ───────────────────────────────────────
-# (thin wrapper — the actual Sensor objects are standard esphome::sensor::Sensor)
+# CONF_RSSI and CONF_SNR may not exist in all ESPHome versions — define them locally
+CONF_RSSI = "rssi"
+CONF_SNR  = "snr"
 
 # ── Schema ────────────────────────────────────────────────────────────────────
 
