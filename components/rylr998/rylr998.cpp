@@ -232,14 +232,15 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
     data.assign(data_str.begin(), data_str.end());
   }
 
-  // ESP_LOGD(TAG, "RCV from %d: %d bytes (RSSI: %d, SNR: %d)", address, (int)data.size(), rssi, snr);
+  ESP_LOGD(TAG, "RCV from %d: %d bytes (RSSI: %d, SNR: %d)", address, (int)data.size(), rssi, snr);
 
   float rssi_f = static_cast<float>(rssi);
   float snr_f  = static_cast<float>(snr);
 
-  // Notify all listeners (e.g. RYLR998Transport for packet_transport)
-  for (auto *listener : this->listeners_) {
-    listener->on_packet(data, rssi_f, snr_f);
+  // Notify listener (e.g. RYLR998Transport for packet_transport)
+  // Single pointer instead of vector - avoids heap corruption from std::vector internals
+  if (this->listener_ != nullptr) {
+    this->listener_->on_packet(data, rssi_f, snr_f);
   }
 
   // Fire automation trigger (only if set)

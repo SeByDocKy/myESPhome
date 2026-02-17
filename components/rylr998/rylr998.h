@@ -31,7 +31,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   bool send_data(uint16_t destination, const std::vector<uint8_t> &data);
   bool send_data(uint16_t destination, const std::string &data);
 
-  void register_listener(RYLR998Listener *listener) { this->listeners_.push_back(listener); }
+  void register_listener(RYLR998Listener *listener) { this->listener_ = listener; }
 
   void set_packet_trigger(Trigger<std::vector<uint8_t>, float, float> *trigger) {
     this->packet_trigger_ = trigger;
@@ -66,7 +66,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   uint8_t bandwidth_to_code_(uint32_t bandwidth);
   std::string bandwidth_to_string_(uint32_t bandwidth);
 
-  std::vector<RYLR998Listener *> listeners_;
+  RYLR998Listener *listener_{nullptr};  // single listener (no vector - avoids heap corruption)
   Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{nullptr};
   CallbackManager<void(uint16_t, std::vector<uint8_t>, int, int)> packet_callback_;
 };
