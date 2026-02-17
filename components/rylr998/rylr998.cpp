@@ -237,10 +237,9 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
   float rssi_f = static_cast<float>(rssi);
   float snr_f  = static_cast<float>(snr);
 
-  // Notify via plain C function pointer - NO virtual dispatch, NO vtable lookup
-  // Completely immune to heap corruption that corrupts vtable pointers
-  if (this->raw_cb_ != nullptr) {
-    this->raw_cb_(data, rssi_f, snr_f);
+  // Notify all listeners (e.g. RYLR998Transport for packet_transport)
+  for (auto *listener : this->listeners_) {
+    listener->on_packet(data, rssi_f, snr_f);
   }
 
   // Fire automation trigger (only if set)
