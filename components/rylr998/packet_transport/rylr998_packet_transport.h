@@ -9,15 +9,22 @@ namespace rylr998 {
 
 static const char *const TAG_PT = "rylr998.packet_transport";
 
-class RYLR998Transport : public packet_transport::PacketTransport, 
+class RYLR998Transport : public packet_transport::PacketTransport,
                          public RYLR998Listener {
  public:
-  // set_parent stores the pointer ONLY - no register_listener here (SX127x pattern)
-  void set_parent(RYLR998Component *parent) { this->rylr998_parent_ = parent; }
+  // Store parent in a static variable - completely outside the object's heap memory.
+  // PacketTransport::setup() overwrites any instance member at offset > ~290 bytes,
+  // but static members live in .bss and are never touched by base class setup.
+  void set_parent(RYLR998Component *parent) { rylr998_parent_static_ = parent; }
 
   void setup() override {
     PacketTransport::setup();
-    this->rylr998_parent_->register_listener(this);  // register here, after PacketTransport::setup()
+    // register_listener after PacketTransport::setup() - same pattern as SX127x
+    if (rylr998_parent_static_ != nullptr) {
+      rylr998_parent_static_->register_listener(this);
+    } else {
+      ESP_LOGE(TAG_PT, "set_parent was never called!");
+    }
   }
 
   void dump_config() override;
@@ -31,8 +38,9 @@ class RYLR998Transport : public packet_transport::PacketTransport,
   // RYLR998Listener interface
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) override;
 
- protected:
-  RYLR998Component *rylr998_parent_{nullptr};
+ private:
+  // Static: lives in .bss, never on the heap, immune to PacketTransport::setup()
+  static RYLR998Component *rylr998_parent_static_;
 };
 
 }  // namespace rylr998
