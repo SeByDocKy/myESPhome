@@ -90,34 +90,6 @@ void RYLR998Component::loop() {
       this->rx_buffer_ += (char) c;
     }
   }
-
-  // TX timeout watchdog: if +OK never comes, unblock after TX_TIMEOUT_MS
-  if (this->tx_busy_ && (millis() - this->tx_sent_at_ > TX_TIMEOUT_MS)) {
-    ESP_LOGW(TAG, "TX timeout - unblocking queue");
-    this->tx_busy_ = false;
-  }
-
-  // Flush TX queue if module is idle
-  this->flush_tx_queue_();
-}
-
-void RYLR998Component::flush_tx_queue_() {
-  if (this->tx_busy_ || this->tx_queue_.empty()) {
-    return;
-  }
-  // Pop and send next packet
-  TxPacket pkt = this->tx_queue_.front();
-  this->tx_queue_.pop();
-
-  char send_cmd[520];
-  snprintf(send_cmd, sizeof(send_cmd), "AT+SEND=%d,%d,%s",
-           pkt.destination, (int)pkt.hex_data.size(), pkt.hex_data.c_str());
-
-  ESP_LOGD(TAG, "TX to %d (%d bytes): %s", pkt.destination, (int)(pkt.hex_data.size()/2), pkt.hex_data.c_str());
-
-  this->send_raw_(send_cmd);
-  this->tx_busy_ = true;
-  this->tx_sent_at_ = millis();
 }
 
 void RYLR998Component::dump_config() {
@@ -201,18 +173,15 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
   // Acknowledge responses from AT+SEND (non-blocking transmit)
   if (line.find("+OK") != std::string::npos) {
     ESP_LOGV(TAG, "TX acknowledged");
-    this->tx_busy_ = false;  // Module is now idle, next queued packet can be sent
     return;
   }
   if (line.find("+ERR=17") != std::string::npos) {
-    // ERR=17 = TX busy - module still transmitting. Release busy flag and it will retry.
-    ESP_LOGD(TAG, "TX busy (ERR=17), will retry");
-    this->tx_busy_ = false;
+    // ERR=17 = TX busy - LoRa air-time not finished yet, will retry next interval
+    ESP_LOGD(TAG, "TX busy (ERR=17), dropped - PacketTransport will retry");
     return;
   }
   if (line.find("+ERR") != std::string::npos) {
     ESP_LOGW(TAG, "Module error: %s", line.c_str());
-    this->tx_busy_ = false;  // Release on any error
     return;
   }
 
@@ -298,30 +267,27 @@ bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<u
 
 
   // RYLR998 requires hex-ASCII data in AT+SEND
+  // Rate limit: LoRa air-time at SF9/BW125 is ~450ms. Drop if sent too recently.
+  // PacketTransport will call us again in ~500ms anyway (it retransmits by design).
+  uint32_t now = millis();
+  if (now - this->last_tx_time_ < TX_MIN_INTERVAL_MS) {
+    return true;  // silently drop, will be sent next call
+  }
+  this->last_tx_time_ = now;
+
+  // Encode as hex-ASCII (stack buffer only, no heap allocation)
   char hex_buf[481];  // 240 bytes max -> 480 hex chars + null
   for (size_t i = 0; i < data.size(); i++) {
     snprintf(hex_buf + i * 2, 3, "%02X", data[i]);
   }
   hex_buf[data.size() * 2] = '\0';
 
-  // Queue the packet - loop() will send it when module is idle
-  TxPacket pkt;
-  pkt.destination = destination;
-  pkt.hex_data = std::string(hex_buf);
+  char send_cmd[520];
+  snprintf(send_cmd, sizeof(send_cmd), "AT+SEND=%d,%d,%s",
+           destination, (int)(data.size() * 2), hex_buf);
 
-  // Drop duplicates: if queue not empty and last entry is identical, skip
-  // (PacketTransport sends same data multiple times - we only need one)
-  if (!this->tx_queue_.empty()) {
-    // Simple dedup: check if top of queue is same destination+data
-    // (Can't easily peek queue bottom, just limit queue size to avoid backlog)
-    if (this->tx_queue_.size() >= 2) {
-      // Queue is backing up - drop this packet to avoid latency buildup
-      ESP_LOGD(TAG, "TX queue full (%d), dropping duplicate", (int)this->tx_queue_.size());
-      return true;
-    }
-  }
-
-  this->tx_queue_.push(pkt);
+  ESP_LOGD(TAG, "TX to %d (%d bytes): %s", destination, (int)data.size(), hex_buf);
+  this->send_raw_(send_cmd);
   return true;
 }
 
