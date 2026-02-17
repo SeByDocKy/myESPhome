@@ -8,11 +8,11 @@ from esphome.components.packet_transport import (
 )
 
 # Import from parent rylr998 component
-from .. import RYLR998Component, rylr998_ns
+from .. import CONF_RYLR998_ID, RYLR998Component, rylr998_ns
 
 DEPENDENCIES = ["rylr998"]
 
-CONF_RYLR998_ID = "rylr998_id"
+# CONF_RYLR998_ID = "rylr998_id"
 
 # PacketTransport already inherits from PollingComponent
 RYLR998Transport = rylr998_ns.class_(
