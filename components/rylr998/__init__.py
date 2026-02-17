@@ -12,6 +12,8 @@ DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@SeByDocKy"]
 AUTO_LOAD = ["packet_transport", "sensor"]  # "sensor" ajouté pour la plateforme sensor
 
+
+CONF_RYLR998_ID = "rylr998_id"
 CONF_ADDRESS = "address"
 CONF_SPREADING_FACTOR = "spreading_factor"
 CONF_SIGNAL_BANDWIDTH = "signal_bandwidth"
