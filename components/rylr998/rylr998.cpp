@@ -66,7 +66,7 @@ void RYLR998Component::setup() {
   delay(COMMAND_DELAY_MS);
 
   this->initialized_ = true;
-  ESP_LOGCONFIG(TAG, "RYLR998 setup complete (this=%p)", (void*)this);
+  ESP_LOGCONFIG(TAG, "RYLR998 setup complete");
 }
 
 void RYLR998Component::loop() {
@@ -242,7 +242,7 @@ bool RYLR998Component::transmit_packet(const std::vector<uint8_t> &data) {
 
 bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<uint8_t> &data) {
   if (!this->initialized_) {
-    ESP_LOGW(TAG, "Module not initialized (this=%p)", (void*)this);
+    ESP_LOGW(TAG, "Module not initialized");
     return false;
   }
   if (data.size() > 240) {
