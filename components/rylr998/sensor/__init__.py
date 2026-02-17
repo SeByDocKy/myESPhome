@@ -1,15 +1,3 @@
-"""
-ESPHome sensor platform for RYLR998 LoRa module.
-
-YAML usage:
-  sensor:
-    - platform: rylr998
-      rssi:
-        name: ${name}_rssi
-      snr:
-        name: ${name}_snr
-"""
-
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
@@ -22,14 +10,17 @@ from esphome.const import (
     ICON_SIGNAL,
 )
 
-# Import the parent component namespace
-from .. import rylr998_ns, RYLR998Component, CONF_RYLR998_ID
+# Importation depuis le composant parent — on récupère exactement ce qui y est défini
+from .. import rylr998_ns, RYLR998Component
 
 DEPENDENCIES = ["rylr998"]
 
-# CONF_RSSI and CONF_SNR may not exist in all ESPHome versions — define them locally
+# Définis localement : n'existent pas forcément dans esphome.const selon la version
 CONF_RSSI = "rssi"
 CONF_SNR  = "snr"
+
+# Identifiant interne pour référencer le composant parent depuis la plateforme sensor
+CONF_RYLR998_ID = "rylr998_id"
 
 # ── Schema ────────────────────────────────────────────────────────────────────
 
