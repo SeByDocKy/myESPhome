@@ -10,17 +10,12 @@ from esphome.const import (
     ICON_SIGNAL,
 )
 
-# Importation depuis le composant parent — on récupère exactement ce qui y est défini
 from .. import CONF_RYLR998_ID, rylr998_ns, RYLR998Component
 
 DEPENDENCIES = ["rylr998"]
 
-# Définis localement : n'existent pas forcément dans esphome.const selon la version
 CONF_RSSI = "rssi"
 CONF_SNR  = "snr"
-
-# Identifiant interne pour référencer le composant parent depuis la plateforme sensor
-# CONF_RYLR998_ID = "rylr998_id"
 
 # ── Schema ────────────────────────────────────────────────────────────────────
 
