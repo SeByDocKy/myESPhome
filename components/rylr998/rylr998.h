@@ -7,8 +7,6 @@
 namespace esphome {
 namespace rylr998 {
 
-class RYLR998Listener;
-
 class RYLR998Component : public Component, public uart::UARTDevice {
  public:
   void setup() override;
@@ -31,7 +29,10 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   bool send_data(uint16_t destination, const std::vector<uint8_t> &data);
   bool send_data(uint16_t destination, const std::string &data);
 
-  void register_listener(RYLR998Listener *listener) { this->listener_ = listener; }
+  // Plain C function pointer callback - NO virtual dispatch, NO vtable, NO heap
+  // Completely immune to heap corruption from PacketTransport::setup()
+  typedef void (*packet_raw_cb_t)(const std::vector<uint8_t> &data, float rssi, float snr);
+  void set_raw_packet_callback(packet_raw_cb_t cb) { this->raw_cb_ = cb; }
 
   void set_packet_trigger(Trigger<std::vector<uint8_t>, float, float> *trigger) {
     this->packet_trigger_ = trigger;
@@ -56,24 +57,22 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   uint32_t last_command_time_{0};
   static const uint32_t COMMAND_DELAY_MS = 100;
 
-  // TX rate limiting: do not send more often than the module can handle
+  // TX rate limiting
   uint32_t last_tx_time_{0};
-  static const uint32_t TX_MIN_INTERVAL_MS = 600;  // module needs ~450ms to TX over-air
+  static const uint32_t TX_MIN_INTERVAL_MS = 600;
 
   bool send_command_(const std::string &command, uint32_t timeout_ms = 1000);
   void send_raw_(const std::string &command);
   void process_rx_line_(const std::string &line);
   uint8_t bandwidth_to_code_(uint32_t bandwidth);
   std::string bandwidth_to_string_(uint32_t bandwidth);
+  std::string trim_(const std::string &s);
 
-  RYLR998Listener *listener_{nullptr};  // single listener (no vector - avoids heap corruption)
+  // Plain function pointer - NO vtable, NO virtual, NO heap allocation
+  packet_raw_cb_t raw_cb_{nullptr};
+
   Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{nullptr};
   CallbackManager<void(uint16_t, std::vector<uint8_t>, int, int)> packet_callback_;
-};
-
-class RYLR998Listener {
- public:
-  virtual void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr) = 0;
 };
 
 }  // namespace rylr998
