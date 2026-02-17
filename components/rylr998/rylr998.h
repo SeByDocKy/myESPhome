@@ -3,12 +3,18 @@
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/automation.h"
+#include <queue>
 
 namespace esphome {
 namespace rylr998 {
 
 // Forward declaration
 class RYLR998Listener;
+
+struct TxPacket {
+  uint16_t destination;
+  std::string hex_data;  // Already formatted as hex ASCII
+};
 
 class RYLR998Component : public Component, public uart::UARTDevice {
  public:
@@ -27,7 +33,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   void set_network_id(uint8_t network_id) { this->network_id_ = network_id; }
   void set_tx_power(uint8_t tx_power) { this->tx_power_ = tx_power; }
 
-  // Transmit packet (called by listeners like RYLR998Transport)
+  // Transmit packet - queues for sending (called by RYLR998Transport)
   bool transmit_packet(const std::vector<uint8_t> &data);
   bool transmit_packet(uint16_t destination, const std::vector<uint8_t> &data);
 
@@ -51,13 +57,13 @@ class RYLR998Component : public Component, public uart::UARTDevice {
  protected:
   // Configuration parameters
   uint16_t address_{0};
-  uint32_t frequency_{915000000};  // Default for RYLR998
+  uint32_t frequency_{915000000};
   uint8_t spreading_factor_{9};
-  uint32_t bandwidth_{125000};  // 125 KHz
-  uint8_t coding_rate_{1};      // 4/5
+  uint32_t bandwidth_{125000};
+  uint8_t coding_rate_{1};
   uint8_t preamble_length_{12};
   uint8_t network_id_{18};
-  uint8_t tx_power_{22};        // 22 dBm
+  uint8_t tx_power_{22};
 
   // State
   bool initialized_{false};
@@ -65,18 +71,23 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   uint32_t last_command_time_{0};
   static const uint32_t COMMAND_DELAY_MS = 100;
 
+  // TX queue - packets wait here until module is idle (+OK received)
+  std::queue<TxPacket> tx_queue_;
+  bool tx_busy_{false};          // true = waiting for +OK from module
+  uint32_t tx_sent_at_{0};       // timestamp of last send, for timeout
+  static const uint32_t TX_TIMEOUT_MS = 2000;  // max wait for +OK
+
   // Helper methods
   bool send_command_(const std::string &command, uint32_t timeout_ms = 1000);
-  void send_raw_(const std::string &command);  // Non-blocking, fire-and-forget for TX
+  void send_raw_(const std::string &command);
   void process_rx_line_(const std::string &line);
+  void flush_tx_queue_();        // send next queued packet if idle
   uint8_t bandwidth_to_code_(uint32_t bandwidth);
   std::string bandwidth_to_string_(uint32_t bandwidth);
 
   // Listeners and callbacks
   std::vector<RYLR998Listener *> listeners_;
   Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{nullptr};
-
-  // Legacy callback support
   CallbackManager<void(uint16_t, std::vector<uint8_t>, int, int)> packet_callback_;
 };
 
