@@ -232,7 +232,7 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
     data.assign(data_str.begin(), data_str.end());
   }
 
-  ESP_LOGD(TAG, "RCV from %d: %d bytes (RSSI: %d, SNR: %d)", address, (int)data.size(), rssi, snr);
+  // ESP_LOGD(TAG, "RCV from %d: %d bytes (RSSI: %d, SNR: %d)", address, (int)data.size(), rssi, snr);
 
   float rssi_f = static_cast<float>(rssi);
   float snr_f  = static_cast<float>(snr);
