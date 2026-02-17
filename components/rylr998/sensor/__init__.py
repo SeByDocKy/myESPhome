@@ -20,7 +20,7 @@ CONF_RSSI = "rssi"
 CONF_SNR  = "snr"
 
 # Identifiant interne pour référencer le composant parent depuis la plateforme sensor
-CONF_RYLR998_ID = "rylr998_id"
+# CONF_RYLR998_ID = "rylr998_id"
 
 # ── Schema ────────────────────────────────────────────────────────────────────
 
