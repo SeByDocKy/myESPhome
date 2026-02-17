@@ -11,7 +11,7 @@ from esphome.const import (
 )
 
 # Importation depuis le composant parent — on récupère exactement ce qui y est défini
-from .. import rylr998_ns, RYLR998Component
+from .. import CONF_RYLR998_ID, rylr998_ns, RYLR998Component
 
 DEPENDENCIES = ["rylr998"]
 
