@@ -12,8 +12,6 @@ from .. import CONF_RYLR998_ID, RYLR998Component, rylr998_ns
 
 DEPENDENCIES = ["rylr998"]
 
-# CONF_RYLR998_ID = "rylr998_id"
-
 # PacketTransport already inherits from PollingComponent
 RYLR998Transport = rylr998_ns.class_(
     "RYLR998Transport", 
