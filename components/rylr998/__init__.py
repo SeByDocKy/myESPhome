@@ -4,7 +4,7 @@ from esphome.components import uart
 from esphome.const import CONF_ID
 
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["sensor"]
+AUTO_LOAD = ["packet_transport", "sensor"]
 
 rylr998_ns = cg.esphome_ns.namespace("rylr998")
 RYLR998Component = rylr998_ns.class_(
