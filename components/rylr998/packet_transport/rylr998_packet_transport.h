@@ -12,9 +12,7 @@ static const char *const TAG_PT = "rylr998.packet_transport";
 class RYLR998Transport : public packet_transport::PacketTransport,
                          public RYLR998Listener {
  public:
-  // Store parent in a static variable - completely outside the object's heap memory.
-  // PacketTransport::setup() overwrites any instance member at offset > ~290 bytes,
-  // but static members live in .bss and are never touched by base class setup.
+  // set_parent stores the pointer ONLY - no register_listener here (SX127x pattern)
   void set_parent(RYLR998Component *parent) { rylr998_parent_static_ = parent; }
 
   void setup() override {
@@ -29,7 +27,8 @@ class RYLR998Transport : public packet_transport::PacketTransport,
 
   void dump_config() override;
 
-  void update() override { this->send_data_(false); }
+  // DO NOT override update() - PacketTransport::update() already calls send_data_()
+  // Overriding it causes double TX per cycle
 
   // PacketTransport interface
   void send_packet(const std::vector<uint8_t> &buf) const override;

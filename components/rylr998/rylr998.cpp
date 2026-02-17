@@ -215,9 +215,19 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
   int rssi = std::stoi(trim_(payload.substr(rssi_comma + 1, snr_comma - rssi_comma - 1)));
   int snr  = std::stoi(trim_(payload.substr(snr_comma + 1)));
 
-  std::vector<uint8_t> data(data_str.begin(), data_str.end());
+  // Data arrives as hex-ASCII (e.g. "48454C4C4F") - decode to bytes
+  std::vector<uint8_t> data;
+  if (data_str.size() % 2 == 0) {
+    for (size_t i = 0; i < data_str.size(); i += 2) {
+      uint8_t byte = (uint8_t)std::stoi(data_str.substr(i, 2), nullptr, 16);
+      data.push_back(byte);
+    }
+  } else {
+    // Odd length - treat as raw (fallback)
+    data.assign(data_str.begin(), data_str.end());
+  }
 
-  ESP_LOGD(TAG, "RCV from %d: '%s' (RSSI: %d, SNR: %d)", address, data_str.c_str(), rssi, snr);
+  ESP_LOGD(TAG, "RCV from %d: %d bytes (RSSI: %d, SNR: %d)", address, (int)data.size(), rssi, snr);
 
   float rssi_f = static_cast<float>(rssi);
   float snr_f  = static_cast<float>(snr);
@@ -250,13 +260,21 @@ bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<u
     return false;
   }
 
-  std::string data_str(data.begin(), data.end());
 
-  char send_cmd[300];
+  // RYLR998 requires hex-ASCII data in AT+SEND
+  // Format: AT+SEND=<addr>,<hex_len>,<hex_string>
+  char hex_buf[481];  // 240 bytes max -> 480 hex chars + null
+  for (size_t i = 0; i < data.size(); i++) {
+    snprintf(hex_buf + i * 2, 3, "%02X", data[i]);
+  }
+  hex_buf[data.size() * 2] = '\0';
+  int hex_len = (int)(data.size() * 2);
+
+  char send_cmd[520];
   snprintf(send_cmd, sizeof(send_cmd), "AT+SEND=%d,%d,%s",
-           destination, (int) data.size(), data_str.c_str());
+           destination, hex_len, hex_buf);
 
-  ESP_LOGD(TAG, "TX to %d: '%s'", destination, data_str.c_str());
+  ESP_LOGD(TAG, "TX to %d (%d bytes): %s", destination, (int)data.size(), hex_buf);
 
   // Use non-blocking write - do NOT wait for +OK here, loop() will consume it
   this->send_raw_(send_cmd);
