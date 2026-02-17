@@ -66,7 +66,6 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   void process_rx_line_(const std::string &line);
   uint8_t bandwidth_to_code_(uint32_t bandwidth);
   std::string bandwidth_to_string_(uint32_t bandwidth);
-  std::string trim_(const std::string &s);
 
   // Plain function pointer - NO vtable, NO virtual, NO heap allocation
   packet_raw_cb_t raw_cb_{nullptr};
