@@ -1,13 +1,3 @@
-"""
-ESPHome number platform for RYLR998 LoRa module — contrôle de tx_power.
-
-YAML usage:
-  number:
-    - platform: rylr998
-      tx_power:
-        name: ${name}_tx_power
-"""
-
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import number
