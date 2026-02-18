@@ -11,6 +11,7 @@ class RYLR998Component;
 
 class RYLR998TxPowerNumber : public number::Number {
  public:
+  void setup() override;
   void set_parent(RYLR998Component *parent) { this->parent_ = parent; }
 
  protected:
