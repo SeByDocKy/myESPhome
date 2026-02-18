@@ -4,8 +4,9 @@
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/automation.h"
 
-// Forward declaration — évite d'inclure sensor.h dans le header
+// Forward declarations — évitent d'inclure les headers dans ce fichier
 namespace esphome { namespace sensor { class Sensor; } }
+namespace esphome { namespace number  { class Number;  } }
 
 namespace esphome {
 namespace rylr998 {
@@ -29,6 +30,12 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   // ── Sensor RSSI / SNR (optionnels) ────────────────────────────────────────
   void set_rssi_sensor(esphome::sensor::Sensor *s) { this->rssi_sensor_ = s; }
   void set_snr_sensor(esphome::sensor::Sensor *s)  { this->snr_sensor_  = s; }
+
+  // ── Number TX power (optionnel) ───────────────────────────────────────────
+  // Envoie AT+CRFOP=<power> et met à jour tx_power_ à chaud.
+  // Appelé par RYLR998TxPowerNumber::control().
+  void apply_tx_power(uint8_t power);
+  void set_tx_power_number(esphome::number::Number *n) { this->tx_power_number_ = n; }
 
   bool transmit_packet(const std::vector<uint8_t> &data);
   bool transmit_packet(uint16_t destination, const std::vector<uint8_t> &data);
@@ -80,6 +87,9 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   // ── Sensors optionnels RSSI / SNR ─────────────────────────────────────────
   esphome::sensor::Sensor *rssi_sensor_{nullptr};
   esphome::sensor::Sensor *snr_sensor_{nullptr};
+
+  // ── Number optionnel TX power ──────────────────────────────────────────────
+  esphome::number::Number *tx_power_number_{nullptr};
 
   Trigger<std::vector<uint8_t>, float, float> *packet_trigger_{nullptr};
   CallbackManager<void(uint16_t, std::vector<uint8_t>, int, int)> packet_callback_;
