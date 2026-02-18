@@ -19,13 +19,13 @@ from esphome.const import (
     ENTITY_CATEGORY_CONFIG,
 )
 
-from .. import rylr998_ns, RYLR998Component
+from .. import CONF_RYLR998_ID, rylr998_ns, RYLR998Component
 
 DEPENDENCIES = ["rylr998"]
 
 # Défini localement — absent de certaines versions d'esphome.const
 CONF_TX_POWER = "tx_power"
-CONF_RYLR998_ID = "rylr998_id"
+# CONF_RYLR998_ID = "rylr998_id"
 
 # ── Classe C++ ────────────────────────────────────────────────────────────────
 
