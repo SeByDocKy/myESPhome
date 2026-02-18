@@ -15,9 +15,6 @@ DEPENDENCIES = ["rylr998"]
 
 # Défini localement — absent de certaines versions d'esphome.const
 CONF_TX_POWER = "tx_power"
-# CONF_RYLR998_ID = "rylr998_id"
-
-# ── Classe C++ ────────────────────────────────────────────────────────────────
 
 RYLR998TxPowerNumber = rylr998_ns.class_(
     "RYLR998TxPowerNumber", number.Number
