@@ -1,0 +1,130 @@
+substitutions:
+  name: "rylr998b"
+  name_controller: "rylr998a"
+  device_description: "RYLR998 LoRa module over UART"
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+  baud_rate: 115200
+ 
+esphome:
+  name: ${name}
+  comment: ${device_description}
+  min_version: 2026.1.0
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 5.5.2
+    platform_version: 55.03.37
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "battery_bidirectional"
+    password: !secret ap_password
+    
+time:
+  - platform: sntp
+    id: my_time    
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+  
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+  level: verbose
+  # level: none
+    
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [rylr998]
+    refresh: 10s
+    
+uart:
+  id: uart_bus
+  tx_pin: GPIO18
+  rx_pin: GPIO19
+  baud_rate: ${baud_rate}
+
+rylr998:
+  id: lora
+  uart_id: uart_bus
+  address: 2
+  frequency: 868MHz
+  spreading_factor: 9
+  signal_bandwidth: 125kHz
+  coding_rate: 1
+  preamble_length: 12
+  network_id: 10
+  tx_power: 14
+  on_packet:
+    then:
+      - logger.log:
+          format: "Received packet: RSSI=%.0f SNR=%.0f"
+          args: ['rssi', 'snr']
+      - lambda: |-
+          std::string msg(data.begin(), data.end());
+          ESP_LOGI("main", "receveid data: %s", msg.c_str());
+
+# Bouton pour envoyer un message de test
+button:
+  - platform: template
+    name: "Envoyer Test LoRa"
+    on_press:
+      - rylr998.send_packet:
+          id: lora
+          destination: 200
+          data: [0x48, 0x45, 0x4C, 0x4C, 0x4F]
+      - logger.log: "Message sent!"
+      
+      
+packet_transport:
+  platform: rylr998
+  rylr998_id: lora
+  update_interval: '2500ms'
+  encryption: "loralora"
+  sensors:
+    - b_temperature
+  providers:
+    - name: ${name_controller}
+      encryption: "loralora"
+
+
+number:
+  - platform: rylr998
+    tx_power:
+      name: ${name}_tx_power
+
+# Capteur à transmettre via LoRa
+sensor:
+
+  - platform: rylr998
+    rssi:
+      name: ${name}_rssi
+    snr:
+      name: ${name}_snr
+  - platform: internal_temperature
+    id: b_temperature
+    name: ${name}_temperature
+    update_interval: '1s'
+    icon: mdi:thermometer
+    device_class: temperature
+  
+  - platform: packet_transport
+    provider: ${name_controller}
+    name: ${name}_temperature_received
+    internal: false
+    id: a_temperature_received
+    remote_id: a_temperature
+    icon: mdi:thermometer
+    device_class: temperature
+    accuracy_decimals: 1
+
+      
