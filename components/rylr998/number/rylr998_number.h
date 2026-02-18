@@ -16,8 +16,8 @@ class RYLR998TxPowerNumber : public number::Number {
  protected:
  
   void control(float value) override;
-
   RYLR998Component *parent_{nullptr};
+  ESPPreferenceObject pref_;
 };
 
 }  // namespace rylr998
