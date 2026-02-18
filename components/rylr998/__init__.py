@@ -10,7 +10,7 @@ from esphome.const import (
 
 DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@SeByDocKy"]
-AUTO_LOAD = ["packet_transport", "sensor", "number"]  # "sensor" et "number" ajoutés
+AUTO_LOAD = ["packet_transport", "sensor", "number"] 
 
 CONF_RYLR998_ID = "rylr998_id"
 CONF_ADDRESS = "address"
