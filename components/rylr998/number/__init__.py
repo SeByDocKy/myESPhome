@@ -15,7 +15,7 @@ from esphome.const import (
     CONF_ID,
     UNIT_DECIBEL_MILLIWATT,
     ICON_SIGNAL,
-    MODE_SLIDER,
+    # MODE_SLIDER,
     ENTITY_CATEGORY_CONFIG,
 )
 
@@ -48,7 +48,7 @@ CONFIG_SCHEMA = cv.Schema(
             unit_of_measurement=UNIT_DECIBEL_MILLIWATT,
             icon=ICON_SIGNAL,
             entity_category=ENTITY_CATEGORY_CONFIG,
-            mode=MODE_SLIDER,
+            # mode=MODE_SLIDER,
         ),
     }
 )
