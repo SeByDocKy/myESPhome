@@ -9,7 +9,7 @@ namespace rylr998 {
 class RYLR998Component;
 
 
-class RYLR998TxPowerNumber : public number::Number {
+class RYLR998TxPowerNumber : public number::Number, public Component {
  public:
   void setup() override;
   void set_parent(RYLR998Component *parent) { this->parent_ = parent; }
