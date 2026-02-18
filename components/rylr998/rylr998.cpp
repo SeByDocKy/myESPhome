@@ -3,6 +3,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/number/number.h"
+#include "esphome/core/preferences.h"
 
 namespace esphome {
 namespace rylr998 {
