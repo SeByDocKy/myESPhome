@@ -35,6 +35,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   // Envoie AT+CRFOP=<power> et met à jour tx_power_ à chaud.
   // Appelé par RYLR998TxPowerNumber::control().
   void apply_tx_power(uint8_t power);
+  uint8_t get_tx_power(){ return this->tx_power_ ;}
   void set_tx_power_number(esphome::number::Number *n) { this->tx_power_number_ = n; }
 
   bool transmit_packet(const std::vector<uint8_t> &data);
