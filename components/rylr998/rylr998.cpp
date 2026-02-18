@@ -2,6 +2,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/number/number.h"
 
 namespace esphome {
 namespace rylr998 {
@@ -68,6 +69,11 @@ void RYLR998Component::setup() {
 
   this->initialized_ = true;
   ESP_LOGCONFIG(TAG, "RYLR998 setup complete");
+
+  // Synchronise le number avec la valeur initiale de tx_power configurée en YAML
+  if (this->tx_power_number_ != nullptr) {
+    this->tx_power_number_->publish_state(static_cast<float>(this->tx_power_));
+  }
 }
 
 void RYLR998Component::loop() {
@@ -309,6 +315,26 @@ bool RYLR998Component::send_data(uint16_t destination, const std::vector<uint8_t
 
 bool RYLR998Component::send_data(uint16_t destination, const std::string &data) {
   return this->transmit_packet(destination, std::vector<uint8_t>(data.begin(), data.end()));
+}
+
+// ── Number TX power ───────────────────────────────────────────────────────────
+
+void RYLR998Component::apply_tx_power(uint8_t power) {
+  if (!this->initialized_) {
+    ESP_LOGW(TAG, "apply_tx_power: module not yet initialized, ignoring");
+    return;
+  }
+  this->tx_power_ = power;
+
+  char cmd[32];
+  snprintf(cmd, sizeof(cmd), "AT+CRFOP=%d", power);
+  ESP_LOGD(TAG, "Setting TX power to %d dBm", power);
+
+  if (!this->send_command_(cmd, 1000)) {
+    ESP_LOGW(TAG, "Failed to set TX power to %d dBm", power);
+    return;
+  }
+  ESP_LOGI(TAG, "TX power set to %d dBm", power);
 }
 
 uint8_t RYLR998Component::bandwidth_to_code_(uint32_t bandwidth) {
