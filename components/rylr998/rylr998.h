@@ -27,9 +27,10 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   void set_network_id(uint8_t nid) { this->network_id_ = nid; }
   void set_tx_power(uint8_t tp) { this->tx_power_ = tp; }
 
-  // ── Sensor RSSI / SNR (optionnels) ────────────────────────────────────────
-  void set_rssi_sensor(esphome::sensor::Sensor *s) { this->rssi_sensor_ = s; }
-  void set_snr_sensor(esphome::sensor::Sensor *s)  { this->snr_sensor_  = s; }
+  // ── Sensor RSSI / SNR / ERROR (optionnels) ────────────────────────────────
+  void set_rssi_sensor(esphome::sensor::Sensor *s)  { this->rssi_sensor_  = s; }
+  void set_snr_sensor(esphome::sensor::Sensor *s)   { this->snr_sensor_   = s; }
+  void set_last_error_sensor(esphome::sensor::Sensor *s) { this->last_error_sensor_ = s; }
 
   // ── Number TX power (optionnel) ───────────────────────────────────────────
   // Envoie AT+CRFOP=<power> et met à jour tx_power_ à chaud.
@@ -85,9 +86,10 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   // Plain function pointer - NO vtable, NO virtual, NO heap allocation
   packet_raw_cb_t raw_cb_{nullptr};
 
-  // ── Sensors optionnels RSSI / SNR ─────────────────────────────────────────
+  // ── Sensors optionnels RSSI / SNR / ERROR ─────────────────────────────────
   esphome::sensor::Sensor *rssi_sensor_{nullptr};
   esphome::sensor::Sensor *snr_sensor_{nullptr};
+  esphome::sensor::Sensor *last_error_sensor_{nullptr};
 
   // ── Number optionnel TX power ──────────────────────────────────────────────
   esphome::number::Number *tx_power_number_{nullptr};
