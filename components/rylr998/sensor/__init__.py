@@ -8,6 +8,7 @@ from esphome.const import (
     UNIT_DECIBEL_MILLIWATT,
     UNIT_DECIBEL,
     ICON_SIGNAL,
+    ENTITY_CATEGORY_DIAGNOSTIC,
 )
 
 from .. import CONF_RYLR998_ID, rylr998_ns, RYLR998Component
