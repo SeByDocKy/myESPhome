@@ -3,7 +3,6 @@
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/number/number.h"
-#include "esphome/core/preferences.h"
 
 namespace esphome {
 namespace rylr998 {
@@ -74,6 +73,11 @@ void RYLR998Component::setup() {
   // Synchronise le number avec la valeur initiale de tx_power configurée en YAML
   if (this->tx_power_number_ != nullptr) {
     this->tx_power_number_->publish_state(static_cast<float>(this->tx_power_));
+  }
+
+  // Initialise le sensor error à 0 (pas d'erreur)
+  if (this->last_error_sensor_ != nullptr) {
+    this->last_error_sensor_->publish_state(0.0f);
   }
 }
 
@@ -183,13 +187,26 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
     ESP_LOGV(TAG, "TX acknowledged");
     return;
   }
-  if (line.find("+ERR=17") != std::string::npos) {
-    // ERR=17 = TX busy - LoRa air-time not finished yet, will retry next interval
-    ESP_LOGD(TAG, "TX busy (ERR=17), dropped - PacketTransport will retry");
-    return;
-  }
-  if (line.find("+ERR") != std::string::npos) {
-    ESP_LOGW(TAG, "Module error: %s", line.c_str());
+  if (line.find("+ERR=") != std::string::npos) {
+    // Extraire le numéro d'erreur depuis "+ERR=<N>"
+    size_t eq = line.find("+ERR=");
+    int err_code = 0;
+    if (eq != std::string::npos) {
+      std::string num_str = trim_(line.substr(eq + 5));
+      err_code = std::atoi(num_str.c_str());
+    }
+
+    // Publier sur le sensor error (si déclaré en YAML)
+    if (this->last_error_sensor_ != nullptr) {
+      this->last_error_sensor_->publish_state(static_cast<float>(err_code));
+    }
+
+    if (err_code == 17) {
+      // ERR=17 = TX busy — LoRa air-time not finished, PacketTransport will retry
+      ESP_LOGD(TAG, "TX busy (ERR=17), dropped - PacketTransport will retry");
+    } else {
+      ESP_LOGW(TAG, "Module error +ERR=%d: %s", err_code, line.c_str());
+    }
     return;
   }
 
