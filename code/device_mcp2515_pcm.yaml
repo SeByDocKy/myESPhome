@@ -1109,6 +1109,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A02
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1116,6 +1117,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A11
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1123,6 +1125,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A12
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1130,6 +1133,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A0A
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1137,6 +1141,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A31
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1144,6 +1149,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A32
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1151,6 +1157,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A13
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1158,6 +1165,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A14
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1165,6 +1173,7 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A33
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
@@ -1172,6 +1181,8 @@ interval:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A34
+          use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
