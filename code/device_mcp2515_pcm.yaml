@@ -394,7 +394,6 @@ sensor:
     state_class: measurement
 
 
-
   # Configuration Readback Sensors
   - platform: template
     id: grid_mode_readback
@@ -524,7 +523,6 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1  
-
 
 binary_sensor:
 
@@ -1453,6 +1451,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
