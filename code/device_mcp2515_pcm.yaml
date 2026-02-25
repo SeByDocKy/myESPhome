@@ -388,6 +388,7 @@ sensor:
     name: ${pcm_name}_inverter_frequency_value
     accuracy_decimals: 0
     icon: mdi:metronome
+    unit_of_measurement: 'Hz'
     internal: true
 
 
@@ -405,6 +406,8 @@ sensor:
     name: ${pcm_name}_frequency_setting_readback
     icon: mdi:sine-wave
     accuracy_decimals: 0
+    icon: mdi:metronome
+    unit_of_measurement: 'Hz'
     # internal: true
   
   - platform: template
@@ -1201,6 +1204,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
