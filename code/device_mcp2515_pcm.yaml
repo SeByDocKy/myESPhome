@@ -385,7 +385,7 @@ sensor:
   # Inverter Frequency
   - platform: template
     id: inverter_frequency_sensor
-    name: ${pcm_name}_inverter_frequency_value
+    name: ${pcm_name}_offgrid_frequency
     accuracy_decimals: 0
     icon: mdi:metronome
     unit_of_measurement: 'Hz'
@@ -1451,6 +1451,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
