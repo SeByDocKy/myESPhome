@@ -868,6 +868,14 @@ number:
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
               0x00, 0x00
             };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A31
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
   
   # Charging Current Limit (48V system)
   - platform: template
@@ -896,6 +904,14 @@ number:
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
               0x00, 0x00
             };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A31
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
   
   # Discharge Current (48V system)
   - platform: template
@@ -922,6 +938,14 @@ number:
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
               0x00, 0x00
             };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A32
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};       
   
   # AC Overvoltage Protection
   - platform: template
@@ -1397,6 +1421,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
