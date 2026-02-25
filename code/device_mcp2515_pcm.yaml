@@ -146,6 +146,138 @@ canbus:
               snprintf(sn_str, sizeof(sn_str), "%08X", sn_code);
               id(sn_code_text_sensor).publish_state(sn_str);
               ESP_LOGI("canbus", "SN Code: %s", sn_str);
+
+      # Grid Mode Response - 0x010A0002
+      - can_id: 0x010A0002
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t grid_mode = x[2] | (x[1] << 8);
+              id(grid_mode_readback).publish_state(grid_mode);
+              if (grid_mode == 0) {
+                id(grid_mode_select).publish_state("Grid-connected Charging");
+              } else if (grid_mode == 1) {
+                id(grid_mode_select).publish_state("Grid-connected Discharge");
+              }
+              ESP_LOGI("canbus", "Grid Mode Readback: %d", grid_mode);
+      
+      # Frequency Setting Response - 0x010A0011
+      - can_id: 0x010A0011
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t freq = x[2] | (x[1] << 8);
+              id(frequency_setting_readback).publish_state(freq);
+              if (freq == 0) {
+                id(frequency_select).publish_state("50 Hz");
+              } else if (freq == 1) {
+                id(frequency_select).publish_state("60 Hz");
+              }
+              ESP_LOGI("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
+      
+      # AC Voltage Setting Response - 0x010A0012
+      - can_id: 0x010A0012
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t voltage = x[2] | (x[1] << 8);
+              id(ac_voltage_setting_readback).publish_state(voltage);
+              if (voltage == 0) {
+                id(ac_voltage_select).publish_state("220V");
+              } else if (voltage == 2) {
+                id(ac_voltage_select).publish_state("230V");
+              }
+              ESP_LOGI("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 220 : 230);
+      
+      # Phase Mode Response - 0x010A000A
+      - can_id: 0x010A000A
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t phase_mode = x[2];
+              id(phase_mode_readback).publish_state(phase_mode);
+              if (phase_mode == 0) {
+                id(phase_mode_select).publish_state("Single-Phase");
+              } else if (phase_mode == 1) {
+                id(phase_mode_select).publish_state("Three-Phase");
+              }
+              ESP_LOGI("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
+      
+      # Charging Parameters Response - 0x010A0031
+      - can_id: 0x010A0031
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t charge_voltage = (x[3] << 8) | x[2];
+              uint16_t charge_current = (x[5] << 8) | x[4];
+              id(charging_voltage_readback).publish_state(charge_voltage / 10.0);
+              id(charging_current_readback).publish_state(charge_current / 10.0);
+              id(charging_voltage).publish_state(charge_voltage / 10.0);
+              id(charging_current).publish_state(charge_current / 10.0);
+              ESP_LOGI("canbus", "Charging Parameters Readback: %.1fV, %.1fA", 
+                       charge_voltage/10.0, charge_current/10.0);
+      
+      # Discharge Parameters Response - 0x010A0032
+      - can_id: 0x010A0032
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t discharge_current = (x[5] << 8) | x[4];
+              id(discharge_current_readback).publish_state(discharge_current / 10.0);
+              id(discharge_current).publish_state(discharge_current / 10.0);
+              ESP_LOGI("canbus", "Discharge Current Readback: %.1fA", discharge_current/10.0);
+      
+      # AC Voltage Protection Response - 0x010A0013
+      - can_id: 0x010A0013
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t ac_overvoltage = (x[3] << 8) | x[2];
+              uint16_t ac_undervoltage = (x[5] << 8) | x[4];
+              id(ac_overvoltage_protection_readback).publish_state(ac_overvoltage / 10.0);
+              id(ac_undervoltage_protection_readback).publish_state(ac_undervoltage / 10.0);
+              id(ac_overvoltage_protection).publish_state(ac_overvoltage / 10.0);
+              id(ac_undervoltage_protection).publish_state(ac_undervoltage / 10.0);
+              ESP_LOGI("canbus", "AC Protection Readback: OV=%.1fV, UV=%.1fV", 
+                       ac_overvoltage/10.0, ac_undervoltage/10.0);
+      
+      # AC Voltage Alarm Response - 0x010A0014
+      - can_id: 0x010A0014
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t ac_overvoltage_alarm = (x[3] << 8) | x[2];
+              uint16_t ac_undervoltage_alarm = (x[5] << 8) | x[4];
+              id(ac_overvoltage_alarm_readback).publish_state(ac_overvoltage_alarm / 10.0);
+              id(ac_undervoltage_alarm_readback).publish_state(ac_undervoltage_alarm / 10.0);
+              ESP_LOGI("canbus", "AC Alarm Readback: OV=%.1fV, UV=%.1fV", 
+                       ac_overvoltage_alarm/10.0, ac_undervoltage_alarm/10.0);
+      
+      # DC Voltage Protection Response - 0x010A0033
+      - can_id: 0x010A0033
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t dc_overvoltage = (x[3] << 8) | x[2];
+              uint16_t dc_undervoltage = (x[5] << 8) | x[4];
+              id(dc_overvoltage_protection_readback).publish_state(dc_overvoltage / 10.0);
+              id(dc_undervoltage_protection_readback).publish_state(dc_undervoltage / 10.0);
+              id(dc_overvoltage_protection).publish_state(dc_overvoltage / 10.0);
+              id(dc_undervoltage_protection).publish_state(dc_undervoltage / 10.0);
+              ESP_LOGI("canbus", "DC Protection Readback: OV=%.1fV, UV=%.1fV", 
+                       dc_overvoltage/10.0, dc_undervoltage/10.0);
+      
+      # DC Voltage Alarm Response - 0x010A0034
+      - can_id: 0x010A0034
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t dc_overvoltage_alarm = (x[3] << 8) | x[2];
+              uint16_t dc_undervoltage_alarm = (x[5] << 8) | x[4];
+              id(dc_overvoltage_alarm_readback).publish_state(dc_overvoltage_alarm / 10.0);
+              id(dc_undervoltage_alarm_readback).publish_state(dc_undervoltage_alarm / 10.0);
+              ESP_LOGI("canbus", "DC Alarm Readback: OV=%.1fV, UV=%.1fV", 
+                       dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);        
               
               
 sensor:
@@ -256,6 +388,134 @@ sensor:
     accuracy_decimals: 0
     icon: mdi:metronome
     internal: true
+
+
+
+  # Configuration Readback Sensors
+  - platform: template
+    id: grid_mode_readback
+    name: ${pcm_name}_grid_mode_readback
+    icon: mdi:transmission-tower
+    accuracy_decimals: 0
+    internal: true
+  
+  - platform: template
+    id: frequency_setting_readback
+    name: ${pcm_name}_frequency_Setting_Readback
+    icon: mdi:sine-wave
+    accuracy_decimals: 0
+    internal: true
+  
+  - platform: template
+    id: ac_voltage_setting_readback
+    name: ${pcm_name}_ac_voltage_setting_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    accuracy_decimals: 1
+    internal: true
+  
+  - platform: template
+    id: phase_mode_readback
+    name: ${pcm_name}_phase_mode_readback
+    accuracy_decimals: 0
+    internal: true
+  
+  # Charging Parameters Readback
+  - platform: template
+    id: charging_voltage_readback
+    name: ${pcm_name}_charging_voltage_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  - platform: template
+    id: charging_current_readback
+    name: ${pcm_name}_charging_current_readback
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:current-dc
+  
+  # Discharge Parameters Readback
+  - platform: template
+    id: discharge_current_readback
+    name: ${pcm_name}_discharge_current_readback
+    unit_of_measurement: "A"
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:current-dc
+  
+  # AC Protection Readback
+  - platform: template
+    id: ac_overvoltage_protection_readback
+    name: ${pcm_name}_ac_overvoltage_protection_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    
+  
+  - platform: template
+    id: ac_undervoltage_protection_readback
+    name: ${pcm_name}_ac_undervoltage_protection_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  # AC Alarm Readback
+  - platform: template
+    id: ac_overvoltage_alarm_readback
+    name: ${pcm_name}_ac_overvoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  - platform: template
+    id: ac_undervoltage_alarm_readback
+    name: ${pcm_name}_ac_undervoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  # DC Protection Readback
+  - platform: template
+    id: dc_overvoltage_protection_readback
+    name: ${pcm_name}_dc_overvoltage_protection_Readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  - platform: template
+    id: dc_undervoltage_protection_readback
+    name: ${pcm_name}_dc_undervoltage_protection_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  # DC Alarm Readback
+  - platform: template
+    id: dc_overvoltage_alarm_readback
+    name: ${pcm_name}_dc_overvoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  - platform: template
+    id: dc_undervoltage_alarm_readback
+    name: ${pcm_name}_dc_undervoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1  
 
 
 binary_sensor:
@@ -841,6 +1101,7 @@ interval:
           use_extended_id: true
 
           data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]    
+
 
 
 
