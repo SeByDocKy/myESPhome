@@ -1103,7 +1103,7 @@ interval:
 
 
 # Query configuration parameters periodically (every 30s)
-  - interval: 5s
+  - interval: ${pcm_interval}
     then:
       # Query Grid Mode
       - canbus.send:
@@ -1185,6 +1185,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
