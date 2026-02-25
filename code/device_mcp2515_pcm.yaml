@@ -874,7 +874,7 @@ number:
   - platform: template
     name: ${pcm_name}_charging_current
     id: charging_current
-    icon: mdi:current-dc
+    # icon: mdi:current-dc
     unit_of_measurement: 'A'
     min_value: 5.0
     max_value: 70.0
@@ -1217,6 +1217,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
