@@ -88,7 +88,7 @@ canbus:
               uint8_t fault2 = x[5];
               uint8_t fault3 = x[6];
               
-              id(inverter_frequency_sensor).publish_state(inverter_freq);
+              id(inverter_frequency_sensor).publish_state((inverter_freq == 0 ? 50 : 60));
               
               
               // Parse Fault 1
@@ -1215,6 +1215,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
