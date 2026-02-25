@@ -731,10 +731,12 @@ select:
     name: ${pcm_name}_frequency_setting
     id: frequency_select
     icon: mdi:metronome
-    optimistic: true
+    optimistic: false
+    restore_value: true
+    unitial_value: '50 Hz'
     options:
-      - "50 Hz"
-      - "60 Hz"
+      - '50 Hz'
+      - '60 Hz'
     on_value:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -753,10 +755,12 @@ select:
     name: ${pcm_name}_ac_voltage_setting
     id: ac_voltage_select
     icon: mdi:flash
-    optimistic: true
+    optimistic: false
+    restore_value: true
+    unitial_value: '230V'
     options:
-      - "220V"
-      - "230V"
+      - '220V'
+      - '230V'
     on_value:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -775,10 +779,12 @@ select:
     name: ${pcm_name}_phase_mode_setting
     id: phase_mode_select
     icon: mdi:electric-switch
-    optimistic: true
+    optimistic: false
+    restore_value: true
+    unitial_value: 'Single-Phase'
     options:
-      - "Single-Phase"
-      - "Three-Phase"
+      - 'Single-Phase'
+      - 'Three-Phase'
     on_value:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1207,6 +1213,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
