@@ -836,6 +836,8 @@ number:
     step: 0.1
     mode: 'slider'
     optimistic: false
+    initial_value: 56.0
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -861,7 +863,9 @@ number:
     max_value: 70.0
     step: 0.1
     mode: 'slider'
+    initial_value: 5.0
     optimistic: false
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -888,6 +892,8 @@ number:
     step: 0.1
     mode: 'slider'
     optimistic: false
+    initial_value: 5.0
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -912,6 +918,8 @@ number:
     step: 0.1
     mode: 'slider'
     optimistic: false
+    initial_value: 250.0
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -938,6 +946,8 @@ number:
     step: 0.1
     mode: 'slider'
     optimistic: false
+    initial_value: 200.0
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -964,6 +974,8 @@ number:
     step: 0.1
     mode: 'slider'
     optimistic: false
+    initial_value: 58.0
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -990,6 +1002,8 @@ number:
     step: 0.1
     mode: 'slider'
     optimistic: false
+    initial_value: 49.0
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1013,6 +1027,7 @@ switch:
     id: power_switch
     icon: mdi:power
     optimistic: false
+    restore_value: true
     turn_on_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1185,6 +1200,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
