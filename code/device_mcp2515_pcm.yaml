@@ -715,7 +715,7 @@ select:
     icon: mdi:transmission-tower
     optimistic: false
     restore_value: true
-    unitial_value: 'Grid-connected Charging'
+    initial_value: 'Grid-connected Charging'
     options:
       - 'Grid-connected Charging'
       - 'Grid-connected Discharge'
@@ -736,7 +736,7 @@ select:
     icon: mdi:metronome
     optimistic: false
     restore_value: true
-    unitial_value: '50 Hz'
+    initial_value: '50 Hz'
     options:
       - '50 Hz'
       - '60 Hz'
@@ -760,7 +760,7 @@ select:
     icon: mdi:flash
     optimistic: false
     restore_value: true
-    unitial_value: '230V'
+    initial_value: '230V'
     options:
       - '220V'
       - '230V'
@@ -784,7 +784,7 @@ select:
     icon: mdi:electric-switch
     optimistic: false
     restore_value: true
-    unitial_value: 'Single-Phase'
+    initial_value: 'Single-Phase'
     options:
       - 'Single-Phase'
       - 'Three-Phase'
@@ -1216,6 +1216,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
