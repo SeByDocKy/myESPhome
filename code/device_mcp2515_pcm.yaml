@@ -409,6 +409,7 @@ sensor:
     icon: mdi:metronome
     unit_of_measurement: 'Hz'
     device_class: frequency
+    state_class: measurement
     # internal: true
   
   - platform: template
@@ -416,6 +417,7 @@ sensor:
     name: ${pcm_name}_ac_voltage_setting_readback
     unit_of_measurement: 'V'
     device_class: voltage
+    state_class: measurement
     accuracy_decimals: 1
     internal: true
   
@@ -1205,6 +1207,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
