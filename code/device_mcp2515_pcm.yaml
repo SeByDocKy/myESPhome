@@ -405,7 +405,7 @@ sensor:
     name: ${pcm_name}_frequency_setting_readback
     icon: mdi:sine-wave
     accuracy_decimals: 0
-    internal: true
+    # internal: true
   
   - platform: template
     id: ac_voltage_setting_readback
@@ -1201,6 +1201,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
