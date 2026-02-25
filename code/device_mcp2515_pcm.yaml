@@ -168,7 +168,7 @@ canbus:
         then:
           - lambda: |-
               uint8_t freq = x[2] | (x[1] << 8);
-              id(frequency_setting_readback).publish_state(freq);
+              id(frequency_setting_readback).publish_state((freq== 0 ? 50 : 60));
               if (freq == 0) {
                 id(frequency_select).publish_state("50 Hz");
               } else if (freq == 1) {
@@ -1201,6 +1201,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
