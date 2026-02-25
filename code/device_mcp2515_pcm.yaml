@@ -714,10 +714,12 @@ select:
     name: ${pcm_name}_grid_mode
     id: grid_mode_select
     icon: mdi:transmission-tower
-    optimistic: true
+    optimistic: false
+    restore_value: true
+    unitial_value: 'Grid-connected Charging'
     options:
-      - "Grid-connected Charging"
-      - "Grid-connected Discharge"
+      - 'Grid-connected Charging'
+      - 'Grid-connected Discharge'
     on_value:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1215,6 +1217,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
