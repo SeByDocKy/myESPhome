@@ -1027,7 +1027,7 @@ switch:
     id: power_switch
     icon: mdi:power
     optimistic: false
-    restore_value: true
+    restore_mode: true
     turn_on_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1200,6 +1200,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
