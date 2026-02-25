@@ -950,6 +950,14 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A13
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};     
   
   # AC Undervoltage Protection
   - platform: template
@@ -978,13 +986,95 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A13
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      
+
+  # AC Overvoltage Alarm
+  - platform: template
+    name: ${pcm_name}_ac_overvoltage_alarm
+    id: ac_overvoltage_alarm
+    icon: mdi:flash-alert
+    unit_of_measurement: 'V'
+    min_value: 220.0
+    max_value: 258.0
+    step: 0.1
+    mode: slider
+    optimistic: false
+    initial_value: 248.0
+    restore_value: true
+    set_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02000A14
+          use_extended_id: true
+          data: !lambda |-
+            uint16_t overvoltage = (uint16_t)(x * 10);
+            uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_alarm).state * 10);
+            return {
+              ${pcm_address}, 0x00,
+              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
+              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
+              0x00, 0x00
+            };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A14
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  
+  # AC Undervoltage Alarm
+  - platform: template
+    name: ${pcm_name}_ac_undervoltage_Alarm
+    id: ac_undervoltage_alarm
+    icon: mdi:flash-alert-outline
+    unit_of_measurement: 'V'
+    min_value: 182.0
+    max_value: 220.0
+    step: 0.1
+    mode: slider
+    optimistic: false
+    initial_value: 205.0
+    restore_value: true
+    set_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02000A14
+          use_extended_id: true
+          data: !lambda |-
+            uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_alarm).state * 10);
+            uint16_t undervoltage = (uint16_t)(x * 10);
+            return {
+              ${pcm_address}, 0x00,
+              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
+              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
+              0x00, 0x00
+            };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A14
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
   
   # DC Overvoltage Protection (48V system)
   - platform: template
     name: ${pcm_name}_dc_overvoltage_protection
     id: dc_overvoltage_protection
     icon: mdi:battery-alert
-    unit_of_measurement: "V"
+    unit_of_measurement: 'V'
     min_value: 40.0
     max_value: 59.5
     step: 0.1
@@ -1006,13 +1096,22 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}n
+          can_id: 0x03000A33
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      
   
   # DC Undervoltage Protection (48V system)
   - platform: template
     name: ${pcm_name}_dc_undervoltage_protection
     id: dc_undervoltage_protection
     icon: mdi:battery-alert-variant-outline
-    unit_of_measurement: "V"
+    unit_of_measurement: 'V'
     min_value: 39.5
     max_value: 59.0
     step: 0.1
@@ -1034,6 +1133,88 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A33
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};          
+
+
+# DC Overvoltage Alarm (48V system)
+  - platform: template
+    name: ${pcm_name}_dc_overvoltage_alarm
+    id: dc_overvoltage_alarm
+    icon: mdi:battery-alert
+    unit_of_measurement: 'V'
+    min_value: 40.0
+    max_value: 57.5
+    step: 0.1
+    mode: slider
+    optimistic: false
+    initial_value: 57.5
+    restore_value: true
+    set_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02000A34
+          use_extended_id: true
+          data: !lambda |-
+            uint16_t overvoltage = (uint16_t)(x * 10);
+            uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_alarm).state * 10);
+            return {
+              ${pcm_address}, 0x00,
+              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
+              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
+              0x00, 0x00
+            };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A34
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+# DC Undervoltage Alarm (48V system)
+  - platform: template
+    name: ${pcm_name}_dc_undervoltage_alarm
+    id: dc_undervoltage_alarm
+    icon: mdi:battery-alert-variant-outline
+    unit_of_measurement: 'V'
+    min_value: 40.0
+    max_value: 59.0
+    step: 0.1
+    mode: box
+    optimistic: false
+    initial_value: 50.0
+    restore_value: true
+    set_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02000A34
+          use_extended_id: true
+          data: !lambda |-
+            uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_alarm).state * 10);
+            uint16_t undervoltage = (uint16_t)(x * 10);
+            return {
+              ${pcm_address}, 0x00,
+              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
+              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
+              0x00, 0x00
+            };
+      - delay: 100ms
+      # Query back the setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A34
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            
   
 # Switches and Controls
 switch:
@@ -1216,6 +1397,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
