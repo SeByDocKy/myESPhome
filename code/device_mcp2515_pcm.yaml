@@ -1107,81 +1107,71 @@ interval:
     then:
       # Query Grid Mode
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A02
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query Frequency Setting
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A11
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query AC Voltage Setting
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A12
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query Phase Mode
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A0A
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query Charging Parameters
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A31
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query Discharge Parameters
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A32
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query AC Voltage Protection
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A13
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query AC Voltage Alarm
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A14
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query DC Voltage Protection
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A33
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query DC Voltage Alarm
       - canbus.send:
-          canbus_id: pcm_can
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A34
           data: !lambda |-
-            return {${module_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
-
-
-
-
-
-
-
-
-
-
