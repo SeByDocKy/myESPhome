@@ -859,7 +859,7 @@ number:
     id: charging_current
     icon: mdi:current-dc
     unit_of_measurement: 'A'
-    min_value: 2.0
+    min_value: 5.0
     max_value: 70.0
     step: 0.1
     mode: 'slider'
@@ -887,7 +887,7 @@ number:
     id: discharge_current
     icon: mdi:battery-arrow-down
     unit_of_measurement: 'A'
-    min_value: 2.0
+    min_value: 5.0
     max_value: 75.0
     step: 0.1
     mode: 'slider'
@@ -1200,6 +1200,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
