@@ -90,6 +90,7 @@ canbus:
               
               id(inverter_frequency_sensor).publish_state(inverter_freq);
               
+              
               // Parse Fault 1
               id(fault_soft_start_timeout).publish_state(fault1 & 0x01);
               id(fault_bus_overvoltage).publish_state(fault1 & 0x02);
@@ -401,7 +402,7 @@ sensor:
   
   - platform: template
     id: frequency_setting_readback
-    name: ${pcm_name}_frequency_Setting_Readback
+    name: ${pcm_name}_frequency_Setting_readback
     icon: mdi:sine-wave
     accuracy_decimals: 0
     internal: true
@@ -1200,6 +1201,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
