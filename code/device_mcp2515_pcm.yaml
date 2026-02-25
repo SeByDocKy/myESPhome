@@ -442,7 +442,7 @@ sensor:
   - platform: template
     id: discharge_current_readback
     name: ${pcm_name}_discharge_current_readback
-    unit_of_measurement: "A"
+    unit_of_measurement: 'A'
     device_class: current
     state_class: measurement
     accuracy_decimals: 1
@@ -1185,4 +1185,5 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
