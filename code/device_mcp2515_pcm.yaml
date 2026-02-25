@@ -222,10 +222,10 @@ canbus:
         use_extended_id: true
         then:
           - lambda: |-
-              uint16_t discharge_current = (x[5] << 8) | x[4];
-              id(discharge_current_readback).publish_state(discharge_current / 10.0);
-              id(discharge_current).publish_state(discharge_current / 10.0);
-              ESP_LOGI("canbus", "Discharge Current Readback: %.1fA", discharge_current/10.0);
+              uint16_t discharge_current_value = (x[5] << 8) | x[4];
+              id(discharge_current_readback).publish_state(discharge_current_value / 10.0);
+              id(discharge_current).publish_state(discharge_current_value / 10.0);
+              ESP_LOGI("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
       
       # AC Voltage Protection Response - 0x010A0013
       - can_id: 0x010A0013
@@ -1185,5 +1185,6 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
