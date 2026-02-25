@@ -1155,7 +1155,7 @@ number:
       - delay: 100ms
       # Query back the setting
       - canbus.send:
-          canbus_id: ${pcm_canbus_id}n
+          canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A33
           use_extended_id: true
           data: !lambda |-
@@ -1453,6 +1453,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
