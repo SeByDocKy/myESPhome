@@ -408,6 +408,7 @@ sensor:
     accuracy_decimals: 0
     icon: mdi:metronome
     unit_of_measurement: 'Hz'
+    device_class: frequency
     # internal: true
   
   - platform: template
@@ -1204,6 +1205,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
