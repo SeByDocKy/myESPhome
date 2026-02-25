@@ -713,7 +713,7 @@ select:
     name: ${pcm_name}_grid_mode
     id: grid_mode_select
     icon: mdi:transmission-tower
-    optimistic: false
+    optimistic: true
     restore_value: true
     initial_option: 'Grid-connected Charging'
     options:
@@ -734,7 +734,7 @@ select:
     name: ${pcm_name}_frequency_setting
     id: frequency_select
     icon: mdi:metronome
-    optimistic: false
+    optimistic: true
     restore_value: true
     initial_option: '50 Hz'
     options:
@@ -758,7 +758,7 @@ select:
     name: ${pcm_name}_ac_voltage_setting
     id: ac_voltage_select
     icon: mdi:flash
-    optimistic: false
+    optimistic: true
     restore_value: true
     initial_option: '230V'
     options:
@@ -782,7 +782,7 @@ select:
     name: ${pcm_name}_phase_mode_setting
     id: phase_mode_select
     icon: mdi:electric-switch
-    optimistic: false
+    optimistic: true
     restore_value: true
     initial_option: 'Single-Phase'
     options:
@@ -1216,6 +1216,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
