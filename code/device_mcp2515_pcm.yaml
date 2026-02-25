@@ -528,7 +528,7 @@ select:
 output:
   - platform: template
     id: charging_current_output
-    name: {pcm_name}_charging_current_output
+    name: ${pcm_name}_charging_current_output
     type: float
     write_action:
       - canbus.send:
@@ -841,6 +841,7 @@ interval:
           use_extended_id: true
 
           data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]    
+
 
 
 
