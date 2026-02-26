@@ -920,6 +920,16 @@ output:
               0x00, 0x00
             };
 
+fan:
+  - platform: speed
+    id: ${pcm_name}_charging_current_command
+    name: ${pcm_name}_charging_current_command
+    output: charging_current_output
+
+  - platform: speed
+    id: ${pcm_name}_discharging_current_command
+    name: ${pcm_name}_discharging_current_command
+    output: discharging_current_output  
 
 # Number Controls for Parameters
 number:
@@ -1503,6 +1513,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
