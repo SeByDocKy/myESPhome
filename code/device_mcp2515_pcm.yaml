@@ -891,7 +891,7 @@ output:
           use_extended_id: true
           data: !lambda |-
             // float raw_state = id(charging_current_command).speed;  //from fan
-            float raw_state  = x;
+            float raw_state  = x*100.0f;
             float alpha      = 65.0f/99.0f;  // (70 - 5)/(100 - 1)
             float beta       = 5 - alpha;
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
@@ -916,7 +916,7 @@ output:
           use_extended_id: true
           data: !lambda |-
             // float raw_state = id(discharging_current_command).speed;  // from fan
-            float raw_state  = x;
+            float raw_state  = x*100.0f;
             float alpha      = 70.0f/99.0f;  // (75 - 5)/(100 - 1)
             float beta       = 5 - alpha;
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
@@ -1518,6 +1518,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
