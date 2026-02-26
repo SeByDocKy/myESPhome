@@ -679,6 +679,32 @@ button:
           data: !lambda |-
             // return {${pcm_address}, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
             return {0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+ # Stop
+  - platform: template
+    name: ${pcm_name}_stop
+    icon: mdi:stop
+    on_press:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02000A01
+          use_extended_id: true
+          data: !lambda |-
+            // return {${pcm_address}, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+  # Stop
+  - platform: template
+    name: ${pcm_name}_start
+    icon: mdi:play
+    on_press:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02000A01
+          use_extended_id: true
+          data: !lambda |-
+            // return {${pcm_address}, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};           
   
   # Query Version
   - platform: template
@@ -1452,6 +1478,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
