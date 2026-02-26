@@ -905,7 +905,7 @@ output:
 
   - platform: template
     id: discharging_current_output
-    name: ${pcm_name}_discharging_current_output
+    #name: ${pcm_name}_discharging_current_output
     type: float
     write_action:
       - canbus.send:
@@ -1503,6 +1503,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
