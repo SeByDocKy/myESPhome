@@ -892,7 +892,7 @@ output:
           data: !lambda |-
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
             uint16_t current = (uint16_t)( (0.65f*(id(charging_current_command).state) + 5.0f) * 10 );
-            ESP_LOGD("output", "voltage: %d, Current: %d", voltage, current);
+            ESP_LOGD("output", "raw: %d, voltage: %d, Current: %d", id(charging_current_command).state), voltage, current);
             return {
               ${pcm_address}, 0x00,
               (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
@@ -1509,6 +1509,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
