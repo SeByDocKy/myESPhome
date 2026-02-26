@@ -890,7 +890,7 @@ output:
           can_id: 0x02000A31
           use_extended_id: true
           data: !lambda |-
-            float raw_state = id(charging_current_command).state;
+            float raw_state = id(charging_current_command).speed;
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
             uint16_t current = (uint16_t)( ( 0.65*raw_state + 5.0 )  * 10 );
             
@@ -1511,6 +1511,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
