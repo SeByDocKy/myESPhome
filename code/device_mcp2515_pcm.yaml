@@ -895,7 +895,7 @@ output:
           use_extended_id: true
           data: !lambda |-
             uint16_t voltage = (uint16_t)(id(charging_voltage).state * 10);
-            uint16_t current = (uint16_t)(x * 10);
+            uint16_t current = (uint16_t)(id(charging_current).state * 10);
             return {
               ${pcm_address}, 0x00,
               (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
@@ -1503,6 +1503,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
