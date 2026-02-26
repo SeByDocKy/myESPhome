@@ -1,3 +1,24 @@
+esphome:
+  on_boot: !extend
+    - priority: -100
+      then:
+        - delay: 2s
+        - canbus.send:
+            canbus_id: ${pcm_canbus_id}
+            can_id: 0x03000A07
+            use_extended_id: true
+            data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+
+        - delay: 500ms
+
+        - canbus.send:
+            canbus_id: ${pcm_canbus_id}
+            can_id: 0x03000A05
+            use_extended_id: true
+            data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+
+
+
 canbus:
   - platform: mcp2515
     id: ${pcm_canbus_id}
@@ -1478,6 +1499,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
