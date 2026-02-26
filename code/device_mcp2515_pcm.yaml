@@ -833,7 +833,7 @@ select:
           use_extended_id: true
           data: !lambda |-
             uint8_t voltage = 0;
-            if (x == '230V') voltage = 2;
+            if (x == "230V") voltage = 2;
             return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
       - logger.log:
           format: 'AC Voltage will take effect on next reboot'
@@ -865,7 +865,7 @@ select:
           use_extended_id: true
           data: !lambda |-
             uint8_t phase = 0;
-            if (x == 'Three-Phase') phase = 1;
+            if (x == "Three-Phase") phase = 1;
             return {${pcm_address}, 0x00, phase, 0x00, 0x00, 0x00, 0x00, 0x00};
       - logger.log:
           format: 'Phase Mode will take effect on next reboot'
@@ -1508,6 +1508,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
