@@ -9,8 +9,7 @@ esphome:
             use_extended_id: true
             data: !lambda |-
               return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-
+           
         - delay: 500ms
 
         - canbus.send:
@@ -19,10 +18,7 @@ esphome:
             use_extended_id: true
             data: !lambda |-
               return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-
-
-
+            
 canbus:
   - platform: mcp2515
     id: ${pcm_canbus_id}
@@ -837,10 +833,10 @@ select:
           use_extended_id: true
           data: !lambda |-
             uint8_t voltage = 0;
-            if (x == "230V") voltage = 2;
+            if (x == '230V') voltage = 2;
             return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
       - logger.log:
-          format: "AC Voltage will take effect on next reboot"
+          format: 'AC Voltage will take effect on next reboot'
           level: WARN
       - delay: 100ms
       # Query back the setting
@@ -869,10 +865,10 @@ select:
           use_extended_id: true
           data: !lambda |-
             uint8_t phase = 0;
-            if (x == "Three-Phase") phase = 1;
+            if (x == 'Three-Phase') phase = 1;
             return {${pcm_address}, 0x00, phase, 0x00, 0x00, 0x00, 0x00, 0x00};
       - logger.log:
-          format: "Phase Mode will take effect on next reboot"
+          format: 'Phase Mode will take effect on next reboot'
           level: WARN
       - delay: 100ms
       # Query back the setting
@@ -895,7 +891,7 @@ output:
           use_extended_id: true
           data: !lambda |-
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
-            uint16_t current = (uint16_t)(id(charging_current_readback).state * 10);
+            uint16_t current = (uint16_t)((70.0f/105.0f)*(state + 5.0f) * 10);
             return {
               ${pcm_address}, 0x00,
               (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
@@ -919,7 +915,6 @@ output:
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
               0x00, 0x00
             };
-
 fan:
   - platform: speed
     id: ${pcm_name}_charging_current_command
@@ -1513,6 +1508,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
