@@ -440,13 +440,16 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
-    internal: false
+    icon: mdi:sine-wave
+    # internal: false
   
   - platform: template
     id: phase_mode_readback
     name: ${pcm_name}_phase_mode_readback
     accuracy_decimals: 0
-    internal: true
+    state_class: measurement
+    icon: mdi:numeric
+    # internal: false
   
   # Charging Parameters Readback
   - platform: template
@@ -1529,6 +1532,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
