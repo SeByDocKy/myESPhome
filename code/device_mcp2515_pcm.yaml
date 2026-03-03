@@ -936,7 +936,7 @@ output:
     type: float
     write_action: 
       - lambda: |-
-          esphome::canbus::Canbus *canbus = id(${solar_charger_name});
+          esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
           if (state >= 0.5f){  // discharge DC-AC
             // -1- set minimum 5A charge
             float raw_state  = 5.0f;
@@ -1577,6 +1577,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
