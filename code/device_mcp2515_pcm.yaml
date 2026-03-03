@@ -440,7 +440,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
-    # internal: false
+    internal: false
   
   - platform: template
     id: phase_mode_readback
@@ -1386,13 +1386,24 @@ text_sensor:
   - platform: template
     id: inverter_frequency_text
     name: ${pcm_name}_inverter_frequency
-    icon: mdi:sine-wave
+    icon: mdi:metronome
     update_interval: 1s
     lambda: |-
       int freq = id(inverter_frequency_sensor).state;
       if (freq == 0) return {"50 Hz"};
       else if (freq == 1) return {"60 Hz"};
       else return {"Unknown"};
+
+  - platform: template
+    id: ac_voltage_setting_text
+    name: ${pcm_name}_ac_voltage_setting_text
+    icon: mdi:sine-wave
+    update_interval: 1s
+    lambda: |-
+      int volt = id(ac_voltage_setting_readback).state;
+      if (volt == 2) return {"230V"};
+      else if (freq == 0) return {"220 Hz"};
+      else return {"Unknown"};    
   
   - platform: template
     id: program_version
@@ -1518,6 +1529,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
