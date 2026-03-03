@@ -109,7 +109,7 @@ canbus:
               uint8_t fault2 = x[5];
               uint8_t fault3 = x[6];
               
-              id(inverter_frequency_sensor).publish_state((inverter_freq == 0 ? 50 : 60));
+              id(offgrid_frequency_sensor).publish_state((inverter_freq == 0 ? 50 : 60));
               
               
               // Parse Fault 1
@@ -405,7 +405,7 @@ sensor:
   
   # Inverter Frequency
   - platform: template
-    id: inverter_frequency_sensor
+    id: offgrid_frequency_sensor
     name: ${pcm_name}_offgrid_frequency
     accuracy_decimals: 0
     icon: mdi:metronome
@@ -1389,7 +1389,7 @@ text_sensor:
     icon: mdi:metronome
     update_interval: 1s
     lambda: |-
-      int freq = id(inverter_frequency_sensor).state;
+      int freq = id(offgrid_frequency_sensor).state;
       if (freq == 0) return {"50 Hz"};
       else if (freq == 1) return {"60 Hz"};
       else return {"Unknown"};
@@ -1529,6 +1529,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
