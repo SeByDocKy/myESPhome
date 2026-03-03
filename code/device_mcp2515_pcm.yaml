@@ -950,7 +950,7 @@ output:
             delay(100);
 
             // -2- change grid mode charge to discharge
-            std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             canbus->send_data(0x02000A02, true, data);
             delay(100);
 
@@ -961,7 +961,7 @@ output:
             float beta       = 5 - alpha;
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
 
-            std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+            data = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
             canbus->send_data(0x02000A32, true, data);
             delay(100);
             
@@ -1577,6 +1577,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
