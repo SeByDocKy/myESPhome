@@ -947,12 +947,12 @@ output:
           
             std::vector<uint8_t> data = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
             this->canbus->send_data(0x02000A31, true, data);
-            delay(100ms);
+            delay(100);
 
             // -2- change grid mode charge to discharge
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             this->canbus->send_data(0x02000A02, true, data);
-            delay(100ms);
+            delay(100);
 
             // -3- set discharge current
 
@@ -963,7 +963,7 @@ output:
 
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
             this->canbus->send_data(0x02000A32, true, data);
-            delay(100ms);
+            delay(100);
             
           }
           else{
@@ -1577,6 +1577,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
