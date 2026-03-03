@@ -937,7 +937,7 @@ output:
     write_action: 
       - lambda: |-
           esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-          std::vector<uint8_t> data[8];
+          std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           float raw_state, alpha, beta;
           uint16_t voltage, current;
           
@@ -1601,6 +1601,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
