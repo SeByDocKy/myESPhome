@@ -440,7 +440,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
-    internal: true
+    # internal: false
   
   - platform: template
     id: phase_mode_readback
@@ -1518,6 +1518,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
