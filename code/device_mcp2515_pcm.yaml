@@ -1402,7 +1402,7 @@ text_sensor:
     lambda: |-
       int volt = id(ac_voltage_setting_readback).state;
       if (volt == 2) return {"230V"};
-      else if (freq == 0) return {"220 Hz"};
+      else if (volt == 0) return {"220 Hz"};
       else return {"Unknown"};    
   
   - platform: template
@@ -1529,6 +1529,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
