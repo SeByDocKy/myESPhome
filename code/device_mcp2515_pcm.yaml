@@ -203,7 +203,7 @@ canbus:
         then:
           - lambda: |-
               uint8_t voltage = x[2] | (x[1] << 8);
-              id(ac_voltage_setting_readback).publish_state(voltage);
+              id(ac_voltage_setting_readback).publish_state((voltage== 2 ? 230 : 220));
               if (voltage == 0) {
                 id(ac_voltage_select).publish_state("220V");
               } else if (voltage == 2) {
@@ -1394,16 +1394,16 @@ text_sensor:
       else if (freq == 1) return {"60 Hz"};
       else return {"Unknown"};
 
-  - platform: template
-    id: ac_voltage_setting_text
-    name: ${pcm_name}_ac_voltage_setting_text
-    icon: mdi:sine-wave
-    update_interval: 1s
-    lambda: |-
-      int volt = id(ac_voltage_setting_readback).state;
-      if (volt == 2) return {"230V"};
-      else if (volt == 0) return {"220 Hz"};
-      else return {"Unknown"};    
+  # - platform: template
+  #   id: ac_voltage_setting_text
+  #   name: ${pcm_name}_ac_voltage_setting_text
+  #   icon: mdi:sine-wave
+  #   update_interval: 1s
+  #   lambda: |-
+  #     int volt = id(ac_voltage_setting_readback).state;
+  #     if (volt == 2) return {"230V"};
+  #     else if (volt == 0) return {"220 Hz"};
+  #     else return {"Unknown"};    
   
   - platform: template
     id: program_version
@@ -1529,6 +1529,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
