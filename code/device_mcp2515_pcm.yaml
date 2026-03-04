@@ -805,7 +805,8 @@ select:
           data: !lambda |-
             uint8_t freq = 0;
             if (x == "60 Hz") freq = 1;
-            return {${pcm_address}, 0x00, freq, 0x00, 0x00, 0x00, 0x00, 0x00};
+            // return {${pcm_address}, 0x00, freq, 0x00, 0x00, 0x00, 0x00, 0x00};
+            return {0x00, 0x00, freq, 0x00, 0x00, 0x00, 0x00, 0x00};
       - logger.log:
           format: "Frequency will take effect on next reboot"
           level: WARN
@@ -1601,6 +1602,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
