@@ -563,11 +563,13 @@ binary_sensor:
     id: battery_undervoltage_alarm
     name: ${pcm_name}_battery_undervoltage_alarm
     device_class: problem
+    icon: mdi:battery-alert-variant-outline
     
   - platform: template
     id: battery_overvoltage_alarm
     name: ${pcm_name}_battery_overvoltage_alarm
     device_class: problem
+    icon: mdi:battery-alert
     
   - platform: template
     id: grid_undervoltage_alarm
@@ -592,57 +594,68 @@ binary_sensor:
     id: fault_soft_start_timeout
     name: ${pcm_name}_fault_soft_start_timeout
     device_class: problem
+    icon: mdi:clock-alert
     
   - platform: template
     id: fault_bus_overvoltage
     name: ${pcm_name}_fault bus_overvoltage
     device_class: problem
+    icon: mdi:flash-alert
     
   - platform: template
     id: fault_bus_undervoltage
     name: ${pcm_name}_fault_bus_undervoltage
     device_class: problem
+    icon: mdi:flash-alert-outline
     
   - platform: template
     id: fault_inverter_overvoltage
     name: ${pcm_name}_fault_inverter_overvoltage
     device_class: problem
+    icon: mdi:flash-alert
     
   - platform: template
     id: fault_inverter_undervoltage
     name: ${pcm_name}_fault_inverter_undervoltage
     device_class: problem
+    icon: mdi:flash-alert
     
   - platform: template
     id: fault_inverter_rms_overcurrent
     name: ${pcm_name}_fault_inverter_rms_overcurrent
     device_class: problem
+    icon: mdi:flash-alert
   
   # Fault 2
   - platform: template
     id: fault_inverter_fast_overcurrent
     name: ${pcm_name}_fault_inverter_fast_overcurrent
     device_class: problem
+    icon: mdi:flash-alert
     
   - platform: template
     id: fault_dc_overvoltage
     name: ${pcm_name}_fault_dc_overvoltage
     device_class: problem
+    icon: mdi:battery-alert
     
   - platform: template
     id: fault_dc_undervoltage
     name: ${pcm_name}_fault_dc_undervoltage
     device_class: problem
+    icon: mdi:battery-alert-variant-outline
     
   - platform: template
     id: fault_dc_fast_overcurrent
     name: ${pcm_name}_fault_dc_fast_overcurrent
     device_class: problem
+    icon: mdi:battery-alert
     
   - platform: template
     id: fault_dc_rms_overcurrent
     name: ${pcm_name}_fault_dc_rms_overcurrent
     device_class: problem
+    icon: mdi:battery-alert
     
   - platform: template
     id: fault_load_overcurrent
@@ -664,11 +677,13 @@ binary_sensor:
     id: fault_over_temperature
     name: ${pcm_name}_fault_over_temperature
     device_class: problem
+    icon: mdi:car-brake-temperature
     
   - platform: template
     id: fault_fan_fault
     name: ${pcm_name}_fault_fan
     device_class: problem
+    icon: mdi:fan-alert
     
   - platform: template
     id: fault_sync_signal_loss
@@ -1615,6 +1630,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
