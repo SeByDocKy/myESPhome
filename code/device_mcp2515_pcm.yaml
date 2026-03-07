@@ -86,7 +86,7 @@ canbus:
               
               id(temperature1_sensor).publish_state(temp1);
               id(temperature2_sensor).publish_state(temp2);
-              id(power_sensor).publish_state(power / 10.0);
+              id(ac_power_sensor).publish_state(power);  // / 10.0
               
               // Parse warning flags
               id(battery_undervoltage_alarm).publish_state(warning_flags & 0x01);
@@ -203,13 +203,13 @@ canbus:
         then:
           - lambda: |-
               uint8_t voltage = x[2] | (x[1] << 8);
-              id(ac_voltage_setting_readback).publish_state((voltage== 2 ? 230 : 220));
+              id(ac_voltage_setting_readback).publish_state((voltage== 0 ? 230 : 240));
               if (voltage == 0) {
-                id(ac_voltage_select).publish_state("220V");
-              } else if (voltage == 2) {
                 id(ac_voltage_select).publish_state("230V");
+              } else if (voltage == 2) {
+                id(ac_voltage_select).publish_state("240V");
               }
-              ESP_LOGI("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 220 : 230);
+              ESP_LOGI("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
       
       # Phase Mode Response - 0x010A000A
       - can_id: 0x010A000A
@@ -361,7 +361,7 @@ sensor:
   
   # Power
   - platform: template
-    id: power_sensor
+    id: ac_power_sensor
     name: ${pcm_name}_ac_power
     unit_of_measurement: 'W'
     device_class: power
@@ -828,8 +828,8 @@ select:
     restore_value: true
     initial_option: '230V'
     options:
-      - '220V'
       - '230V'
+      - '240V'
     on_value:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -837,7 +837,7 @@ select:
           use_extended_id: true
           data: !lambda |-
             uint8_t voltage = 0;
-            if (x == "230V") voltage = 2;
+            if (x == "240V") voltage = 2;
             return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
       - logger.log:
           format: 'AC Voltage will take effect on next reboot'
@@ -1602,3 +1602,4 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
