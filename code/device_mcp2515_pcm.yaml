@@ -772,7 +772,7 @@ select:
   - platform: template
     name: ${pcm_name}_grid_mode
     id: grid_mode_select
-    icon: mdi:transmission-tower
+    icon: mdi:power-plug-battery
     optimistic: true
     restore_value: true
     initial_option: 'Charge mode'
@@ -1615,6 +1615,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
