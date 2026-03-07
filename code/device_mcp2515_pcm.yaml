@@ -380,7 +380,7 @@ sensor:
   # Temperature
   - platform: template
     id: temperature1_sensor
-    name: ${pcm_name}_temperature_1
+    name: ${pcm_name}_temperature_PFC
     unit_of_measurement: '°C'
     device_class: temperature
     state_class: measurement
@@ -389,7 +389,7 @@ sensor:
     
   - platform: template
     id: temperature2_sensor
-    name: ${pcm_name}_temperature_2
+    name: ${pcm_name}_temperature_LLC
     unit_of_measurement: '°C'
     device_class: temperature
     state_class: measurement
@@ -1615,6 +1615,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
