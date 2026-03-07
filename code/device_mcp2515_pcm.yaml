@@ -498,6 +498,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:flash-alert-outline
   
   # AC Alarm Readback
   - platform: template
@@ -516,6 +517,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:flash-alert-outline
   
   # DC Protection Readback
   - platform: template
@@ -525,7 +527,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
-  
+      
   - platform: template
     id: dc_undervoltage_protection_readback
     name: ${pcm_name}_dc_undervoltage_protection_readback
@@ -567,11 +569,13 @@ binary_sensor:
     id: grid_undervoltage_alarm
     name: ${pcm_name}_grid_undervoltage_alarm
     device_class: problem
+    icon: mdi:flash-alert-outline
     
   - platform: template
     id: grid_overvoltage_alarm
     name: ${pcm_name}_grid_overvoltage_alarm
     device_class: problem
+    icon: mdi:flash-alert
   
   # Fault Status
   - platform: template
@@ -1605,5 +1609,6 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
