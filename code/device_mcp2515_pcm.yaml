@@ -527,6 +527,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:battery-alert
       
   - platform: template
     id: dc_undervoltage_protection_readback
@@ -544,6 +545,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:battery-alert
   
   - platform: template
     id: dc_undervoltage_alarm_readback
@@ -1235,7 +1237,7 @@ number:
   
   # AC Undervoltage Alarm
   - platform: template
-    name: ${pcm_name}_ac_undervoltage_Alarm
+    name: ${pcm_name}_ac_undervoltage_alarm
     id: ac_undervoltage_alarm
     icon: mdi:flash-alert-outline
     unit_of_measurement: 'V'
@@ -1609,6 +1611,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
