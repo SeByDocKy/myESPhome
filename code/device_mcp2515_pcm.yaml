@@ -177,9 +177,9 @@ canbus:
               uint8_t grid_mode = x[2] | (x[1] << 8);
               id(grid_mode_readback).publish_state(grid_mode);
               if (grid_mode == 0) {
-                id(grid_mode_select).publish_state("Grid-connected Charging");
+                id(grid_mode_select).publish_state("Charge mode");
               } else if (grid_mode == 1) {
-                id(grid_mode_select).publish_state("Grid-connected Discharge");
+                id(grid_mode_select).publish_state("Discharge mode");
               }
               ESP_LOGI("canbus", "Grid Mode Readback: %d", grid_mode);
       
@@ -775,10 +775,10 @@ select:
     icon: mdi:transmission-tower
     optimistic: true
     restore_value: true
-    initial_option: 'Grid-connected Charging'
+    initial_option: 'Charge mode'
     options:
-      - 'Grid-connected Charging'
-      - 'Grid-connected Discharge'
+      - 'Charge mode'
+      - 'Discharge mode'
     on_value:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -786,7 +786,7 @@ select:
           use_extended_id: true
           data: !lambda |-
             uint8_t mode = 0;
-            if (x == "Grid-connected Discharge") mode = 1;
+            if (x == "Discharge mode") mode = 1;
             return {${pcm_address}, 0x00, mode, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
       # Query back the setting
@@ -1615,6 +1615,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
