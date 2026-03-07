@@ -459,6 +459,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:battery-charging-high
   
   - platform: template
     id: charging_current_readback
@@ -467,7 +468,7 @@ sensor:
     device_class: current
     state_class: measurement
     accuracy_decimals: 1
-    icon: mdi:current-dc
+    icon: mdi:battery-arrow-up
   
   # Discharge Parameters Readback
   - platform: template
@@ -477,7 +478,7 @@ sensor:
     device_class: current
     state_class: measurement
     accuracy_decimals: 1
-    icon: mdi:current-dc
+    icon: mdi:battery-arrow-down
   
   # AC Protection Readback
   - platform: template
@@ -487,6 +488,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:flash-alert
     
   
   - platform: template
@@ -505,6 +507,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:flash-alert
   
   - platform: template
     id: ac_undervoltage_alarm_readback
@@ -823,7 +826,7 @@ select:
   - platform: template
     name: ${pcm_name}_ac_voltage_setting
     id: ac_voltage_select
-    icon: mdi:flash
+    icon: mdi:sine-wave
     optimistic: true
     restore_value: true
     initial_option: '230V'
@@ -1602,4 +1605,5 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
