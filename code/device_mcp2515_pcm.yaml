@@ -536,6 +536,7 @@ sensor:
     device_class: voltage
     state_class: measurement
     accuracy_decimals: 1
+    icon: mdi:battery-alert-variant-outline
   
   # DC Alarm Readback
   - platform: template
@@ -553,7 +554,8 @@ sensor:
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
-    accuracy_decimals: 1  
+    accuracy_decimals: 1
+    icon: mdi:battery-alert-variant-outline
 
 binary_sensor:
 
@@ -1611,6 +1613,7 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
+
 
 
 
