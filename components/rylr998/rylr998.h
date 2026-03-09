@@ -72,7 +72,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   std::string rx_buffer_;
   uint32_t last_command_time_{0};
   static const uint32_t COMMAND_DELAY_MS = 100;
-  static const uint32_t SEND_COMMAND_DELAY_MS = 1000;
+  static const uint32_t TIMEOUT_MS = 1000;
 
   // TX rate limiting
   uint32_t last_tx_time_{0};
