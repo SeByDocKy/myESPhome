@@ -16,7 +16,7 @@ void RYLR998Component::setup() {
   delay(500);
 
   // Test AT communication
-  if (!this->send_command_("AT", SEND_COMMAND_DELAY_MS)) {
+  if (!this->send_command_("AT", TIMEOUT_MS)) {
     ESP_LOGE(TAG, "Failed to communicate with RYLR998 module");
     this->mark_failed();
     return;
@@ -28,7 +28,7 @@ void RYLR998Component::setup() {
   // Set address
   char address_cmd[32];
   snprintf(address_cmd, sizeof(address_cmd), "AT+ADDRESS=%d", this->address_);
-  if (!this->send_command_(address_cmd, SEND_COMMAND_DELAY_MS)) {
+  if (!this->send_command_(address_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set address");
   }
   delay(COMMAND_DELAY_MS);
@@ -36,7 +36,7 @@ void RYLR998Component::setup() {
   // Set frequency - RYLR998 uses Hz directly, no suffix
   char freq_cmd[32];
   snprintf(freq_cmd, sizeof(freq_cmd), "AT+BAND=%lu", this->frequency_);
-  if (!this->send_command_(freq_cmd, SEND_COMMAND_DELAY_MS)) {
+  if (!this->send_command_(freq_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set frequency");
   }
   delay(COMMAND_DELAY_MS);
@@ -46,7 +46,7 @@ void RYLR998Component::setup() {
   char param_cmd[64];
   snprintf(param_cmd, sizeof(param_cmd), "AT+PARAMETER=%d,%d,%d,%d",
            this->spreading_factor_, bw_code, this->coding_rate_, this->preamble_length_);
-  if (!this->send_command_(param_cmd, SEND_COMMAND_DELAY_MS)) {
+  if (!this->send_command_(param_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set RF parameters");
   }
   delay(COMMAND_DELAY_MS);
@@ -54,7 +54,7 @@ void RYLR998Component::setup() {
   // Set network ID
   char network_cmd[32];
   snprintf(network_cmd, sizeof(network_cmd), "AT+NETWORKID=%d", this->network_id_);
-  if (!this->send_command_(network_cmd, SEND_COMMAND_DELAY_MS)) {
+  if (!this->send_command_(network_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set network ID");
   }
   delay(COMMAND_DELAY_MS);
@@ -62,7 +62,7 @@ void RYLR998Component::setup() {
   // Set TX power
   char power_cmd[32];
   snprintf(power_cmd, sizeof(power_cmd), "AT+CRFOP=%d", this->tx_power_);
-  if (!this->send_command_(power_cmd, SEND_COMMAND_DELAY_MS)) {
+  if (!this->send_command_(power_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set TX power");
   }
   delay(COMMAND_DELAY_MS);
@@ -348,7 +348,7 @@ void RYLR998Component::apply_tx_power(uint8_t power) {
   snprintf(cmd, sizeof(cmd), "AT+CRFOP=%d", power);
   ESP_LOGD(TAG, "Setting TX power to %d dBm", power);
 
-  if (!this->send_command_(cmd, SEND_COMMAND_DELAY_MS)) {
+  if (!this->send_command_(cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set TX power to %d dBm", power);
     return;
   }
