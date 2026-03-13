@@ -113,8 +113,10 @@ packages:
           inverter_name: 'deye'
           inverter_modbus_id: 'modbus_id'
           inverter_modbus_address: '1'
+          inverter_factor: '1'
           inverter_modbus_throttle: '100ms'
           inverter_update_interval: '2s'
           inverter_template_update: '2s'
 
           inverter_text_update: '5s'      
+
