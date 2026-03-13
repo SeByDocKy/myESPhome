@@ -16,9 +16,8 @@ esp32:
   cpu_frequency: 240Mhz
   framework:
     type: esp-idf
-    version: 5.5.2
-    platform_version: 55.03.36
-
+    version: 'latest'
+   
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
@@ -119,4 +118,5 @@ packages:
           inverter_template_update: '2s'
 
           inverter_text_update: '5s'      
+
 
