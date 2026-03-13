@@ -116,7 +116,4 @@ packages:
           inverter_modbus_throttle: '100ms'
           inverter_update_interval: '2s'
           inverter_template_update: '2s'
-
           inverter_text_update: '5s'      
-
-
