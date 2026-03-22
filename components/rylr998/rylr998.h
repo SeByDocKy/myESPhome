@@ -69,7 +69,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   uint8_t network_id_{18};
   uint8_t tx_power_{22};
   uint16_t lora_air_time_{600};
-  bool this->compute_air_time_{False};
+  bool compute_air_time_{false};
 
   bool initialized_{false};
   std::string rx_buffer_;
