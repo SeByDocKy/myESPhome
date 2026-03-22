@@ -9,7 +9,7 @@ from esphome.const import (
 )
 
 DEPENDENCIES = ["uart"]
-CODEOWNERS = ["@SeByDocKy"]
+CODEOWNERS = ["@SeByDocKy,@claude"]
 AUTO_LOAD = ["packet_transport", "sensor", "number"]
 MULTI_CONF = True
 
