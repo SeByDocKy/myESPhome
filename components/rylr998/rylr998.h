@@ -77,7 +77,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
 
   // TX rate limiting
   uint32_t last_tx_time_{0};
-  # static const uint32_t TX_MIN_INTERVAL_MS = 600;
+  // static const uint32_t TX_MIN_INTERVAL_MS = 600;
 
   bool send_command_(const std::string &command, uint32_t timeout_ms = 1000);
   void send_raw_(const std::string &command);
