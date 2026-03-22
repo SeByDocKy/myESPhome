@@ -85,12 +85,18 @@ void RYLR998Component::setup() {
   float Tsym = powf(2.0f, this->spreading_factor_) / bw_code;
   float Tpreamble = (this->preamble_length_ + 4.25f) * Tsym;
   float temp =
-        (8.0f * payloadLen
+        (8.0f * 248.0 // (240 + 8)
         - 4.0f * this->spreading_factor_
         + 28.0f
-        + 16.0f * crcOn
-        - 20.0f * implicitHdr);
-  // this->lora_air_time_  =
+        + 16.0f * 1.0f
+        - 20.0f * 0.0f);
+
+  float denom = 4.0f * (this->spreading_factor_ - 2.0f * 0.0f);
+  uint16_t payloadSymbNb = 8 + fmax(ceil(temp / denom) * (this->cr + 4), 0);
+ 
+  float Tpayload = payloadSymbNb * Tsym;
+  this->lora_air_time_ = (Tpreamble + Tpayload) * 1000.0f; 
+
 
   
 }
