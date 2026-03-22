@@ -24,6 +24,7 @@ CONF_TX_POWER = "tx_power"
 CONF_ON_PACKET = "on_packet"
 CONF_DESTINATION = "destination"
 CONF_DATA = "data"
+CONF_AIR_TIME = "air_time"
 
 rylr998_ns = cg.esphome_ns.namespace("rylr998")
 
@@ -84,6 +85,7 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_PREAMBLE_LENGTH, default=12): cv.int_range(min=4, max=24),
             cv.Optional(CONF_NETWORK_ID, default=18): validate_network_id,
             cv.Optional(CONF_TX_POWER, default=22): cv.int_range(min=0, max=22),
+            cv.Optional(CONF_AIR_TIME, default=True): cv.boolean(min=0, max=22),
             cv.Optional(CONF_ON_PACKET): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(RYLR998PacketTrigger),
