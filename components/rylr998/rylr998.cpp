@@ -84,23 +84,25 @@ void RYLR998Component::setup() {
     this->last_error_sensor_->publish_state(0.0f);
   }
 
+  if (this->compute_air_time_){
   // Lora air time ajusted according to parameter 
   // Symbol duration
-  float Tsym = powf(2.0f, this->spreading_factor_) / bw_code;
-  float Tpreamble = (this->preamble_length_ + 4.25f) * Tsym;
-  float temp =
+    float Tsym = powf(2.0f, this->spreading_factor_) / bw_code;
+    float Tpreamble = (this->preamble_length_ + 4.25f) * Tsym;
+    float temp =
         (8.0f * 248.0 // (240 + 8)
         - 4.0f * this->spreading_factor_
         + 28.0f
         + 16.0f * 1.0f
         - 20.0f * 0.0f);
 
-  float denom = 4.0f * (this->spreading_factor_ - 2.0f * 0.0f);
-  uint16_t payloadSymbNb = 8 + fmax(ceil(temp / denom) * (this->coding_rate_ + 4), 0);
+    float denom = 4.0f * (this->spreading_factor_ - 2.0f * 0.0f);
+    uint16_t payloadSymbNb = 8 + fmax(ceil(temp / denom) * (this->coding_rate_ + 4), 0);
  
-  float Tpayload = payloadSymbNb * Tsym;
-  this->lora_air_time_ = (Tpreamble + Tpayload) * 1000.0f;
-  ESP_LOGCONFIG(TAG, "RYLR998 computed lora air time: %f" , this->lora_air_time_);
+    float Tpayload = payloadSymbNb * Tsym;
+    this->lora_air_time_ = (Tpreamble + Tpayload) * 1000.0f;
+    ESP_LOGCONFIG(TAG, "RYLR998 computed lora air time: %f" , this->lora_air_time_);
+  }
 
 
   
