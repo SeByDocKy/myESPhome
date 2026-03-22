@@ -337,7 +337,7 @@ bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<u
   }
   hex_buf[data.size() * 2] = '\0';
 
-  char send_cmd[SEND_CMD_SIZE 520];
+  char send_cmd[SEND_CMD_SIZE];
   snprintf(send_cmd, sizeof(send_cmd), "AT+SEND=%d,%d,%s",
            destination, (int)(data.size() * 2), hex_buf);
 
