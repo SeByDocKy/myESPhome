@@ -300,7 +300,7 @@ bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<u
   // Rate limit: LoRa air-time at SF9/BW125 is ~450ms. Drop if sent too recently.
   // PacketTransport will call us again in ~500ms anyway (it retransmits by design).
   uint32_t now = millis();
-  if (now - this->last_tx_time_ < TX_MIN_INTERVAL_MS) {
+  if (now - this->last_tx_time_ < this->lora_air_time_) {
     return true;  // silently drop, will be sent next call
   }
   this->last_tx_time_ = now;
