@@ -93,8 +93,8 @@ rylr998:
   uart_id: uart_0
   address: 2
   frequency: 868MHz
-  spreading_factor: 10
-  signal_bandwidth: 250kHz
+  spreading_factor: 9
+  signal_bandwidth: 125kHz
   coding_rate: 1
   preamble_length: 12
   network_id: 10
