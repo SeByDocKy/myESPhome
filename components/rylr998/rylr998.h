@@ -25,7 +25,8 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   void set_coding_rate(uint8_t cr) { this->coding_rate_ = cr; }
   void set_preamble_length(uint8_t pl) { this->preamble_length_ = pl; }
   void set_network_id(uint8_t nid) { this->network_id_ = nid; }
-  void set_tx_power(uint8_t tp) { this->tx_power_ = tp; }
+  void set_tx_power(uint8_t tp) { this->tx_power_ = tp; } 
+  void set_air_time(bool enable) { this->compute_air_time_ = enable; }
 
   // ── Sensor RSSI / SNR / ERROR (optionnels) ────────────────────────────────
   void set_rssi_sensor(esphome::sensor::Sensor *s)  { this->rssi_sensor_  = s; }
