@@ -5,8 +5,8 @@
 #include "esphome/components/number/number.h"
 
 
-#define COMMAND_DELAY_MS 100;
-#define TIMEOUT_MS 1000;
+#define COMMAND_DELAY_MS 100
+#define TIMEOUT_MS 1000
 #define MAX_PAYLOAD 240
 #define HEX_BUF_SIZE 496 //(240+8)*2+1
 #define SEND_CMD_SIZE 520
