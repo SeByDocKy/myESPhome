@@ -92,10 +92,11 @@ void RYLR998Component::setup() {
         - 20.0f * 0.0f);
 
   float denom = 4.0f * (this->spreading_factor_ - 2.0f * 0.0f);
-  uint16_t payloadSymbNb = 8 + fmax(ceil(temp / denom) * (this->cr + 4), 0);
+  uint16_t payloadSymbNb = 8 + fmax(ceil(temp / denom) * (this->coding_rate_ + 4), 0);
  
   float Tpayload = payloadSymbNb * Tsym;
-  this->lora_air_time_ = (Tpreamble + Tpayload) * 1000.0f; 
+  this->lora_air_time_ = (Tpreamble + Tpayload) * 1000.0f;
+  ESP_LOGCONFIG(TAG, "RYLR998 computed lora air time: %f" , this->lora_air_time_);
 
 
   
