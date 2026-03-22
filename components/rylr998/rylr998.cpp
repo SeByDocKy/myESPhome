@@ -4,6 +4,10 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/number/number.h"
 
+#define MAX_PAYLOAD 240
+#define HEX_BUF_SIZE 496 //(240+8)*2+1
+#define SEND_CMD_SIZE 520
+
 namespace esphome {
 namespace rylr998 {
 
@@ -311,7 +315,7 @@ bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<u
     ESP_LOGW(TAG, "Module not initialized");
     return false;
   }
-  if (data.size() > 240) {
+  if (data.size() > MAX_PAYLOAD) {
     ESP_LOGE(TAG, "Data too large (max 240 bytes), got %d", (int) data.size());
     return false;
   }
@@ -327,13 +331,13 @@ bool RYLR998Component::transmit_packet(uint16_t destination, const std::vector<u
   this->last_tx_time_ = now;
 
   // Encode as hex-ASCII (stack buffer only, no heap allocation)
-  char hex_buf[481];  // 240 bytes max -> 480 hex chars + null
+  char hex_buf[HEX_BUF_SIZE];  // (240 + 8)*2 + 1 = 240 bytes max -> 480 hex chars + null
   for (size_t i = 0; i < data.size(); i++) {
     snprintf(hex_buf + i * 2, 3, "%02X", data[i]);
   }
   hex_buf[data.size() * 2] = '\0';
 
-  char send_cmd[520];
+  char send_cmd[SEND_CMD_SIZE 520];
   snprintf(send_cmd, sizeof(send_cmd), "AT+SEND=%d,%d,%s",
            destination, (int)(data.size() * 2), hex_buf);
 
