@@ -83,7 +83,7 @@ void RYLR998Component::setup() {
   // Lora air time ajusted according to parameter 
   // Symbol duration
   float Tsym = powf(2.0f, this->spreading_factor_) / bw_code;
-  this->lora_air_time_  =
+  // this->lora_air_time_  =
 
   
 }
