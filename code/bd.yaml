@@ -5,7 +5,7 @@ substitutions:
   my_hours: '23'
   my_minute: '59'
   my_second: '59'
-  baud_rate: 115200 #9600 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
+  baud_rate: 9600 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
  
 esphome:
   name: ${name}
@@ -29,7 +29,6 @@ esphome:
             level: '2%'            
 
 esp32:
-  # board: esp32-s3-devkitc-1
   board: seeed_xiao_esp32s3
   variant: esp32s3
   cpu_frequency: 240Mhz
@@ -37,8 +36,8 @@ esp32:
     type: arduino
     # version: latest
     # type: esp-idf
-    # version: 5.5.1
-    # platform_version: 55.03.31-2
+    # version: 5.5.2
+    # platform_version: 55.03.35
     # components:
       # - espressif/esp_wifi_remote^0.13.*
       # - espressif/arduino-esp32^3.3.3
@@ -169,16 +168,33 @@ binary_sensor:
   - platform: status
     name: ${name}_esp_status
     
+  - platform: template
+    id: hms_reachable
+    name: ${name}_hms_reachable
+    condition: 
+      and:
+        - binary_sensor.is_on: hms1_1000_reachable
+        # - binary_sensor.is_on: hms2_1000_reachable
+        
+  - platform: template
+    id: hms_producing
+    name: ${name}_hms_producing
+    condition: 
+      and:
+        - binary_sensor.is_on: hms1_1000_producing
+        # - binary_sensor.is_on: hms2_1000_producing        
+  
+    
 button:
   - platform: restart
     name: ${name}_restart
     
   - platform: template
-    name: ${name}_general_hoymiles_restart
-    id: general_hoymiles_restart
+    name: ${name}_hms_restart
+    id: hms_restart
     on_press:
-      - button.press: hms_1000_restart
-      # - button.press: hms_2000_restart
+      - button.press: hms1_1000_restart
+      # - button.press: hms2_1000_restart
       
       
 switch:
@@ -199,14 +215,14 @@ output:
     type: float
     write_action:
       - output.set_level:
-          id: hms_1000_percent_output
-          # id: hms_2000_percent_output
+          id: hms1_1000_percent_output
           level: !lambda return state;
           
       # - output.set_level:
           # id: hms2_1000_percent_output
           # level: !lambda return state;    
-      
+       
+   
 fan:
   - platform: speed
     id: ${name}_output_combined_command
@@ -232,19 +248,8 @@ packages:
       - path: 'code/device_hms_2t.yaml' 
         vars:
           hms_inverter_id: 'hoymiles_id'
-          hms_inverter_name: 'hms_1000'
+          hms_inverter_name: 'hms1_1000'
           hms_inverter_sn: !secret hms1000_sn1
-          
-  # hms_inverter1: 
-    # url: https://github.com/SeByDocKy/myESPhome/
-    # ref: main
-    # refresh: 0s
-    # files:
-      # - path: 'code/device_hms_4t.yaml' 
-        # vars:
-          # hms_inverter_id: 'hoymiles_id'
-          # hms_inverter_name: 'hms_2000'
-          # hms_inverter_sn: !secret hms2000_sn1         
           
   # hms_inverter2: 
     # url: https://github.com/SeByDocKy/myESPhome/
@@ -255,7 +260,18 @@ packages:
         # vars:
           # hms_inverter_id: 'hoymiles_id'
           # hms_inverter_name: 'hms2_1000'
-          # hms_inverter_sn: !secret hms1000_sn2        
+          # hms_inverter_sn: !secret hms1000_sn2         
+          
+  # hms_inverter2: 
+    # url: https://github.com/SeByDocKy/myESPhome/
+    # ref: main
+    # refresh: 0s
+    # files:
+      # - path: 'code/device_hms_4t.yaml' 
+        # vars:
+          # hms_inverter_id: 'hoymiles_id'
+          # hms_inverter_name: 'hms2_2000'
+          # hms_inverter_sn: !secret hms2000_sn1        
 
   emerson:
     url: https://github.com/SeByDocKy/myESPhome/
@@ -267,8 +283,8 @@ packages:
           emerson_name: 'r48'
           emerson_spid_id: 'shared_spi'
           emerson_cs_pin: 'GPIO06' #06
-          emerson_update_interval: '3s'
-          emerson_template_update_interval: '3s'
+          emerson_update_interval: '2s'
+          emerson_template_update_interval: '2s'
           
   modbus:
     url: https://github.com/SeByDocKy/pvbrain2/
@@ -347,7 +363,7 @@ packages:
           dualpid_charging_output_id: 'r48_max_current'
           dualpid_discharging_output_id: 'output_combined'
           dualpid_r48_general_switch_id: 'general_r48_switch'
-          dualpid_producing_id: 'hms_1000_producing'
+          dualpid_producing_id: 'hms_producing'
           dualpid_windows_size: '1'
           
   automation:
@@ -359,7 +375,6 @@ packages:
         vars: 
           automation_time_interval: '30s'
           automation_activation: 'pid_activation'
-          automation_reachable: 'hms_1000_reachable'
-          automation_producing: 'hms_1000_producing'
-
-          automation_restart: 'hms_1000_restart'
+          automation_reachable: 'hms_reachable'
+          automation_producing: 'hms_producing'
+          automation_restart: 'hms_restart'
