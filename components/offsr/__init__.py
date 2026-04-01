@@ -17,6 +17,7 @@ CONF_BATTERY_CURRENT_ID = 'battery_current_id'
 CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
 CONF_OUTPUT_ID = 'output_id'
 CONF_POWER_ID = 'power_id'
+CONF_OUTPUT_NEVER_0 = 'output_never_0'
 
 # PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 
