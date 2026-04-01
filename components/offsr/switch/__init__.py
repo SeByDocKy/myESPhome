@@ -12,11 +12,13 @@ DEPENDENCIES = ["offsr"]
 from .. import CONF_OFFSR_ID, OFFSRComponent, offsr_ns
 
 ActivationSwitch = offsr_ns.class_("ActivationSwitch", switch.Switch, cg.Component)
+OutputNeverZeroSwitch = offsr_ns.class_("OutputNeverZeroSwitch", switch.Switch, cg.Component)
 ManualOverrideSwitch = offsr_ns.class_("ManualOverrideSwitch", switch.Switch, cg.Component)
 PidModeSwitch = offsr_ns.class_("PidModeSwitch", switch.Switch, cg.Component)
 ReverseSwitch = offsr_ns.class_("ReverseSwitch", switch.Switch, cg.Component)
 
 CONF_ACTIVATION = "activation"
+CONF_OUTPUT_NEVER_ZERO = "output_never_zero"
 CONF_MANUAL_OVERRIDE = "manual_override"
 CONF_PID_MODE = "pid_mode"
 CONF_REVERSE = "reverse"
@@ -26,6 +28,11 @@ CONFIG_SCHEMA = {
     
     cv.Optional(CONF_ACTIVATION): switch.switch_schema(
         ActivationSwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
+    cv.Optional(CONF_OUTPUT_NEVER_ZERO): switch.switch_schema(
+        OutputNeverZeroSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
@@ -54,6 +61,12 @@ async def to_code(config):
         await cg.register_component(s, activation_config)
         await cg.register_parented(s, offsr_component)
         cg.add(offsr_component.set_activation_switch(s))
+        
+    if output_never_zero_config := config.get(CONF_OUTPUT_NEVER_ZERO):
+        s = await switch.new_switch(output_never_zero_config)
+        await cg.register_component(s, output_never_zero_config)
+        await cg.register_parented(s, offsr_component)
+        cg.add(offsr_component.set_output_never_zero_switch(s))
         
     if manual_override_config := config.get(CONF_MANUAL_OVERRIDE):
         s = await switch.new_switch(manual_override_config)
