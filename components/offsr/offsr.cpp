@@ -42,9 +42,12 @@ void OFFSRComponent::setup() {
 
   if(this->output_never_zero_ ){
     this->output_ = this->current_output_min_;
-    this->device_output_->set_level(this->output_);
-    this->current_output_ = this->output_;
   }
+  else{
+    this->output_ = 0.0f;
+  }
+  this->device_output_->set_level(this->output_);
+  this->current_output_ = this->output_;
 
 	
   this->pid_computed_callback_.call();
