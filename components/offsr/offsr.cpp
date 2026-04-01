@@ -153,7 +153,8 @@ void OFFSRComponent::pid_update() {
 	    this->output_ = this->current_output_min_;
 	  }
 	  else{
-		this->output_ = 0.0f;  
+		// this->output_ = 0.0f;
+		this->output_ = this->current_output_min_;  
 	  }
     }
 #endif  
