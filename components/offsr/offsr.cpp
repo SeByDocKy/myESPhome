@@ -153,8 +153,8 @@ void OFFSRComponent::pid_update() {
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         // this->output_ = 0.0f;
 		this->output_ = this->output_min;
-        this->device_output_->set_level(this->output_);
-        this->current_output_ = this->output_;
+        // this->device_output_->set_level(this->output_);
+        // this->current_output_ = this->output_;
       }
     }
     ESP_LOGVV(TAG, "Final computed output=%1.6f" , this->output_);
