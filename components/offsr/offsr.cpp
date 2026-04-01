@@ -40,9 +40,11 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
 
-  this->output_ = this->current_output_min_;
-  this->device_output_->set_level(this->output_);
-  this->current_output_ = this->output_;
+  if(this->output_never_zero_ == false){
+    this->output_ = this->current_output_min_;
+    this->device_output_->set_level(this->output_);
+    this->current_output_ = this->output_;
+  }
 
 	
   this->pid_computed_callback_.call();
@@ -145,7 +147,12 @@ void OFFSRComponent::pid_update() {
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
       // this->output_ = 0.0f;
-	  this->current_output_min_;	
+	  if(this->output_never_zero_ == false){	
+	    this->output_ = this->current_output_min_;
+	  }
+	  else{
+		this->output_ = 0.0f;  
+	  }
     }
 #endif  
 
@@ -153,7 +160,13 @@ void OFFSRComponent::pid_update() {
 	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         // this->output_ = 0.0f;
-		this->output_ = this->current_output_min_;
+		if(this->output_never_zero_ == false){	
+	      this->output_ = this->current_output_min_;
+	    }
+	    else{
+		  this->output_ = 0.0f;  
+	    }  
+		// this->output_ = this->current_output_min_;
       }
     }
     ESP_LOGVV(TAG, "Final computed output=%1.6f" , this->output_);
