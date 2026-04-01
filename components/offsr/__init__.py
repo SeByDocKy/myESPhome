@@ -17,7 +17,7 @@ CONF_BATTERY_CURRENT_ID = 'battery_current_id'
 CONF_BATTERY_VOLTAGE_ID = 'battery_voltage_id'
 CONF_OUTPUT_ID = 'output_id'
 CONF_POWER_ID = 'power_id'
-CONF_OUTPUT_NEVER_ZERO = 'output_never_zero'
+# CONF_OUTPUT_NEVER_ZERO = 'output_never_zero'
 
 # PidUpdateAction = offsr_ns.class_('PidUpdateAction', automation.Action)
 
@@ -35,7 +35,7 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_BATTERY_VOLTAGE_ID): cv.use_id(sensor.Sensor),     
           cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
           cv.Optional(CONF_POWER_ID): cv.use_id(sensor.Sensor),
-		  cv.Optional(CONF_OUTPUT_NEVER_ZERO, default=False): cv.boolean,
+		  # cv.Optional(CONF_OUTPUT_NEVER_ZERO, default=False): cv.boolean,
         }
     )
  )
@@ -57,5 +57,5 @@ async def to_code(config):
         sens = await cg.get_variable(config[CONF_POWER_ID])
         cg.add(var.set_power_sensor(sens))
       
-    if CONF_OUTPUT_NEVER_ZERO in config:
-        cg.add(var.set_output_never_zero(config[CONF_OUTPUT_NEVER_ZERO]))
+    # if CONF_OUTPUT_NEVER_ZERO in config:
+    #     cg.add(var.set_output_never_zero(config[CONF_OUTPUT_NEVER_ZERO]))
