@@ -120,17 +120,17 @@ SUB_NUMBER(output_restart)
 
  protected:
   uint32_t last_time_ = 0;
-  float dt_;
+  float dt_ = 0.0f;
   float error_ = 0.0f;
   float previous_error_ = 0.0f;
-  float output_;
+  float output_ = 0.0f;
   float previous_output_ = 0.0f;
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
   
   float current_battery_current_ = 0.0f;
   float current_power_ = 0.0f;
-  float current_battery_voltage_ = 54.0f;
+  float current_battery_voltage_ = 53.5f;
   float current_device_output_ = 0.0f;
   
   sensor::Sensor *battery_voltage_sensor_;
