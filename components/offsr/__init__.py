@@ -56,7 +56,7 @@ async def to_code(config):
     if CONF_POWER_ID in config:
         sens = await cg.get_variable(config[CONF_POWER_ID])
         cg.add(var.set_power_sensor(sens))
-		
+      
     if CONF_OUTPUT_NEVER_ZERO in config:
         bs = await cg.get_variable(config[CONF_OUTPUT_NEVER_ZERO])
         cg.add(var.set_output_never_zero(bs))
