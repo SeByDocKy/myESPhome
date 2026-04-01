@@ -39,7 +39,12 @@ void OFFSRComponent::setup() {
     });
     this->current_power_ = this->power_sensor_->state;
   }
-  
+
+  this->output_ = this->output_min;
+  this->device_output_->set_level(this->output_);
+  this->current_output_ = this->output_;
+
+	
   this->pid_computed_callback_.call();
   // this->pid_update();
   
