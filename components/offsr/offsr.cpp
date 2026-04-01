@@ -40,7 +40,7 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
 
-  this->output_ = this->output_min_;
+  this->output_ = this->current_output_min_;
   this->device_output_->set_level(this->output_);
   this->current_output_ = this->output_;
 
@@ -152,7 +152,7 @@ void OFFSRComponent::pid_update() {
 	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
         // this->output_ = 0.0f;
-		this->output_ = this->output_min_;
+		this->output_ = this->current_output_min_;
         // this->device_output_->set_level(this->output_);
         // this->current_output_ = this->output_;
       }
