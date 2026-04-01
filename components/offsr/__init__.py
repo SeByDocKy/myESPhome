@@ -60,4 +60,3 @@ async def to_code(config):
     if CONF_OUTPUT_NEVER_ZERO in config:
 	    bs   = await cg.get_variable(config[CONF_OUTPUT_NEVER_ZERO])
 		cg.add(var.set_output_never_zero(bs))    
-     
