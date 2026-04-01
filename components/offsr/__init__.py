@@ -34,7 +34,8 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_BATTERY_CURRENT_ID): cv.use_id(sensor.Sensor),
           cv.Required(CONF_BATTERY_VOLTAGE_ID): cv.use_id(sensor.Sensor),     
           cv.Required(CONF_OUTPUT_ID): cv.use_id(output.FloatOutput),
-          cv.Optional(CONF_POWER_ID): cv.use_id(sensor.Sensor), 
+          cv.Optional(CONF_POWER_ID): cv.use_id(sensor.Sensor),
+		  cv.Optional(CONF_OUTPUT_NEVER_0, default=False): cv.boolean,
         }
     )
  )
