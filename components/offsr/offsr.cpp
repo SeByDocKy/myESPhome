@@ -40,7 +40,7 @@ void OFFSRComponent::setup() {
     this->current_power_ = this->power_sensor_->state;
   }
 
-  if(this->output_never_zero_ ){
+  if(this->current_output_never_zero_ ){
     this->output_ = this->current_output_min_;
   }
   else{
@@ -149,7 +149,7 @@ void OFFSRComponent::pid_update() {
 	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
-	  if(this->output_never_zero_){	
+	  if(this->current_output_never_zero_){	
 	    this->output_ = this->current_output_min_;
 	  }
 	  else{
@@ -162,7 +162,7 @@ void OFFSRComponent::pid_update() {
     if (!std::isnan(this->current_battery_voltage_)){
 	  ESP_LOGVV(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-		if(this->output_never_zero_){	
+		if(this->current_output_never_zero_){	
 	      this->output_ = this->current_output_min_;
 	    }
 	    else{
