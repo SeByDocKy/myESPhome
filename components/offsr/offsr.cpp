@@ -144,7 +144,8 @@ void OFFSRComponent::pid_update() {
 	
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
-      this->output_ = 0.0f;
+      // this->output_ = 0.0f;
+	  this->current_output_min_;	
     }
 #endif  
 
