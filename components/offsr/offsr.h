@@ -60,7 +60,7 @@ SUB_NUMBER(output_restart)
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) {this->battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) {this->power_sensor_ = power_sensor; }
   void set_device_output(output::FloatOutput *device_output) {this->device_output_ = device_output; }
-  void set_output_never_0(bool enable) { this->output_never_0_ = enable; }  
+  void set_output_never_ZERO(bool enable) { this->output_never_zero_ = enable; }  
 
   
   void pid_update();
@@ -122,7 +122,7 @@ SUB_NUMBER(output_restart)
 
  protected:
 
-  bool output_never_0_= false;
+  bool output_never_zero_= false;
   uint32_t last_time_ = 0;
   float dt_ = 0.0f;
   float error_ = 0.0f;
