@@ -1,4 +1,4 @@
-#include "activation_switch.h"
+#include "output_never_zero_switch.h"
 
 namespace esphome {
 namespace offsr {
