@@ -28,6 +28,7 @@ class OFFSRComponent : public Component{
 
 #ifdef USE_SWITCH
 SUB_SWITCH(activation)
+SUB_SWITCH(output_never_zero)
 SUB_SWITCH(manual_override)
 SUB_SWITCH(pid_mode)
 SUB_SWITCH(reverse)
@@ -74,6 +75,8 @@ SUB_NUMBER(output_restart)
   bool get_activation(void){return this->current_activation_;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
   bool get_manual_override(void){return this->current_manual_override_;}
+  void set_output_never_zero(bool enable) {this->current_output_never_zero_ = enable;}
+  bool get_output_never_zero(void){return this->current_output_never_zero_;}
   void set_pid_mode(bool enable) {this->current_pid_mode_ = enable;}
   bool get_pid_mode(void){return this->current_pid_mode_;}
   void set_reverse(bool enable) {this->current_reverse_ = enable;}
@@ -122,7 +125,7 @@ SUB_NUMBER(output_restart)
 
  protected:
 
-  bool current_output_never_zero_= false;
+ 
   uint32_t last_time_ = 0;
   float dt_ = 0.0f;
   float error_ = 0.0f;
@@ -156,6 +159,7 @@ SUB_NUMBER(output_restart)
   
 #ifdef USE_SWITCH  
   bool current_activation_ = false;
+  bool current_output_never_zero_= false;
   bool current_manual_override_ = false;
   bool current_pid_mode_ = false;
   bool current_reverse_ = false;
