@@ -61,9 +61,7 @@ SUB_NUMBER(output_restart)
   void set_battery_voltage_sensor(sensor::Sensor *battery_voltage_sensor) {this->battery_voltage_sensor_ = battery_voltage_sensor; }
   void set_power_sensor(sensor::Sensor *power_sensor) {this->power_sensor_ = power_sensor; }
   void set_device_output(output::FloatOutput *device_output) {this->device_output_ = device_output; }
-  // void set_output_never_zero(bool enable) { this->output_never_zero_ = enable; }  
-
-  
+   
   void pid_update();
   
   void add_on_pid_computed_callback(std::function<void()> &&callback) {
@@ -73,10 +71,10 @@ SUB_NUMBER(output_restart)
 #ifdef USE_SWITCH 
   void set_activation(bool enable) {this->current_activation_ = enable;}
   bool get_activation(void){return this->current_activation_;}
-  void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
-  bool get_manual_override(void){return this->current_manual_override_;}
   void set_output_never_zero(bool enable) {this->current_output_never_zero_ = enable;}
   bool get_output_never_zero(void){return this->current_output_never_zero_;}
+  void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
+  bool get_manual_override(void){return this->current_manual_override_;}
   void set_pid_mode(bool enable) {this->current_pid_mode_ = enable;}
   bool get_pid_mode(void){return this->current_pid_mode_;}
   void set_reverse(bool enable) {this->current_reverse_ = enable;}
