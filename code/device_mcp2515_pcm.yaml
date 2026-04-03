@@ -1473,7 +1473,7 @@ switch:
     icon: mdi:transmission-tower
     optimistic: true
     # restore_mode: true
-    turn_on_action:
+    turn_on_action: #discharge
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x02000A02
@@ -1481,7 +1481,7 @@ switch:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
-    turn_off_action:
+    turn_off_action: #charge
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x02000A02
