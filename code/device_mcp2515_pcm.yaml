@@ -236,7 +236,7 @@ canbus:
               id(charging_voltage_readback).publish_state(charge_voltage / 10.0);
               id(charging_current_readback).publish_state(charge_current / 10.0);
               id(charging_voltage).publish_state(charge_voltage / 10.0);
-              id(charging_current).publish_state(charge_current / 10.0);
+              id(charging_current_number).publish_state(charge_current / 10.0);
               ESP_LOGI("canbus", "Charging Parameters Readback: %.1fV, %.1fA", 
                        charge_voltage/10.0, charge_current/10.0);
       
