@@ -1036,9 +1036,9 @@ fan:
         condition:
           fan.is_off: charging_current_command
         then:
-          fan.turn_on:
+          fan.turn_off:
             id: charging_current_command
-            speed: 1
+            speed: 0
     # speed_count: 99
 
   - platform: speed
