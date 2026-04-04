@@ -1046,7 +1046,7 @@ fan:
               beta       = 5 - alpha;
               current    = (uint16_t)( ( alpha*raw_state + beta ) * 10);
               data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-              canbus->send_data(0x02000A32, true, data);
+              canbus->send_data(0x02000A31, true, data);
               delay(100);
 
 
