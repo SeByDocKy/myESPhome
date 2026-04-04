@@ -1031,61 +1031,45 @@ fan:
     name: ${pcm_name}_charging_current_command
     output: charging_current_output
     icon: mdi:battery-arrow-up
-    on_turn_off:
-      then:
-        # - number.set:
-        #     id: charging_current
-        #     value: 5
-        # - delay: 200ms
-
-        # - output.set_level:
-        #     id: charging_current_output
-        #     level: 0
+    # on_turn_off:
+    #   then:
             
-        - lambda: |-
-            esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-            std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            float beta = 5.0f;
-            uint16_t voltage, current;
-            voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
-            current    = (uint16_t)( beta  * 10);
-            data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-            canbus->send_data(0x02000A31, true, data);
-            delay(100);
+    #     - lambda: |-
+    #         esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
+    #         std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    #         float beta = 5.0f;
+    #         uint16_t voltage, current;
+    #         voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
+    #         current    = (uint16_t)( beta  * 10);
+    #         data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+    #         canbus->send_data(0x02000A31, true, data);
+    #         delay(100);
 
-        - delay: 200ms    
+    #     - delay: 200ms    
             
-        - switch.turn_off:
-            id: power_switch    
+    #     - switch.turn_off:
+    #         id: power_switch    
 
   - platform: speed
     id: discharging_current_command
     name: ${pcm_name}_discharging_current_command
     output: discharging_current_output
     icon: mdi:battery-arrow-down
-    on_turn_off:
-      then:
-        # - number.set:
-        #     id: discharge_current
-        #     value: 5
-        # - delay: 200ms
-
-        # - output.set_level:
-        #     id: discharging_current_output
-        #     level: 0
+    # on_turn_off:
+    #   then:
             
-        - lambda: |-
-            esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-            std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            float beta = 5.0f;
-            uint16_t current;
-            current    = (uint16_t)( beta  * 10);
-            data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-            canbus->send_data(0x02000A32, true, data);
-            delay(100);
-        - delay: 200ms
-        - switch.turn_off:
-            id: power_switch     
+    #     - lambda: |-
+    #         esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
+    #         std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    #         float beta = 5.0f;
+    #         uint16_t current;
+    #         current    = (uint16_t)( beta  * 10);
+    #         data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+    #         canbus->send_data(0x02000A32, true, data);
+    #         delay(100);
+    #     - delay: 200ms
+    #     - switch.turn_off:
+    #         id: power_switch     
 
 
 # Number Controls for Parameters
