@@ -1049,12 +1049,17 @@ fan:
             canbus->send_data(0x02000A31, true, data);
 
         - delay: 100ms
-        - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A31
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; 
+
+        - lambda: |-
+            esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
+            std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            float beta = 5.0f;
+            uint16_t voltage, current;
+            voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
+            current    = (uint16_t)( beta  * 10);
+            data       = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            canbus->send_data(0x03000A31, true, data);
+       
         - delay: 100ms    
 
 
