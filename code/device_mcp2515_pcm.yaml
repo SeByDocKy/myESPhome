@@ -1033,10 +1033,10 @@ fan:
     icon: mdi:battery-arrow-up
     on_turn_off:
       then:
-        - number.set:
-            id: charging_current
-            value: 5
-        - delay: 200ms
+        # - number.set:
+        #     id: charging_current
+        #     value: 5
+        # - delay: 200ms
           
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
@@ -1061,10 +1061,10 @@ fan:
     icon: mdi:battery-arrow-down
     on_turn_off:
       then:
-        - number.set:
-            id: discharge_current
-            value: 5
-        - delay: 200ms
+        # - number.set:
+        #     id: discharge_current
+        #     value: 5
+        # - delay: 200ms
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1129,7 +1129,7 @@ number:
     mode: 'slider'
     initial_value: 5.0
     optimistic: false
-    restore_value: true
+    restore_value: false #true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1165,7 +1165,7 @@ number:
     mode: 'slider'
     optimistic: false
     initial_value: 5.0
-    restore_value: true
+    restore_value: false #true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
