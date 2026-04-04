@@ -1040,7 +1040,8 @@ fan:
 
         - output.set_level:
             id: charging_current_output
-            value: 0
+            level: 0
+            
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1071,7 +1072,7 @@ fan:
 
         - output.set_level:
             id: discharging_current_output
-            value: 0
+            level: 0
             
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
