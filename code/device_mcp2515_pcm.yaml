@@ -1059,7 +1059,7 @@ fan:
     on_turn_off:
       then:
         - number.set:
-            id: discharging_current
+            id: discharge_current
             value: 5
           
         - lambda: |-
