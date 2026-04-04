@@ -1035,7 +1035,7 @@ fan:
       then:
         - number.set:
             id:
-            level: !lambda |-
+            value: !lambda |-
               return id(charging_current_command).speed;
               
             
