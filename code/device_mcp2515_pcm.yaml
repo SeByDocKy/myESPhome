@@ -1037,7 +1037,10 @@ fan:
         #     id: charging_current
         #     value: 5
         # - delay: 200ms
-          
+
+        - output.set_level:
+            id: charging_current_output
+            value: 0
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1065,6 +1068,11 @@ fan:
         #     id: discharge_current
         #     value: 5
         # - delay: 200ms
+
+        - output.set_level:
+            id: discharging_current_output
+            value: 0
+            
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1129,7 +1137,7 @@ number:
     mode: 'slider'
     initial_value: 5.0
     optimistic: false
-    restore_value: false #true
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1165,7 +1173,7 @@ number:
     mode: 'slider'
     optimistic: false
     initial_value: 5.0
-    restore_value: false #true
+    restore_value: true
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
