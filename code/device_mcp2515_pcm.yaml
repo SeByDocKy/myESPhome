@@ -1031,6 +1031,14 @@ fan:
     name: ${pcm_name}_charging_current_command
     output: charging_current_output
     icon: mdi:battery-arrow-up
+    on_state:
+      if:
+        condition:
+          fan.is_off: charging_current_command
+        then:
+          fan.turn_on:
+            id: charging_current_command
+            speed: 0
     # speed_count: 99
 
   - platform: speed
