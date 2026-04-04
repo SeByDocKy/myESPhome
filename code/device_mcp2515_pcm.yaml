@@ -247,7 +247,7 @@ canbus:
           - lambda: |-
               uint16_t discharge_current_value = (x[5] << 8) | x[4];
               id(discharge_current_readback).publish_state(discharge_current_value / 10.0);
-              id(discharge_current).publish_state(discharge_current_value / 10.0);
+              id(discharge_current_number).publish_state(discharge_current_value / 10.0);
               ESP_LOGI("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
       
       # AC Voltage Protection Response - 0x010A0013
