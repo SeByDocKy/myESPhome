@@ -1038,7 +1038,6 @@ fan:
             value: !lambda |-
               return id(charging_current_command).speed;
               
-            
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1048,7 +1047,16 @@ fan:
             current    = (uint16_t)( beta  * 10);
             data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
             canbus->send_data(0x02000A31, true, data);
-            delay(100);
+
+        - delay: 100ms
+        - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A31
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; 
+        - delay: 100ms    
+
 
     #     - delay: 200ms    
             
