@@ -1034,8 +1034,8 @@ fan:
     on_turn_off:
       then:
         - number.set:
-          id: charging_current
-          value: 5
+            id: charging_current
+            value: 5
           
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
@@ -1059,8 +1059,8 @@ fan:
     on_turn_off:
       then:
         - number.set:
-          id: discharging_current
-          value: 5
+            id: discharging_current
+            value: 5
           
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
