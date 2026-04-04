@@ -1033,8 +1033,10 @@ fan:
     icon: mdi:battery-arrow-up
     on_turn_off:
       then:
-        - switch.turn_off:
-            id: power_switch 
+        - number.set:
+          id: charging_current
+          value: 5
+          
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1045,6 +1047,9 @@ fan:
             data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
             canbus->send_data(0x02000A31, true, data);
             delay(100);
+            
+        - switch.turn_off:
+            id: power_switch    
 
   - platform: speed
     id: discharging_current_command
@@ -1053,8 +1058,10 @@ fan:
     icon: mdi:battery-arrow-down
     on_turn_off:
       then:
-        - switch.turn_off:
-            id: power_switch
+        - number.set:
+          id: discharging_current
+          value: 5
+          
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1064,6 +1071,9 @@ fan:
             data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
             canbus->send_data(0x02000A32, true, data);
             delay(100);
+            
+        - switch.turn_off:
+            id: power_switch     
 
 
 # Number Controls for Parameters
