@@ -1030,7 +1030,7 @@ output:
 fan:
   - platform: speed
     id: charging_current_fan
-    name: ${pcm_name}_charging_current_fan
+    name: ${pcm_name}_charging_current
     output: charging_current_output
     icon: mdi:battery-arrow-up
     # on_turn_off:
@@ -1072,7 +1072,7 @@ fan:
 
   - platform: speed
     id: discharging_current_fan
-    name: ${pcm_name}_discharging_current_fan
+    name: ${pcm_name}_discharging_current
     output: discharging_current_output
     icon: mdi:battery-arrow-down
     # on_turn_off:
