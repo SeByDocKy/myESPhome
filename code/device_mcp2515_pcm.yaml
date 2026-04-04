@@ -1036,9 +1036,12 @@ fan:
         condition:
           fan.is_off: charging_current_command
         then:
-          - lambda: |-
-              auto call = id(charging_current_command).turn_off();;
-              call.set_speed(0);
+          - output.set_level:
+              id: charging_current_output
+              level: 0%
+          # - lambda: |-
+          #     auto call = id(charging_current_command).turn_off();;
+          #     call.set_speed(0);
               # call.perform();
           # - fan.turn_off:
           #   id: charging_current_command
