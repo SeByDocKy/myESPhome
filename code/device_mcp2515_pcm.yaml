@@ -1031,8 +1031,13 @@ fan:
     name: ${pcm_name}_charging_current_command
     output: charging_current_output
     icon: mdi:battery-arrow-up
-    # on_turn_off:
-    #   then:
+    on_turn_off:
+      then:
+        - number.set:
+            id:
+            level: !lambda |-
+              return id(charging_current_command).speed;
+              
             
     #     - lambda: |-
     #         esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
