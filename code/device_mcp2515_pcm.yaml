@@ -1031,14 +1031,14 @@ fan:
     name: ${pcm_name}_charging_current_command
     output: charging_current_output
     icon: mdi:battery-arrow-up
-    speed_count: 99
+    # speed_count: 99
 
   - platform: speed
     id: discharging_current_command
     name: ${pcm_name}_discharging_current_command
     output: discharging_current_output
     icon: mdi:battery-arrow-down
-    speed_count: 99
+    # speed_count: 99
 
 # Number Controls for Parameters
 number:
