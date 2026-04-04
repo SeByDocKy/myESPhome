@@ -1036,57 +1036,31 @@ fan:
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            float raw_state, alpha, beta;
+            float beta = 5.0f;
             uint16_t voltage, current;
-            raw_state  = 0.0f;
-            beta       = 5.0f;
             voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
             current    = (uint16_t)( beta  * 10);
             data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
             canbus->send_data(0x02000A31, true, data);
             delay(100);
 
-    
-    # on_state:
-    #   if:
-    #     condition:
-    #       fan.on_turn_off: charging_current_command
-    #     then:
-    #       - lambda: |-
-    #           esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-    #           std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    #           float raw_state, alpha, beta;
-    #           uint16_t voltage, current;
-    #           raw_state  = 0.0f;
-    #           alpha      = 70.0f/99.0f;  // (75 - 5)/(100 - 1)
-    #           beta       = 5 - alpha;
-    #           current    = (uint16_t)( ( alpha*raw_state + beta ) * 10);
-    #           data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-    #           canbus->send_data(0x02000A31, true, data);
-    #           delay(100);
-
-
-
-              
-          # id(charging_current_output).set_level(0.0);
-          # - output.set_level:
-          #     id: charging_current_output
-          #     level: 0%
-          # - lambda: |-
-          #     auto call = id(charging_current_command).turn_off();;
-          #     call.set_speed(0);
-          #     call.perform();
-          # - fan.turn_off:
-          #   id: charging_current_command
-            # speed: 0
-    # speed_count: 99
-
   - platform: speed
     id: discharging_current_command
     name: ${pcm_name}_discharging_current_command
     output: discharging_current_output
     icon: mdi:battery-arrow-down
-    # speed_count: 99
+    on_turn_off:
+      then:
+        - lambda: |-
+            esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
+            std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            float beta = 5.0f;
+            uint16_t current;
+            current    = (uint16_t)( beta  * 10);
+            data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+            canbus->send_data(0x02000A32, true, data);
+            delay(100);
+
 
 # Number Controls for Parameters
 number:
