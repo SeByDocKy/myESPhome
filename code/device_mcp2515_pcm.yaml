@@ -1038,9 +1038,9 @@ fan:
         #     value: 5
         # - delay: 200ms
 
-        - output.set_level:
-            id: charging_current_output
-            level: 0
+        # - output.set_level:
+        #     id: charging_current_output
+        #     level: 0
             
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
@@ -1070,9 +1070,9 @@ fan:
         #     value: 5
         # - delay: 200ms
 
-        - output.set_level:
-            id: discharging_current_output
-            level: 0
+        # - output.set_level:
+        #     id: discharging_current_output
+        #     level: 0
             
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
