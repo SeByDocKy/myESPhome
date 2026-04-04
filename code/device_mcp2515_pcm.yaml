@@ -958,79 +958,79 @@ output:
             };
 
 
-  - platform: template
-    id: general_output
-    #name: ${pcm_name}_discharging_current_output
-    type: float
-    write_action: 
-      - lambda: |-
-          esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-          std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-          float raw_state, alpha, beta;
-          uint16_t voltage, current;
+  # - platform: template
+  #   id: general_output
+  #   #name: ${pcm_name}_discharging_current_output
+  #   type: float
+  #   write_action: 
+  #     - lambda: |-
+  #         esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
+  #         std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  #         float raw_state, alpha, beta;
+  #         uint16_t voltage, current;
           
-          if (state >= 0.5f){  // discharge DC-AC
-            // -1- set minimum 5A charge
-            raw_state  = 5.0f;
-            alpha      = 65.0f/99.0f;  // (70 - 5)/(100 - 1)
-            beta       = 5 - alpha;
-            voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
-            current    = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
+  #         if (state >= 0.5f){  // discharge DC-AC
+  #           // -1- set minimum 5A charge
+  #           raw_state  = 5.0f;
+  #           alpha      = 65.0f/99.0f;  // (70 - 5)/(100 - 1)
+  #           beta       = 5 - alpha;
+  #           voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
+  #           current    = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
           
-            data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-            canbus->send_data(0x02000A31, true, data);
-            delay(100);
+  #           data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+  #           canbus->send_data(0x02000A31, true, data);
+  #           delay(100);
 
-            // -2- change grid mode charge to discharge
-            data       = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            canbus->send_data(0x02000A02, true, data);
-            delay(100);
+  #           // -2- change grid mode charge to discharge
+  #           data       = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  #           canbus->send_data(0x02000A02, true, data);
+  #           delay(100);
 
-            // -3- set discharge current according to output state value
+  #           // -3- set discharge current according to output state value
 
-            raw_state  = state*100.0f;
-            alpha      = 70.0f/99.0f;  // (75 - 5)/(100 - 1)
-            beta       = 5 - alpha;
-            current    = (uint16_t)( ( alpha*raw_state + beta ) * 10);
+  #           raw_state  = state*100.0f;
+  #           alpha      = 70.0f/99.0f;  // (75 - 5)/(100 - 1)
+  #           beta       = 5 - alpha;
+  #           current    = (uint16_t)( ( alpha*raw_state + beta ) * 10);
 
-            data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-            canbus->send_data(0x02000A32, true, data);
-            delay(100); 
-          }
-          else{
-            // -1- set minimum 5A discharge
-            raw_state  = 5.0f;
-            alpha      = 70.0f/99.0f;  // (75 - 5)/(100 - 1)
-            beta       = 5 - alpha;
-            current    = (uint16_t)( ( alpha*raw_state + beta ) * 10);
+  #           data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+  #           canbus->send_data(0x02000A32, true, data);
+  #           delay(100); 
+  #         }
+  #         else{
+  #           // -1- set minimum 5A discharge
+  #           raw_state  = 5.0f;
+  #           alpha      = 70.0f/99.0f;  // (75 - 5)/(100 - 1)
+  #           beta       = 5 - alpha;
+  #           current    = (uint16_t)( ( alpha*raw_state + beta ) * 10);
 
-            data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-            canbus->send_data(0x02000A32, true, data);
-            delay(100);
+  #           data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+  #           canbus->send_data(0x02000A32, true, data);
+  #           delay(100);
 
-            // -2- change grid mode charge to discharge
-            data       = {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
-            canbus->send_data(0x02000A02, true, data);
-            delay(100);
+  #           // -2- change grid mode charge to discharge
+  #           data       = {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
+  #           canbus->send_data(0x02000A02, true, data);
+  #           delay(100);
 
-            // -3- set charge voltage & current according to output state value
+  #           // -3- set charge voltage & current according to output state value
 
-            raw_state  = state*100.0f;
-            alpha      = 65.0f/99.0f;  // (70 - 5)/(100 - 1)
-            beta       = 5 - alpha;
-            voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
-            current    = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
+  #           raw_state  = state*100.0f;
+  #           alpha      = 65.0f/99.0f;  // (70 - 5)/(100 - 1)
+  #           beta       = 5 - alpha;
+  #           voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
+  #           current    = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
           
-            data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-            canbus->send_data(0x02000A31, true, data);
-            delay(100);
-          }
-fan:
-  - platform: speed
-    id: charging_current_command
-    name: ${pcm_name}_charging_current_command
-    output: charging_current_output
-    icon: mdi:battery-arrow-up
+  #           data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
+  #           canbus->send_data(0x02000A31, true, data);
+  #           delay(100);
+  #         }
+# fan:
+#   - platform: speed
+#     id: charging_current_command
+#     name: ${pcm_name}_charging_current_command
+#     output: charging_current_output
+#     icon: mdi:battery-arrow-up
     # on_turn_off:
     #   then:
             
@@ -1050,11 +1050,11 @@ fan:
     #     - switch.turn_off:
     #         id: power_switch    
 
-  - platform: speed
-    id: discharging_current_command
-    name: ${pcm_name}_discharging_current_command
-    output: discharging_current_output
-    icon: mdi:battery-arrow-down
+  # - platform: speed
+  #   id: discharging_current_command
+  #   name: ${pcm_name}_discharging_current_command
+  #   output: discharging_current_output
+  #   icon: mdi:battery-arrow-down
     # on_turn_off:
     #   then:
             
