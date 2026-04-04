@@ -1033,6 +1033,8 @@ fan:
     icon: mdi:battery-arrow-up
     on_turn_off:
       then:
+        - switch.turn_off:
+            id: power_switch 
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1051,6 +1053,8 @@ fan:
     icon: mdi:battery-arrow-down
     on_turn_off:
       then:
+        - switch.turn_off:
+            id: power_switch
         - lambda: |-
             esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
             std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
