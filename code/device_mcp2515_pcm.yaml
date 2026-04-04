@@ -1037,7 +1037,7 @@ fan:
           fan.is_off: charging_current_command
         then:
           fan.turn_off:
-            # id: charging_current_command
+            id: charging_current_command
             # speed: 0
     # speed_count: 99
 
