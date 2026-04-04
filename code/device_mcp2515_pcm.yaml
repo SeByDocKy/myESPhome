@@ -1034,7 +1034,7 @@ fan:
     on_state:
       if:
         condition:
-          fan.is_off: charging_current_command
+          fan.turn_off: charging_current_command
         then:
           - lambda: |-
               esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
