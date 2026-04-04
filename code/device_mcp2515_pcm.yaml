@@ -1038,7 +1038,7 @@ fan:
         then:
           - lambda: |-
               auto call = id(charging_current_command);
-              call.set_speed(0);
+              call->set_speed(0);
           # - fan.turn_off:
           #   id: charging_current_command
             # speed: 0
