@@ -1034,7 +1034,7 @@ fan:
     on_turn_off:
       then:
         - number.set:
-            id:
+            id: charging_current_number
             value: !lambda |-
               return id(charging_current_command).speed;
               
@@ -1118,7 +1118,7 @@ number:
   # Charging Current Limit (48V system)
   - platform: template
     name: ${pcm_name}_charging_current
-    id: charging_current
+    id: charging_current_number
     icon: mdi:battery-arrow-up
     unit_of_measurement: 'A'
     min_value: 5.0
@@ -1154,7 +1154,7 @@ number:
   # Discharge Current (48V system)
   - platform: template
     name: ${pcm_name}_discharge_current
-    id: discharge_current
+    id: discharge_current_number
     icon: mdi:battery-arrow-down
     unit_of_measurement: 'A'
     min_value: 5.0
