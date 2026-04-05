@@ -321,7 +321,7 @@ sensor:
     
   - platform: template
     id: inverter_voltage_sensor
-    name: ${pcm_name}_inverter_voltage
+    name: ${name}_${pcm_name}_inverter_voltage
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -330,7 +330,7 @@ sensor:
     
   - platform: template
     id: inverting_current_sensor
-    name: ${pcm_name}_inverting_current
+    name: ${name}_${pcm_name}_inverting_current
     unit_of_measurement: 'A'
     device_class: current
     state_class: measurement
@@ -340,7 +340,7 @@ sensor:
   # DC Side
   - platform: template
     id: dc_voltage_sensor
-    name: ${pcm_name}_dc_voltage
+    name: ${name}_${pcm_name}_dc_voltage
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -349,7 +349,7 @@ sensor:
     
   - platform: template
     id: dc_current_sensor
-    name: ${pcm_name}_dc_current
+    name: ${name}_${pcm_name}_dc_current
     unit_of_measurement: 'A'
     device_class: current
     state_class: measurement
@@ -358,7 +358,7 @@ sensor:
     
   - platform: template
     id: load_current_sensor
-    name: ${pcm_name}_load_current
+    name: ${name}_${pcm_name}_load_current
     unit_of_measurement: 'A'
     device_class: current
     state_class: measurement
@@ -368,7 +368,7 @@ sensor:
   # Power
   - platform: template
     id: ac_power_sensor
-    name: ${pcm_name}_ac_power
+    name: ${name}_${pcm_name}_ac_power
     unit_of_measurement: 'W'
     device_class: power
     state_class: measurement
@@ -377,7 +377,7 @@ sensor:
     
   - platform: template
     id: dc_power_sensor
-    name: ${pcm_name}_dc_power
+    name: ${name}_${pcm_name}_dc_power
     unit_of_measurement: 'W'
     device_class: power
     state_class: measurement
@@ -386,7 +386,7 @@ sensor:
   # Temperature
   - platform: template
     id: temperature1_sensor
-    name: ${pcm_name}_temperature_PFC
+    name: ${name}_${pcm_name}_temperature_PFC
     unit_of_measurement: '°C'
     device_class: temperature
     state_class: measurement
@@ -395,7 +395,7 @@ sensor:
     
   - platform: template
     id: temperature2_sensor
-    name: ${pcm_name}_temperature_LLC
+    name: ${name}_${pcm_name}_temperature_LLC
     unit_of_measurement: '°C'
     device_class: temperature
     state_class: measurement
@@ -405,14 +405,14 @@ sensor:
   # Running Mode as Number
   - platform: template
     id: running_mode_sensor
-    name: ${pcm_name}_running_mode_value
+    name: ${name}_${pcm_name}_running_mode_value
     accuracy_decimals: 0
     internal: true
   
   # Inverter Frequency
   - platform: template
     id: offgrid_frequency_sensor
-    name: ${pcm_name}_offgrid_frequency
+    name: ${name}_${pcm_name}_offgrid_frequency
     accuracy_decimals: 0
     icon: mdi:metronome
     unit_of_measurement: 'Hz'
@@ -424,14 +424,14 @@ sensor:
   # Configuration Readback Sensors
   - platform: template
     id: grid_mode_readback
-    name: ${pcm_name}_grid_mode_readback
+    name: ${name}_${pcm_name}_grid_mode_readback
     icon: mdi:transmission-tower
     accuracy_decimals: 0
     internal: true
   
   - platform: template
     id: frequency_setting_readback
-    name: ${pcm_name}_frequency_setting_readback
+    name: ${name}_${pcm_name}_frequency_setting_readback
     accuracy_decimals: 0
     icon: mdi:metronome
     unit_of_measurement: 'Hz'
@@ -441,7 +441,7 @@ sensor:
   
   - platform: template
     id: ac_voltage_setting_readback
-    name: ${pcm_name}_ac_voltage_setting_readback
+    name: ${name}_${pcm_name}_ac_voltage_setting_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -451,7 +451,7 @@ sensor:
   
   - platform: template
     id: phase_mode_readback
-    name: ${pcm_name}_phase_mode_readback
+    name: ${name}_${pcm_name}_phase_mode_readback
     accuracy_decimals: 0
     state_class: measurement
     icon: mdi:numeric
@@ -460,7 +460,7 @@ sensor:
   # Charging Parameters Readback
   - platform: template
     id: charging_voltage_readback
-    name: ${pcm_name}_charging_voltage_readback
+    name: ${name}_${pcm_name}_charging_voltage_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -469,7 +469,7 @@ sensor:
   
   - platform: template
     id: charging_current_readback
-    name: ${pcm_name}_charging_current_readback
+    name: ${name}_${pcm_name}_charging_current_readback
     unit_of_measurement: 'A'
     device_class: current
     state_class: measurement
@@ -479,7 +479,7 @@ sensor:
   # Discharge Parameters Readback
   - platform: template
     id: discharging_current_readback
-    name: ${pcm_name}_discharging_current_readback
+    name: ${name}_${pcm_name}_discharging_current_readback
     unit_of_measurement: 'A'
     device_class: current
     state_class: measurement
@@ -489,7 +489,7 @@ sensor:
   # AC Protection Readback
   - platform: template
     id: ac_overvoltage_protection_readback
-    name: ${pcm_name}_ac_overvoltage_protection_readback
+    name: ${name}_${pcm_name}_ac_overvoltage_protection_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -499,7 +499,7 @@ sensor:
   
   - platform: template
     id: ac_undervoltage_protection_readback
-    name: ${pcm_name}_ac_undervoltage_protection_readback
+    name: ${name}_${pcm_name}_ac_undervoltage_protection_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -509,7 +509,7 @@ sensor:
   # AC Alarm Readback
   - platform: template
     id: ac_overvoltage_alarm_readback
-    name: ${pcm_name}_ac_overvoltage_alarm_readback
+    name: ${name}_${pcm_name}_ac_overvoltage_alarm_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -518,7 +518,7 @@ sensor:
   
   - platform: template
     id: ac_undervoltage_alarm_readback
-    name: ${pcm_name}_ac_undervoltage_alarm_readback
+    name: ${name}_${pcm_name}_ac_undervoltage_alarm_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -528,7 +528,7 @@ sensor:
   # DC Protection Readback
   - platform: template
     id: dc_overvoltage_protection_readback
-    name: ${pcm_name}_dc_overvoltage_protection_Readback
+    name: ${name}_${pcm_name}_dc_overvoltage_protection_Readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -537,7 +537,7 @@ sensor:
       
   - platform: template
     id: dc_undervoltage_protection_readback
-    name: ${pcm_name}_dc_undervoltage_protection_readback
+    name: ${name}_${pcm_name}_dc_undervoltage_protection_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -547,7 +547,7 @@ sensor:
   # DC Alarm Readback
   - platform: template
     id: dc_overvoltage_alarm_readback
-    name: ${pcm_name}_dc_overvoltage_alarm_readback
+    name: ${name}_${pcm_name}_dc_overvoltage_alarm_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -556,7 +556,7 @@ sensor:
   
   - platform: template
     id: dc_undervoltage_alarm_readback
-    name: ${pcm_name}_dc_undervoltage_alarm_readback
+    name: ${name}_${pcm_name}_dc_undervoltage_alarm_readback
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
@@ -567,165 +567,165 @@ binary_sensor:
 
   - platform: template
     id: battery_undervoltage_alarm
-    name: ${pcm_name}_battery_undervoltage_alarm
+    name: ${name}_${pcm_name}_battery_undervoltage_alarm
     device_class: problem
     icon: mdi:battery-alert-variant-outline
     
   - platform: template
     id: battery_overvoltage_alarm
-    name: ${pcm_name}_battery_overvoltage_alarm
+    name: ${name}_${pcm_name}_battery_overvoltage_alarm
     device_class: problem
     icon: mdi:battery-alert
     
   - platform: template
     id: grid_undervoltage_alarm
-    name: ${pcm_name}_grid_undervoltage_alarm
+    name: ${name}_${pcm_name}_grid_undervoltage_alarm
     device_class: problem
     icon: mdi:flash-alert-outline
     
   - platform: template
     id: grid_overvoltage_alarm
-    name: ${pcm_name}_grid_overvoltage_alarm
+    name: ${name}_${pcm_name}_grid_overvoltage_alarm
     device_class: problem
     icon: mdi:flash-alert
   
   # Fault Status
   - platform: template
     id: fault_status
-    name: ${pcm_name}_fault_status
+    name: ${name}_${pcm_name}_fault_status
     device_class: problem
   
   # Fault 1
   - platform: template
     id: fault_soft_start_timeout
-    name: ${pcm_name}_fault_soft_start_timeout
+    name: ${name}_${pcm_name}_fault_soft_start_timeout
     device_class: problem
     icon: mdi:clock-alert
     
   - platform: template
     id: fault_bus_overvoltage
-    name: ${pcm_name}_fault bus_overvoltage
+    name: ${name}_${pcm_name}_fault bus_overvoltage
     device_class: problem
     icon: mdi:flash-alert
     
   - platform: template
     id: fault_bus_undervoltage
-    name: ${pcm_name}_fault_bus_undervoltage
+    name: ${name}_${pcm_name}_fault_bus_undervoltage
     device_class: problem
     icon: mdi:flash-alert-outline
     
   - platform: template
     id: fault_inverter_overvoltage
-    name: ${pcm_name}_fault_inverter_overvoltage
+    name: ${name}_${pcm_name}_fault_inverter_overvoltage
     device_class: problem
     icon: mdi:flash-alert
     
   - platform: template
     id: fault_inverter_undervoltage
-    name: ${pcm_name}_fault_inverter_undervoltage
+    name: ${name}_${pcm_name}_fault_inverter_undervoltage
     device_class: problem
     icon: mdi:flash-alert
     
   - platform: template
     id: fault_inverter_rms_overcurrent
-    name: ${pcm_name}_fault_inverter_rms_overcurrent
+    name: ${name}_${pcm_name}_fault_inverter_rms_overcurrent
     device_class: problem
     icon: mdi:flash-alert
   
   # Fault 2
   - platform: template
     id: fault_inverter_fast_overcurrent
-    name: ${pcm_name}_fault_inverter_fast_overcurrent
+    name: ${name}_${pcm_name}_fault_inverter_fast_overcurrent
     device_class: problem
     icon: mdi:flash-alert
     
   - platform: template
     id: fault_dc_overvoltage
-    name: ${pcm_name}_fault_dc_overvoltage
+    name: ${name}_${pcm_name}_fault_dc_overvoltage
     device_class: problem
     icon: mdi:battery-alert
     
   - platform: template
     id: fault_dc_undervoltage
-    name: ${pcm_name}_fault_dc_undervoltage
+    name: ${name}_${pcm_name}_fault_dc_undervoltage
     device_class: problem
     icon: mdi:battery-alert-variant-outline
     
   - platform: template
     id: fault_dc_fast_overcurrent
-    name: ${pcm_name}_fault_dc_fast_overcurrent
+    name: ${name}_${pcm_name}_fault_dc_fast_overcurrent
     device_class: problem
     icon: mdi:battery-alert
     
   - platform: template
     id: fault_dc_rms_overcurrent
-    name: ${pcm_name}_fault_dc_rms_overcurrent
+    name: ${name}_${pcm_name}_fault_dc_rms_overcurrent
     device_class: problem
     icon: mdi:battery-alert
     
   - platform: template
     id: fault_load_overcurrent
-    name: ${pcm_name}_fault_load_overcurrent
+    name: ${name}_${pcm_name}_fault_load_overcurrent
     device_class: problem
     
   - platform: template
     id: fault_soft_start_short_circuit
-    name: ${pcm_name}_fault_soft_start_short_circuit
+    name: ${name}_${pcm_name}_fault_soft_start_short_circuit
     device_class: problem
     
   - platform: template
     id: fault_output_overload
-    name: ${pcm_name}_fault_output_overload
+    name: ${name}_${pcm_name}_fault_output_overload
     device_class: problem
   
   # Fault 3
   - platform: template
     id: fault_over_temperature
-    name: ${pcm_name}_fault_over_temperature
+    name: ${name}_${pcm_name}_fault_over_temperature
     device_class: problem
     icon: mdi:car-brake-temperature
     
   - platform: template
     id: fault_fan_fault
-    name: ${pcm_name}_fault_fan
+    name: ${name}_${pcm_name}_fault_fan
     device_class: problem
     icon: mdi:fan-alert
     
   - platform: template
     id: fault_sync_signal_loss
-    name: ${pcm_name}_fault_sync_signal_loss
+    name: ${name}_${pcm_name}_fault_sync_signal_loss
     device_class: problem
     
   - platform: template
     id: fault_locked
-    name: ${pcm_name}_fault_locked
+    name: ${name}_${pcm_name}_fault_locked
     device_class: problem
     
   - platform: template
     id: fault_address_fault
-    name: ${pcm_name}_fault_address
+    name: ${name}_${pcm_name}_fault_address
     device_class: problem
     
   - platform: template
     id: fault_sn_repetition
-    name: ${pcm_name}_fault_sn_repetition
+    name: ${name}_${pcm_name}_fault_sn_repetition
     device_class: problem
     
   - platform: template
     id: fault_load_rms_overcurrent
-    name: ${pcm_name}_fault_load_rms_overcurrent
+    name: ${name}_${pcm_name}_fault_load_rms_overcurrent
     device_class: problem
     
   - platform: template
     id: fault_overload
-    name: ${pcm_name}_fault_overload
+    name: ${name}_${pcm_name}_fault_overload
     device_class: problem
 
 button:
 
   # Reset
   - platform: template
-    name: ${pcm_name}_reset
+    name: ${name}_${pcm_name}_reset
     icon: mdi:restart
     on_press:
       - canbus.send:
@@ -738,7 +738,7 @@ button:
 
  # Stop
   - platform: template
-    name: ${pcm_name}_stop
+    name: ${name}_${pcm_name}_stop
     icon: mdi:stop
     on_press:
       - canbus.send:
@@ -751,7 +751,7 @@ button:
 
   # Start
   - platform: template
-    name: ${pcm_name}_start
+    name: ${name}_${pcm_name}_start
     icon: mdi:play
     on_press:
       - canbus.send:
@@ -764,7 +764,7 @@ button:
   
   # Query Version
   - platform: template
-    name: ${pcm_name}_query_version
+    name: ${name}_${pcm_name}_query_version
     icon: mdi:information
     on_press:
       - canbus.send:
@@ -776,7 +776,7 @@ button:
   
   # Query SN Code
   - platform: template
-    name: ${pcm_name}_query_sn
+    name: ${name}_${pcm_name}_query_sn
     icon: mdi:barcode-scan
     on_press:
       - canbus.send:
@@ -791,7 +791,7 @@ button:
 select:
   # Grid Mode
   - platform: template
-    name: ${pcm_name}_grid_mode
+    name: ${name}_${pcm_name}_grid_mode
     id: grid_mode_select
     icon: mdi:power-plug-battery
     optimistic: true
@@ -820,7 +820,7 @@ select:
   
   # Frequency Setting
   - platform: template
-    name: ${pcm_name}_frequency_setting
+    name: ${name}_${pcm_name}_frequency_setting
     id: frequency_select
     icon: mdi:metronome
     optimistic: true
@@ -853,7 +853,7 @@ select:
   
   # AC Voltage Setting
   - platform: template
-    name: ${pcm_name}_ac_voltage_setting
+    name: ${name}_${pcm_name}_ac_voltage_setting
     id: ac_voltage_select
     icon: mdi:sine-wave
     optimistic: true
@@ -885,7 +885,7 @@ select:
   
   # Phase Mode Setting
   - platform: template
-    name: ${pcm_name}_phase_mode_setting
+    name: ${name}_${pcm_name}_phase_mode_setting
     id: phase_mode_select
     icon: mdi:electric-switch
     optimistic: true
@@ -1035,7 +1035,7 @@ output:
 fan:
   - platform: speed
     id: charging_current_fan
-    name: ${pcm_name}_charging_current
+    name: ${name}_${pcm_name}_charging_current
     output: charging_current_output
     icon: mdi:battery-arrow-up
     # on_turn_off:
@@ -1077,7 +1077,7 @@ fan:
 
   - platform: speed
     id: discharging_current_fan
-    name: ${pcm_name}_discharging_current
+    name: ${name}_${pcm_name}_discharging_current
     output: discharging_current_output
     icon: mdi:battery-arrow-down
     # on_turn_off:
@@ -1101,7 +1101,7 @@ fan:
 number:
   # Charging Voltage (48V system example)
   - platform: template
-    name: ${pcm_name}_charging_voltage
+    name: ${name}_${pcm_name}_charging_voltage
     id: charging_voltage
     icon: mdi:battery-charging-high
     unit_of_measurement: 'V'
@@ -1137,7 +1137,7 @@ number:
   
   # Charging Current Limit (48V system)
   - platform: template
-    name: ${pcm_name}_charging_current
+    name: ${name}_${pcm_name}_charging_current
     id: charging_current_number
     icon: mdi:battery-arrow-up
     unit_of_measurement: 'A'
@@ -1173,7 +1173,7 @@ number:
   
   # Discharge Current (48V system)
   - platform: template
-    name: ${pcm_name}_discharging_current
+    name: ${name}_${pcm_name}_discharging_current
     id: discharging_current_number
     icon: mdi:battery-arrow-down
     unit_of_measurement: 'A'
@@ -1207,7 +1207,7 @@ number:
   
   # AC Overvoltage Protection
   - platform: template
-    name: ${pcm_name}_ac_overvoltage_protection
+    name: ${name}_${pcm_name}_ac_overvoltage_protection
     id: ac_overvoltage_protection
     icon: mdi:flash-alert
     unit_of_measurement: 'V'
@@ -1243,7 +1243,7 @@ number:
   
   # AC Undervoltage Protection
   - platform: template
-    name: ${pcm_name}_ac_undervoltage_protection
+    name: ${name}_${pcm_name}_ac_undervoltage_protection
     id: ac_undervoltage_protection
     icon: mdi:flash-alert-outline
     unit_of_measurement: 'V'
@@ -1280,7 +1280,7 @@ number:
 
   # AC Overvoltage Alarm
   - platform: template
-    name: ${pcm_name}_ac_overvoltage_alarm
+    name: ${name}_${pcm_name}_ac_overvoltage_alarm
     id: ac_overvoltage_alarm
     icon: mdi:flash-alert
     unit_of_measurement: 'V'
@@ -1316,7 +1316,7 @@ number:
   
   # AC Undervoltage Alarm
   - platform: template
-    name: ${pcm_name}_ac_undervoltage_alarm
+    name: ${name}_${pcm_name}_ac_undervoltage_alarm
     id: ac_undervoltage_alarm
     icon: mdi:flash-alert-outline
     unit_of_measurement: 'V'
@@ -1353,7 +1353,7 @@ number:
   
   # DC Overvoltage Protection (48V system)
   - platform: template
-    name: ${pcm_name}_dc_overvoltage_protection
+    name: ${name}_${pcm_name}_dc_overvoltage_protection
     id: dc_overvoltage_protection
     icon: mdi:battery-alert
     unit_of_measurement: 'V'
@@ -1390,7 +1390,7 @@ number:
   
   # DC Undervoltage Protection (48V system)
   - platform: template
-    name: ${pcm_name}_dc_undervoltage_protection
+    name: ${name}_${pcm_name}_dc_undervoltage_protection
     id: dc_undervoltage_protection
     icon: mdi:battery-alert-variant-outline
     unit_of_measurement: 'V'
@@ -1427,7 +1427,7 @@ number:
 
 # DC Overvoltage Alarm (48V system)
   - platform: template
-    name: ${pcm_name}_dc_overvoltage_alarm
+    name: ${name}_${pcm_name}_dc_overvoltage_alarm
     id: dc_overvoltage_alarm
     icon: mdi:battery-alert
     unit_of_measurement: 'V'
@@ -1463,7 +1463,7 @@ number:
 
 # DC Undervoltage Alarm (48V system)
   - platform: template
-    name: ${pcm_name}_dc_undervoltage_alarm
+    name: ${name}_${pcm_name}_dc_undervoltage_alarm
     id: dc_undervoltage_alarm
     icon: mdi:battery-alert-variant-outline
     unit_of_measurement: 'V'
@@ -1502,7 +1502,7 @@ number:
 switch:
   # Power ON/OFF
   - platform: template
-    name: ${pcm_name}_power
+    name: ${name}_${pcm_name}_power
     id: power_switch
     icon: mdi:power
     optimistic: true
@@ -1526,7 +1526,7 @@ switch:
 
 # charge/discharge mode
   - platform: template
-    name: ${pcm_name}_discharge_charge
+    name: ${name}_${pcm_name}_discharge_charge
     id: discharge_charge
     icon: mdi:transmission-tower
     optimistic: true
@@ -1553,7 +1553,7 @@ switch:
 text_sensor:
   - platform: template
     id: running_mode_text
-    name: ${pcm_name}_running_mode
+    name: ${name}_${pcm_name}_running_mode
     icon: mdi:state-machine
     update_interval: ${text_update_interval}
     lambda: |-
@@ -1570,7 +1570,7 @@ text_sensor:
   
   - platform: template
     id: inverter_frequency_text
-    name: ${pcm_name}_inverter_frequency
+    name: ${name}_${pcm_name}_inverter_frequency
     icon: mdi:metronome
     update_interval: ${text_update_interval}
     lambda: |-
@@ -1592,12 +1592,12 @@ text_sensor:
   
   - platform: template
     id: program_version
-    name: ${pcm_name}_program_version
+    name: ${name}_${pcm_name}_program_version
     icon: mdi:information
   
   - platform: template
     id: sn_code_text_sensor
-    name: ${pcm_name}_sn
+    name: ${name}_${pcm_name}_sn
     icon: mdi:barcode
 
 
