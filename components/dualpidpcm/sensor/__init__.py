@@ -24,7 +24,7 @@ CONF_INPUT   = "input"
 ICON_EPSILON = "mdi:epsilon"
 ICON_PERCENT = "mdi:percent"
 ICON_TARGET = "mdi:target"
-ICON_INPORT = "mdi:import'
+ICON_INPORT = "mdi:import"
 
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
