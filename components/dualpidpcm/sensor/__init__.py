@@ -27,7 +27,7 @@ ICON_TARGET = "mdi:target"
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
 
-DUALPIDPCMSensor = dualpid_ns.class_("DUALPIDPCMSensor", cg.Component)
+DUALPIDPCMSensor = dualpidpcm_ns.class_("DUALPIDPCMSensor", cg.Component)
 
 
 CONFIG_SCHEMA = {
