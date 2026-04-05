@@ -3,7 +3,7 @@ external_components:
     components: [dualpidpcm]
     refresh: 0s
     
-dualpid:
+dualpidpcm:
   - id: ${dualpidpcm_id}
     input_id: ${dualpidpcm_name}_input_smoothed 
     battery_voltage_id: ${dualpidpcm_battery_voltage_id}
