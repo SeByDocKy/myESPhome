@@ -28,7 +28,7 @@ sensor:
           send_every: 1
           
   - platform: dualpidpcm
-    dualpid_id: ${dualpidpcm_id}
+    dualpidpcm_id: ${dualpidpcm_id}
     error: 
       name: ${name}_${dualpidpcm_name}_error    
     output: 
@@ -45,7 +45,7 @@ sensor:
 
 switch:
   - platform: dualpidpcm
-    dualpid_id: ${dualpidpcm_id}
+    dualpidpcm_id: ${dualpidpcm_id}
     activation: 
       name: ${name}_${dualpidpcm_name}_activation
       id: ${dualpidpcm_name}_activation
@@ -61,7 +61,7 @@ switch:
       
 number:
   - platform: dualpidpcm
-    dualpid_id: ${dualpidpcm_id}
+    dualpidpcm_id: ${dualpidpcm_id}
     setpoint:
       name: ${name}_${dualpidpcm_name}_setpoint
     charging_epoint: 
