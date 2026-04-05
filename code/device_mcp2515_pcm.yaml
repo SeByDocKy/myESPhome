@@ -1,3 +1,9 @@
+substitutions:
+  charge_current_min: '5'
+  charge_current_max: '70'
+  discharge_current_min: '5'
+  discharge_current_max: '70'
+  
 esphome:
   on_boot: #!extend
     - priority: -100
