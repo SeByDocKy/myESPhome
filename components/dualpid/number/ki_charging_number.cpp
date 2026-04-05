@@ -16,5 +16,5 @@ void KiChargingNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
+}  // namespace dualpid
 }  // namespace esphome
