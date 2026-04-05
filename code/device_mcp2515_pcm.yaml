@@ -116,10 +116,8 @@ canbus:
               uint8_t fault2 = x[5];
               uint8_t fault3 = x[6];
               
-              //id(offgrid_frequency_sensor).publish_state((inverter_freq == 0 ? 50 : 60));
               id(offgrid_frequency_sensor).publish_state(inverter_freq );
-              
-              
+                          
               // Parse Fault 1
               id(fault_soft_start_timeout).publish_state(fault1 & 0x01);
               id(fault_bus_overvoltage).publish_state(fault1 & 0x02);
@@ -308,7 +306,6 @@ canbus:
               id(dc_undervoltage_alarm_readback).publish_state(dc_undervoltage_alarm / 10.0);
               ESP_LOGI("canbus", "DC Alarm Readback: OV=%.1fV, UV=%.1fV", 
                        dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);        
-              
               
 sensor:
 
