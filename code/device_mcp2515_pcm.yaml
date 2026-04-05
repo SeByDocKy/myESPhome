@@ -934,7 +934,7 @@ output:
             float beta       = 5 - alpha*0;
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
-            ESP_LOGI("output charging", "Raw: %f, voltage: %d, Current: %d", raw_state, voltage, current);
+            ESP_LOGVV("output charging", "Raw: %f, voltage: %d, Current: %d", raw_state, voltage, current);
             return {
               ${pcm_address}, 0x00,
               (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
@@ -958,7 +958,7 @@ output:
             float alpha      = 70.0f/100.0f; //99.0f;  // (75 - 5)/(100 - 1)
             float beta       = 5 - alpha*0;
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
-            ESP_LOGI("output discharging", "Raw: %f, Current: %d", raw_state, current);
+            ESP_LOGVV("output discharging", "Raw: %f, Current: %d", raw_state, current);
             return {
               ${pcm_address}, 0x00, 0x00, 0x00,
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
@@ -1147,7 +1147,7 @@ number:
     step: 0.5
     mode: 'slider'
     initial_value: 5.0
-    optimistic: false
+    optimistic: true #false
     restore_value: true
     set_action:
       - canbus.send:
@@ -1182,7 +1182,7 @@ number:
     max_value: 75.0
     step: 0.5
     mode: 'slider'
-    optimistic: false
+    optimistic: true #false
     initial_value: 5.0
     restore_value: true
     set_action:
