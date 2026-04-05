@@ -35,8 +35,8 @@ canbus:
     can_id: 0x0A
     bit_rate: 250kbps
     mode: NORMAL
-    # data_rate: '10MHz'
-    data_rate: '5MHz'
+    data_rate: '10MHz'
+    # data_rate: '5MHz'
 
     on_frame:
       # Feedback Parameter 1 - 0x010A0051
