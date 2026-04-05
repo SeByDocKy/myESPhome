@@ -1529,6 +1529,7 @@ switch:
     id: charge_discharge
     icon: mdi:transmission-tower
     optimistic: true
+    restore_mode: ALWAYS_ON
     # restore_mode: true
     turn_on_action: #charge
       - canbus.send:
