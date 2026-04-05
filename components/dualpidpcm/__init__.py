@@ -7,7 +7,7 @@ DEPENDENCIES = ["time"]
 MULTI_CONF = True
 
 dualpidpcm_ns = cg.esphome_ns.namespace("dualpidpcm")
-DUALPIDPCMComponent = dualpid_ns.class_("DUALPIDPCMComponent", cg.Component)
+DUALPIDPCMComponent = dualpidpcm_ns.class_("DUALPIDPCMComponent", cg.Component)
 
 from esphome.const import (
     CONF_ID,
