@@ -147,6 +147,7 @@ SUB_NUMBER(output_max_discharging)
   float get_output_discharging(void) { return this->current_output_discharging_; }  
   float get_target(void) { return this->current_target_; }
   float get_epoint(void) { return this->current_epoint_; }
+  float get_input(void)  { return this->current_input_; }
 #endif
 
  protected:
@@ -188,6 +189,7 @@ SUB_NUMBER(output_max_discharging)
   float current_output_discharging_ = 0.0f;
   float current_target_ = 0.0f;
   float current_epoint_ = 50.0f;
+  float current_input_ = 0.0f;
 #endif   
 
 #ifdef USE_SWITCH  
