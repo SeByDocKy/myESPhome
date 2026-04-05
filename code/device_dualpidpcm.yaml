@@ -40,7 +40,9 @@ sensor:
     target:
       name: ${name}_${dualpidpcm_name}_target
     epoint:
-      name: ${name}_${dualpidpcm_name}_epoint  
+      name: ${name}_${dualpidpcm_name}_epoint
+    input:
+      name: ${name}_${dualpidpcm_name}_input  
 
 
 switch:
