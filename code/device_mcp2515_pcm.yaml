@@ -312,7 +312,7 @@ sensor:
 
   - platform: template
     id: grid_voltage_sensor
-    name: ${pcm_name}_grid_voltage
+    name: ${name}_${pcm_name}_grid_voltage
     unit_of_measurement: 'V'
     device_class: voltage
     state_class: measurement
