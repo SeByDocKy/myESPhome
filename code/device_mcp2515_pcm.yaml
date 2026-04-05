@@ -1527,7 +1527,7 @@ switch:
 # charge/discharge mode
   - platform: template
     name: ${name}_${pcm_name}_discharge_charge
-    id: discharge_charge
+    id: discharge_charge_switch
     icon: mdi:transmission-tower
     optimistic: true
     restore_mode: ALWAYS_ON
