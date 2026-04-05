@@ -3,6 +3,7 @@ substitutions:
   charge_current_max: '70'
   discharge_current_min: '5'
   discharge_current_max: '70'
+  text_update_interval: '1s'
   
 esphome:
   on_boot: #!extend
@@ -1144,10 +1145,10 @@ number:
     unit_of_measurement: 'A'
     min_value: 5.0
     max_value: 70.0
+    initial_value: 5.0
     step: 0.5
     mode: 'slider'
-    initial_value: 5.0
-    optimistic: true #false
+    optimistic: false
     restore_value: true
     set_action:
       - canbus.send:
@@ -1180,10 +1181,10 @@ number:
     unit_of_measurement: 'A'
     min_value: 5.0
     max_value: 75.0
+    initial_value: 5.0
     step: 0.5
     mode: 'slider'
-    optimistic: true #false
-    initial_value: 5.0
+    optimistic: false
     restore_value: true
     set_action:
       - canbus.send:
@@ -1214,10 +1215,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 220.0
     max_value: 258.0
+    initial_value: 250.0
     step: 0.5
     mode: 'slider'
     optimistic: false
-    initial_value: 250.0
     restore_value: true
     set_action:
       - canbus.send:
@@ -1250,10 +1251,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 182.0
     max_value: 220.0
+    initial_value: 200.0
     step: 0.5
     mode: 'slider'
     optimistic: false
-    initial_value: 200.0
     restore_value: true
     set_action:
       - canbus.send:
@@ -1287,10 +1288,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 220.0
     max_value: 258.0
+    initial_value: 248.0
     step: 0.5
     mode: slider
     optimistic: false
-    initial_value: 248.0
     restore_value: true
     set_action:
       - canbus.send:
@@ -1323,10 +1324,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 182.0
     max_value: 220.0
+    initial_value: 205.0
     step: 0.5
     mode: slider
     optimistic: false
-    initial_value: 205.0
     restore_value: true
     set_action:
       - canbus.send:
@@ -1360,10 +1361,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 40.0
     max_value: 59.5
+    initial_value: 58.0
     step: 0.1
     mode: 'slider'
     optimistic: false
-    initial_value: 58.0
     restore_value: true
     set_action:
       - canbus.send:
@@ -1397,10 +1398,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 39.5
     max_value: 59.0
+    initial_value: 49.0
     step: 0.1
     mode: 'slider'
     optimistic: false
-    initial_value: 49.0
     restore_value: true
     set_action:
       - canbus.send:
@@ -1434,10 +1435,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 40.0
     max_value: 57.5
+    initial_value: 57.5
     step: 0.1
     mode: slider
     optimistic: false
-    initial_value: 57.5
     restore_value: true
     set_action:
       - canbus.send:
@@ -1470,10 +1471,10 @@ number:
     unit_of_measurement: 'V'
     min_value: 40.0
     max_value: 59.0
+    initial_value: 50.0
     step: 0.1
     mode: 'slider'
     optimistic: false
-    initial_value: 50.0
     restore_value: true
     set_action:
       - canbus.send:
@@ -1525,7 +1526,6 @@ switch:
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: 100ms
 
-
 # charge/discharge mode
   - platform: template
     name: ${pcm_name}_charge_discharge
@@ -1556,7 +1556,7 @@ text_sensor:
     id: running_mode_text
     name: ${pcm_name}_running_mode
     icon: mdi:state-machine
-    update_interval: 1s
+    update_interval: ${text_update_interval}
     lambda: |-
       int mode = id(running_mode_sensor).state;
       switch(mode) {
@@ -1715,15 +1715,3 @@ interval:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
-
-
-
-
-
-
-
-
-
-
-
-
