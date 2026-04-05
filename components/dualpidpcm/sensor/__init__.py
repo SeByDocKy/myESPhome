@@ -19,10 +19,12 @@ CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_ERROR  = "error"
 CONF_TARGET = "target"
 CONF_EPOINT = "epoint"
+CONF_INPUT   = "input"
 
 ICON_EPSILON = "mdi:epsilon"
 ICON_PERCENT = "mdi:percent"
 ICON_TARGET = "mdi:target"
+ICON_INPORT = "mdi:import'
 
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
@@ -73,6 +75,13 @@ CONFIG_SCHEMA = {
                 icon = ICON_PERCENT,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
+     cv.Optional(CONF_INPUT): sensor.sensor_schema(
+                unit_of_measurement=UNIT_WATT,
+                icon=ICON_INPORT,
+                accuracy_decimals=1,
+                device_class=DEVICE_CLASS_POWER,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
 }
 
 async def to_code(config):
@@ -104,4 +113,8 @@ async def to_code(config):
     if CONF_EPOINT in config:
         sens = await sensor.new_sensor(config[CONF_EPOINT])
         cg.add(var.set_epoint_sensor(sens))
+
+    if CONF_INPUT in config:
+        sens = await sensor.new_sensor(config[CONF_INPUT])
+        cg.add(var.set_input_sensor(sens))
  
