@@ -16,6 +16,6 @@ void PidModeSwitch::write_state(bool state) {
   this->pref_.save(&state);
 }
 
-}  // namespace offsr
+}  // namespace dualpid
 }  // namespace esphome
 
