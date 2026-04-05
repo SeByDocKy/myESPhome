@@ -1570,7 +1570,7 @@ text_sensor:
     id: inverter_frequency_text
     name: ${pcm_name}_inverter_frequency
     icon: mdi:metronome
-    update_interval: 1s
+    update_interval: ${text_update_interval}
     lambda: |-
       int freq = id(offgrid_frequency_sensor).state;
       if (freq == 50) return {"50 Hz"};
