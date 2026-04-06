@@ -261,7 +261,7 @@ void DUALPIDPCMComponent::pid_update() {
 	// 	   this->onoff_switch_->turn_on();	 
 	//        this->onoff_switch_->publish_state(true);
 	// 	}
-	}
+	// }
 	  
 	  
 #ifdef USE_SWITCH	
