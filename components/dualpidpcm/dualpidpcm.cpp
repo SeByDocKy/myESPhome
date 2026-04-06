@@ -211,17 +211,18 @@ void DUALPIDPCMComponent::pid_update() {
 //       this->set_r48(false);
 //    } 
 // #endif
-	  
-  //   if (this->discharge_charge_switch_ != nullptr) {
- 	//  if((this->output_charging_ >= this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
-	 //   this->discharge_charge_switch_->turn_on();	 
-	 //   this->discharge_charge_switch_->publish_state(true);	
-  //    }
-	 // else if  ((this->output_discharging_ >= this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
-	 //   this->discharge_charge_switch_->turn_off();	 
-	 //   this->discharge_charge_switch_->publish_state(false);
-	 // }
-  //   }
+	if ((this->current_activation_ != nullptr) & (this->current_activation_) ){  
+      if (this->discharge_charge_switch_ != nullptr) {
+ 	    if((this->output_charging_ >= this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
+	      this->discharge_charge_switch_->turn_on();	 
+	      this->discharge_charge_switch_->publish_state(true);	
+        }
+	  else if  ((this->output_discharging_ >= this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
+	      this->discharge_charge_switch_->turn_off();	 
+	      this->discharge_charge_switch_->publish_state(false);
+	    }
+      }
+	}
 
     if (!std::isnan(this->current_battery_voltage_)){
 	  ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
