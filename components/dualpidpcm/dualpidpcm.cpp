@@ -90,13 +90,6 @@ void DUALPIDPCMComponent::pid_update() {
 	tmp         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	this->error_ = tmp;   
 	  
-	// if (e & tmp<0.0f){
-	// 	this->error_ = tmp; //-tmp;
-	// }
-	// else{
-	// 	this->error_ = tmp; 
- //    }
-	  
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
 		this->error_ = -this->error_;
