@@ -111,7 +111,7 @@ void DUALPIDPCMComponent::pid_update() {
 	ESP_LOGI(TAG, "previous output = %2.8f" , tmp );
 	ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
-	if (e){
+	if (e){  // charge
 	  this->current_kp_ = this->current_kp_charging_;
 	  this->current_ki_ = this->current_ki_charging_;
 	  this->current_kd_ = this->current_kd_charging_;
@@ -125,7 +125,7 @@ void DUALPIDPCMComponent::pid_update() {
 	  alphaD = coeffD * this->derivative_;
 	
 	}
-	else{
+	else{  // discharge
 	  this->current_kp_ = this->current_kp_discharging_;
 	  this->current_ki_ = this->current_ki_discharging_;
 	  this->current_kd_ = this->current_kd_discharging_;
@@ -194,11 +194,13 @@ void DUALPIDPCMComponent::pid_update() {
       if (this->discharge_charge_switch_ != nullptr) {
  	    if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
 	      this->discharge_charge_switch_->turn_on();	 
-	      this->discharge_charge_switch_->publish_state(true);	
+	      this->discharge_charge_switch_->publish_state(true);
+		  delay(150);
         }
 	  else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
 	      this->discharge_charge_switch_->turn_off();	 
 	      this->discharge_charge_switch_->publish_state(false);
+		  delay(150);
 	    }
       }
 	}
