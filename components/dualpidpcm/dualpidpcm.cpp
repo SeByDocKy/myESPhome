@@ -6,12 +6,12 @@ namespace dualpidpcm {
 
 static const char *const TAG = "dualpidpcm";
 
-static const float coeffPcharging = 0.01f;
-static const float coeffIcharging = 0.0001f;
+static const float coeffPcharging = 0.001f;
+static const float coeffIcharging = 0.00001f;
 static const float coeffDcharging = 0.001f;
 
-static const float coeffPdischarging = 0.01f;
-static const float coeffIdischarging = 0.0001f;
+static const float coeffPdischarging = 0.001f;
+static const float coeffIdischarging = 0.00001f;
 static const float coeffDdischarging = 0.001f;
 
 void DUALPIDPCMComponent::setup() { 
