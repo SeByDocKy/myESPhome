@@ -124,7 +124,7 @@ void DUALPIDComponent::pid_update() {
 	  this->current_kd_ = this->current_kd_charging_;
       
 	  coeffP = coeffPcharging*this->current_kp_;
-	  coeffI = coeffIcharging*this->current_kp_;
+	  coeffI = coeffIcharging*this->current_ki_;
 	  coeffD = coeffDcharging*this->current_kd_;
 		
 	  alphaP = coeffP * this->error_;
@@ -138,7 +138,7 @@ void DUALPIDComponent::pid_update() {
 	  this->current_kd_ = this->current_kd_discharging_;
 
 	  coeffP = coeffPdischarging*this->current_kp_;
-	  coeffI = coeffIdischarging*this->current_kp_;
+	  coeffI = coeffIdischarging*this->current_ki_;
 	  coeffD = coeffDdischarging*this->current_kd_;	
 
 	  alphaP = coeffP * this->error_;
