@@ -138,10 +138,7 @@ void DUALPIDPCMComponent::pid_update() {
 	  alphaI = coeffI * this->integral_;
 	  alphaD = coeffD * this->derivative_;
 	}
-	
-	// alphaP = coeffP*this->current_kp_ * this->error_;
-	// alphaI = coeffI*this->current_ki_ * this->integral_;
-	// alphaD = coeffD*this->current_kd_ * this->derivative_;
+ 
 	alpha  = alphaP + alphaI + alphaD;
 	
     this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
@@ -163,14 +160,14 @@ void DUALPIDPCMComponent::pid_update() {
 	ESP_LOGI(TAG, "activation %d", this->current_activation_);
 
 	e   = (this->output_ < this->current_epoint_ );
-	if(e){ // Charge <-> ACin (230V)->R48->DC 48V
+	if(e){ // Charge 
        tmp                       = (this->current_epoint_ - this->output_); // tmp is positive
 	   this->output_charging_    = tmp; //cc*tmp; ?
 	   this->output_discharging_ = 0.0f;	
 	   this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	   this->previous_output_    = this->current_epoint_;
 	}
-	else{ // Discharge <-> Battery DC 48V->HMS->ACout (230V)
+	else{ // Discharge 
        tmp                       = (this->output_ - this->current_epoint_ ); // tmp is positive
 	   this->output_charging_    = 0.0f;
 	   this->output_discharging_ = cd*tmp; // tmp;?
@@ -179,14 +176,7 @@ void DUALPIDPCMComponent::pid_update() {
 	}
 	// tmp is a positive value
 
-	// if (e){
-	//   this->output_charging_    = cc*tmp; //0.0f;    //;
-	//   this->output_discharging_ = 0.0f; //0.0f;
-	// }
-	// else{
-	//   this->output_charging_    = 0.0f; //0.0f;
-	//   this->output_discharging_ = cd*tmp;   // cd*tmp;	
-	// }
+	
   
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
@@ -194,6 +184,10 @@ void DUALPIDPCMComponent::pid_update() {
 	  this->previous_output_    = this->current_epoint_;  	
 	  this->output_charging_    = 0.0f;
 	  this->output_discharging_ = 0.0f;	
+	  if((this->onoff_switch_->state==true)){
+	       this->onoff_switch_->turn_off();	 
+	       this->onoff_switch_->publish_state(false);
+      }	
     }
 #endif  
 	if (this->current_activation_ ){  
