@@ -86,9 +86,10 @@ void DUALPIDComponent::pid_update() {
 #ifdef USE_SWITCH  
   if (!this->current_manual_override_){
 #endif
-    this->dt_   = float(now - this->last_time_)/1000.0f;
-	tmp         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
-	  
+    this->dt_    = float(now - this->last_time_)/1000.0f;
+	tmp          = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	this->error_ = tmp;  
+	
 	// if (e & tmp<0.0f){
 	// 	this->error_ = tmp; //-tmp;
 	// }
