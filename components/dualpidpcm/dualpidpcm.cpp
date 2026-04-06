@@ -257,6 +257,12 @@ void DUALPIDPCMComponent::pid_update() {
 	       this->onoff_switch_->publish_state(true);
 		}
 	  }
+	  else{
+        if((this->onoff_switch_->state==true)){
+	       this->onoff_switch_->turn_off();	 
+	       this->onoff_switch_->publish_state(false);
+        }
+     }
     }
 	  
 	  
