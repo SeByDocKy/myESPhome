@@ -163,7 +163,7 @@ canbus:
               char version_str[10];
               snprintf(version_str, sizeof(version_str), "V%d.%02d", version_high, version_low);
               id(program_version).publish_state(version_str);
-              ESP_LOGI("canbus", "Program Version: %s", version_str);
+              ESP_LOGD("canbus", "Program Version: %s", version_str);
       
       # SN Code Response - 0x010A0005
       - can_id: 0x010A0005
@@ -174,7 +174,7 @@ canbus:
               char sn_str[12];
               snprintf(sn_str, sizeof(sn_str), "%08X", sn_code);
               id(sn_code_text_sensor).publish_state(sn_str);
-              ESP_LOGI("canbus", "SN Code: %s", sn_str);
+              ESP_LOGD("canbus", "SN Code: %s", sn_str);
 
       # Grid Mode Response - 0x010A0002
       - can_id: 0x010A0002
@@ -188,7 +188,7 @@ canbus:
               } else if (grid_mode == 1) {
                 id(grid_mode_select).publish_state("Discharge mode");
               }
-              ESP_LOGI("canbus", "Grid Mode Readback: %d", grid_mode);
+              ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
       
       # Frequency Setting Response - 0x010A0011
       - can_id: 0x010A0011
@@ -202,7 +202,7 @@ canbus:
               } else if (freq == 1) {
                 id(frequency_select).publish_state("60 Hz");
               }
-              ESP_LOGI("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
+              ESP_LOGD("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
       
       # AC Voltage Setting Response - 0x010A0012
       - can_id: 0x010A0012
@@ -216,7 +216,7 @@ canbus:
               } else if (voltage == 2) {
                 id(ac_voltage_select).publish_state("240V");
               }
-              ESP_LOGI("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
+              ESP_LOGD("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
       
       # Phase Mode Response - 0x010A000A
       - can_id: 0x010A000A
@@ -230,7 +230,7 @@ canbus:
               } else if (phase_mode == 1) {
                 id(phase_mode_select).publish_state("Three-Phase");
               }
-              ESP_LOGI("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
+              ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
       
       # Charging Parameters Response - 0x010A0031
       - can_id: 0x010A0031
@@ -243,7 +243,7 @@ canbus:
               id(charging_current_readback).publish_state(charge_current / 10.0);
               id(charging_voltage).publish_state(charge_voltage / 10.0);
               id(charging_current_number).publish_state(charge_current / 10.0);
-              ESP_LOGI("canbus", "Charging Parameters Readback: %.1fV, %.1fA", 
+              ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV, %.1fA", 
                        charge_voltage/10.0, charge_current/10.0);
       
       # Discharge Parameters Response - 0x010A0032
@@ -254,7 +254,7 @@ canbus:
               uint16_t discharge_current_value = (x[5] << 8) | x[4];
               id(discharging_current_readback).publish_state(discharge_current_value / 10.0);
               id(discharging_current_number).publish_state(discharge_current_value / 10.0);
-              ESP_LOGI("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
+              ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
       
       # AC Voltage Protection Response - 0x010A0013
       - can_id: 0x010A0013
@@ -267,7 +267,7 @@ canbus:
               id(ac_undervoltage_protection_readback).publish_state(ac_undervoltage / 10.0);
               id(ac_overvoltage_protection).publish_state(ac_overvoltage / 10.0);
               id(ac_undervoltage_protection).publish_state(ac_undervoltage / 10.0);
-              ESP_LOGI("canbus", "AC Protection Readback: OV=%.1fV, UV=%.1fV", 
+              ESP_LOGD("canbus", "AC Protection Readback: OV=%.1fV, UV=%.1fV", 
                        ac_overvoltage/10.0, ac_undervoltage/10.0);
       
       # AC Voltage Alarm Response - 0x010A0014
@@ -279,7 +279,7 @@ canbus:
               uint16_t ac_undervoltage_alarm = (x[5] << 8) | x[4];
               id(ac_overvoltage_alarm_readback).publish_state(ac_overvoltage_alarm / 10.0);
               id(ac_undervoltage_alarm_readback).publish_state(ac_undervoltage_alarm / 10.0);
-              ESP_LOGI("canbus", "AC Alarm Readback: OV=%.1fV, UV=%.1fV", 
+              ESP_LOGD("canbus", "AC Alarm Readback: OV=%.1fV, UV=%.1fV", 
                        ac_overvoltage_alarm/10.0, ac_undervoltage_alarm/10.0);
       
       # DC Voltage Protection Response - 0x010A0033
@@ -293,7 +293,7 @@ canbus:
               id(dc_undervoltage_protection_readback).publish_state(dc_undervoltage / 10.0);
               id(dc_overvoltage_protection).publish_state(dc_overvoltage / 10.0);
               id(dc_undervoltage_protection).publish_state(dc_undervoltage / 10.0);
-              ESP_LOGI("canbus", "DC Protection Readback: OV=%.1fV, UV=%.1fV", 
+              ESP_LOGD("canbus", "DC Protection Readback: OV=%.1fV, UV=%.1fV", 
                        dc_overvoltage/10.0, dc_undervoltage/10.0);
       
       # DC Voltage Alarm Response - 0x010A0034
@@ -305,7 +305,7 @@ canbus:
               uint16_t dc_undervoltage_alarm = (x[5] << 8) | x[4];
               id(dc_overvoltage_alarm_readback).publish_state(dc_overvoltage_alarm / 10.0);
               id(dc_undervoltage_alarm_readback).publish_state(dc_undervoltage_alarm / 10.0);
-              ESP_LOGI("canbus", "DC Alarm Readback: OV=%.1fV, UV=%.1fV", 
+              ESP_LOGD("canbus", "DC Alarm Readback: OV=%.1fV, UV=%.1fV", 
                        dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);        
               
 sensor:
