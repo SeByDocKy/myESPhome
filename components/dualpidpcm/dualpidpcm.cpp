@@ -10,7 +10,7 @@ static const float coeffPcharging = 0.0001f;
 static const float coeffIcharging = 0.0001f;
 static const float coeffDcharging = 0.001f;
 
-static const float coeffPdischarging = 0.001f;
+static const float coeffPdischarging = 0.0001f;
 static const float coeffIdischarging = 0.0001f;
 static const float coeffDdischarging = 0.001f;
 
