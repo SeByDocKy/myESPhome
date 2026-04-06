@@ -212,7 +212,9 @@ void DUALPIDPCMComponent::pid_update() {
 	    this->output_discharging_ = 0.0f;
 	
         this->onoff_switch_->turn_off();	 
-	    this->onoff_switch_->publish_state(false);		
+	    this->onoff_switch_->publish_state(false);
+        this->discharge_charge_switch_->turn_on();	 
+	    this->discharge_charge_switch_->publish_state(true);	
       }
     }
 	
@@ -244,12 +246,12 @@ void DUALPIDPCMComponent::pid_update() {
 	       this->onoff_switch_->publish_state(true);
 		}
 	  }
-	else{
-        if((this->onoff_switch_->state==true)){
-	       this->onoff_switch_->turn_off();	 
-	       this->onoff_switch_->publish_state(false);
-        }
-      }
+	// else{
+ //        if((this->onoff_switch_->state==true)){
+	//        this->onoff_switch_->turn_off();	 
+	//        this->onoff_switch_->publish_state(false);
+ //        }
+ //      }
     }
 	  
 	  
