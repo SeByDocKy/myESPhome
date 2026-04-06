@@ -184,10 +184,10 @@ void DUALPIDPCMComponent::pid_update() {
 	  this->previous_output_    = this->current_epoint_;  	
 	  this->output_charging_    = 0.0f;
 	  this->output_discharging_ = 0.0f;	
-	  // if((this->onoff_switch_->state==true)){
-	  //      this->onoff_switch_->turn_off();	 
-	  //      this->onoff_switch_->publish_state(false);
-   //    }	
+	  if((this->onoff_switch_->state==true)  ){
+	       this->onoff_switch_->turn_off();	 
+	       this->onoff_switch_->publish_state(false);
+      }	
     }
 #endif  
 	if (this->current_activation_ ){  
