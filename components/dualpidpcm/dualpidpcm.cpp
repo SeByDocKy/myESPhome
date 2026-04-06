@@ -203,14 +203,6 @@ void DUALPIDPCMComponent::pid_update() {
 	  this->output_discharging_ = 0.0f;	
     }
 #endif  
-// #ifdef USE_SWITCH 
-//    if((this->output_charging_ > 0.0f) & (this->get_r48()==false)){
-//       this->set_r48(true);
-//    }
-//    else if ((this->output_discharging_ > 0.0f) & (this->get_r48()==true)){
-//       this->set_r48(false);
-//    } 
-// #endif
 	if (this->current_activation_ ){  
       if (this->discharge_charge_switch_ != nullptr) {
  	    if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
@@ -232,8 +224,8 @@ void DUALPIDPCMComponent::pid_update() {
 		this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;
 	
-     //    this->onoff_switch_->turn_off();	 
-	    // this->onoff_switch_->publish_state(false);		
+        this->onoff_switch_->turn_off();	 
+	    this->onoff_switch_->publish_state(false);		
       }
     }
 	
@@ -257,13 +249,15 @@ void DUALPIDPCMComponent::pid_update() {
     this->previous_output_             = this->output_;
 	this->previous_output_charging_    = this->output_charging_;
 	this->previous_output_discharging_ = this->output_discharging_;
-	
-	// if (this->onoff_switch_ != nullptr){
-	// 	if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
-	// 	   this->onoff_switch_->turn_on();	 
-	//        this->onoff_switch_->publish_state(true);
-	// 	}
-	// }
+
+	if (this->current_activation_ ){  
+	  if (this->onoff_switch_ != nullptr){
+		if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
+		   this->onoff_switch_->turn_on();	 
+	       this->onoff_switch_->publish_state(true);
+		}
+	  }
+    }
 	  
 	  
 #ifdef USE_SWITCH	
