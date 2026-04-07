@@ -128,13 +128,13 @@ void DUALPIDPCMComponent::pid_update() {
 	    alphaP = coeffP * this->error_;
 	    alphaI = coeffI * this->integral_;
 	    alphaD = coeffD * this->derivative_;
-		deadband = true;
+		deadband = false;
 	  }
 	  else{
         alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
-		deadband = false;  
+		deadband = true;  
 	  }
 	}
 	else{  // discharge
@@ -150,13 +150,13 @@ void DUALPIDPCMComponent::pid_update() {
 	    alphaP = coeffP * this->error_;
 	    alphaI = coeffI * this->integral_;
 	    alphaD = coeffD * this->derivative_;
-		deadband = true;  
+		deadband = false;  
 	  }
 	  else{
         alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
-	    deadband = false;	  
+	    deadband = true;	  
 	  }
 	}
  
