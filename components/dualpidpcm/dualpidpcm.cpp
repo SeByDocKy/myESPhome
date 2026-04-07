@@ -14,6 +14,10 @@ static const float coeffPdischarging = 0.00001f;
 static const float coeffIdischarging = 0.001f;
 static const float coeffDdischarging = 0.001f;
 
+static const float currentmincharging = 5.0f;
+static const float currentmindischarging = 5.0f;
+
+
 void DUALPIDPCMComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up DUALPIDPCMComponent...");
   
@@ -53,7 +57,7 @@ void DUALPIDPCMComponent::dump_config() {
 
 void DUALPIDPCMComponent::pid_update() {
   uint32_t now = millis();
-  float tmp;
+  float tmp, epsi;
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
   float cc, cd;
@@ -87,8 +91,8 @@ void DUALPIDPCMComponent::pid_update() {
   if (!this->current_manual_override_){
 #endif
     this->dt_   = float(now - this->last_time_)/1000.0f;
-	tmp         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
-	this->error_ = tmp;   
+	epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	this->error_ = epsi;   
 	  
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
@@ -112,31 +116,44 @@ void DUALPIDPCMComponent::pid_update() {
 	ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
 	if (e){  // charge
-	  this->current_kp_ = this->current_kp_charging_;
-	  this->current_ki_ = this->current_ki_charging_;
-	  this->current_kd_ = this->current_kd_charging_;
+	  if(epsi > this->current_battery_voltage_*currentmincharging){ 
+	    this->current_kp_ = this->current_kp_charging_;
+	    this->current_ki_ = this->current_ki_charging_;
+	    this->current_kd_ = this->current_kd_charging_;
       
-	  coeffP = coeffPcharging*this->current_kp_;
-	  coeffI = coeffIcharging*this->current_ki_;
-	  coeffD = coeffDcharging*this->current_kd_;
+	    coeffP = coeffPcharging*this->current_kp_;
+	    coeffI = coeffIcharging*this->current_ki_;
+	    coeffD = coeffDcharging*this->current_kd_;
 		
-	  alphaP = coeffP * this->error_;
-	  alphaI = coeffI * this->integral_;
-	  alphaD = coeffD * this->derivative_;
-	
+	    alphaP = coeffP * this->error_;
+	    alphaI = coeffI * this->integral_;
+	    alphaD = coeffD * this->derivative_;
+	  }
+	  else{
+        alphaP = 0.0f;
+		alphaI = 0.0f;
+		alphaD = 0.0f;  
+	  }
 	}
 	else{  // discharge
-	  this->current_kp_ = this->current_kp_discharging_;
-	  this->current_ki_ = this->current_ki_discharging_;
-	  this->current_kd_ = this->current_kd_discharging_;
+	  if(epsi < this->current_battery_voltage_*currentmindischarging){	
+	    this->current_kp_ = this->current_kp_discharging_;
+	    this->current_ki_ = this->current_ki_discharging_;
+	    this->current_kd_ = this->current_kd_discharging_;
+		  
+	    coeffP = coeffPdischarging*this->current_kp_;
+	    coeffI = coeffIdischarging*this->current_ki_;
+	    coeffD = coeffDdischarging*this->current_kd_;	
 
-	  coeffP = coeffPdischarging*this->current_kp_;
-	  coeffI = coeffIdischarging*this->current_ki_;
-	  coeffD = coeffDdischarging*this->current_kd_;	
-
-	  alphaP = coeffP * this->error_;
-	  alphaI = coeffI * this->integral_;
-	  alphaD = coeffD * this->derivative_;
+	    alphaP = coeffP * this->error_;
+	    alphaI = coeffI * this->integral_;
+	    alphaD = coeffD * this->derivative_;
+	  }
+	  else{
+        alphaP = 0.0f;
+		alphaI = 0.0f;
+		alphaD = 0.0f;
+	  }
 	}
  
 	alpha  = alphaP + alphaI + alphaD;
