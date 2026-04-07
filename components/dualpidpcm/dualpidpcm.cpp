@@ -61,7 +61,7 @@ void DUALPIDPCMComponent::pid_update() {
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
   float cc, cd;
-  bool e , deadband;
+  bool e , deadband=false;
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
