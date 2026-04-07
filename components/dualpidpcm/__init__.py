@@ -19,8 +19,8 @@ CONF_CHARGING_OUTPUT_ID = 'charging_output_id'
 CONF_DISCHARGING_OUTPUT_ID = 'discharging_output_id'
 CONF_DISCHARGE_CHARGE_SWITCH_ID = 'discharge_charge_switch_id'
 CONF_ONOFF_SWITCH_ID = 'onoff_switch_id'
-
-
+CONF_CURRENT_MIN_CHARGING = 'current_min_charging'
+CONF_CURRENT_MIN_DISCHARGING = 'current_min_discharging'
 
 DUALPIDPCMComponent_SCHEMA = cv.Schema(
     {
@@ -38,6 +38,8 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_DISCHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
 		  cv.Required(CONF_DISCHARGE_CHARGE_SWITCH_ID): cv.use_id(switch.Switch),
           cv.Required(CONF_ONOFF_SWITCH_ID): cv.use_id(switch.Switch),
+		  cv.Optional(CONF_CURRENT_MIN_CHARGING): cv.float_range(min=0.0, max=70),
+		  cv.Optional(CONF_CURRENT_MIN_DISCHARGING): cv.float_range(min=0.0, max=70),	
         }
     )
  )
@@ -61,9 +63,11 @@ async def to_code(config):
     if CONF_DISCHARGE_CHARGE_SWITCH_ID in config:
       sw = await cg.get_variable(config[CONF_DISCHARGE_CHARGE_SWITCH_ID])
       cg.add(var.set_discharge_charge_switch(sw))
-      
-    if CONF_ONOFF_SWITCH_ID in config:
-      sw = await cg.get_variable(config[CONF_ONOFF_SWITCH_ID])
-      cg.add(var.set_onoff_switch(sw))  
+     
+    if CONF_CURRENT_MIN_CHARGING in config:
+      cg.add(var.set_current_min_charging_register(config[CONF_CURRENT_MIN_CHARGING]))
+    if CONF_CURRENT_MIN_DISCHARGING in config:
+      cg.add(var.set_current_min_discharging_register(config[CONF_CURRENT_MIN_DISCHARGING]))		
+       
 		
  
