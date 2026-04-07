@@ -66,8 +66,7 @@ async def to_code(config):
      
     if CONF_CURRENT_MIN_CHARGING in config:
       cg.add(var.set_current_min_charging_register(config[CONF_CURRENT_MIN_CHARGING]))
+		
     if CONF_CURRENT_MIN_DISCHARGING in config:
       cg.add(var.set_current_min_discharging_register(config[CONF_CURRENT_MIN_DISCHARGING]))		
        
-		
- 
