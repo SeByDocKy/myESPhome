@@ -212,7 +212,7 @@ void DUALPIDPCMComponent::pid_update() {
       }	
     }
 	else{  // regulation
-	  if (!deadband){	
+	  if (!deadband){ // Not in deadband
         if (this->discharge_charge_switch_ != nullptr) {
  	      if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
 	        this->discharge_charge_switch_->turn_on();	 
@@ -226,7 +226,7 @@ void DUALPIDPCMComponent::pid_update() {
 	      }
         }
 	  }
-	  else{
+	  else{ // in deadband, turn off PCM module
         if((this->onoff_switch_->state==true)  ){
 	       this->onoff_switch_->turn_off();	 
 	       this->onoff_switch_->publish_state(false);
@@ -245,6 +245,7 @@ void DUALPIDPCMComponent::pid_update() {
 	
         this->onoff_switch_->turn_off();	 
 	    this->onoff_switch_->publish_state(false);
+		  
         this->discharge_charge_switch_->turn_on();	 
 	    this->discharge_charge_switch_->publish_state(true);	
       }
