@@ -61,7 +61,7 @@ void DUALPIDPCMComponent::pid_update() {
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
   float cc, cd;
-  bool e;
+  bool e , deadband;
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
@@ -116,7 +116,7 @@ void DUALPIDPCMComponent::pid_update() {
 	ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
 	if (e){  // charge
-	  if(epsi > this->current_battery_voltage_*currentmincharging){ 
+	  if(epsi > this->current_battery_voltage_*currentmincharging){
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
 	    this->current_kd_ = this->current_kd_charging_;
@@ -128,11 +128,13 @@ void DUALPIDPCMComponent::pid_update() {
 	    alphaP = coeffP * this->error_;
 	    alphaI = coeffI * this->integral_;
 	    alphaD = coeffD * this->derivative_;
+		deadband = true;
 	  }
 	  else{
         alphaP = 0.0f;
 		alphaI = 0.0f;
-		alphaD = 0.0f;  
+		alphaD = 0.0f;
+		deadband = false;  
 	  }
 	}
 	else{  // discharge
@@ -148,11 +150,13 @@ void DUALPIDPCMComponent::pid_update() {
 	    alphaP = coeffP * this->error_;
 	    alphaI = coeffI * this->integral_;
 	    alphaD = coeffD * this->derivative_;
+		deadband = true;  
 	  }
 	  else{
         alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
+	    deadband = false;	  
 	  }
 	}
  
@@ -192,7 +196,7 @@ void DUALPIDPCMComponent::pid_update() {
 	   this->previous_output_    = this->current_epoint_;
 	}
  
-    if (!this->current_activation_ ){
+    if (!this->current_activation_ ){  // no regulation 
       this->output_             = this->current_epoint_;
 	  this->previous_output_    = this->current_epoint_;  	
 	  this->output_charging_    = 0.0f;
@@ -203,19 +207,28 @@ void DUALPIDPCMComponent::pid_update() {
 		   delay(150);
       }	
     }
-	else{  
-      if (this->discharge_charge_switch_ != nullptr) {
- 	    if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
-	      this->discharge_charge_switch_->turn_on();	 
-	      this->discharge_charge_switch_->publish_state(true);
-		  delay(150);
+	else{  // regulation
+	  if (deadband){	
+        if (this->discharge_charge_switch_ != nullptr) {
+ 	      if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
+	        this->discharge_charge_switch_->turn_on();	 
+	        this->discharge_charge_switch_->publish_state(true);
+		    delay(150);
+          }
+	      else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
+	        this->discharge_charge_switch_->turn_off();	 
+	        this->discharge_charge_switch_->publish_state(false);
+		    delay(150);
+	      }
         }
-	    else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
-	      this->discharge_charge_switch_->turn_off();	 
-	      this->discharge_charge_switch_->publish_state(false);
-		  delay(150);
-	    }
-      }
+	  }
+	  else{
+        if((this->onoff_switch_->state==true)  ){
+	       this->onoff_switch_->turn_off();	 
+	       this->onoff_switch_->publish_state(false);
+		   delay(150);
+        }
+	  }
 	}
 
     if (!std::isnan(this->current_battery_voltage_)){
