@@ -208,7 +208,7 @@ void DUALPIDPCMComponent::pid_update() {
       }	
     }
 	else{  // regulation
-	  if (deadband){	
+	  if (!deadband){	
         if (this->discharge_charge_switch_ != nullptr) {
  	      if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
 	        this->discharge_charge_switch_->turn_on();	 
