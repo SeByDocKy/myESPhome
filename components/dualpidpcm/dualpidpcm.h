@@ -70,6 +70,8 @@ SUB_NUMBER(output_max_discharging)
   void set_device_discharging_output(output::FloatOutput *output) {this->device_discharging_output_ = output; }
   void set_discharge_charge_switch(switch_::Switch *sw) {this->discharge_charge_switch_ = sw;}
   void set_onoff_switch(switch_::Switch *sw) {this->onoff_switch_ = sw;}
+  void set_current_min_charging_register(float current){this->current_min_charging_ = current;}
+  void set_current_min_discharging_register(float current){this->current_min_discharging_ = current;}
    
   void pid_update();
   
@@ -163,6 +165,8 @@ SUB_NUMBER(output_max_discharging)
   float previous_output_discharging_ = 0.0f;
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
+  float current_min_charging_ = 5.0f;
+  float current_min_discharging_ = 5.0f;
   
   float current_charging_epoint_ = 50.0f; // 0.5f;
   float current_absorbing_epoint_ = 2.0f; // 0.2f;
