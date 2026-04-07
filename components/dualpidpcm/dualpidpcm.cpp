@@ -205,6 +205,10 @@ void DUALPIDPCMComponent::pid_update() {
 	       this->onoff_switch_->turn_off();	 
 	       this->onoff_switch_->publish_state(false);
 		   delay(150);
+		  
+		   this->discharge_charge_switch_->turn_on();	 
+	       this->discharge_charge_switch_->publish_state(true);
+		   delay(150);
       }	
     }
 	else{  // regulation
