@@ -191,10 +191,6 @@ void DUALPIDPCMComponent::pid_update() {
 	   this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 	   this->previous_output_    = this->current_epoint_;
 	}
-	// tmp is a positive value
-
-	
-  
  
     if (!this->current_activation_ ){
       this->output_             = this->current_epoint_;
@@ -214,7 +210,7 @@ void DUALPIDPCMComponent::pid_update() {
 	      this->discharge_charge_switch_->publish_state(true);
 		  delay(150);
         }
-	  else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
+	    else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
 	      this->discharge_charge_switch_->turn_off();	 
 	      this->discharge_charge_switch_->publish_state(false);
 		  delay(150);
