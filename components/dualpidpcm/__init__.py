@@ -38,8 +38,8 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_DISCHARGING_OUTPUT_ID): cv.use_id(output.FloatOutput),
 		  cv.Required(CONF_DISCHARGE_CHARGE_SWITCH_ID): cv.use_id(switch.Switch),
           cv.Required(CONF_ONOFF_SWITCH_ID): cv.use_id(switch.Switch),
-		  cv.Optional(CONF_CURRENT_MIN_CHARGING): cv.float_range(min=0.0, max=70),
-		  cv.Optional(CONF_CURRENT_MIN_DISCHARGING): cv.float_range(min=0.0, max=70),	
+		  cv.Optional(CONF_CURRENT_MIN_CHARGING): cv.float_range(min=0.0, max=70.0),
+		  cv.Optional(CONF_CURRENT_MIN_DISCHARGING): cv.float_range(min=0.0, max=70.0),	
         }
     )
  )
