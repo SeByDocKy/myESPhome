@@ -14,8 +14,8 @@ static const float coeffPdischarging = 0.00001f;
 static const float coeffIdischarging = 0.001f;
 static const float coeffDdischarging = 0.001f;
 
-static const float currentmincharging = 5.0f;
-static const float currentmindischarging = 5.0f;
+// static const float currentmincharging = 5.0f;
+// static const float currentmindischarging = 5.0f;
 
 
 void DUALPIDPCMComponent::setup() { 
@@ -116,7 +116,7 @@ void DUALPIDPCMComponent::pid_update() {
 	ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 	
 	if (e){  // charge
-	  if(epsi > this->current_battery_voltage_*currentmincharging){
+	  if(epsi > this->current_battery_voltage_*this->current_min_charging_){
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
 	    this->current_kd_ = this->current_kd_charging_;
@@ -138,7 +138,7 @@ void DUALPIDPCMComponent::pid_update() {
 	  }
 	}
 	else{  // discharge
-	  if(epsi < this->current_battery_voltage_*currentmindischarging){	
+	  if(epsi < this->current_battery_voltage_*this->current_min_discharging_){	
 	    this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
