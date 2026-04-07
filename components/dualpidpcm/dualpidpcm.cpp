@@ -195,7 +195,7 @@ void DUALPIDPCMComponent::pid_update() {
 
 	
   
-#ifdef USE_SWITCH  
+ 
     if (!this->current_activation_ ){
       this->output_             = this->current_epoint_;
 	  this->previous_output_    = this->current_epoint_;  	
@@ -204,10 +204,10 @@ void DUALPIDPCMComponent::pid_update() {
 	  if((this->onoff_switch_->state==true)  ){
 	       this->onoff_switch_->turn_off();	 
 	       this->onoff_switch_->publish_state(false);
+		   delay(150);
       }	
     }
-#endif  
-	if (this->current_activation_ ){  
+	else{  
       if (this->discharge_charge_switch_ != nullptr) {
  	    if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
 	      this->discharge_charge_switch_->turn_on();	 
@@ -236,7 +236,6 @@ void DUALPIDPCMComponent::pid_update() {
 	    this->discharge_charge_switch_->publish_state(true);	
       }
     }
-	
 	
 	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	if (this->output_charging_ != this->previous_output_charging_){
