@@ -88,18 +88,15 @@ void DUALPIDPCMComponent::pid_update() {
 	
   ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
 
-#ifdef USE_SWITCH  
+
   if (!this->current_manual_override_){
-#endif
     this->dt_   = float(now - this->last_time_)/1000.0f;
 	epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	this->error_ = epsi;   
-	  
-#ifdef USE_SWITCH	  
+	  	  
 	if (this->current_reverse_){
 		this->error_ = -this->error_;
 	}
-#endif	  
 	this->current_error_ = this->error_;
 	
     tmp = (this->error_ * this->dt_);
@@ -116,7 +113,7 @@ void DUALPIDPCMComponent::pid_update() {
 	}
 		
     tmp = 0.0f;
-    if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
+    if( !std::isnan(this->previous_output_) && !this->current_pid_mode_ && !swap_state){
         tmp = this->previous_output_;
     }
 	
@@ -136,6 +133,7 @@ void DUALPIDPCMComponent::pid_update() {
 	  alphaI = coeffI * this->integral_;
 	  alphaD = coeffD * this->derivative_;
 	  deadband = false;
+	  current_state = false;
 	}
 	else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){
       this->current_kp_ = this->current_kp_discharging_;
@@ -149,7 +147,8 @@ void DUALPIDPCMComponent::pid_update() {
 	  alphaP = coeffP * this->error_;
 	  alphaI = coeffI * this->integral_;
 	  alphaD = coeffD * this->derivative_;
-	  deadband = false;  
+	  deadband = false;
+	  current_state = true;	
 	  }
 	else{  // discharge
 	    alphaP = 0.0f;
@@ -330,10 +329,7 @@ void DUALPIDPCMComponent::pid_update() {
  //      }
     }
 	  
-	  
-#ifdef USE_SWITCH	
   } 
-#endif  
   
  }
 
