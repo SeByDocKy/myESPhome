@@ -132,6 +132,8 @@ void DUALPIDPCMComponent::pid_update() {
 	  alphaP = coeffP * this->error_;
 	  alphaI = coeffI * this->integral_;
 	  alphaD = coeffD * this->derivative_;
+
+	  alpha  = alphaP + alphaI + alphaD;	
 	  deadband = false;
 	  current_state = false;
 	}
@@ -147,6 +149,8 @@ void DUALPIDPCMComponent::pid_update() {
 	  alphaP = coeffP * this->error_;
 	  alphaI = coeffI * this->integral_;
 	  alphaD = coeffD * this->derivative_;
+
+	  alpha  = alphaP + alphaI + alphaD;	
 	  deadband = false;
 	  current_state = true;	
 	  }
@@ -154,6 +158,7 @@ void DUALPIDPCMComponent::pid_update() {
 	    alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
+		alpha  = 0.5;
 	    deadband = true;	  
 	}
 	
@@ -203,7 +208,7 @@ void DUALPIDPCMComponent::pid_update() {
 	//   }
 	// }
  
-	alpha  = alphaP + alphaI + alphaD;
+	// alpha  = alphaP + alphaI + alphaD;
 	
     this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
 	
