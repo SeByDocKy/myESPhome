@@ -135,6 +135,7 @@ void DUALPIDPCMComponent::pid_update() {
 
 	  alpha  = alphaP + alphaI + alphaD;	
 	  deadband = false;
+	  previous_state = current_state;	
 	  current_state = false;
 	}
 	else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){
@@ -152,6 +153,7 @@ void DUALPIDPCMComponent::pid_update() {
 
 	  alpha  = alphaP + alphaI + alphaD;	
 	  deadband = false;
+	  previous_state = current_state;	
 	  current_state = true;	
 	  }
 	else{  // deadband
@@ -159,6 +161,7 @@ void DUALPIDPCMComponent::pid_update() {
 		alphaI = 0.0f;
 		alphaD = 0.0f;
 		alpha  = 0.5f;
+		previous_state = current_state;
 	    deadband = true;	  
 	}
 	
