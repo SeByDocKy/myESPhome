@@ -154,11 +154,11 @@ void DUALPIDPCMComponent::pid_update() {
 	  deadband = false;
 	  current_state = true;	
 	  }
-	else{  // discharge
+	else{  // deadband
 	    alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
-		alpha  = 0.5;
+		alpha  = 0.5f;
 	    deadband = true;	  
 	}
 	
