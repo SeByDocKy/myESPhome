@@ -62,6 +62,7 @@ void DUALPIDPCMComponent::pid_update() {
   float coeffP, coeffI, coeffD;
   float cc, cd;
   bool e , deadband=false;
+  bool current_state=true, previous_state=true, swap_state=false;
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
@@ -107,6 +108,13 @@ void DUALPIDPCMComponent::pid_update() {
     }
     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
+	if (previous_state != current_state){
+	  swap_state = true;
+	}
+	else{
+      swap_state = false;
+	}
+		
     tmp = 0.0f;
     if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
         tmp = this->previous_output_;
@@ -114,51 +122,87 @@ void DUALPIDPCMComponent::pid_update() {
 	
 	ESP_LOGI(TAG, "previous output = %2.8f" , tmp );
 	ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
-	
-	if (e){  // charge
-	  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
-	    this->current_kp_ = this->current_kp_charging_;
-	    this->current_ki_ = this->current_ki_charging_;
-	    this->current_kd_ = this->current_kd_charging_;
-      
-	    coeffP = coeffPcharging*this->current_kp_;
-	    coeffI = coeffIcharging*this->current_ki_;
-	    coeffD = coeffDcharging*this->current_kd_;
-		
-	    alphaP = coeffP * this->error_;
-	    alphaI = coeffI * this->integral_;
-	    alphaD = coeffD * this->derivative_;
-		deadband = false;
-	  }
-	  else{
-        alphaP = 0.0f;
-		alphaI = 0.0f;
-		alphaD = 0.0f;
-		deadband = true;  
-	  }
-	}
-	else{  // discharge
-	  if(epsi > this->current_battery_voltage_*this->current_min_discharging_){	
-	    this->current_kp_ = this->current_kp_discharging_;
-	    this->current_ki_ = this->current_ki_discharging_;
-	    this->current_kd_ = this->current_kd_discharging_;
-		  
-	    coeffP = coeffPdischarging*this->current_kp_;
-	    coeffI = coeffIdischarging*this->current_ki_;
-	    coeffD = coeffDdischarging*this->current_kd_;	
 
-	    alphaP = coeffP * this->error_;
-	    alphaI = coeffI * this->integral_;
-	    alphaD = coeffD * this->derivative_;
-		deadband = false;  
+	if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
+	  this->current_kp_ = this->current_kp_charging_;
+	  this->current_ki_ = this->current_ki_charging_;
+	  this->current_kd_ = this->current_kd_charging_;
+      
+	  coeffP = coeffPcharging*this->current_kp_;
+	  coeffI = coeffIcharging*this->current_ki_;
+	  coeffD = coeffDcharging*this->current_kd_;
+		
+	  alphaP = coeffP * this->error_;
+	  alphaI = coeffI * this->integral_;
+	  alphaD = coeffD * this->derivative_;
+	  deadband = false;
+	}
+	else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){
+      this->current_kp_ = this->current_kp_discharging_;
+	  this->current_ki_ = this->current_ki_discharging_;
+	  this->current_kd_ = this->current_kd_discharging_;
+		  
+	  coeffP = coeffPdischarging*this->current_kp_;
+	  coeffI = coeffIdischarging*this->current_ki_;
+	  coeffD = coeffDdischarging*this->current_kd_;	
+
+	  alphaP = coeffP * this->error_;
+	  alphaI = coeffI * this->integral_;
+	  alphaD = coeffD * this->derivative_;
+	  deadband = false;  
 	  }
-	  else{
-        alphaP = 0.0f;
+	else{  // discharge
+	    alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
 	    deadband = true;	  
-	  }
 	}
+	
+  
+	// if (e){  // charge
+	//   if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
+	//     this->current_kp_ = this->current_kp_charging_;
+	//     this->current_ki_ = this->current_ki_charging_;
+	//     this->current_kd_ = this->current_kd_charging_;
+      
+	//     coeffP = coeffPcharging*this->current_kp_;
+	//     coeffI = coeffIcharging*this->current_ki_;
+	//     coeffD = coeffDcharging*this->current_kd_;
+		
+	//     alphaP = coeffP * this->error_;
+	//     alphaI = coeffI * this->integral_;
+	//     alphaD = coeffD * this->derivative_;
+	// 	deadband = false;
+	//   }
+	//   else{
+ //        alphaP = 0.0f;
+	// 	alphaI = 0.0f;
+	// 	alphaD = 0.0f;
+	// 	deadband = true;  
+	//   }
+	// }
+	// else{  // discharge
+	//   if(epsi > this->current_battery_voltage_*this->current_min_discharging_){	
+	//     this->current_kp_ = this->current_kp_discharging_;
+	//     this->current_ki_ = this->current_ki_discharging_;
+	//     this->current_kd_ = this->current_kd_discharging_;
+		  
+	//     coeffP = coeffPdischarging*this->current_kp_;
+	//     coeffI = coeffIdischarging*this->current_ki_;
+	//     coeffD = coeffDdischarging*this->current_kd_;	
+
+	//     alphaP = coeffP * this->error_;
+	//     alphaI = coeffI * this->integral_;
+	//     alphaD = coeffD * this->derivative_;
+	// 	deadband = false;  
+	//   }
+	//   else{
+ //        alphaP = 0.0f;
+	// 	alphaI = 0.0f;
+	// 	alphaD = 0.0f;
+	//     deadband = true;	  
+	//   }
+	// }
  
 	alpha  = alphaP + alphaI + alphaD;
 	
