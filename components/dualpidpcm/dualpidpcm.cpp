@@ -233,7 +233,7 @@ void DUALPIDPCMComponent::pid_update() {
        tmp                       = (this->current_epoint_ - this->output_); // tmp is positive
 	   
 	   this->output_discharging_ = 0.0f;
-	   if(deadband){
+	   if(!deadband){
 		 this->output_charging_    = tmp; //cc*tmp; ?   
 	     this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	   }
@@ -245,7 +245,7 @@ void DUALPIDPCMComponent::pid_update() {
 	else{ // Discharge 
        tmp                       = (this->output_ - this->current_epoint_ ); // tmp is positive
 	   this->output_charging_    = 0.0f;
-	   if(deadband){	
+	   if(!deadband){	
 	     this->output_discharging_ = cd*tmp; // tmp;?
 	     this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 		}
