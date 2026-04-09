@@ -4,52 +4,50 @@
 namespace esphome {
 namespace dualpidpcm {
 
-static const char *const TAG = "dualpidpcm";
+  static const char *const TAG = "dualpidpcm";
 
-static const float coeffPcharging = 0.00001f;
-static const float coeffIcharging = 0.001f;
-static const float coeffDcharging = 0.001f;
+  static const float coeffPcharging = 0.00001f;
+  static const float coeffIcharging = 0.001f;
+  static const float coeffDcharging = 0.001f;
 
-static const float coeffPdischarging = 0.00001f;
-static const float coeffIdischarging = 0.001f;
-static const float coeffDdischarging = 0.001f;
+  static const float coeffPdischarging = 0.00001f;
+  static const float coeffIdischarging = 0.001f;
+  static const float coeffDdischarging = 0.001f;
 
-void DUALPIDPCMComponent::setup() { 
-  ESP_LOGCONFIG(TAG, "Setting up DUALPIDPCMComponent...");
+  void DUALPIDPCMComponent::setup() { 
+    ESP_LOGCONFIG(TAG, "Setting up DUALPIDPCMComponent...");
   
-  this->last_time_ =  millis();
-  this->integral_  = 0.0f;
-  // this->previous_output_ = this->current_epoint_;
-  this->previous_error_ = 0.0f;
+    this->last_time_ =  millis();
+    this->integral_  = 0.0f;
+    // this->previous_output_ = this->current_epoint_;
+    this->previous_error_ = 0.0f;
   
-  if (this->input_sensor_ != nullptr) {
-    this->input_sensor_->add_on_state_callback([this](float state) {
-      this->current_input_ = state;
-      this->pid_update();
-    });
-    this->current_input_ = this->input_sensor_->state;
+    if (this->input_sensor_ != nullptr) {
+      this->input_sensor_->add_on_state_callback([this](float state) {
+        this->current_input_ = state;
+        this->pid_update();
+      });
+      this->current_input_ = this->input_sensor_->state;
+    }
+  
+    if (this->battery_voltage_sensor_ != nullptr) {
+      this->battery_voltage_sensor_->add_on_state_callback([this](float state) {
+        this->current_battery_voltage_ = state;
+      });
+      this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
+    }
+  
+    this->pid_computed_callback_.call();
+
+    ESP_LOGI(TAG, "setup: battery_voltage=%3.2f, pid_mode = %d", this->current_battery_voltage_ , this->current_pid_mode_);  
+  
   }
-  
-  if (this->battery_voltage_sensor_ != nullptr) {
-    this->battery_voltage_sensor_->add_on_state_callback([this](float state) {
-      this->current_battery_voltage_ = state;
 
-    });
-    this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
+  void DUALPIDPCMComponent::dump_config() {
+    ESP_LOGCONFIG(TAG, "dump config:");
+    ESP_LOGVV(TAG, "setup import part: battery_voltage=%3.2f", this->current_battery_voltage_ );
+    this->pid_computed_callback_.call(); 
   }
-  
-  this->pid_computed_callback_.call();
-
-  
-  ESP_LOGI(TAG, "setup: battery_voltage=%3.2f, pid_mode = %d", this->current_battery_voltage_ , this->current_pid_mode_);  
-  
-}
-
-void DUALPIDPCMComponent::dump_config() {
-  ESP_LOGCONFIG(TAG, "dump config:");
-  ESP_LOGVV(TAG, "setup import part: battery_voltage=%3.2f", this->current_battery_voltage_ );
-  this->pid_computed_callback_.call(); 
-}
 
 void DUALPIDPCMComponent::pid_update() {
   uint32_t now = millis();
