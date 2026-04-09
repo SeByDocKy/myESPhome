@@ -19,7 +19,7 @@ void DUALPIDPCMComponent::setup() {
   
   this->last_time_ =  millis();
   this->integral_  = 0.0f;
-  this->previous_output_ = this->current_epoint_;
+  // this->previous_output_ = this->current_epoint_;
   this->previous_error_ = 0.0f;
   
   if (this->input_sensor_ != nullptr) {
