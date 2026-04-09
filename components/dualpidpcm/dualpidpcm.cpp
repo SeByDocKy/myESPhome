@@ -108,15 +108,21 @@ void DUALPIDPCMComponent::pid_update() {
       swap_state = false;
 	}
 		
-    tmp = 0.0f;
-    if( !std::isnan(this->previous_output_) && !this->current_pid_mode_ && !swap_state){
-        tmp = this->previous_output_;
-    }
+ //    tmp = 0.0f;
+ //    if( !std::isnan(this->previous_output_) && !this->current_pid_mode_ && !swap_state){
+ //        tmp = this->previous_output_;
+ //    }
 	
-	ESP_LOGI(TAG, "previous output = %2.8f" , tmp );
-	ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
+	// ESP_LOGI(TAG, "previous output = %2.8f" , tmp );
+	// ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 
 	if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
+
+	  tmp = 0.0f;
+      if( !std::isnan(this->previous_charging_output_) && !this->current_pid_mode_ && !swap_state){
+        tmp = this->previous_charging_output_;
+      }
+	
 	  this->current_kp_ = this->current_kp_charging_;
 	  this->current_ki_ = this->current_ki_charging_;
 	  this->current_kd_ = this->current_kd_charging_;
@@ -133,8 +139,17 @@ void DUALPIDPCMComponent::pid_update() {
 	  deadband = false;
 	  previous_state = current_state;	
 	  current_state = false;
+
+	  this->output_discharging_ = 0.0f;		
+	  this->output_charging_    = std::min(std::max( tmp + alpha , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
+	  
 	}
 	else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){
+
+	  tmp = 0.0f;
+      if( !std::isnan(this->previous_discharging_output_) && !this->current_pid_mode_ && !swap_state){
+        tmp = this->previous_discharging_output_;
+      }	
       this->current_kp_ = this->current_kp_discharging_;
 	  this->current_ki_ = this->current_ki_discharging_;
 	  this->current_kd_ = this->current_kd_discharging_;
@@ -151,6 +166,10 @@ void DUALPIDPCMComponent::pid_update() {
 	  deadband = false;
 	  previous_state = current_state;	
 	  current_state = true;	
+
+	  this->output_charging_    = 0.0f;		
+	  this->output_discharging_ = std::min(std::max( tmp + alpha , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
+	 	
 	  }
 	else{  // deadband
 	    alphaP = 0.0f;
@@ -158,7 +177,9 @@ void DUALPIDPCMComponent::pid_update() {
 		alphaD = 0.0f;
 		alpha  = 0.5f;
 		previous_state = current_state;
-	    deadband = true;	  
+	    deadband = true;
+		this->output_charging_ = 0.0f;
+		this->output_discharging_ = 0.0f;
 	}
 	
   
@@ -209,47 +230,47 @@ void DUALPIDPCMComponent::pid_update() {
  
 	// alpha  = alphaP + alphaI + alphaD;
 	
-    this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
+ //    this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
 	
-    ESP_LOGI(TAG, "Pcoeff = %3.8f" , alphaP );
-	ESP_LOGI(TAG, "Icoeff = %3.8f" , alphaI );
-	ESP_LOGI(TAG, "Dcoeff = %3.8f" , alphaD );
+ //    ESP_LOGI(TAG, "Pcoeff = %3.8f" , alphaP );
+	// ESP_LOGI(TAG, "Icoeff = %3.8f" , alphaI );
+	// ESP_LOGI(TAG, "Dcoeff = %3.8f" , alphaD );
 	
-	ESP_LOGI(TAG, "output_min = %1.2f" , this->current_output_min_  );
-	ESP_LOGI(TAG, "output_max = %1.2f" , this->current_output_max_  );
+	// ESP_LOGI(TAG, "output_min = %1.2f" , this->current_output_min_  );
+	// ESP_LOGI(TAG, "output_max = %1.2f" , this->current_output_max_  );
 	
-	ESP_LOGI(TAG, "PIDcoeff = %3.8f" , alpha );
+	// ESP_LOGI(TAG, "PIDcoeff = %3.8f" , alpha );
 	
-	ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);    
+	// ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);    
     
-	ESP_LOGI(TAG, "activation %d", this->current_activation_);
+	// ESP_LOGI(TAG, "activation %d", this->current_activation_);
 
-	e   = (this->output_ < this->current_epoint_ );
-	if(e){ // Charge 
-       tmp                       = (this->current_epoint_ - this->output_); // tmp is positive
+	// e   = (this->output_ < this->current_epoint_ );
+	// if(e){ // Charge 
+ //       tmp                       = (this->current_epoint_ - this->output_); // tmp is positive
 	   
-	   this->output_discharging_ = 0.0f;
-	   if(!deadband){
-		 this->output_charging_    = tmp; //cc*tmp; ?   
-	     this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	   }
-	   else{
-         this->output_charging_    = 0.0f; 
-	   }
-	   this->previous_output_    = this->current_epoint_;
-	}
-	else{ // Discharge 
-       tmp                       = (this->output_ - this->current_epoint_ ); // tmp is positive
-	   this->output_charging_    = 0.0f;
-	   if(!deadband){	
-	     this->output_discharging_ = cd*tmp; // tmp;?
-	     this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
-		}
-		else{
-           this->output_discharging_ = 0.0f;
-		}
-	   this->previous_output_    = this->current_epoint_;
-	}
+	//    this->output_discharging_ = 0.0f;
+	//    if(!deadband){
+	// 	 this->output_charging_    = tmp; //cc*tmp; ?   
+	//      this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+	//    }
+	//    else{
+ //         this->output_charging_    = 0.0f; 
+	//    }
+	//    this->previous_output_    = this->current_epoint_;
+	// }
+	// else{ // Discharge 
+ //       tmp                       = (this->output_ - this->current_epoint_ ); // tmp is positive
+	//    this->output_charging_    = 0.0f;
+	//    if(!deadband){	
+	//      this->output_discharging_ = cd*tmp; // tmp;?
+	//      this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
+	// 	}
+	// 	else{
+ //           this->output_discharging_ = 0.0f;
+	// 	}
+	//    this->previous_output_    = this->current_epoint_;
+	// }
  
     if (!this->current_activation_ ){  // no regulation 
       this->output_             = this->current_epoint_;
