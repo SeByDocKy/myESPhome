@@ -119,8 +119,8 @@ void DUALPIDPCMComponent::pid_update() {
 	if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
 
 	  tmp = 0.0f;
-      if( !std::isnan(this->previous_charging_output_) && !this->current_pid_mode_ && !swap_state){
-        tmp = this->previous_charging_output_;
+      if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_ && !swap_state){
+        tmp = this->previous_output_charging_;
       }
 	
 	  this->current_kp_ = this->current_kp_charging_;
@@ -147,8 +147,8 @@ void DUALPIDPCMComponent::pid_update() {
 	else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){
 
 	  tmp = 0.0f;
-      if( !std::isnan(this->previous_discharging_output_) && !this->current_pid_mode_ && !swap_state){
-        tmp = this->previous_discharging_output_;
+      if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_ && !swap_state){
+        tmp = this->previous_output_discharging_;
       }	
       this->current_kp_ = this->current_kp_discharging_;
 	  this->current_ki_ = this->current_ki_discharging_;
