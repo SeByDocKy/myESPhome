@@ -22,13 +22,13 @@ from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
 
 SetpointNumber = dualpidpcm_ns.class_("SetpointNumber", number.Number, cg.Component)
 
-ChargingEpointNumber = dualpidpcm_ns.class_("ChargingEpointNumber", number.Number, cg.Component)
-AbsorbingEpointNumber = dualpidpcm_ns.class_("AbsorbingEpointNumber", number.Number, cg.Component)
-FloatingEpointNumber = dualpidpcm_ns.class_("FloatingEpointNumber", number.Number, cg.Component)
+# ChargingEpointNumber = dualpidpcm_ns.class_("ChargingEpointNumber", number.Number, cg.Component)
+# AbsorbingEpointNumber = dualpidpcm_ns.class_("AbsorbingEpointNumber", number.Number, cg.Component)
+# FloatingEpointNumber = dualpidpcm_ns.class_("FloatingEpointNumber", number.Number, cg.Component)
 
 StartingBatteryVoltageNumber = dualpidpcm_ns.class_("StartingBatteryVoltageNumber", number.Number, cg.Component)
-ChargedBatteryVoltageNumber = dualpidpcm_ns.class_("ChargedBatteryVoltageNumber", number.Number, cg.Component)
-DischargedBatteryVoltageNumber = dualpidpcm_ns.class_("DischargedBatteryVoltageNumber", number.Number, cg.Component)
+# ChargedBatteryVoltageNumber = dualpidpcm_ns.class_("ChargedBatteryVoltageNumber", number.Number, cg.Component)
+# DischargedBatteryVoltageNumber = dualpidpcm_ns.class_("DischargedBatteryVoltageNumber", number.Number, cg.Component)
 
 KpChargingNumber = dualpidpcm_ns.class_("KpChargingNumber", number.Number, cg.Component)
 KiChargingNumber = dualpidpcm_ns.class_("KiChargingNumber", number.Number, cg.Component)
@@ -38,8 +38,8 @@ KpDischargingNumber = dualpidpcm_ns.class_("KpDischargingNumber", number.Number,
 KiDischargingNumber = dualpidpcm_ns.class_("KiDischargingNumber", number.Number, cg.Component)
 KdDischargingNumber = dualpidpcm_ns.class_("KdDischargingNumber", number.Number, cg.Component)
 
-OutputMinNumber = dualpidpcm_ns.class_("OutputMinNumber", number.Number, cg.Component)
-OutputMaxNumber = dualpidpcm_ns.class_("OutputMaxNumber", number.Number, cg.Component)
+# OutputMinNumber = dualpidpcm_ns.class_("OutputMinNumber", number.Number, cg.Component)
+# OutputMaxNumber = dualpidpcm_ns.class_("OutputMaxNumber", number.Number, cg.Component)
 
 OutputMinChargingNumber = dualpidpcm_ns.class_("OutputMinChargingNumber", number.Number, cg.Component)
 OutputMaxChargingNumber = dualpidpcm_ns.class_("OutputMaxChargingNumber", number.Number, cg.Component)
@@ -50,13 +50,13 @@ OutputMaxDischargingNumber = dualpidpcm_ns.class_("OutputMaxDischargingNumber", 
 
 CONF_SETPOINT = "setpoint"
 
-CONF_CHARGING_EPOINT = "charging_epoint"
-CONF_ABSORBING_EPOINT = "absorbing_epoint"
-CONF_FLOATING_EPOINT = "floating_epoint"
+# CONF_CHARGING_EPOINT = "charging_epoint"
+# CONF_ABSORBING_EPOINT = "absorbing_epoint"
+# CONF_FLOATING_EPOINT = "floating_epoint"
 
 CONF_STARTING_BATTERY_VOLTAGE = "starting_battery_voltage"
-CONF_CHARGED_BATTERY_VOLTAGE = "charged_battery_voltage"
-CONF_DISCHARGED_BATTERY_VOLTAGE = "discharged_battery_voltage"
+# CONF_CHARGED_BATTERY_VOLTAGE = "charged_battery_voltage"
+# CONF_DISCHARGED_BATTERY_VOLTAGE = "discharged_battery_voltage"
 
 CONF_KP_CHARGING = "kp_charging"
 CONF_KI_CHARGING = "ki_charging"
@@ -66,8 +66,8 @@ CONF_KP_DISCHARGING = "kp_discharging"
 CONF_KI_DISCHARGING = "ki_discharging"
 CONF_KD_DISCHARGING = "kd_discharging"
 
-CONF_OUTPUT_MIN = "output_min"
-CONF_OUTPUT_MAX = "output_max"
+# CONF_OUTPUT_MIN = "output_min"
+# CONF_OUTPUT_MAX = "output_max"
 
 CONF_OUTPUT_MIN_CHARGING = "output_min_charging"
 CONF_OUTPUT_MAX_CHARGING = "output_max_charging"
@@ -87,29 +87,29 @@ CONFIG_SCHEMA = {
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     
-    cv.Optional(CONF_CHARGING_EPOINT): number.number_schema(
-        ChargingEpointNumber,
-        device_class=DEVICE_CLASS_BATTERY,
-        icon = ICON_PERCENT,
-        unit_of_measurement=UNIT_PERCENT,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
+    # cv.Optional(CONF_CHARGING_EPOINT): number.number_schema(
+    #     ChargingEpointNumber,
+    #     device_class=DEVICE_CLASS_BATTERY,
+    #     icon = ICON_PERCENT,
+    #     unit_of_measurement=UNIT_PERCENT,
+    #     entity_category=ENTITY_CATEGORY_CONFIG
+    # ).extend(cv.COMPONENT_SCHEMA),
     
-    cv.Optional(CONF_ABSORBING_EPOINT): number.number_schema(
-        AbsorbingEpointNumber,
-        device_class=DEVICE_CLASS_BATTERY,
-        icon = ICON_PERCENT,
-        unit_of_measurement=UNIT_PERCENT,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
+    # cv.Optional(CONF_ABSORBING_EPOINT): number.number_schema(
+    #     AbsorbingEpointNumber,
+    #     device_class=DEVICE_CLASS_BATTERY,
+    #     icon = ICON_PERCENT,
+    #     unit_of_measurement=UNIT_PERCENT,
+    #     entity_category=ENTITY_CATEGORY_CONFIG
+    # ).extend(cv.COMPONENT_SCHEMA),
     
-    cv.Optional(CONF_FLOATING_EPOINT): number.number_schema(
-        FloatingEpointNumber,
-        device_class=DEVICE_CLASS_BATTERY,
-        icon = ICON_PERCENT,
-        unit_of_measurement=UNIT_PERCENT,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
+    # cv.Optional(CONF_FLOATING_EPOINT): number.number_schema(
+    #     FloatingEpointNumber,
+    #     device_class=DEVICE_CLASS_BATTERY,
+    #     icon = ICON_PERCENT,
+    #     unit_of_measurement=UNIT_PERCENT,
+    #     entity_category=ENTITY_CATEGORY_CONFIG
+    # ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_STARTING_BATTERY_VOLTAGE): number.number_schema(
         StartingBatteryVoltageNumber,
@@ -119,21 +119,21 @@ CONFIG_SCHEMA = {
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),
     
-    cv.Optional(CONF_CHARGED_BATTERY_VOLTAGE): number.number_schema(
-        ChargedBatteryVoltageNumber,
-        device_class=DEVICE_CLASS_VOLTAGE,
-        unit_of_measurement=UNIT_VOLT,
-        icon = ICON_SINE_WAVE,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
+    # cv.Optional(CONF_CHARGED_BATTERY_VOLTAGE): number.number_schema(
+    #     ChargedBatteryVoltageNumber,
+    #     device_class=DEVICE_CLASS_VOLTAGE,
+    #     unit_of_measurement=UNIT_VOLT,
+    #     icon = ICON_SINE_WAVE,
+    #     entity_category=ENTITY_CATEGORY_CONFIG
+    # ).extend(cv.COMPONENT_SCHEMA),
     
-    cv.Optional(CONF_DISCHARGED_BATTERY_VOLTAGE): number.number_schema(
-        DischargedBatteryVoltageNumber,
-        device_class=DEVICE_CLASS_VOLTAGE,
-        icon = ICON_SINE_WAVE,
-        unit_of_measurement=UNIT_VOLT,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
+    # cv.Optional(CONF_DISCHARGED_BATTERY_VOLTAGE): number.number_schema(
+    #     DischargedBatteryVoltageNumber,
+    #     device_class=DEVICE_CLASS_VOLTAGE,
+    #     icon = ICON_SINE_WAVE,
+    #     unit_of_measurement=UNIT_VOLT,
+    #     entity_category=ENTITY_CATEGORY_CONFIG
+    # ).extend(cv.COMPONENT_SCHEMA),
     
     cv.Optional(CONF_KP_CHARGING): number.number_schema(
         KpChargingNumber,
@@ -165,19 +165,19 @@ CONFIG_SCHEMA = {
         entity_category=ENTITY_CATEGORY_CONFIG
     ).extend(cv.COMPONENT_SCHEMA),    
     
-    cv.Optional(CONF_OUTPUT_MIN): number.number_schema(
-        OutputMinNumber,
-        icon = ICON_PERCENT,
-        unit_of_measurement=UNIT_PERCENT,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
+    # cv.Optional(CONF_OUTPUT_MIN): number.number_schema(
+    #     OutputMinNumber,
+    #     icon = ICON_PERCENT,
+    #     unit_of_measurement=UNIT_PERCENT,
+    #     entity_category=ENTITY_CATEGORY_CONFIG
+    # ).extend(cv.COMPONENT_SCHEMA),
     
-    cv.Optional(CONF_OUTPUT_MAX): number.number_schema(
-        OutputMaxNumber,
-        icon = ICON_PERCENT,
-        unit_of_measurement=UNIT_PERCENT,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
+    # cv.Optional(CONF_OUTPUT_MAX): number.number_schema(
+    #     OutputMaxNumber,
+    #     icon = ICON_PERCENT,
+    #     unit_of_measurement=UNIT_PERCENT,
+    #     entity_category=ENTITY_CATEGORY_CONFIG
+    # ).extend(cv.COMPONENT_SCHEMA),
 
     cv.Optional(CONF_OUTPUT_MIN_CHARGING): number.number_schema(
         OutputMinChargingNumber,
@@ -220,29 +220,29 @@ async def to_code(config):
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_setpoint_number(n))
   
-  if charging_epoint_config := config.get(CONF_CHARGING_EPOINT):
-        n = await number.new_number(
-            charging_epoint_config, min_value=0.0, max_value=100.0, step=1.0
-        )
-        await cg.register_component(n, charging_epoint_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_charging_epoint_number(n))
+  # if charging_epoint_config := config.get(CONF_CHARGING_EPOINT):
+  #       n = await number.new_number(
+  #           charging_epoint_config, min_value=0.0, max_value=100.0, step=1.0
+  #       )
+  #       await cg.register_component(n, charging_epoint_config)
+  #       await cg.register_parented(n, dualpidpcm_component)
+  #       cg.add(dualpidpcm_component.set_charging_epoint_number(n))
         
-  if absorbing_epoint_config := config.get(CONF_ABSORBING_EPOINT):
-        n = await number.new_number(
-            absorbing_epoint_config, min_value=0.0, max_value=100.0, step=1.0
-        )
-        await cg.register_component(n, absorbing_epoint_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_absorbing_epoint_number(n))
+  # if absorbing_epoint_config := config.get(CONF_ABSORBING_EPOINT):
+  #       n = await number.new_number(
+  #           absorbing_epoint_config, min_value=0.0, max_value=100.0, step=1.0
+  #       )
+  #       await cg.register_component(n, absorbing_epoint_config)
+  #       await cg.register_parented(n, dualpidpcm_component)
+  #       cg.add(dualpidpcm_component.set_absorbing_epoint_number(n))
 
-  if floating_epoint_config := config.get(CONF_FLOATING_EPOINT):
-        n = await number.new_number(
-            floating_epoint_config, min_value=0.0, max_value=100.0, step=1.0
-        )
-        await cg.register_component(n, floating_epoint_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_floating_epoint_number(n))     
+  # if floating_epoint_config := config.get(CONF_FLOATING_EPOINT):
+  #       n = await number.new_number(
+  #           floating_epoint_config, min_value=0.0, max_value=100.0, step=1.0
+  #       )
+  #       await cg.register_component(n, floating_epoint_config)
+  #       await cg.register_parented(n, dualpidpcm_component)
+  #       cg.add(dualpidpcm_component.set_floating_epoint_number(n))     
         
   if starting_battery_voltage_config := config.get(CONF_STARTING_BATTERY_VOLTAGE):
         n = await number.new_number(
@@ -252,21 +252,21 @@ async def to_code(config):
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_starting_battery_voltage_number(n))
 
-  if charged_battery_voltage_config := config.get(CONF_CHARGED_BATTERY_VOLTAGE):
-        n = await number.new_number(
-            charged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
-        )
-        await cg.register_component(n, charged_battery_voltage_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_charged_battery_voltage_number(n))
+  # if charged_battery_voltage_config := config.get(CONF_CHARGED_BATTERY_VOLTAGE):
+  #       n = await number.new_number(
+  #           charged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
+  #       )
+  #       await cg.register_component(n, charged_battery_voltage_config)
+  #       await cg.register_parented(n, dualpidpcm_component)
+  #       cg.add(dualpidpcm_component.set_charged_battery_voltage_number(n))
 
-  if discharged_battery_voltage_config := config.get(CONF_DISCHARGED_BATTERY_VOLTAGE):
-        n = await number.new_number(
-            discharged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
-        )
-        await cg.register_component(n, discharged_battery_voltage_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_discharged_battery_voltage_number(n))  
+  # if discharged_battery_voltage_config := config.get(CONF_DISCHARGED_BATTERY_VOLTAGE):
+  #       n = await number.new_number(
+  #           discharged_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
+  #       )
+  #       await cg.register_component(n, discharged_battery_voltage_config)
+  #       await cg.register_parented(n, dualpidpcm_component)
+  #       cg.add(dualpidpcm_component.set_discharged_battery_voltage_number(n))  
 
   if kp_charging_config := config.get(CONF_KP_CHARGING):
         n = await number.new_number(
@@ -316,21 +316,21 @@ async def to_code(config):
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_kd_discharging_number(n))        
 
-  if output_min_config := config.get(CONF_OUTPUT_MIN):
-        n = await number.new_number(
-            output_min_config, min_value=0.0, max_value=100.0, step=1.0
-        )
-        await cg.register_component(n, output_min_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_output_min_number(n))
+  # if output_min_config := config.get(CONF_OUTPUT_MIN):
+  #       n = await number.new_number(
+  #           output_min_config, min_value=0.0, max_value=100.0, step=1.0
+  #       )
+  #       await cg.register_component(n, output_min_config)
+  #       await cg.register_parented(n, dualpidpcm_component)
+  #       cg.add(dualpidpcm_component.set_output_min_number(n))
 
-  if output_max_config := config.get(CONF_OUTPUT_MAX):
-        n = await number.new_number(
-            output_max_config, min_value=0.0, max_value=100.0, step=1.0
-        )
-        await cg.register_component(n, output_max_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_output_max_number(n))
+  # if output_max_config := config.get(CONF_OUTPUT_MAX):
+  #       n = await number.new_number(
+  #           output_max_config, min_value=0.0, max_value=100.0, step=1.0
+  #       )
+  #       await cg.register_component(n, output_max_config)
+  #       await cg.register_parented(n, dualpidpcm_component)
+  #       cg.add(dualpidpcm_component.set_output_max_number(n))
 
   if output_min_charging_config := config.get(CONF_OUTPUT_MIN_CHARGING):
         n = await number.new_number(
