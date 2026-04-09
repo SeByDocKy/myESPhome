@@ -172,7 +172,7 @@ SUB_NUMBER(output_max_discharging)
   float current_absorbing_epoint_ = 2.0f; // 0.2f;
   float current_floating_epoint_ = 0.0f;// 0.0f;
   
-  float current_input_ = 0.0f;
+  // float current_input_ = 0.0f;
   float current_battery_voltage_ = 54.0f;
   float current_device_output_charging_ = 0.0f;
   float current_device_output_discharging_ = 0.0f;
