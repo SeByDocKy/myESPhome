@@ -68,18 +68,18 @@ number:
     dualpidpcm_id: ${dualpidpcm_id}
     setpoint:
       name: ${name}_${dualpidpcm_name}_setpoint
-    charging_epoint: 
-      name: ${name}_${dualpidpcm_name}_charging_epoint
-    absorbing_epoint: 
-      name: ${name}_${dualpidpcm_name}_absorbing_epoint
-    floating_epoint: 
-      name: ${name}_${dualpidpcm_name}_floating_epoint
+    # charging_epoint: 
+    #   name: ${name}_${dualpidpcm_name}_charging_epoint
+    # absorbing_epoint: 
+    #   name: ${name}_${dualpidpcm_name}_absorbing_epoint
+    # floating_epoint: 
+    #   name: ${name}_${dualpidpcm_name}_floating_epoint
     starting_battery_voltage: 
       name: ${name}_${dualpidpcm_name}_starting_battery_voltage
-    charged_battery_voltage: 
-      name: ${name}_${dualpidpcm_name}_charged_battery_voltage
-    discharged_battery_voltage: 
-      name: ${name}_${dualpidpcm_name}_discharged_battery_voltage
+    # charged_battery_voltage: 
+    #   name: ${name}_${dualpidpcm_name}_charged_battery_voltage
+    # discharged_battery_voltage: 
+    #   name: ${name}_${dualpidpcm_name}_discharged_battery_voltage
     kp_charging: 
       name: ${name}_${dualpidpcm_name}_kp_charging
     ki_charging: 
@@ -92,10 +92,10 @@ number:
       name: ${name}_${dualpidpcm_name}_ki_discharging
     kd_discharging: 
       name: ${name}_${dualpidpcm_name}_kd_discharging      
-    output_min: 
-      name: ${name}_${dualpidpcm_name}_output_min
-    output_max: 
-      name: ${name}_${dualpidpcm_name}_output_max
+    # output_min: 
+    #   name: ${name}_${dualpidpcm_name}_output_min
+    # output_max: 
+    #   name: ${name}_${dualpidpcm_name}_output_max
     output_min_charging: 
       name: ${name}_${dualpidpcm_name}_output_min_charging
     output_max_charging: 
