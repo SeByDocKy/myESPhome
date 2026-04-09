@@ -14,10 +14,6 @@ static const float coeffPdischarging = 0.00001f;
 static const float coeffIdischarging = 0.001f;
 static const float coeffDdischarging = 0.001f;
 
-// static const float currentmincharging = 5.0f;
-// static const float currentmindischarging = 5.0f;
-
-
 void DUALPIDPCMComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up DUALPIDPCMComponent...");
   
@@ -225,9 +221,6 @@ void DUALPIDPCMComponent::pid_update() {
 	ESP_LOGI(TAG, "PIDcoeff = %3.8f" , alpha );
 	
 	ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);    
-    // this->last_time_       = now;
-    // this->previous_error_  = this->error_;
-    // this->previous_output_ = this->output_;
     
 	ESP_LOGI(TAG, "activation %d", this->current_activation_);
 
@@ -340,12 +333,6 @@ void DUALPIDPCMComponent::pid_update() {
 	       this->onoff_switch_->publish_state(true);
 		}
 	  }
-	// else{
- //        if((this->onoff_switch_->state==true)){
-	//        this->onoff_switch_->turn_off();	 
-	//        this->onoff_switch_->publish_state(false);
- //        }
- //      }
     }
 	  
   } 
