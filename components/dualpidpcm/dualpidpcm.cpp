@@ -63,26 +63,26 @@ void DUALPIDPCMComponent::pid_update() {
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
   
-  if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
-	  this->current_epoint_ = this->current_charging_epoint_;
-  }
-  else if((this->current_battery_voltage_ >= this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ < this->current_charged_battery_voltage_)){
-	  this->current_epoint_ = this->current_absorbing_epoint_;
-  }
-  else{
-      this->current_epoint_ = this->current_floating_epoint_;
-  }   
-  if(this->current_epoint_ != 0.0f){	
-    cc = 1.0f/this->current_epoint_;
-  }
-  else{
-	cc = 0.0f;
-  }
-  cd = 1.0f/(1.0f - this->current_epoint_);
+ //  if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
+	//   this->current_epoint_ = this->current_charging_epoint_;
+ //  }
+ //  else if((this->current_battery_voltage_ >= this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ < this->current_charged_battery_voltage_)){
+	//   this->current_epoint_ = this->current_absorbing_epoint_;
+ //  }
+ //  else{
+ //      this->current_epoint_ = this->current_floating_epoint_;
+ //  }   
+ //  if(this->current_epoint_ != 0.0f){	
+ //    cc = 1.0f/this->current_epoint_;
+ //  }
+ //  else{
+	// cc = 0.0f;
+ //  }
+ //  cd = 1.0f/(1.0f - this->current_epoint_);
 	
-  e = (this->current_output_ < this->current_epoint_ ); // test if general regulation point is in charging domain or not
+ //  e = (this->current_output_ < this->current_epoint_ ); // test if general regulation point is in charging domain or not
 	
-  ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
+ //  ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
 
 
   if (!this->current_manual_override_){
