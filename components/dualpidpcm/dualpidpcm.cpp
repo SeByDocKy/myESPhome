@@ -170,7 +170,7 @@ void DUALPIDPCMComponent::pid_update() {
 	  this->output_charging_    = 0.0f;		
 	  this->output_discharging_ = std::min(std::max( tmp + alpha , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 	 	
-	  }
+	}
 	else{  // deadband
 	    alphaP = 0.0f;
 		alphaI = 0.0f;
@@ -182,7 +182,6 @@ void DUALPIDPCMComponent::pid_update() {
 		this->output_discharging_ = 0.0f;
 	}
 	
-  
 	// if (e){  // charge
 	//   if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
 	//     this->current_kp_ = this->current_kp_charging_;
@@ -358,7 +357,7 @@ void DUALPIDPCMComponent::pid_update() {
 	  
   } 
   
- }
+ } // pid_update
 
  }  // namespace dualpidpcm
 }  // namespace esphome
