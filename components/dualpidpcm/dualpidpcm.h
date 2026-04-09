@@ -144,11 +144,11 @@ SUB_NUMBER(output_max_discharging)
 
 #ifdef USE_SENSOR
   float get_error(void) { return this->current_error_; }
-  float get_output(void) { return this->current_output_; }
+  // float get_output(void) { return this->current_output_; }
   float get_output_charging(void) { return this->current_output_charging_; }
   float get_output_discharging(void) { return this->current_output_discharging_; }  
-  float get_target(void) { return this->current_target_; }
-  float get_epoint(void) { return this->current_epoint_; }
+  // float get_target(void) { return this->current_target_; }
+  // float get_epoint(void) { return this->current_epoint_; }
   float get_input(void)  { return this->current_input_; }
 #endif
 
@@ -188,11 +188,11 @@ SUB_NUMBER(output_max_discharging)
 
 #ifdef USE_SENSOR
   float current_error_ = 0.0f;
-  float current_output_ = 0.0f;
+  // float current_output_ = 0.0f;
   float current_output_charging_ = 0.0f;
   float current_output_discharging_ = 0.0f;
-  float current_target_ = 0.0f;
-  float current_epoint_ = 50.0f;
+  // float current_target_ = 0.0f;
+  // float current_epoint_ = 50.0f;
   float current_input_ = 0.0f;
 #endif   
 
