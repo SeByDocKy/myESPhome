@@ -86,7 +86,7 @@ void DUALPIDPCMComponent::pid_update() {
 
 
   if (!this->current_manual_override_){
-    this->dt_   = float(now - this->last_time_)/1000.0f;
+    this->dt_    = float(now - this->last_time_)/1000.0f;
 	epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	this->error_ = epsi;   
 	  	  
