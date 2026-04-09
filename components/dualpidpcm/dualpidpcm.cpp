@@ -326,7 +326,8 @@ void DUALPIDPCMComponent::pid_update() {
       }
     }
 	
-	ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
+	// ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
+	ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
 	if (this->output_charging_ != this->previous_output_charging_){
       this->device_charging_output_->set_level(this->output_charging_);          // send command to r48, must be in [0.0 - 1.0] //
 	}
