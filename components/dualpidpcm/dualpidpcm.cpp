@@ -116,7 +116,7 @@ void DUALPIDPCMComponent::pid_update() {
 	// ESP_LOGI(TAG, "previous output = %2.8f" , tmp );
 	// ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
 
-	if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
+	if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
 
 	  tmp = 0.0f;
       if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_ && !swap_state){
@@ -144,7 +144,7 @@ void DUALPIDPCMComponent::pid_update() {
 	  this->output_charging_    = std::min(std::max( tmp + alpha , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
 	  
 	}
-	else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){
+	else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){  // discharge battery
 
 	  tmp = 0.0f;
       if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_ && !swap_state){
