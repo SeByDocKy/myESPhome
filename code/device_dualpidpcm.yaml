@@ -33,16 +33,16 @@ sensor:
     dualpidpcm_id: ${dualpidpcm_id}
     error: 
       name: ${name}_${dualpidpcm_name}_error    
-    output: 
-      name: ${name}_${dualpidpcm_name}_output
+    # output: 
+    #   name: ${name}_${dualpidpcm_name}_output
     output_charging: 
       name: ${name}_${dualpidpcm_name}_output_charging
     output_discharging: 
       name: ${name}_${dualpidpcm_name}_output_discharging      
-    target:
-      name: ${name}_${dualpidpcm_name}_target
-    epoint:
-      name: ${name}_${dualpidpcm_name}_epoint
+    # target:
+    #   name: ${name}_${dualpidpcm_name}_target
+    # epoint:
+    #   name: ${name}_${dualpidpcm_name}_epoint
     input:
       name: ${name}_${dualpidpcm_name}_input  
 
