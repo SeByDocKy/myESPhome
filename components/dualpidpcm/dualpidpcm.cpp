@@ -273,8 +273,8 @@ void DUALPIDPCMComponent::pid_update() {
 	// }
  
     if (!this->current_activation_ ){  // no regulation 
-      this->output_             = this->current_epoint_;
-	  this->previous_output_    = this->current_epoint_;  	
+   //    this->output_             = this->current_epoint_;
+	  // this->previous_output_    = this->current_epoint_;  	
 	  this->output_charging_    = 0.0f;
 	  this->output_discharging_ = 0.0f;	
 	  if((this->onoff_switch_->state==true)  ){
@@ -314,8 +314,8 @@ void DUALPIDPCMComponent::pid_update() {
     if (!std::isnan(this->current_battery_voltage_)){
 	  ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
       if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-        this->output_             = this->current_epoint_;
-		this->previous_output_    = this->current_epoint_;   
+  //       this->output_             = this->current_epoint_;
+		// this->previous_output_    = this->current_epoint_;   
 		this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;
 	
@@ -334,7 +334,7 @@ void DUALPIDPCMComponent::pid_update() {
 	if (this->output_discharging_ != this->previous_output_discharging_){  
 	  this->device_discharging_output_->set_level(this->output_discharging_);    // send command to HMS, must be in [0.0 - 1.0] //
 	}
-	this->current_output_             = this->output_;  // must be in [0.0 - 1.0] //
+	// this->current_output_             = this->output_;  // must be in [0.0 - 1.0] //
 	this->current_output_charging_    = this->output_charging_;
 	this->current_output_discharging_ = this->output_discharging_;  
 
@@ -343,7 +343,7 @@ void DUALPIDPCMComponent::pid_update() {
 
     this->last_time_                   = now;
     this->previous_error_              = this->error_;
-    this->previous_output_             = this->output_;
+    // this->previous_output_             = this->output_;
 	this->previous_output_charging_    = this->output_charging_;
 	this->previous_output_discharging_ = this->output_discharging_;
 
