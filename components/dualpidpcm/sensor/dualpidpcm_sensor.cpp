@@ -16,7 +16,7 @@ void DUALPIDPCMSensor::dump_config() {
   LOG_SENSOR("  ", "Error", this->error_sensor_);
   LOG_SENSOR("  ", "Output Charging", this->output_charging_sensor_);
   LOG_SENSOR("  ", "Output Discharging", this->output_discharging_sensor_);
-  // LOG_SENSOR("  ", "Input", this->input_sensor_);	
+  LOG_SENSOR("  ", "Input", this->input_sensor_);	
 }	
 
 void DUALPIDPCMSensor::publish_data_() {
@@ -26,8 +26,8 @@ void DUALPIDPCMSensor::publish_data_() {
     this->output_charging_sensor_->publish_state(this->parent_->get_output_charging()*100.0f);
   if (this->output_discharging_sensor_ != nullptr)
     this->output_discharging_sensor_->publish_state(this->parent_->get_output_discharging()*100.0f); 
-  // if (this->input_sensor_ != nullptr)
-  //   this->input_sensor_->publish_state(this->parent_->get_input());	
+  if (this->input_sensor_ != nullptr)
+    this->input_sensor_->publish_state(this->parent_->get_input());	
 }
 
 } // dualpidpcm
