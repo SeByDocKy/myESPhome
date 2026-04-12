@@ -40,7 +40,12 @@ sensor:
       name: ${name}_${dualpidpcm_name}_output_discharging      
       
 
-
+binary_sensor:
+  - platform: dualpidpcm
+    dualpidpcm_id: ${dualpidpcm_id}
+    deadband:
+      name: ${name}_${dualpidpcm_name}_deadband
+  
 switch:
   - platform: dualpidpcm
     dualpidpcm_id: ${dualpidpcm_id}
