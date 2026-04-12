@@ -183,27 +183,30 @@ namespace dualpidpcm {
   
 	    else{ // in deadband, turn off PCM module
           if((this->onoff_switch_->state==true)  ){
-	         this->onoff_switch_->turn_off();	 
-	         this->onoff_switch_->publish_state(false);
+			 this->onoff_switch_->publish_state(false); 
+	         this->onoff_switch_->turn_off();
 		     delay(300);
           }
 	    }
 	  }
 
-		 this->pid_computed_callback_.call();		
-   //    if (!std::isnan(this->current_battery_voltage_)){
-	  //   ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
-   //      if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-		 //  this->output_charging_    = 0.0f;
-	  //     this->output_discharging_ = 0.0f;
-	
-   //        this->onoff_switch_->turn_off();	 
-	  //     this->onoff_switch_->publish_state(false);
-		  
-   //        this->discharge_charge_switch_->turn_on();	 
-	  //     this->discharge_charge_switch_->publish_state(true);	
-   //      }
-   //    }
+	  		
+      if (!std::isnan(this->current_battery_voltage_)){
+	    ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
+        if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
+		  this->output_charging_    = 0.0f;
+	      this->output_discharging_ = 0.0f;
+
+		  this->onoff_switch_->publish_state(false);	
+          this->onoff_switch_->turn_off();
+		  delay(300);	
+	      
+          this->discharge_charge_switch_->publish_state(true);			  
+          this->discharge_charge_switch_->turn_on();
+		  delay(300);	
+        }
+      }
+	  this->pid_computed_callback_.call();	
 	
 	  // ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
 	  // if (this->output_charging_ != this->previous_output_charging_){
