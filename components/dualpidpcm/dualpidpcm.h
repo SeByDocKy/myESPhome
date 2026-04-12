@@ -105,6 +105,9 @@ class DUALPIDPCMComponent : public Component{
   float get_output_discharging(void) { return this->current_output_discharging_; }  
   float get_input(void)  { return this->current_input_; }
 
+
+  bool get_deadband(void){return this->current_deadband_;}
+
  protected:
   uint32_t last_time_ = 0;
   float dt_;
@@ -161,6 +164,9 @@ class DUALPIDPCMComponent : public Component{
 
   float current_output_max_discharging_ = 100.0f;
   float current_output_min_discharging_ = 0.0f;
+
+  bool current_deadband_ = false;
+  
 
 };
 		
