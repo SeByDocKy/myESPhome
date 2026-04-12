@@ -28,11 +28,12 @@ SUB_SWITCH(reverse)
 
 SUB_NUMBER(setpoint)
 SUB_NUMBER(starting_battery_voltage)
-
+SUB_NUMBER(kp_charging)
+SUB_NUMBER(ki_charging)
+SUB_NUMBER(kd_charging)
 SUB_NUMBER(kp_discharging)
 SUB_NUMBER(ki_discharging)
 SUB_NUMBER(kd_discharging)
-
 SUB_NUMBER(output_min_charging)
 SUB_NUMBER(output_max_charging)
 SUB_NUMBER(output_min_discharging)
