@@ -73,20 +73,8 @@ SUB_NUMBER(output_max_discharging)
   void set_setpoint(float value) {this->current_setpoint_ = value;}
   float get_setpoint(void){return this->current_setpoint_;}
   
-  // void set_charging_epoint(float value) {this->current_charging_epoint_ = value;}
-  // float get_charging_epoint(void){return this->current_charging_epoint_;}
-  // void set_absorbing_epoint(float value) {this->current_absorbing_epoint_ = value;}
-  // float get_absorbing_epoint(void){return this->current_absorbing_epoint_;}
-  // void set_floating_epoint(float value) {this->current_floating_epoint_ = value;}
-  // float get_floating_epoint(void){return this->current_floating_epoint_;}
-  
   void set_starting_battery_voltage(float value) {this->current_starting_battery_voltage_ = value;}
   float get_starting_battery_voltage(void){return this->current_starting_battery_voltage_;}
-  
-  // void set_charged_battery_voltage(float value) {this->current_charged_battery_voltage_ = value;}
-  // float get_charged_battery_voltage(void){return this->current_charged_battery_voltage_;}
-  // void set_discharged_battery_voltage(float value) {this->current_discharged_battery_voltage_ = value;}
-  // float get_discharged_battery_voltage(void){return this->current_discharged_battery_voltage_;}
   
   void set_kp_charging(float value) {this->current_kp_charging_ = value;}
   float get_kp_charging(void){return this->current_kp_charging_;}
@@ -102,11 +90,6 @@ SUB_NUMBER(output_max_discharging)
   void set_kd_discharging(float value) {this->current_kd_discharging_ = value;}
   float get_kd_discharging(void){return this->current_kd_discharging_;}
   
-  // void set_output_min(float value) {this->current_output_min_ = value;}
-  // float get_output_min(void){return this->current_output_min_;}
-  // void set_output_max(float value) {this->current_output_max_ = value;}
-  // float get_output_max(void){return this->current_output_max_;}
-
   void set_output_min_charging(float value) {this->current_output_min_charging_ = value;}
   float get_output_min_charging(void){return this->current_output_min_charging_;}
   void set_output_max_charging(float value) {this->current_output_max_charging_ = value;}
@@ -170,11 +153,7 @@ SUB_NUMBER(output_max_discharging)
   float current_starting_battery_voltage_ = 50.0f;
   float current_charged_battery_voltage_ = 55.8f;
   float current_discharged_battery_voltage_ = 55.6f;
-  
-  // float current_kp_ = 3.0f;
-  // float current_ki_ = 0.0f;
-  // float current_kd_ = 0.0f;
-  
+   
   float current_kp_charging_ = 3.0f;
   float current_ki_charging_ = 0.0f;
   float current_kd_charging_ = 0.0f;
@@ -193,23 +172,6 @@ SUB_NUMBER(output_max_discharging)
 		
  }  // namespace dualpidpcm
 }  // namespace esphome
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
