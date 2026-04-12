@@ -191,9 +191,9 @@ SUB_NUMBER(output_max_discharging)
   float current_charged_battery_voltage_ = 55.8f;
   float current_discharged_battery_voltage_ = 55.6f;
   
-  // float current_kp_ = 3.0f;
-  // float current_ki_ = 0.0f;
-  // float current_kd_ = 0.0f;
+  float current_kp_ = 3.0f;
+  float current_ki_ = 0.0f;
+  float current_kd_ = 0.0f;
   
   float current_kp_charging_ = 3.0f;
   float current_ki_charging_ = 0.0f;
