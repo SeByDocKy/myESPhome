@@ -121,13 +121,13 @@ namespace dualpidpcm {
           tmp = this->previous_output_charging_;
         }
 	
-	    this->current_kp_ = this->current_kp_charging_;
-	    this->current_ki_ = this->current_ki_charging_;
-	    this->current_kd_ = this->current_kd_charging_;
+	    // this->current_kp_ = this->current_kp_charging_;
+	    // this->current_ki_ = this->current_ki_charging_;
+	    // this->current_kd_ = this->current_kd_charging_;
       
-	    coeffP = coeffPcharging*this->current_kp_;
-	    coeffI = coeffIcharging*this->current_ki_;
-	    coeffD = coeffDcharging*this->current_kd_;
+	    coeffP = coeffPcharging*this->current_kp_charging_;
+	    coeffI = coeffIcharging*this->current_ki_charging_;
+	    coeffD = coeffDcharging*this->current_kd_charging_;
 		
 	    alphaP = coeffP * this->error_;
 	    alphaI = coeffI * this->integral_;
@@ -148,13 +148,14 @@ namespace dualpidpcm {
         if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_ && !swap_state){
           tmp = this->previous_output_discharging_;
         }	
-        this->current_kp_ = this->current_kp_discharging_;
-	    this->current_ki_ = this->current_ki_discharging_;
-	    this->current_kd_ = this->current_kd_discharging_;
+        
+		// this->current_kp_ = this->current_kp_discharging_;
+	 //    this->current_ki_ = this->current_ki_discharging_;
+	 //    this->current_kd_ = this->current_kd_discharging_;
 		  
-	    coeffP = coeffPdischarging*this->current_kp_;
-	    coeffI = coeffIdischarging*this->current_ki_;
-	    coeffD = coeffDdischarging*this->current_kd_;	
+	    coeffP = coeffPdischarging*this->current_kp_discharging_;
+	    coeffI = coeffIdischarging*this->current_ki_discharging_;
+	    coeffD = coeffDdischarging*this->current_kd_discharging_;	
 
 	    alphaP = coeffP * this->error_;
 	    alphaI = coeffI * this->integral_;
