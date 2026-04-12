@@ -16,7 +16,7 @@ DEPENDENCIES            = ["dualpidpcm"]
 CONF_ERROR              = "error"
 CONF_OUTPUT_CHARGING    = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
-# CONF_INPUT              = "input"
+CONF_INPUT              = "input"
 
 ICON_EPSILON            = "mdi:epsilon"
 ICON_PERCENT            = "mdi:percent"
@@ -48,13 +48,13 @@ CONFIG_SCHEMA = {
                 icon = ICON_PERCENT,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),             
-    # cv.Optional(CONF_INPUT): sensor.sensor_schema(
-    #             unit_of_measurement=UNIT_WATT,
-    #             icon=ICON_INPORT,
-    #             accuracy_decimals=1,
-    #             device_class=DEVICE_CLASS_POWER,
-    #             state_class=STATE_CLASS_MEASUREMENT,
-    #          ),
+    cv.Optional(CONF_INPUT): sensor.sensor_schema(
+                unit_of_measurement=UNIT_WATT,
+                icon=ICON_INPORT,
+                accuracy_decimals=1,
+                device_class=DEVICE_CLASS_POWER,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
 }
 
 async def to_code(config):
@@ -75,7 +75,7 @@ async def to_code(config):
         sens = await sensor.new_sensor(config[CONF_OUTPUT_DISCHARGING])
         cg.add(var.set_output_discharging_sensor(sens))        
         
-    # if CONF_INPUT in config:
-    #     sens = await sensor.new_sensor(config[CONF_INPUT])
-    #     cg.add(var.set_input_sensor(sens))
+    if CONF_INPUT in config:
+        sens = await sensor.new_sensor(config[CONF_INPUT])
+        cg.add(var.set_input_sensor(sens))
  
