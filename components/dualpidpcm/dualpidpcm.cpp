@@ -60,28 +60,6 @@ namespace dualpidpcm {
   
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
-  
- //  if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
-	//   this->current_epoint_ = this->current_charging_epoint_;
- //  }
- //  else if((this->current_battery_voltage_ >= this->current_discharged_battery_voltage_) && (this->current_battery_voltage_ < this->current_charged_battery_voltage_)){
-	//   this->current_epoint_ = this->current_absorbing_epoint_;
- //  }
- //  else{
- //      this->current_epoint_ = this->current_floating_epoint_;
- //  }   
- //  if(this->current_epoint_ != 0.0f){	
- //    cc = 1.0f/this->current_epoint_;
- //  }
- //  else{
-	// cc = 0.0f;
- //  }
- //  cd = 1.0f/(1.0f - this->current_epoint_);
-	
- //  e = (this->current_output_ < this->current_epoint_ ); // test if general regulation point is in charging domain or not
-	
- //  ESP_LOGI(TAG, "previous current_epoint: %2.5f, cc: %2.2f, cd: %2.2f, e: %d" , this->current_epoint_, cc, cd, e );	
-
 
     if (!this->current_manual_override_){
       this->dt_    = float(now - this->last_time_)/1000.0f;
@@ -106,25 +84,13 @@ namespace dualpidpcm {
         swap_state = false;
 	  }
 		
- //    tmp = 0.0f;
- //    if( !std::isnan(this->previous_output_) && !this->current_pid_mode_ && !swap_state){
- //        tmp = this->previous_output_;
- //    }
-	
-	// ESP_LOGI(TAG, "previous output = %2.8f" , tmp );
-	// ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
-
 	  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
 
 	    tmp = 0.0f;
         if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_ && !swap_state){
           tmp = this->previous_output_charging_;
         }
-	
-	    // this->current_kp_ = this->current_kp_charging_;
-	    // this->current_ki_ = this->current_ki_charging_;
-	    // this->current_kd_ = this->current_kd_charging_;
-      
+	      
 	    coeffP = coeffPcharging*this->current_kp_charging_;
 	    coeffI = coeffIcharging*this->current_ki_charging_;
 	    coeffD = coeffDcharging*this->current_kd_charging_;
@@ -148,11 +114,7 @@ namespace dualpidpcm {
         if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_ && !swap_state){
           tmp = this->previous_output_discharging_;
         }	
-        
-		// this->current_kp_ = this->current_kp_discharging_;
-	 //    this->current_ki_ = this->current_ki_discharging_;
-	 //    this->current_kd_ = this->current_kd_discharging_;
-		  
+        		  
 	    coeffP = coeffPdischarging*this->current_kp_discharging_;
 	    coeffI = coeffIdischarging*this->current_ki_discharging_;
 	    coeffD = coeffDdischarging*this->current_kd_discharging_;	
@@ -181,98 +143,8 @@ namespace dualpidpcm {
 		this->output_discharging_ = 0.0f;
 	  }
 	
-	// if (e){  // charge
-	//   if(epsi < -this->current_battery_voltage_*this->current_min_charging_){
-	//     this->current_kp_ = this->current_kp_charging_;
-	//     this->current_ki_ = this->current_ki_charging_;
-	//     this->current_kd_ = this->current_kd_charging_;
-      
-	//     coeffP = coeffPcharging*this->current_kp_;
-	//     coeffI = coeffIcharging*this->current_ki_;
-	//     coeffD = coeffDcharging*this->current_kd_;
-		
-	//     alphaP = coeffP * this->error_;
-	//     alphaI = coeffI * this->integral_;
-	//     alphaD = coeffD * this->derivative_;
-	// 	deadband = false;
-	//   }
-	//   else{
- //        alphaP = 0.0f;
-	// 	alphaI = 0.0f;
-	// 	alphaD = 0.0f;
-	// 	deadband = true;  
-	//   }
-	// }
-	// else{  // discharge
-	//   if(epsi > this->current_battery_voltage_*this->current_min_discharging_){	
-	//     this->current_kp_ = this->current_kp_discharging_;
-	//     this->current_ki_ = this->current_ki_discharging_;
-	//     this->current_kd_ = this->current_kd_discharging_;
-		  
-	//     coeffP = coeffPdischarging*this->current_kp_;
-	//     coeffI = coeffIdischarging*this->current_ki_;
-	//     coeffD = coeffDdischarging*this->current_kd_;	
-
-	//     alphaP = coeffP * this->error_;
-	//     alphaI = coeffI * this->integral_;
-	//     alphaD = coeffD * this->derivative_;
-	// 	deadband = false;  
-	//   }
-	//   else{
- //        alphaP = 0.0f;
-	// 	alphaI = 0.0f;
-	// 	alphaD = 0.0f;
-	//     deadband = true;	  
-	//   }
-	// }
- 
-	// alpha  = alphaP + alphaI + alphaD;
-	
- //    this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
-	
- //    ESP_LOGI(TAG, "Pcoeff = %3.8f" , alphaP );
-	// ESP_LOGI(TAG, "Icoeff = %3.8f" , alphaI );
-	// ESP_LOGI(TAG, "Dcoeff = %3.8f" , alphaD );
-	
-	// ESP_LOGI(TAG, "output_min = %1.2f" , this->current_output_min_  );
-	// ESP_LOGI(TAG, "output_max = %1.2f" , this->current_output_max_  );
-	
-	// ESP_LOGI(TAG, "PIDcoeff = %3.8f" , alpha );
-	
-	// ESP_LOGI(TAG, "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f , output_max = %3.2f ,  previous_output_ = %3.2f , output_ = %3.2f , error_ = %3.2f, integral = %3.2f , derivative = %3.2f", this->current_target_ , coeffP*this->current_kp_ , coeffI*this->current_ki_ , coeffD*this->current_kd_ , this->current_output_min_ , this->current_output_max_ , this->previous_output_ , this->output_ , this->error_ , this->integral_ , this->derivative_);    
-    
-	// ESP_LOGI(TAG, "activation %d", this->current_activation_);
-
-	// e   = (this->output_ < this->current_epoint_ );
-	// if(e){ // Charge 
- //       tmp                       = (this->current_epoint_ - this->output_); // tmp is positive
-	   
-	//    this->output_discharging_ = 0.0f;
-	//    if(!deadband){
-	// 	 this->output_charging_    = tmp; //cc*tmp; ?   
-	//      this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	//    }
-	//    else{
- //         this->output_charging_    = 0.0f; 
-	//    }
-	//    this->previous_output_    = this->current_epoint_;
-	// }
-	// else{ // Discharge 
- //       tmp                       = (this->output_ - this->current_epoint_ ); // tmp is positive
-	//    this->output_charging_    = 0.0f;
-	//    if(!deadband){	
-	//      this->output_discharging_ = cd*tmp; // tmp;?
-	//      this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
-	// 	}
-	// 	else{
- //           this->output_discharging_ = 0.0f;
-	// 	}
-	//    this->previous_output_    = this->current_epoint_;
-	// }
  
       if (!this->current_activation_ ){  // no regulation 
-   //    this->output_             = this->current_epoint_;
-	  // this->previous_output_    = this->current_epoint_;  	
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;	
 	    if((this->onoff_switch_->state==true)  ){
@@ -312,8 +184,6 @@ namespace dualpidpcm {
       if (!std::isnan(this->current_battery_voltage_)){
 	    ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-  //       this->output_             = this->current_epoint_;
-		// this->previous_output_    = this->current_epoint_;   
 		  this->output_charging_    = 0.0f;
 	      this->output_discharging_ = 0.0f;
 	
@@ -325,7 +195,6 @@ namespace dualpidpcm {
         }
       }
 	
-	// ESP_LOGI(TAG, "Final computed output=%1.6f, output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_, this->output_charging_, this->output_discharging_);
 	  ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
 	  if (this->output_charging_ != this->previous_output_charging_){
         this->device_charging_output_->set_level(this->output_charging_);          // send command to r48, must be in [0.0 - 1.0] //
@@ -333,7 +202,6 @@ namespace dualpidpcm {
 	  if (this->output_discharging_ != this->previous_output_discharging_){  
 	    this->device_discharging_output_->set_level(this->output_discharging_);    // send command to HMS, must be in [0.0 - 1.0] //
       }
-	// this->current_output_             = this->output_;  // must be in [0.0 - 1.0] //
 	  this->current_output_charging_    = this->output_charging_;
 	  this->current_output_discharging_ = this->output_discharging_;  
 
@@ -341,7 +209,6 @@ namespace dualpidpcm {
 
       this->last_time_                   = now;
       this->previous_error_              = this->error_;
-    // this->previous_output_             = this->output_;
 	  this->previous_output_charging_    = this->output_charging_;
 	  this->previous_output_discharging_ = this->output_discharging_;
 
