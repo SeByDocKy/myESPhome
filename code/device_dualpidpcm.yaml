@@ -40,21 +40,21 @@ sensor:
       name: ${name}_${dualpidpcm_name}_input  
 
 
-# switch:
-#   - platform: dualpidpcm
-#     dualpidpcm_id: ${dualpidpcm_id}
-#     activation: 
-#       name: ${name}_${dualpidpcm_name}_activation
-#       id: ${dualpidpcm_name}_activation
-#     manual_override: 
-#       name: ${name}_${dualpidpcm_name}_manual_override
-#       id:  ${dualpidpcm_name}_manual_override
-#     pid_mode: 
-#       name: ${name}_${dualpidpcm_name}_pid_mode
-#       id:  ${dualpidpcm_name}_pid_mode
-#     reverse: 
-#       name: ${name}_${dualpidpcm_name}_reverse
-#       id:  ${dualpidpcm_name}_reverse
+switch:
+  - platform: dualpidpcm
+    dualpidpcm_id: ${dualpidpcm_id}
+    activation: 
+      name: ${name}_${dualpidpcm_name}_activation
+      id: ${dualpidpcm_name}_activation
+    manual_override: 
+      name: ${name}_${dualpidpcm_name}_manual_override
+      id:  ${dualpidpcm_name}_manual_override
+    pid_mode: 
+      name: ${name}_${dualpidpcm_name}_pid_mode
+      id:  ${dualpidpcm_name}_pid_mode
+    reverse: 
+      name: ${name}_${dualpidpcm_name}_reverse
+      id:  ${dualpidpcm_name}_reverse
       
 # number:
 #   - platform: dualpidpcm
