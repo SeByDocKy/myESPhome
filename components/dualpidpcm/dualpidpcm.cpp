@@ -82,6 +82,8 @@ namespace dualpidpcm {
 	  else{
         swap_state = false;
 	  }
+
+	   this->pid_computed_callback_.call();
 		
 	 //  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
 
