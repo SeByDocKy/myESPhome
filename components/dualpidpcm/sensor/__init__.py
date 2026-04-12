@@ -13,9 +13,9 @@ from esphome.const import (
 
 DEPENDENCIES = ["dualpidpcm"]
 
+CONF_ERROR  = "error"
 CONF_OUTPUT_CHARGING = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
-CONF_ERROR  = "error"
 CONF_INPUT   = "input"
 
 ICON_EPSILON = "mdi:epsilon"
