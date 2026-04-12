@@ -11,22 +11,20 @@ from esphome.const import (
     UNIT_PERCENT,
 )
 
-DEPENDENCIES = ["dualpidpcm"]
+DEPENDENCIES            = ["dualpidpcm"]
 
 CONF_ERROR              = "error"
 CONF_OUTPUT_CHARGING    = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_INPUT              = "input"
 
-ICON_EPSILON = "mdi:epsilon"
-ICON_PERCENT = "mdi:percent"
-ICON_INPORT  = "mdi:import"
-
+ICON_EPSILON            = "mdi:epsilon"
+ICON_PERCENT            = "mdi:percent"
+ICON_INPORT             = "mdi:import"
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
 
 DUALPIDPCMSensor = dualpidpcm_ns.class_("DUALPIDPCMSensor", cg.Component)
-
 
 CONFIG_SCHEMA = {
     cv.GenerateID(): cv.declare_id(DUALPIDPCMSensor),
