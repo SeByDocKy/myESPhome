@@ -13,14 +13,14 @@ from esphome.const import (
 
 DEPENDENCIES = ["dualpidpcm"]
 
-CONF_ERROR  = "error"
-CONF_OUTPUT_CHARGING = "output_charging"
+CONF_ERROR              = "error"
+CONF_OUTPUT_CHARGING    = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
-CONF_INPUT   = "input"
+CONF_INPUT              = "input"
 
 ICON_EPSILON = "mdi:epsilon"
 ICON_PERCENT = "mdi:percent"
-ICON_INPORT = "mdi:import"
+ICON_INPORT  = "mdi:import"
 
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
@@ -44,7 +44,6 @@ CONFIG_SCHEMA = {
                 icon = ICON_PERCENT,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
-
     cv.Optional(CONF_OUTPUT_DISCHARGING): sensor.sensor_schema(
                 accuracy_decimals=2,
                 unit_of_measurement=UNIT_PERCENT,
@@ -73,7 +72,7 @@ async def to_code(config):
     if CONF_OUTPUT_CHARGING in config:
         sens = await sensor.new_sensor(config[CONF_OUTPUT_CHARGING])
         cg.add(var.set_output_charging_sensor(sens))
-
+        
     if CONF_OUTPUT_DISCHARGING in config:
         sens = await sensor.new_sensor(config[CONF_OUTPUT_DISCHARGING])
         cg.add(var.set_output_discharging_sensor(sens))        
