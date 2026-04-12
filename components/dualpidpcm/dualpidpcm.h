@@ -4,9 +4,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/preferences.h"
 #include "esphome/core/hal.h"
-#ifdef USE_NUMBER
 #include "esphome/components/number/number.h"
-#endif
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/output/float_output.h"
@@ -21,43 +19,24 @@ namespace dualpidpcm {
 	
 class DUALPIDPCMComponent : public Component{
 
-#ifdef USE_SWITCH
 
 SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 SUB_SWITCH(pid_mode)
 SUB_SWITCH(reverse)
 
-#endif
-
-#ifdef USE_NUMBER
 
 SUB_NUMBER(setpoint)
-
-SUB_NUMBER(charging_epoint)
-SUB_NUMBER(absorbing_epoint)
-SUB_NUMBER(floating_epoint)
-
 SUB_NUMBER(starting_battery_voltage)
-SUB_NUMBER(charged_battery_voltage)
-SUB_NUMBER(discharged_battery_voltage)
-
-SUB_NUMBER(kp_charging)
-SUB_NUMBER(ki_charging)
-SUB_NUMBER(kd_charging)
 
 SUB_NUMBER(kp_discharging)
 SUB_NUMBER(ki_discharging)
 SUB_NUMBER(kd_discharging)
 
-SUB_NUMBER(output_min)
-SUB_NUMBER(output_max)
 SUB_NUMBER(output_min_charging)
 SUB_NUMBER(output_max_charging)
 SUB_NUMBER(output_min_discharging)
 SUB_NUMBER(output_max_discharging)
-
-#endif
 
  public:
   
