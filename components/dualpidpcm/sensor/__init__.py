@@ -13,17 +13,13 @@ from esphome.const import (
 
 DEPENDENCIES = ["dualpidpcm"]
 
-# CONF_OUTPUT = "output"
 CONF_OUTPUT_CHARGING = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_ERROR  = "error"
-# CONF_TARGET = "target"
-# CONF_EPOINT = "epoint"
 CONF_INPUT   = "input"
 
 ICON_EPSILON = "mdi:epsilon"
 ICON_PERCENT = "mdi:percent"
-# ICON_TARGET = "mdi:target"
 ICON_INPORT = "mdi:import"
 
 
@@ -67,8 +63,8 @@ CONFIG_SCHEMA = {
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    dualpid_component = await cg.get_variable(config[CONF_DUALPIDPCM_ID])
-    cg.add(var.set_parent(dualpid_component))
+    dualpidpcm_component = await cg.get_variable(config[CONF_DUALPIDPCM_ID])
+    cg.add(var.set_parent(dualpidpcm_component))
 
     if CONF_ERROR in config:
         sens = await sensor.new_sensor(config[CONF_ERROR])
