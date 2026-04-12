@@ -89,7 +89,7 @@ namespace dualpidpcm {
 	  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
 
 	    tmp = 0.0f;
-        if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_   ){ // && !swap_state 
+        if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_   && !swap_state ){ //  
           tmp = this->previous_output_charging_;
         }
 	      
@@ -113,7 +113,7 @@ namespace dualpidpcm {
 	  else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){  // discharge battery
 
 	    tmp = 0.0f;
-        if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_   ){ // && !swap_state 
+        if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_   && !swap_state  ){ // 
           tmp = this->previous_output_discharging_;
         }	
         		  
@@ -148,21 +148,23 @@ namespace dualpidpcm {
       this->current_output_charging_    = this->output_charging_;
 	  this->current_output_discharging_ = this->output_discharging_;  
 
-      this->pid_computed_callback_.call();		
+		
  
-  //     if (!this->current_activation_ ){  // no regulation 
-	 //    this->output_charging_    = 0.0f;
-	 //    this->output_discharging_ = 0.0f;	
-	 //    if((this->onoff_switch_->state==true)  ){
-	 //      this->onoff_switch_->turn_off();	 
-	 //      this->onoff_switch_->publish_state(false);
-		//   delay(150);
+      if (!this->current_activation_ ){  // no regulation 
+	    this->output_charging_    = 0.0f;
+	    this->output_discharging_ = 0.0f;	
+	    if((this->onoff_switch_->state==true)  ){
+	      this->onoff_switch_->turn_off();	 
+	      this->onoff_switch_->publish_state(false);
+		  delay(150);
 		  
-		//   this->discharge_charge_switch_->turn_on();	 
-	 //      this->discharge_charge_switch_->publish_state(true);
-		//   delay(150);
-  //       }	
-  //     }
+		  this->discharge_charge_switch_->turn_on();	 
+	      this->discharge_charge_switch_->publish_state(true);
+		  delay(150);
+        }	
+      }
+
+	  this->pid_computed_callback_.call();	
 	 //  else{  // regulation
 	 //    if (!deadband){ // Not in deadband
   //         if (this->discharge_charge_switch_ != nullptr) {
