@@ -89,7 +89,7 @@ namespace dualpidpcm {
 	  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
 
 	    tmp = 0.0f;
-        if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_   && !swap_state ){ //  
+        if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_   ){ //  && !swap_state  
           tmp = this->previous_output_charging_;
         }
 	      
@@ -113,7 +113,7 @@ namespace dualpidpcm {
 	  else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){  // discharge battery
 
 	    tmp = 0.0f;
-        if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_   && !swap_state  ){ // 
+        if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_    ){ //   && !swap_state
           tmp = this->previous_output_discharging_;
         }	
         		  
