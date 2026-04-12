@@ -3,17 +3,16 @@ external_components:
     components: [dualpidpcm]
     refresh: 0s
     
-dualpidpcm:
-  - id: ${dualpidpcm_id}
-    input_id: ${dualpidpcm_name}_input_smoothed 
-    battery_voltage_id: ${dualpidpcm_battery_voltage_id}
-    charging_output_id: ${dualpidpcm_charging_output_id}
-    discharging_output_id: ${dualpidpcm_discharging_output_id}
-    discharge_charge_switch_id: ${dualpidpcm_discharge_charge_switch_id}
-    onoff_switch_id: ${dualpidpcm_onoff_switch_id}
-    current_min_charging: ${dualpidpcm_current_min_charging}
-    current_min_discharging: ${dualpidpcm_current_min_discharging}
-
+# dualpidpcm:
+#   - id: ${dualpidpcm_id}
+#     input_id: ${dualpidpcm_name}_input_smoothed 
+#     battery_voltage_id: ${dualpidpcm_battery_voltage_id}
+#     charging_output_id: ${dualpidpcm_charging_output_id}
+#     discharging_output_id: ${dualpidpcm_discharging_output_id}
+#     discharge_charge_switch_id: ${dualpidpcm_discharge_charge_switch_id}
+#     onoff_switch_id: ${dualpidpcm_onoff_switch_id}
+#     current_min_charging: ${dualpidpcm_current_min_charging}
+#     current_min_discharging: ${dualpidpcm_current_min_discharging}
     
 sensor:
   - platform: copy
@@ -29,78 +28,58 @@ sensor:
           window_size: ${dualpidpcm_windows_size}
           send_every: 1
           
-  - platform: dualpidpcm
-    dualpidpcm_id: ${dualpidpcm_id}
-    error: 
-      name: ${name}_${dualpidpcm_name}_error    
-    # output: 
-    #   name: ${name}_${dualpidpcm_name}_output
-    output_charging: 
-      name: ${name}_${dualpidpcm_name}_output_charging
-    output_discharging: 
-      name: ${name}_${dualpidpcm_name}_output_discharging      
-    # target:
-    #   name: ${name}_${dualpidpcm_name}_target
-    # epoint:
-    #   name: ${name}_${dualpidpcm_name}_epoint
-    input:
-      name: ${name}_${dualpidpcm_name}_input  
+#   - platform: dualpidpcm
+#     dualpidpcm_id: ${dualpidpcm_id}
+#     error: 
+#       name: ${name}_${dualpidpcm_name}_error    
+#     output_charging: 
+#       name: ${name}_${dualpidpcm_name}_output_charging
+#     output_discharging: 
+#       name: ${name}_${dualpidpcm_name}_output_discharging      
+#     input:
+#       name: ${name}_${dualpidpcm_name}_input  
 
 
-switch:
-  - platform: dualpidpcm
-    dualpidpcm_id: ${dualpidpcm_id}
-    activation: 
-      name: ${name}_${dualpidpcm_name}_activation
-      id: ${dualpidpcm_name}_activation
-    manual_override: 
-      name: ${name}_${dualpidpcm_name}_manual_override
-      id:  ${dualpidpcm_name}_manual_override
-    pid_mode: 
-      name: ${name}_${dualpidpcm_name}_pid_mode
-      id:  ${dualpidpcm_name}_pid_mode
-    reverse: 
-      name: ${name}_${dualpidpcm_name}_reverse
-      id:  ${dualpidpcm_name}_reverse
+# switch:
+#   - platform: dualpidpcm
+#     dualpidpcm_id: ${dualpidpcm_id}
+#     activation: 
+#       name: ${name}_${dualpidpcm_name}_activation
+#       id: ${dualpidpcm_name}_activation
+#     manual_override: 
+#       name: ${name}_${dualpidpcm_name}_manual_override
+#       id:  ${dualpidpcm_name}_manual_override
+#     pid_mode: 
+#       name: ${name}_${dualpidpcm_name}_pid_mode
+#       id:  ${dualpidpcm_name}_pid_mode
+#     reverse: 
+#       name: ${name}_${dualpidpcm_name}_reverse
+#       id:  ${dualpidpcm_name}_reverse
       
-number:
-  - platform: dualpidpcm
-    dualpidpcm_id: ${dualpidpcm_id}
-    setpoint:
-      name: ${name}_${dualpidpcm_name}_setpoint
-    # charging_epoint: 
-    #   name: ${name}_${dualpidpcm_name}_charging_epoint
-    # absorbing_epoint: 
-    #   name: ${name}_${dualpidpcm_name}_absorbing_epoint
-    # floating_epoint: 
-    #   name: ${name}_${dualpidpcm_name}_floating_epoint
-    starting_battery_voltage: 
-      name: ${name}_${dualpidpcm_name}_starting_battery_voltage
-    # charged_battery_voltage: 
-    #   name: ${name}_${dualpidpcm_name}_charged_battery_voltage
-    # discharged_battery_voltage: 
-    #   name: ${name}_${dualpidpcm_name}_discharged_battery_voltage
-    kp_charging: 
-      name: ${name}_${dualpidpcm_name}_kp_charging
-    ki_charging: 
-      name: ${name}_${dualpidpcm_name}_ki_charging
-    kd_charging: 
-      name: ${name}_${dualpidpcm_name}_kd_charging
-    kp_discharging: 
-      name: ${name}_${dualpidpcm_name}_kp_discharging
-    ki_discharging: 
-      name: ${name}_${dualpidpcm_name}_ki_discharging
-    kd_discharging: 
-      name: ${name}_${dualpidpcm_name}_kd_discharging      
-    # output_min: 
-    #   name: ${name}_${dualpidpcm_name}_output_min
-    # output_max: 
-    #   name: ${name}_${dualpidpcm_name}_output_max
-    output_min_charging: 
-      name: ${name}_${dualpidpcm_name}_output_min_charging
-    output_max_charging: 
-      name: ${name}_${dualpidpcm_name}_output_max_charging
-    output_min_discharging: 
-      name: ${name}_${dualpidpcm_name}_output_min_discharging
-    output_max_discharging: 
-      name: ${name}_${dualpidpcm_name}_output_max_discharging
+# number:
+#   - platform: dualpidpcm
+#     dualpidpcm_id: ${dualpidpcm_id}
+#     setpoint:
+#       name: ${name}_${dualpidpcm_name}_setpoint
+#     starting_battery_voltage: 
+#       name: ${name}_${dualpidpcm_name}_starting_battery_voltage
+#     kp_charging: 
+#       name: ${name}_${dualpidpcm_name}_kp_charging
+#     ki_charging: 
+#       name: ${name}_${dualpidpcm_name}_ki_charging
+#     kd_charging: 
+#       name: ${name}_${dualpidpcm_name}_kd_charging
+#     kp_discharging: 
+#       name: ${name}_${dualpidpcm_name}_kp_discharging
+#     ki_discharging: 
+#       name: ${name}_${dualpidpcm_name}_ki_discharging
+#     kd_discharging: 
+#       name: ${name}_${dualpidpcm_name}_kd_discharging      
+#     output_min_charging: 
+#       name: ${name}_${dualpidpcm_name}_output_min_charging
+#     output_max_charging: 
+#       name: ${name}_${dualpidpcm_name}_output_max_charging
+#     output_min_discharging: 
+#       name: ${name}_${dualpidpcm_name}_output_min_discharging
+#     output_max_discharging: 
+#       name: ${name}_${dualpidpcm_name}_output_max_discharging
