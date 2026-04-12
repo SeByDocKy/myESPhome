@@ -51,7 +51,8 @@ namespace dualpidpcm {
   void DUALPIDPCMComponent::pid_update() {
     uint32_t now = millis();
     float tmp, epsi;
-    float alphaP, alphaI, alphaD, alpha;
+    float alphaP, alphaI, alphaD;
+	// float alpha;
     float coeffP, coeffI, coeffD;
     float cc, cd;
     bool e , deadband=false;
@@ -137,7 +138,7 @@ namespace dualpidpcm {
 	    alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
-		alpha  = 0.5f;
+		// alpha  = 0.5f;
 		previous_state = current_state;
 	    deadband = true;
 		this->output_charging_ = 0.0f;
