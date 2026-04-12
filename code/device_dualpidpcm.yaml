@@ -36,8 +36,8 @@ sensor:
       name: ${name}_${dualpidpcm_name}_output_charging
     output_discharging: 
       name: ${name}_${dualpidpcm_name}_output_discharging      
-    # input:
-    #   name: ${name}_${dualpidpcm_name}_input  
+    input:
+      name: ${name}_${dualpidpcm_name}_input  
 
 
 switch:
