@@ -8,8 +8,7 @@ esp32:
   board: esp32dev
   framework:
     type: esp-idf
-    version: 5.5.1
-    platform_version: 55.03.31-2
+    version: 'dev'
     
 logger:
   baud_rate: 0
@@ -20,7 +19,7 @@ ota:
 
 external_components:
   - source: "github://SeByDocKy/myESPhome/"
-    components: [dualpid]
+    components: [dualpidpcm]
     refresh: 0s
   
 api:
