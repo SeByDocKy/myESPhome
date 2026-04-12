@@ -52,7 +52,7 @@ namespace dualpidpcm {
     uint32_t now = millis();
     float tmp, epsi;
     float alphaP, alphaI, alphaD;
-	// float alpha;
+	float alpha;
     float coeffP, coeffI, coeffD;
     float cc, cd;
     bool e , deadband=false;
