@@ -180,16 +180,17 @@ namespace dualpidpcm {
 	        }
           }
 	    }
-	 this->pid_computed_callback_.call();	  
-	 //    else{ // in deadband, turn off PCM module
-  //         if((this->onoff_switch_->state==true)  ){
-	 //         this->onoff_switch_->turn_off();	 
-	 //         this->onoff_switch_->publish_state(false);
-		//      delay(150);
-  //         }
-	 //    }
-	 //  }
+  
+	    else{ // in deadband, turn off PCM module
+          if((this->onoff_switch_->state==true)  ){
+	         this->onoff_switch_->turn_off();	 
+	         this->onoff_switch_->publish_state(false);
+		     delay(300);
+          }
+	    }
+	  }
 
+		 this->pid_computed_callback_.call();		
    //    if (!std::isnan(this->current_battery_voltage_)){
 	  //   ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
    //      if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
