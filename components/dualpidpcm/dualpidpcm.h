@@ -112,19 +112,15 @@ class DUALPIDPCMComponent : public Component{
   float previous_error_ = 0.0f;
   float output_charging_ = 0.0f;
   float output_discharging_ = 0.0f;
-  // float previous_output_ = 0.5f;
+
   float previous_output_charging_ = 0.0f;
   float previous_output_discharging_ = 0.0f;
+
   float integral_= 0.0f; 
   float derivative_ = 0.0f;
   float current_min_charging_ = 5.0f;
   float current_min_discharging_ = 5.0f;
   
-  // float current_charging_epoint_ = 50.0f; // 0.5f;
-  // float current_absorbing_epoint_ = 2.0f; // 0.2f;
-  // float current_floating_epoint_ = 0.0f;// 0.0f;
-  
-  // float current_input_ = 0.0f;
   float current_battery_voltage_ = 54.0f;
   float current_device_output_charging_ = 0.0f;
   float current_device_output_discharging_ = 0.0f;
