@@ -3,16 +3,16 @@ external_components:
     components: [dualpidpcm]
     refresh: 0s
     
-# dualpidpcm:
-#   - id: ${dualpidpcm_id}
-#     input_id: ${dualpidpcm_name}_input_smoothed 
-#     battery_voltage_id: ${dualpidpcm_battery_voltage_id}
-#     charging_output_id: ${dualpidpcm_charging_output_id}
-#     discharging_output_id: ${dualpidpcm_discharging_output_id}
-#     discharge_charge_switch_id: ${dualpidpcm_discharge_charge_switch_id}
-#     onoff_switch_id: ${dualpidpcm_onoff_switch_id}
-#     current_min_charging: ${dualpidpcm_current_min_charging}
-#     current_min_discharging: ${dualpidpcm_current_min_discharging}
+dualpidpcm:
+  - id: ${dualpidpcm_id}
+    input_id: ${dualpidpcm_name}_input_smoothed 
+    battery_voltage_id: ${dualpidpcm_battery_voltage_id}
+    charging_output_id: ${dualpidpcm_charging_output_id}
+    discharging_output_id: ${dualpidpcm_discharging_output_id}
+    discharge_charge_switch_id: ${dualpidpcm_discharge_charge_switch_id}
+    onoff_switch_id: ${dualpidpcm_onoff_switch_id}
+    current_min_charging: ${dualpidpcm_current_min_charging}
+    current_min_discharging: ${dualpidpcm_current_min_discharging}
     
 sensor:
   - platform: copy
