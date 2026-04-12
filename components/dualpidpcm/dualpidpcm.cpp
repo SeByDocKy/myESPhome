@@ -55,7 +55,7 @@ namespace dualpidpcm {
 	float alpha;
     float coeffP, coeffI, coeffD;
     float cc, cd;
-    bool e , deadband=false;
+    bool e ;
     bool current_state=true, previous_state=true, swap_state=false;
   
     ESP_LOGI(TAG, "Entered in pid_update()");
@@ -102,7 +102,7 @@ namespace dualpidpcm {
 	    alphaD = coeffD * this->derivative_;
 
 	    alpha  = alphaP + alphaI + alphaD;	
-	    deadband = false;
+	    this->current_deadband_ = false;
 	    previous_state = current_state;	
 	    current_state = false;
 
@@ -126,7 +126,7 @@ namespace dualpidpcm {
 	    alphaD = coeffD * this->derivative_;
 
 	    alpha  = alphaP + alphaI + alphaD;	
-	    deadband = false;
+	    this->current_deadband_ = false;
 	    previous_state = current_state;	
 	    current_state = true;	
 
@@ -140,7 +140,7 @@ namespace dualpidpcm {
 		alphaD = 0.0f;
 		// alpha  = 0.5f;
 		previous_state = current_state;
-	    deadband = true;
+	    this->current_deadband_ = true;
 		this->output_charging_ = 0.0f;
 		this->output_discharging_ = 0.0f;
 	  }
@@ -164,9 +164,8 @@ namespace dualpidpcm {
         }	
       }
 
-	  	
 	  else{  // regulation
-	    if (!deadband){ // Not in deadband
+	    if (!this->current_deadband_){ // Not in deadband
           if (this->discharge_charge_switch_ != nullptr) {
  	        if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
               this->discharge_charge_switch_->publish_state(true);
