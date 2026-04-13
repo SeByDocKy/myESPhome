@@ -45,6 +45,8 @@ binary_sensor:
     dualpidpcm_id: ${dualpidpcm_id}
     deadband:
       name: ${name}_${dualpidpcm_name}_deadband
+    swap:
+      name: ${name}_${dualpidpcm_name}_swap  
   
 switch:
   - platform: dualpidpcm
