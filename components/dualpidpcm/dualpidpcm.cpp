@@ -2,6 +2,8 @@
 #include "esphome/core/log.h"
 
 #define SET_OUTPUT_DELAY 50
+#define ONOFF_DELAY 50
+
 
 namespace esphome {
 namespace dualpidpcm {
@@ -228,7 +230,7 @@ namespace dualpidpcm {
 		  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
 		    this->onoff_switch_->turn_on();	 
 	        this->onoff_switch_->publish_state(true);
-			delay(300);  
+			delay(ONOFF_DELAY);  
 		  }
 	    }
       }
