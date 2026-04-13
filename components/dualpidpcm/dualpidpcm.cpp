@@ -166,6 +166,7 @@ namespace dualpidpcm {
 		  this->discharge_charge_switch_->turn_on();
 		  this->discharge_charge_switch_->publish_state(true);	
 		  delay(CHARGE_DISCHARGE_DELAY);
+		  // ESP_LOGI(TAG, "Turn off onoff, turn on discharge_charge");	
 			
         }	
       }
