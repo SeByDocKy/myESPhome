@@ -79,10 +79,10 @@ namespace dualpidpcm {
       this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
 	  if (previous_state != current_state){
-	    this->current_swap = true; //swap_state = true; 
+	    this->current_swap_ = true; //swap_state = true; 
       }
 	  else{
-        this->current_swap = false; //swap_state = false;
+        this->current_swap_ = false; //swap_state = false;
 	  }
 
 
