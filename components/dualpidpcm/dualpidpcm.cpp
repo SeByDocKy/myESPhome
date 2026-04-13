@@ -201,32 +201,32 @@ namespace dualpidpcm {
       }
 	  // // this->pid_computed_callback_.call();	
 	
-	  // ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
-	  // if (this->output_charging_ != this->previous_output_charging_){
-   //      this->device_charging_output_->set_level(this->output_charging_);          // send command to r48, must be in [0.0 - 1.0] //
-	  //   delay(150);
-	  // }
-	  // if (this->output_discharging_ != this->previous_output_discharging_){  
-	  //   this->device_discharging_output_->set_level(this->output_discharging_);    // send command to HMS, must be in [0.0 - 1.0] //
-   //      delay(150);
-	  // }
-	  // this->current_output_charging_    = this->output_charging_;
-	  // this->current_output_discharging_ = this->output_discharging_;  
+	  ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
+	  if (this->output_charging_ != this->previous_output_charging_){
+        this->device_charging_output_->set_level(this->output_charging_);          // send command to r48, must be in [0.0 - 1.0] //
+	    delay(150);
+	  }
+	  if (this->output_discharging_ != this->previous_output_discharging_){  
+	    this->device_discharging_output_->set_level(this->output_discharging_);    // send command to HMS, must be in [0.0 - 1.0] //
+        delay(150);
+	  }
+	  this->current_output_charging_    = this->output_charging_;
+	  this->current_output_discharging_ = this->output_discharging_;  
 
-   //    this->last_time_                   = now;
-   //    this->previous_error_              = this->error_;
-	  // this->previous_output_charging_    = this->output_charging_;
-	  // this->previous_output_discharging_ = this->output_discharging_;
+      this->last_time_                   = now;
+      this->previous_error_              = this->error_;
+	  this->previous_output_charging_    = this->output_charging_;
+	  this->previous_output_discharging_ = this->output_discharging_;
 
-	  // if (this->current_activation_ ){  
-	  //   if (this->onoff_switch_ != nullptr){
-		 //  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
-		 //    this->onoff_switch_->turn_on();	 
-	  //       this->onoff_switch_->publish_state(true);
-			// delay(300);  
-		 //  }
-	  //   }
-   //    }
+	  if (this->current_activation_ ){  
+	    if (this->onoff_switch_ != nullptr){
+		  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
+		    this->onoff_switch_->turn_on();	 
+	        this->onoff_switch_->publish_state(true);
+			delay(300);  
+		  }
+	    }
+      }
 
 	  this->pid_computed_callback_.call();
 		
