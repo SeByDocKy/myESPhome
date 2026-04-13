@@ -3,6 +3,8 @@
 
 #define SET_OUTPUT_DELAY 50
 #define ONOFF_DELAY 50
+#define CHARGE_DISCHARGE_DELAY 50
+
 
 
 namespace esphome {
@@ -159,11 +161,11 @@ namespace dualpidpcm {
 	    if((this->onoff_switch_->state==true)  ){
 	      this->onoff_switch_->publish_state(false);
 		  this->onoff_switch_->turn_off();	 
-		  delay(300);
+		  delay(ONOFF_DELAY);
 			
           this->discharge_charge_switch_->publish_state(true);		  
 		  this->discharge_charge_switch_->turn_on();	 
-		  delay(300);
+		  delay(CHARGE_DISCHARGE_DELAY);
         }	
       }
 	  else{  // regulation
@@ -172,12 +174,12 @@ namespace dualpidpcm {
  	        if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
               this->discharge_charge_switch_->publish_state(true);
 			  this->discharge_charge_switch_->turn_on();
-		      delay(300);
+		      delay(ONOFF_DELAY);
             }
 	        else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
               this->discharge_charge_switch_->publish_state(false);
 			  this->discharge_charge_switch_->turn_off();	 
-		      delay(300);
+		      delay(CHARGE_DISCHARGE_DELAY);
 	        }
           }
 	    }
@@ -185,7 +187,7 @@ namespace dualpidpcm {
           if((this->onoff_switch_->state==true)  ){
 			 this->onoff_switch_->publish_state(false); 
 	         this->onoff_switch_->turn_off();
-		     delay(300);
+		     delay(ONOFF_DELAY);
           }
 	    }
 	  }
@@ -198,11 +200,11 @@ namespace dualpidpcm {
 
 		  this->onoff_switch_->publish_state(false);	
           this->onoff_switch_->turn_off();
-		  delay(300);	
+		  delay(ONOFF_DELAY);	
 	      
           this->discharge_charge_switch_->publish_state(true);			  
           this->discharge_charge_switch_->turn_on();
-		  delay(300);	
+		  delay(CHARGE_DISCHARGE_DELAY);	
         }
       }
 	  // // this->pid_computed_callback_.call();	
