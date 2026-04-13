@@ -67,8 +67,8 @@ namespace dualpidpcm {
     bool current_state=true, previous_state=true;
 	// bool swap_state=false;
   
-    ESP_LOGI(TAG, "Entered in pid_update()");
-    ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
+    // ESP_LOGI(TAG, "Entered in pid_update()");
+    // ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
 
     if (!this->current_manual_override_){
       this->dt_    = float(now - this->last_time_)/1000.0f;
@@ -166,6 +166,7 @@ namespace dualpidpcm {
 		  this->discharge_charge_switch_->turn_on();
 		  this->discharge_charge_switch_->publish_state(true);	
 		  // delay(CHARGE_DISCHARGE_DELAY);
+			
         }	
       }
 	  else{  // regulation
@@ -175,13 +176,13 @@ namespace dualpidpcm {
 			  this->discharge_charge_switch_->turn_on();
 			  this->discharge_charge_switch_->publish_state(true);
 		      // delay(ONOFF_DELAY);
-			  ESP_LOGI(TAG, "Turn on discharge_charge");	
+			  // ESP_LOGI(TAG, "Turn on discharge_charge");	
             }
 	        else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state)){
 			  this->discharge_charge_switch_->turn_off();
 			  this->discharge_charge_switch_->publish_state(false);	
 		      // delay(CHARGE_DISCHARGE_DELAY);
-			  ESP_LOGI(TAG, "Turn off discharge_charge");	
+			  // ESP_LOGI(TAG, "Turn off discharge_charge");	
 	        }
           }
 	    }
@@ -191,7 +192,7 @@ namespace dualpidpcm {
 	         this->onoff_switch_->turn_off();
 			 this->onoff_switch_->publish_state(false); 
 		     // delay(ONOFF_DELAY);
-			 ESP_LOGI(TAG, "Turn off onoff"); 
+			 // ESP_LOGI(TAG, "Turn off onoff"); 
           }
 	    }
 	  }
@@ -237,7 +238,7 @@ namespace dualpidpcm {
 		    this->onoff_switch_->turn_on();	 
 	        this->onoff_switch_->publish_state(true);
 			// delay(ONOFF_DELAY);  
-			ESP_LOGI(TAG, "Turn on on off");  
+			// ESP_LOGI(TAG, "Turn on on off");  
 		  }
 	    }
       }
