@@ -1,9 +1,9 @@
 #include "dualpidpcm.h"
 #include "esphome/core/log.h"
 
-#define SET_OUTPUT_DELAY 100            // 50
-#define ONOFF_DELAY 100                 // 50
-#define CHARGE_DISCHARGE_DELAY 100      // 50
+#define SET_OUTPUT_DELAY 0            // 50
+#define ONOFF_DELAY 0                 // 50
+#define CHARGE_DISCHARGE_DELAY 0      // 50
 
 
 
