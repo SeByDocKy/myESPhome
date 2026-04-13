@@ -56,7 +56,8 @@ namespace dualpidpcm {
     float coeffP, coeffI, coeffD;
     float cc, cd;
     bool e ;
-    bool current_state=true, previous_state=true, swap_state=false;
+    bool current_state=true, previous_state=true;
+	// bool swap_state=false;
   
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
@@ -78,10 +79,10 @@ namespace dualpidpcm {
       this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
 	  if (previous_state != current_state){
-	    swap_state = true; 
+	    this->current_swap = true; //swap_state = true; 
       }
 	  else{
-        swap_state = false;
+        this->current_swap = false; //swap_state = false;
 	  }
 
 
