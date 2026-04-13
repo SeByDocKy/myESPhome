@@ -164,7 +164,6 @@ namespace dualpidpcm {
 		  delay(300);
         }	
       }
-
 	  else{  // regulation
 	    if (!this->current_deadband_){ // Not in deadband
           if (this->discharge_charge_switch_ != nullptr) {
@@ -180,7 +179,6 @@ namespace dualpidpcm {
 	        }
           }
 	    }
-  
 	    else{ // in deadband, turn off PCM module
           if((this->onoff_switch_->state==true)  ){
 			 this->onoff_switch_->publish_state(false); 
@@ -190,7 +188,6 @@ namespace dualpidpcm {
 	    }
 	  }
 
-	  		
       if (!std::isnan(this->current_battery_voltage_)){
 	    ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
@@ -219,8 +216,6 @@ namespace dualpidpcm {
 	  }
 	  this->current_output_charging_    = this->output_charging_;
 	  this->current_output_discharging_ = this->output_discharging_;  
-
-      
 
       this->last_time_                   = now;
       this->previous_error_              = this->error_;
