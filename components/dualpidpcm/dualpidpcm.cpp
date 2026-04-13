@@ -63,9 +63,8 @@ namespace dualpidpcm {
 	float alpha;
     float coeffP, coeffI, coeffD;
     float cc, cd;
-    bool e ;
+    // bool e ;
     bool current_state=true, previous_state=true;
-	// bool swap_state=false;
   
     // ESP_LOGI(TAG, "Entered in pid_update()");
     // ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
