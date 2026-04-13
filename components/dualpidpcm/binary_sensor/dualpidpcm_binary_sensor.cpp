@@ -14,6 +14,7 @@ void DUALPIDPCMBinarySensor::setup() {
 void DUALPIDPCMBinarySensor::dump_config() {
   ESP_LOGCONFIG(TAG, "DUALPIDPCM Binary Sensor:");
   LOG_BINARY_SENSOR("  ", "deadband", this->deadband_binary_sensor_);
+  LOG_BINARY_SENSOR("  ", "swap", this->swap_binary_sensor_);	
 }	
 
 void DUALPIDPCMBinarySensor::publish_data_() {
