@@ -20,6 +20,8 @@ namespace dualpidpcm {
     this->last_time_      =  millis();
     this->integral_       = 0.0f;
     this->previous_error_ = 0.0f;
+	this->previous_output_charging_= 0.0f;
+	this->previous_output_discharging_= 0.0f;  
   
     if (this->input_sensor_ != nullptr) {
       this->input_sensor_->add_on_state_callback([this](float state) {
