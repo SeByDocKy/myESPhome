@@ -9,7 +9,9 @@ from esphome.const import (
 
 DEPENDENCIES = ["dualpidpcm"]
 CONF_DEADBAND = "deadband"
+CONF_SWAP     = "swap"
 ICON_DEADBAND = "mdi:emoticon-dead-outline"
+ICON_SWAP     = "mdi:swap-vertical"
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
 
@@ -24,6 +26,10 @@ CONFIG_SCHEMA = {
         device_class=DEVICE_CLASS_OCCUPANCY,
         icon = ICON_DEADBAND,
     ),
+    cv.Optional(CONF_SWAP): binary_sensor.binary_sensor_schema(
+        device_class=DEVICE_CLASS_OCCUPANCY,
+        icon = ICON_SWAP,
+    ),
 }
 
 async def to_code(config):
@@ -32,7 +38,12 @@ async def to_code(config):
     await cg.register_component(var, config)
     dualpidpcm_component = await cg.get_variable(config[CONF_DUALPIDPCM_ID])
     cg.add(var.set_parent(dualpidpcm_component))
+    
     if CONF_DEADBAND in config:
         bsens = await binary_sensor.new_binary_sensor(config[CONF_DEADBAND])
         cg.add(var.set_deadband_binary_sensor(bsens))
+        
+    if CONF_SWAP in config:
+        bsens = await binary_sensor.new_binary_sensor(config[CONF_SWAP])
+        cg.add(var.set_swap_binary_sensor(bsens))    
         
