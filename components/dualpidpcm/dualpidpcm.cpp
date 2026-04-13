@@ -156,7 +156,7 @@ namespace dualpidpcm {
       if (!this->current_activation_ ){  // no regulation 
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;	
-	    if((this->onoff_switch_->state)  ){
+	    if((this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
 		  this->onoff_switch_->publish_state(false);	
 		  delay(ONOFF_DELAY);
@@ -170,13 +170,13 @@ namespace dualpidpcm {
 	  else{  // regulation
 	    if (!this->current_deadband_){ // Not in deadband
      //      if (this->discharge_charge_switch_ != nullptr) {
- 	   //      if((this->output_charging_ > this->current_output_min_charging_) & (!this->discharge_charge_switch_->state)){
+ 	   //      if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
 			  // this->discharge_charge_switch_->turn_on();
 			  // this->discharge_charge_switch_->publish_state(true);
 		   //    delay(ONOFF_DELAY);
 			  // ESP_LOGI(TAG, "Turn on discharge_charge");	
      //        }
-	    //     else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state)){
+	    //     else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
 			  // this->discharge_charge_switch_->turn_off();
 			  // this->discharge_charge_switch_->publish_state(false);	
 		   //    delay(CHARGE_DISCHARGE_DELAY);
@@ -185,7 +185,7 @@ namespace dualpidpcm {
      //      }
 	    }
 	    else{ // in deadband, turn off PCM module
-          if((this->onoff_switch_->state)  ){
+          if((this->onoff_switch_->state == true)  ){
 	         this->onoff_switch_->turn_off();
 			 this->onoff_switch_->publish_state(false); 
 		     delay(ONOFF_DELAY);
