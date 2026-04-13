@@ -18,7 +18,10 @@ void DUALPIDPCMBinarySensor::dump_config() {
 
 void DUALPIDPCMBinarySensor::publish_data_() {
   if (this->deadband_binary_sensor_ != nullptr)
-    this->deadband_binary_sensor_->publish_state(this->parent_->get_deadband());  
+    this->deadband_binary_sensor_->publish_state(this->parent_->get_deadband());
+
+  if (this->swap_binary_sensor_ != nullptr)
+    this->swap_binary_sensor_->publish_state(this->parent_->get_swap());	
 }
 
 } // dualpidpcm
