@@ -155,66 +155,66 @@ namespace dualpidpcm {
 	  }
 		
  
-      if (!this->current_activation_ ){  // no regulation 
-	    this->output_charging_    = 0.0f;
-	    this->output_discharging_ = 0.0f;	
-	    if((this->onoff_switch_->state==true)  ){
-		  this->onoff_switch_->turn_off();
-		  this->onoff_switch_->publish_state(false);	
-		  delay(ONOFF_DELAY);
+   //    if (!this->current_activation_ ){  // no regulation 
+	  //   this->output_charging_    = 0.0f;
+	  //   this->output_discharging_ = 0.0f;	
+	  //   if((this->onoff_switch_->state==true)  ){
+		 //  this->onoff_switch_->turn_off();
+		 //  this->onoff_switch_->publish_state(false);	
+		 //  delay(ONOFF_DELAY);
 			
-		  this->discharge_charge_switch_->turn_on();
-		  this->discharge_charge_switch_->publish_state(true);	
-		  delay(CHARGE_DISCHARGE_DELAY);
+		 //  this->discharge_charge_switch_->turn_on();
+		 //  this->discharge_charge_switch_->publish_state(true);	
+		 //  delay(CHARGE_DISCHARGE_DELAY);
 			
-        }	
-      }
-	  else{  // regulation
-	    if (!this->current_deadband_){ // Not in deadband
-          if (this->discharge_charge_switch_ != nullptr) {
- 	        if((this->output_charging_ > this->current_output_min_charging_) & (!this->discharge_charge_switch_->state)){
-			  this->discharge_charge_switch_->turn_on();
-			  this->discharge_charge_switch_->publish_state(true);
-		      delay(ONOFF_DELAY);
-			  // ESP_LOGI(TAG, "Turn on discharge_charge");	
-            }
-	        else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state)){
-			  this->discharge_charge_switch_->turn_off();
-			  this->discharge_charge_switch_->publish_state(false);	
-		      delay(CHARGE_DISCHARGE_DELAY);
-			  // ESP_LOGI(TAG, "Turn off discharge_charge");	
-	        }
-          }
-	    }
-	    else{ // in deadband, turn off PCM module
-          if((this->onoff_switch_->state)  ){
+   //      }	
+   //    }
+	  // else{  // regulation
+	  //   if (!this->current_deadband_){ // Not in deadband
+   //        if (this->discharge_charge_switch_ != nullptr) {
+ 	 //        if((this->output_charging_ > this->current_output_min_charging_) & (!this->discharge_charge_switch_->state)){
+			//   this->discharge_charge_switch_->turn_on();
+			//   this->discharge_charge_switch_->publish_state(true);
+		 //      delay(ONOFF_DELAY);
+			//   // ESP_LOGI(TAG, "Turn on discharge_charge");	
+   //          }
+	  //       else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state)){
+			//   this->discharge_charge_switch_->turn_off();
+			//   this->discharge_charge_switch_->publish_state(false);	
+		 //      delay(CHARGE_DISCHARGE_DELAY);
+			//   // ESP_LOGI(TAG, "Turn off discharge_charge");	
+	  //       }
+   //        }
+	  //   }
+	  //   else{ // in deadband, turn off PCM module
+   //        if((this->onoff_switch_->state)  ){
 			 
-	         this->onoff_switch_->turn_off();
-			 this->onoff_switch_->publish_state(false); 
-		     delay(ONOFF_DELAY);
-			 // ESP_LOGI(TAG, "Turn off onoff"); 
-          }
-	    }
-	  }
+	  //        this->onoff_switch_->turn_off();
+			//  this->onoff_switch_->publish_state(false); 
+		 //     delay(ONOFF_DELAY);
+			//  // ESP_LOGI(TAG, "Turn off onoff"); 
+   //        }
+	  //   }
+	  // }
 
-      if (!std::isnan(this->current_battery_voltage_)){
-	    ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
-        if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-		  this->output_charging_    = 0.0f;
-	      this->output_discharging_ = 0.0f;
+   //    if (!std::isnan(this->current_battery_voltage_)){
+	  //   ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
+   //      if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
+		 //  this->output_charging_    = 0.0f;
+	  //     this->output_discharging_ = 0.0f;
 
-		  this->onoff_switch_->publish_state(false);	
-          this->onoff_switch_->turn_off();
-		  delay(ONOFF_DELAY);	
+		 //  this->onoff_switch_->publish_state(false);	
+   //        this->onoff_switch_->turn_off();
+		 //  delay(ONOFF_DELAY);	
 	      
-          this->discharge_charge_switch_->publish_state(true);			  
-          this->discharge_charge_switch_->turn_on();
-		  delay(CHARGE_DISCHARGE_DELAY);	
-        }
-      }
-	  // // this->pid_computed_callback_.call();	
+   //        this->discharge_charge_switch_->publish_state(true);			  
+   //        this->discharge_charge_switch_->turn_on();
+		 //  delay(CHARGE_DISCHARGE_DELAY);	
+   //      }
+   //    }
+	  // // // this->pid_computed_callback_.call();	
 	
-	  ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
+	  // ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
 
 	  // if (this->output_charging_ != this->previous_output_charging_){
    //      this->device_charging_output_->set_level(this->output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
@@ -224,24 +224,24 @@ namespace dualpidpcm {
 	  //   this->device_discharging_output_->set_level(this->output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
    //      delay(SET_OUTPUT_DELAY);
 	  // }
-	  this->current_output_charging_    = this->output_charging_;
-	  this->current_output_discharging_ = this->output_discharging_;  
+	  // this->current_output_charging_    = this->output_charging_;
+	  // this->current_output_discharging_ = this->output_discharging_;  
 
-      this->last_time_                   = now;
-      this->previous_error_              = this->error_;
-	  this->previous_output_charging_    = this->output_charging_;
-	  this->previous_output_discharging_ = this->output_discharging_;
+   //    this->last_time_                   = now;
+   //    this->previous_error_              = this->error_;
+	  // this->previous_output_charging_    = this->output_charging_;
+	  // this->previous_output_discharging_ = this->output_discharging_;
 
-	  if (this->current_activation_ ){  
-	    if (this->onoff_switch_ != nullptr){
-		  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
-		    this->onoff_switch_->turn_on();	 
-	        this->onoff_switch_->publish_state(true);
-			delay(ONOFF_DELAY);  
-			// ESP_LOGI(TAG, "Turn on on off");  
-		  }
-	    }
-      }
+	  // if (this->current_activation_ ){  
+	  //   if (this->onoff_switch_ != nullptr){
+		 //  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
+		 //    this->onoff_switch_->turn_on();	 
+	  //       this->onoff_switch_->publish_state(true);
+			// delay(ONOFF_DELAY);  
+			// // ESP_LOGI(TAG, "Turn on on off");  
+		 //  }
+	  //   }
+   //    }
 
 	  this->pid_computed_callback_.call();
 		
