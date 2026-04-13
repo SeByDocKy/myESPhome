@@ -221,15 +221,15 @@ namespace dualpidpcm {
 	  this->previous_output_charging_    = this->output_charging_;
 	  this->previous_output_discharging_ = this->output_discharging_;
 
-	  // if (this->current_activation_ ){  
-	  //   if (this->onoff_switch_ != nullptr){
-		 //  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
-		 //    this->onoff_switch_->turn_on();	 
-	  //       this->onoff_switch_->publish_state(true);
-			// delay(300);  
-		 //  }
-	  //   }
-   //    }
+	  if (this->current_activation_ ){  
+	    if (this->onoff_switch_ != nullptr){
+		  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
+		    this->onoff_switch_->turn_on();	 
+	        this->onoff_switch_->publish_state(true);
+			delay(300);  
+		  }
+	    }
+      }
 
 	  this->pid_computed_callback_.call();
 		
