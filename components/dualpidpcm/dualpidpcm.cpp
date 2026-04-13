@@ -171,12 +171,12 @@ namespace dualpidpcm {
 	  else{  // regulation
 	    if (!this->current_deadband_){ // Not in deadband
           if (this->discharge_charge_switch_ != nullptr) {
- 	        if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
+ 	        if((this->output_charging_ > this->current_output_min_charging_) & (!this->discharge_charge_switch_->state)){
 			  this->discharge_charge_switch_->turn_on();
 			  this->discharge_charge_switch_->publish_state(true);	
 		      // delay(ONOFF_DELAY);
             }
-	        else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
+	        else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state)){
 			  this->discharge_charge_switch_->turn_off();
 			  this->discharge_charge_switch_->publish_state(false);	
 		      // delay(CHARGE_DISCHARGE_DELAY);
@@ -184,7 +184,7 @@ namespace dualpidpcm {
           }
 	    }
 	    else{ // in deadband, turn off PCM module
-          if((this->onoff_switch_->state==true)  ){
+          if((this->onoff_switch_->state)  ){
 			 
 	         this->onoff_switch_->turn_off();
 			 this->onoff_switch_->publish_state(false); 
