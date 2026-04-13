@@ -147,14 +147,12 @@ namespace dualpidpcm {
 	    alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
-		// alpha  = 0.5f;
 		previous_state = current_state;
 	    this->current_deadband_ = true;
 		this->output_charging_ = 0.0f;
 		this->output_discharging_ = 0.0f;
 	  }
 		
- 
       if (!this->current_activation_ ){  // no regulation 
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;	
@@ -167,7 +165,6 @@ namespace dualpidpcm {
 		  this->discharge_charge_switch_->publish_state(true);	
 		  delay(CHARGE_DISCHARGE_DELAY);
 		  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
-			
         }	
       }
 	  else{  // regulation
@@ -192,7 +189,7 @@ namespace dualpidpcm {
 	         this->onoff_switch_->turn_off();
 			 this->onoff_switch_->publish_state(false); 
 		     delay(ONOFF_DELAY);
-			 ESP_LOGI(TAG, "Turn off onoff"); 
+			 ESP_LOGI(TAG, "in deadband -> Turn off onoff"); 
           }
 	    }
 	  }
