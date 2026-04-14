@@ -170,6 +170,7 @@ namespace dualpidpcm {
 		  this->onoff_switch_->turn_on();
 		  this->onoff_switch_->publish_state(true);	
 		  delay(ONOFF_DELAY);
+	   }
 	 }
 	  // else{  // regulation
 	  //   if (!this->current_deadband_){ // Not in deadband
