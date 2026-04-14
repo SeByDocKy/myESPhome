@@ -100,7 +100,7 @@ namespace dualpidpcm {
           tmp = this->previous_output_charging_;
         }
 	      
-	    coeffP = coeffPcharging*this->current_kp_charging_;
+	    coeffP = - coeffPcharging*this->current_kp_charging_;
 	    coeffI = coeffIcharging*this->current_ki_charging_;
 	    coeffD = coeffDcharging*this->current_kd_charging_;
 		
