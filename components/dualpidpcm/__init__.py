@@ -62,11 +62,10 @@ async def to_code(config):
 	
     sw = await cg.get_variable(config[CONF_DISCHARGE_CHARGE_SWITCH_ID])
     cg.add(var.set_discharge_charge_switch(sw))
-
-	sw = await cg.get_variable(config[CONF_ONOFF_SWITCH_ID])
+    
+    sw = await cg.get_variable(config[CONF_ONOFF_SWITCH_ID])
     cg.add(var.set_onoff_switch(sw))
-
-     
+	
     if CONF_CURRENT_MIN_CHARGING in config:
       cg.add(var.set_current_min_charging_register(config[CONF_CURRENT_MIN_CHARGING]))
 		
