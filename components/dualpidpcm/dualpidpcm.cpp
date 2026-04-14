@@ -156,7 +156,7 @@ namespace dualpidpcm {
 	    this->output_discharging_ = 0.0f;	
 	    if((this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
-		  // this->onoff_switch_->publish_state(false);	
+		  this->onoff_switch_->publish_state(false);	
 		  // delay(ONOFF_DELAY);
 			
 		  // this->discharge_charge_switch_->turn_on();
@@ -168,12 +168,15 @@ namespace dualpidpcm {
 	 else{
 	   if((this->onoff_switch_->state == false)  ){
 		  this->onoff_switch_->turn_on();
-		  // this->onoff_switch_->publish_state(true);	
+		  this->onoff_switch_->publish_state(true);	
 		  // delay(ONOFF_DELAY);
 	   }
 	 }
 	 this->current_output_charging_    = this->output_charging_;
-	 this->current_output_discharging_ = this->output_discharging_; 	
+	 this->current_output_discharging_ = this->output_discharging_;
+	 this->pid_computed_callback_.call();
+
+		
 	  // else{  // regulation
 	  //   if (!this->current_deadband_){ // Not in deadband
    //        if (this->discharge_charge_switch_ != nullptr) {
@@ -247,7 +250,7 @@ namespace dualpidpcm {
 	  //   }
    //    }
 
-	  this->pid_computed_callback_.call();
+	  // this->pid_computed_callback_.call();
 		
     } 
    } // pid_update
