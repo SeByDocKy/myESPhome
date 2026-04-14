@@ -180,6 +180,10 @@ namespace dualpidpcm {
 	 	ESP_LOGI(TAG, "Discharge battery,  output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);
 	  }
 	  else{  // deadband
+
+		this->error_ = epsi;   
+	  	this->current_error_ = this->error_;
+		  
 	    alphaP = 0.0f;
 		alphaI = 0.0f;
 		alphaD = 0.0f;
