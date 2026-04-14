@@ -155,8 +155,8 @@ namespace dualpidpcm {
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;	
 	    if((this->onoff_switch_->state == true)  ){
-		  // this->onoff_switch_->turn_off();
-		  this->onoff_switch_->publish_state(false);	
+		  this->onoff_switch_->turn_off();
+		  // this->onoff_switch_->publish_state(false);	
 		  // delay(ONOFF_DELAY);
 			
 		  // this->discharge_charge_switch_->turn_on();
@@ -167,8 +167,8 @@ namespace dualpidpcm {
       }
 	 else{
 	   if((this->onoff_switch_->state == false)  ){
-		  // this->onoff_switch_->turn_on();
-		  this->onoff_switch_->publish_state(true);	
+		  this->onoff_switch_->turn_on();
+		  // this->onoff_switch_->publish_state(true);	
 		  // delay(ONOFF_DELAY);
 	   }
 	 }
