@@ -172,6 +172,8 @@ namespace dualpidpcm {
 		  // delay(ONOFF_DELAY);
 	   }
 	 }
+	 this->current_output_charging_    = this->output_charging_;
+	 this->current_output_discharging_ = this->output_discharging_; 	
 	  // else{  // regulation
 	  //   if (!this->current_deadband_){ // Not in deadband
    //        if (this->discharge_charge_switch_ != nullptr) {
