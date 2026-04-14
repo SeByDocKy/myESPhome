@@ -88,11 +88,12 @@ namespace dualpidpcm {
 	 //  else{
   //       this->current_swap_ = false; //swap_state = false;
 	 //  }
-		
+
+	  this->dt_    = float(now - this->last_time_)/1000.0f;
+	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	
 	  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
-        this->dt_    = float(now - this->last_time_)/1000.0f;
-	    epsi         = - (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
-	    this->error_ = epsi;   
+	    this->error_ = - epsi;   
 	  	  
 	    if (this->current_reverse_){
 		  this->error_ = -this->error_;
@@ -136,8 +137,6 @@ namespace dualpidpcm {
 	  }
 	  else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){  // discharge battery
 
-		this->dt_    = float(now - this->last_time_)/1000.0f;
-	    epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	    this->error_ = epsi;   
 	  	  
 	    if (this->current_reverse_){
