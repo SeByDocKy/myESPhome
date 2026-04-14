@@ -5,8 +5,6 @@
 #define ONOFF_DELAY 0                 // 50
 #define CHARGE_DISCHARGE_DELAY 0      // 50
 
-
-
 namespace esphome {
 namespace dualpidpcm {
 
@@ -69,31 +67,50 @@ namespace dualpidpcm {
     // ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
 
     if (!this->current_manual_override_){
-      this->dt_    = float(now - this->last_time_)/1000.0f;
-	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
-	  this->error_ = epsi;   
+  //     this->dt_    = float(now - this->last_time_)/1000.0f;
+	 //  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	 //  this->error_ = epsi;   
 	  	  
-	  if (this->current_reverse_){
-		this->error_ = -this->error_;
-	  }
-	  this->current_error_ = this->error_;
+	 //  if (this->current_reverse_){
+		// this->error_ = -this->error_;
+	 //  }
+	 //  this->current_error_ = this->error_;
 	
-      tmp = (this->error_ * this->dt_);
-      if (!std::isnan(tmp)){
-        this->integral_ += tmp;
-      }
-      this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+  //     tmp = (this->error_ * this->dt_);
+  //     if (!std::isnan(tmp)){
+  //       this->integral_ += tmp;
+  //     }
+  //     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
-	  if (previous_state != current_state){
-	    this->current_swap_ = true; //swap_state = true; 
-      }
-	  else{
-        this->current_swap_ = false; //swap_state = false;
-	  }
-
-
+	 //  if (previous_state != current_state){
+	 //    this->current_swap_ = true; //swap_state = true; 
+  //     }
+	 //  else{
+  //       this->current_swap_ = false; //swap_state = false;
+	 //  }
 		
 	  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
+        this->dt_    = float(now - this->last_time_)/1000.0f;
+	    epsi         = - (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	    this->error_ = epsi;   
+	  	  
+	    if (this->current_reverse_){
+		  this->error_ = -this->error_;
+	    }
+	    this->current_error_ = this->error_;
+	
+        tmp = (this->error_ * this->dt_);
+        if (!std::isnan(tmp)){
+          this->integral_ += tmp;
+        }
+        this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+
+	    if (previous_state != current_state){
+	      this->current_swap_ = true; //swap_state = true; 
+        }
+	    else{
+          this->current_swap_ = false; //swap_state = false;
+	    }
 
 	    tmp = 0.0f;
         if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_   ){ //  && !swap_state  
@@ -119,6 +136,28 @@ namespace dualpidpcm {
 	  }
 	  else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){  // discharge battery
 
+		this->dt_    = float(now - this->last_time_)/1000.0f;
+	    epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	    this->error_ = epsi;   
+	  	  
+	    if (this->current_reverse_){
+		  this->error_ = -this->error_;
+	    }
+	    this->current_error_ = this->error_;
+	
+        tmp = (this->error_ * this->dt_);
+        if (!std::isnan(tmp)){
+          this->integral_ += tmp;
+        }
+        this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+
+	    if (previous_state != current_state){
+	      this->current_swap_ = true; //swap_state = true; 
+        }
+	    else{
+          this->current_swap_ = false; //swap_state = false;
+	    }
+  
 	    tmp = 0.0f;
         if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_    ){ //   && !swap_state
           tmp = this->previous_output_discharging_;
