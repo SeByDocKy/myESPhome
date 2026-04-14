@@ -157,19 +157,19 @@ namespace dualpidpcm {
 	    if((this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
 		  this->onoff_switch_->publish_state(false);	
-		  // delay(ONOFF_DELAY);
+		  delay(ONOFF_DELAY);
 			
-		  // this->discharge_charge_switch_->turn_on();
-		  // this->discharge_charge_switch_->publish_state(true);	
-		  // delay(CHARGE_DISCHARGE_DELAY);
-		  // ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
+		  this->discharge_charge_switch_->turn_on();
+		  this->discharge_charge_switch_->publish_state(true);	
+		  delay(CHARGE_DISCHARGE_DELAY);
+		  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
         }	
       }
 	 else{
 	   if((this->onoff_switch_->state == false)  ){
 		  this->onoff_switch_->turn_on();
 		  this->onoff_switch_->publish_state(true);	
-		  // delay(ONOFF_DELAY);
+		  delay(ONOFF_DELAY);
 	   }
 	 }
 	 this->current_output_charging_    = this->output_charging_;
