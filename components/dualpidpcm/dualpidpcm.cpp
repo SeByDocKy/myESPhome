@@ -123,7 +123,7 @@ namespace dualpidpcm {
 	    this->output_charging_    = cc*tmp; //cc*tmp; ?
 	    this->output_discharging_ = 0.0f;	
 	    this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	    this->previous_output_    = this->current_epoint_;  
+	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
 	  else if (this->current_output_ > this->epoint_ + this->eub_){
@@ -147,10 +147,7 @@ namespace dualpidpcm {
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = cd*tmp; // tmp;?
 	    this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
-	    this->previous_output_    = this->current_epoint_;
-  
-  
-
+	    // this->previous_output_    = this->current_epoint_;
 	  }
 	  else{
         if((epsi < -this->current_battery_voltage_*this->current_min_charging_) | (epsi > this->current_battery_voltage_*this->current_min_discharging_)){
@@ -169,8 +166,9 @@ namespace dualpidpcm {
 	
 	    }
       }
-	  alpha  = alphaP + alphaI + alphaD;
-	  this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
+		
+	  // alpha  = alphaP + alphaI + alphaD;
+	  // this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
 		
 
 
