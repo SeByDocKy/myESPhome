@@ -143,7 +143,7 @@ namespace dualpidpcm {
 		alpha  = alphaP + alphaI + alphaD;
 	    this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
-		tmp                       = (this->output_ + this->eub_ - this->epoint_ ); // tmp is positive
+		tmp                       = (this->current_output_ + this->eub_ - this->epoint_ ); // tmp is positive
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = cd*tmp; // tmp;?
 	    this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
