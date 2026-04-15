@@ -23,6 +23,7 @@ class DUALPIDPCMSensor : public Component, public Parented<DUALPIDPCMComponent> 
 
   sensor::Sensor *input_sensor_{nullptr};
   sensor::Sensor *error_sensor_{nullptr};
+  sensor::Sensor *output_sensor_{nullptr};
   sensor::Sensor *output_charging_sensor_{nullptr};
   sensor::Sensor *output_discharging_sensor_{nullptr};
   
