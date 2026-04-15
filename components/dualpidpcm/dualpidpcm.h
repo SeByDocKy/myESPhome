@@ -101,6 +101,7 @@ class DUALPIDPCMComponent : public Component{
   float get_output_max_discharging(void){return this->current_output_max_discharging_;}
   
   float get_error(void) { return this->current_error_; }
+  float get_output(void) { return this->current_output_; }
   float get_output_charging(void) { return this->current_output_charging_; }
   float get_output_discharging(void) { return this->current_output_discharging_; }  
   float get_input(void)  { return this->current_input_; }
