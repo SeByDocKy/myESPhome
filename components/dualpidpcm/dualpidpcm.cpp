@@ -108,13 +108,10 @@ namespace dualpidpcm {
 	 else if (this->current_output_ > 0.5 + this->eub_){
 
 	 }
-	else{
-     if((epsi < -this->current_battery_voltage_*this->current_min_charging_) | (epsi > this->current_battery_voltage_*this->current_min_discharging_)){
+	 else{
+       if((epsi < -this->current_battery_voltage_*this->current_min_charging_) | (epsi > this->current_battery_voltage_*this->current_min_discharging_)){
 
-	 }
-		
-
-
+	   }
 	}
 		
 
