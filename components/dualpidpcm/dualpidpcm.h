@@ -179,7 +179,7 @@ class DUALPIDPCMComponent : public Component{
 
   float elb_             = 0.02f;
   float eub_             = 0.02f;
-  float epoint_          = 0.5f
+  float epoint_          = 0.5f;
 
   float output_min_      = 0.0f;
   float output_max_      = 1.0f;
