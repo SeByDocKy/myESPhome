@@ -14,6 +14,7 @@ from esphome.const import (
 DEPENDENCIES            = ["dualpidpcm"]
 
 CONF_ERROR              = "error"
+CONF_OUTPUT             = "output"
 CONF_OUTPUT_CHARGING    = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_INPUT              = "input"
@@ -35,7 +36,13 @@ CONFIG_SCHEMA = {
                 unit_of_measurement=UNIT_WATT,
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
-             ),           
+             ),
+    cv.Optional(CONF_OUTPUT): sensor.sensor_schema(
+                accuracy_decimals=2,
+                unit_of_measurement=UNIT_PERCENT,
+                icon = ICON_PERCENT,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
     cv.Optional(CONF_OUTPUT_CHARGING): sensor.sensor_schema(
                 accuracy_decimals=2,
                 unit_of_measurement=UNIT_PERCENT,
@@ -66,6 +73,10 @@ async def to_code(config):
     if CONF_ERROR in config:
         sens = await sensor.new_sensor(config[CONF_ERROR])
         cg.add(var.set_error_sensor(sens))
+        
+    if CONF_OUTPUT in config:
+        sens = await sensor.new_sensor(config[CONF_OUTPUT])
+        cg.add(var.set_output_sensor(sens))
         
     if CONF_OUTPUT_CHARGING in config:
         sens = await sensor.new_sensor(config[CONF_OUTPUT_CHARGING])
