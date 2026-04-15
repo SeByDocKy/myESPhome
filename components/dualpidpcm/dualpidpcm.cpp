@@ -115,6 +115,10 @@ namespace dualpidpcm {
 	    alphaD = coeffD * this->derivative_;
 
 	    this->current_deadband_ = false;
+
+		alpha  = alphaP + alphaI + alphaD;
+	    this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
+  
 	  }
 	  else if (this->current_output_ > this->epoint_ + this->eub_){
 	    this->current_kp_ = this->current_kp_discharging_;
@@ -130,6 +134,9 @@ namespace dualpidpcm {
 	    alphaD = coeffD * this->derivative_;
 
 	    this->current_deadband_ = false;
+		alpha  = alphaP + alphaI + alphaD;
+	    this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
+  
 
 	  }
 	  else{
@@ -139,8 +146,14 @@ namespace dualpidpcm {
 		  alphaD = 0.0f;
 		  previous_state = current_state;
 	      this->current_deadband_ = true;
-		  this->output_charging_ = 0.0f;
+
+		  alpha  = alphaP + alphaI + alphaD;
+	      this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
+		  
+		  this->output_charging_    = 0.0f;
 		  this->output_discharging_ = 0.0f;
+	
+	
 		   
 	    }
       }
