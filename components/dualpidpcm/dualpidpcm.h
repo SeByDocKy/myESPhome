@@ -180,7 +180,8 @@ class DUALPIDPCMComponent : public Component{
   float eub_             = 0.02f;
   float epoint_          = 0.5f
 
-  
+  float current_output_min_ = 0.0f;
+  float current_output_max_ = 0.0f;
 
 };
 		
