@@ -176,109 +176,109 @@ namespace dualpidpcm {
 
 
 		
-	  this->dt_    = float(now - this->last_time_)/1000.0f;
-	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	 //  this->dt_    = float(now - this->last_time_)/1000.0f;
+	 //  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	
-	  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
-	    this->error_ = - epsi;   
+	 //  if(epsi < -this->current_battery_voltage_*this->current_min_charging_){  // charge battery
+	 //    this->error_ = - epsi;   
 	  	  
-	    if (this->current_reverse_){
-		  this->error_ = -this->error_;
-	    }
-	    this->current_error_ = this->error_;
+	 //    if (this->current_reverse_){
+		//   this->error_ = -this->error_;
+	 //    }
+	 //    this->current_error_ = this->error_;
 	
-        tmp = (this->error_ * this->dt_);
-        if (!std::isnan(tmp)){
-          this->integral_ += tmp;
-        }
-        this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+  //       tmp = (this->error_ * this->dt_);
+  //       if (!std::isnan(tmp)){
+  //         this->integral_ += tmp;
+  //       }
+  //       this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
-	    if (previous_state != current_state){
-	      this->current_swap_ = true; //swap_state = true; 
-        }
-	    else{
-          this->current_swap_ = false; //swap_state = false;
-	    }
+	 //    if (previous_state != current_state){
+	 //      this->current_swap_ = true; //swap_state = true; 
+  //       }
+	 //    else{
+  //         this->current_swap_ = false; //swap_state = false;
+	 //    }
 
-	    tmp = 0.0f;
-        if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_   ){ //  && !swap_state  
-          tmp = this->previous_output_charging_;
-        }
+	 //    tmp = 0.0f;
+  //       if( !std::isnan(this->previous_output_charging_) && !this->current_pid_mode_   ){ //  && !swap_state  
+  //         tmp = this->previous_output_charging_;
+  //       }
 	      
-	    coeffP = coeffPcharging*this->current_kp_charging_;
-	    coeffI = coeffIcharging*this->current_ki_charging_;
-	    coeffD = coeffDcharging*this->current_kd_charging_;
+	 //    coeffP = coeffPcharging*this->current_kp_charging_;
+	 //    coeffI = coeffIcharging*this->current_ki_charging_;
+	 //    coeffD = coeffDcharging*this->current_kd_charging_;
 		
-	    alphaP = coeffP * this->error_;
-	    alphaI = coeffI * this->integral_;
-	    alphaD = coeffD * this->derivative_;
+	 //    alphaP = coeffP * this->error_;
+	 //    alphaI = coeffI * this->integral_;
+	 //    alphaD = coeffD * this->derivative_;
 
-	    alpha  = alphaP + alphaI + alphaD;	
-	    this->current_deadband_ = false;
-	    previous_state = current_state;	
-	    current_state = false;
+	 //    alpha  = alphaP + alphaI + alphaD;	
+	 //    this->current_deadband_ = false;
+	 //    previous_state = current_state;	
+	 //    current_state = false;
 
-	    this->output_discharging_ = 0.0f;		
-	    this->output_charging_    = std::min(std::max( tmp + alpha , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
-	    ESP_LOGI(TAG, "Charge battery,  output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_); 
-	  }
-	  else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){  // discharge battery
+	 //    this->output_discharging_ = 0.0f;		
+	 //    this->output_charging_    = std::min(std::max( tmp + alpha , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
+	 //    ESP_LOGI(TAG, "Charge battery,  output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_); 
+	 //  }
+	 //  else if (epsi > this->current_battery_voltage_*this->current_min_discharging_){  // discharge battery
 
-	    this->error_ = epsi;   
+	 //    this->error_ = epsi;   
 	  	  
-	    if (this->current_reverse_){
-		  this->error_ = -this->error_;
-	    }
-	    this->current_error_ = this->error_;
+	 //    if (this->current_reverse_){
+		//   this->error_ = -this->error_;
+	 //    }
+	 //    this->current_error_ = this->error_;
 	
-        tmp = (this->error_ * this->dt_);
-        if (!std::isnan(tmp)){
-          this->integral_ += tmp;
-        }
-        this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+  //       tmp = (this->error_ * this->dt_);
+  //       if (!std::isnan(tmp)){
+  //         this->integral_ += tmp;
+  //       }
+  //       this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
-	    if (previous_state != current_state){
-	      this->current_swap_ = true; //swap_state = true; 
-        }
-	    else{
-          this->current_swap_ = false; //swap_state = false;
-	    }
+	 //    if (previous_state != current_state){
+	 //      this->current_swap_ = true; //swap_state = true; 
+  //       }
+	 //    else{
+  //         this->current_swap_ = false; //swap_state = false;
+	 //    }
   
-	    tmp = 0.0f;
-        if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_    ){ //   && !swap_state
-          tmp = this->previous_output_discharging_;
-        }	
+	 //    tmp = 0.0f;
+  //       if( !std::isnan(this->previous_output_discharging_) && !this->current_pid_mode_    ){ //   && !swap_state
+  //         tmp = this->previous_output_discharging_;
+  //       }	
         		  
-	    coeffP = coeffPdischarging*this->current_kp_discharging_;
-	    coeffI = coeffIdischarging*this->current_ki_discharging_;
-	    coeffD = coeffDdischarging*this->current_kd_discharging_;	
+	 //    coeffP = coeffPdischarging*this->current_kp_discharging_;
+	 //    coeffI = coeffIdischarging*this->current_ki_discharging_;
+	 //    coeffD = coeffDdischarging*this->current_kd_discharging_;	
 
-	    alphaP = coeffP * this->error_;
-	    alphaI = coeffI * this->integral_;
-	    alphaD = coeffD * this->derivative_;
+	 //    alphaP = coeffP * this->error_;
+	 //    alphaI = coeffI * this->integral_;
+	 //    alphaD = coeffD * this->derivative_;
 
-	    alpha  = alphaP + alphaI + alphaD;	
-	    this->current_deadband_ = false;
-	    previous_state = current_state;	
-	    current_state = true;	
+	 //    alpha  = alphaP + alphaI + alphaD;	
+	 //    this->current_deadband_ = false;
+	 //    previous_state = current_state;	
+	 //    current_state = true;	
 
-	    this->output_charging_    = 0.0f;		
-	    this->output_discharging_ = std::min(std::max( tmp + alpha , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
-	 	ESP_LOGI(TAG, "Discharge battery,  output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);
-	  }
-	  else{  // deadband
+	 //    this->output_charging_    = 0.0f;		
+	 //    this->output_discharging_ = std::min(std::max( tmp + alpha , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
+	 // 	ESP_LOGI(TAG, "Discharge battery,  output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);
+	 //  }
+	 //  else{  // deadband
 
-		this->error_ = epsi;   
-	  	this->current_error_ = this->error_;
+		// this->error_ = epsi;   
+	 //  	this->current_error_ = this->error_;
 		  
-	    alphaP = 0.0f;
-		alphaI = 0.0f;
-		alphaD = 0.0f;
-		previous_state = current_state;
-	    this->current_deadband_ = true;
-		this->output_charging_ = 0.0f;
-		this->output_discharging_ = 0.0f;
-	  }
+	 //    alphaP = 0.0f;
+		// alphaI = 0.0f;
+		// alphaD = 0.0f;
+		// previous_state = current_state;
+	 //    this->current_deadband_ = true;
+		// this->output_charging_ = 0.0f;
+		// this->output_discharging_ = 0.0f;
+	 //  }
 		
       if (!this->current_activation_ ){  // no regulation 
 	    this->output_charging_    = 0.0f;
