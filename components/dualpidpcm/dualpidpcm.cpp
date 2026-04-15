@@ -117,9 +117,9 @@ namespace dualpidpcm {
 	    this->current_deadband_ = false;
 
 		alpha  = alphaP + alphaI + alphaD;
-	    this->output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+	    this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
-		tmp                      = (this->epoint_ - this->output_); // tmp is positive
+		tmp                       = (this->epoint_ - this->current_output_); // tmp is positive
 	    this->output_charging_    = tmp; //cc*tmp; ?
 	    this->output_discharging_ = 0.0f;	
 	    this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
@@ -141,7 +141,7 @@ namespace dualpidpcm {
 
 	    this->current_deadband_ = false;
 		alpha  = alphaP + alphaI + alphaD;
-	    this->output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+	    this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
   
 
 	  }
@@ -154,7 +154,7 @@ namespace dualpidpcm {
 	      this->current_deadband_ = true;
 
 		  alpha  = alphaP + alphaI + alphaD;
-	      this->output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+	      this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 		  
 		  this->output_charging_    = 0.0f;
 		  this->output_discharging_ = 0.0f;
