@@ -100,12 +100,34 @@ namespace dualpidpcm {
 
 
 
-     if (this->current_output_ < 0.5 - this->elb_){
+     if (this->current_output_ < this->epoint_- this->elb_){
 
+	   this->current_kp_ = this->current_kp_charging_;
+	   this->current_ki_ = this->current_ki_charging_;
+	   this->current_kd_ = this->current_kd_charging_;
+      
+	   coeffP = coeffPcharging*this->current_kp_;
+	   coeffI = coeffIcharging*this->current_ki_;
+	   coeffD = coeffDcharging*this->current_kd_;
+		
+	   alphaP = coeffP * this->error_;
+	   alphaI = coeffI * this->integral_;
+	   alphaD = coeffD * this->derivative_;
 
 
 	 }
-	 else if (this->current_output_ > 0.5 + this->eub_){
+	 else if (this->current_output_ > this->epoint_ + this->eub_){
+	   this->current_kp_ = this->current_kp_discharging_;
+	   this->current_ki_ = this->current_ki_discharging_;
+	   this->current_kd_ = this->current_kd_discharging_;
+		 
+	   coeffP = coeffPdischarging*this->current_kp_;
+	   coeffI = coeffIdischarging*this->current_ki_;
+	   coeffD = coeffDdischarging*this->current_kd_;	
+
+	   alphaP = coeffP * this->error_;
+	   alphaI = coeffI * this->integral_;
+	   alphaD = coeffD * this->derivative_;
 
 	 }
 	 else{
