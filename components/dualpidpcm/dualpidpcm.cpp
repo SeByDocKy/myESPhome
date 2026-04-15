@@ -63,32 +63,66 @@ namespace dualpidpcm {
     // float cc, cd;
     bool current_state=true, previous_state=true;
   
-    // ESP_LOGI(TAG, "Entered in pid_update()");
-    // ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
+    ESP_LOGI(TAG, "Entered in pid_update()");
+    ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
 
     if (!this->current_manual_override_){
-  //     this->dt_    = float(now - this->last_time_)/1000.0f;
-	 //  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
-	 //  this->error_ = epsi;   
+      this->dt_    = float(now - this->last_time_)/1000.0f;
+	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	  this->error_ = epsi;   
 	  	  
-	 //  if (this->current_reverse_){
-		// this->error_ = -this->error_;
-	 //  }
-	 //  this->current_error_ = this->error_;
+	  if (this->current_reverse_){
+		this->error_ = -this->error_;
+	  }
+	  this->current_error_ = this->error_;
 	
-  //     tmp = (this->error_ * this->dt_);
-  //     if (!std::isnan(tmp)){
-  //       this->integral_ += tmp;
-  //     }
-  //     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+      tmp = (this->error_ * this->dt_);
+      if (!std::isnan(tmp)){
+        this->integral_ += tmp;
+      }
+      this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
-	 //  if (previous_state != current_state){
-	 //    this->current_swap_ = true; //swap_state = true; 
-  //     }
-	 //  else{
-  //       this->current_swap_ = false; //swap_state = false;
-	 //  }
+	  tmp = 0.0f;
+      if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
+        tmp = this->previous_output_;
+      }
+	
+	  ESP_LOGI(TAG, "previous output = %2.8f" , tmp );
+	  ESP_LOGI(TAG, "E = %3.2f, I = %3.2f, D = %3.2f, previous = %3.2f" , this->error_ , this->integral_ , this->derivative_ , tmp);
+	
 
+	  if (previous_state != current_state){
+	    this->current_swap_ = true; //swap_state = true; 
+      }
+	  else{
+        this->current_swap_ = false; //swap_state = false;
+	  }
+
+
+
+     if (this->current_output_ < 0.5 - this->elb_){
+
+
+
+	 }
+	 else if (this->current_output_ > 0.5 + this->eub_){
+
+	 }
+	else{
+     if((epsi < -this->current_battery_voltage_*this->current_min_charging_) | (epsi > this->current_battery_voltage_*this->current_min_discharging_)){
+
+	 }
+		
+
+
+	}
+		
+
+
+
+
+
+		
 	  this->dt_    = float(now - this->last_time_)/1000.0f;
 	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	
