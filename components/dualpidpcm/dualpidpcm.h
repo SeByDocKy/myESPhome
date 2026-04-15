@@ -152,6 +152,10 @@ class DUALPIDPCMComponent : public Component{
 
   float current_setpoint_ = 0.0f;
   float current_starting_battery_voltage_ = 50.0f;
+
+  float current_kp_ = 3.0f;
+  float current_ki_ = 0.0f;
+  float current_kd_ = 0.0f;
    
   float current_kp_charging_ = 3.0f;
   float current_ki_charging_ = 0.0f;
