@@ -60,7 +60,7 @@ namespace dualpidpcm {
     float alphaP, alphaI, alphaD;
 	float alpha;
     float coeffP, coeffI, coeffD;
-    // float cc, cd;
+    float cc=2.0f, cd=2.0f;
     bool current_state=true, previous_state=true;
   
     ESP_LOGI(TAG, "Entered in pid_update()");
@@ -119,8 +119,8 @@ namespace dualpidpcm {
 		alpha  = alphaP + alphaI + alphaD;
 	    this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
-		tmp                       = (this->epoint_ - this->current_output_); // tmp is positive
-	    this->output_charging_    = tmp; //cc*tmp; ?
+		tmp                       = (this->epoint_ - this->elb_ - this->current_output_); // tmp is positive
+	    this->output_charging_    = cc*tmp; //cc*tmp; ?
 	    this->output_discharging_ = 0.0f;	
 	    this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	    this->previous_output_    = this->current_epoint_;  
@@ -142,6 +142,13 @@ namespace dualpidpcm {
 	    this->current_deadband_ = false;
 		alpha  = alphaP + alphaI + alphaD;
 	    this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+
+		tmp                       = (this->output_ + this->eub_ - this->epoint_ ); // tmp is positive
+	    this->output_charging_    = 0.0f;
+	    this->output_discharging_ = cd*tmp; // tmp;?
+	    this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
+	    this->previous_output_    = this->current_epoint_;
+  
   
 
 	  }
