@@ -60,7 +60,7 @@ namespace dualpidpcm {
     float alphaP, alphaI, alphaD;
 	float alpha;
     float coeffP, coeffI, coeffD;
-    float cc=1.0f/(this->epoint - this->elb), cd=1.0f/(1.0f - this->epoint - this->eub);
+    float cc=1.0f/(this->epoint_ - this->elb_), cd=1.0f/(1.0f - this->epoint_ - this->eub_);
     bool current_state=true, previous_state=true;
   
     ESP_LOGI(TAG, "Entered in pid_update()");
