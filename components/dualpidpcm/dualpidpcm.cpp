@@ -132,7 +132,14 @@ namespace dualpidpcm {
 	 }
 	 else{
        if((epsi < -this->current_battery_voltage_*this->current_min_charging_) | (epsi > this->current_battery_voltage_*this->current_min_discharging_)){
-
+         alphaP = 0.0f;
+		 alphaI = 0.0f;
+		 alphaD = 0.0f;
+		 previous_state = current_state;
+	     this->current_deadband_ = true;
+		 this->output_charging_ = 0.0f;
+		 this->output_discharging_ = 0.0f;
+		   
 	   }
 	}
 		
