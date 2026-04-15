@@ -140,6 +140,7 @@ class DUALPIDPCMComponent : public Component{
   CallbackManager<void()> pid_computed_callback_;
 
   float current_error_ = 0.0f;
+  float current_output_ = 0.0f;
   float current_output_charging_ = 0.0f;
   float current_output_discharging_ = 0.0f;
   float current_input_ = 0.0f;
