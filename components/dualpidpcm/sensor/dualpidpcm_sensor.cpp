@@ -14,6 +14,7 @@ void DUALPIDPCMSensor::setup() {
 void DUALPIDPCMSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "DualPIDPCM Sensor:");
   LOG_SENSOR("  ", "Error", this->error_sensor_);
+  LOG_SENSOR("  ", "Output", this->output_sensor_);	
   LOG_SENSOR("  ", "Output Charging", this->output_charging_sensor_);
   LOG_SENSOR("  ", "Output Discharging", this->output_discharging_sensor_);
   LOG_SENSOR("  ", "Input", this->input_sensor_);	
@@ -21,7 +22,9 @@ void DUALPIDPCMSensor::dump_config() {
 
 void DUALPIDPCMSensor::publish_data_() {
   if (this->error_sensor_ != nullptr)
-    this->error_sensor_->publish_state(this->parent_->get_error()); 
+    this->error_sensor_->publish_state(this->parent_->get_error());
+  if (this->output_sensor_ != nullptr)
+    this->output_sensor_->publish_state(this->parent_->get_output()*100.0f);	
   if (this->output_charging_sensor_ != nullptr)
     this->output_charging_sensor_->publish_state(this->parent_->get_output_charging()*100.0f);
   if (this->output_discharging_sensor_ != nullptr)
