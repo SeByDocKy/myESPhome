@@ -33,7 +33,9 @@ sensor:
     input:
       name: ${name}_${dualpidpcm_name}_input
     error: 
-      name: ${name}_${dualpidpcm_name}_error    
+      name: ${name}_${dualpidpcm_name}_error
+    output:
+      name: ${name}_${dualpidpcm_name}_output
     output_charging: 
       name: ${name}_${dualpidpcm_name}_output_charging
     output_discharging: 
