@@ -150,7 +150,7 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;
 	  }
 	  else{
-        if((epsi > -this->current_battery_voltage_*this->current_min_charging_) | (epsi < this->current_battery_voltage_*this->current_min_discharging_)){
+        if((epsi > -this->current_battery_voltage_*this->current_min_charging_) & (epsi < this->current_battery_voltage_*this->current_min_discharging_)){
           alphaP = 0.0f;
 		  alphaI = 0.0f;
 		  alphaD = 0.0f;
