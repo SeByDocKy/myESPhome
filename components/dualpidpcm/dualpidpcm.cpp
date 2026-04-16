@@ -100,7 +100,7 @@ namespace dualpidpcm {
 
 
 
-      if (this->current_output_ < this->epoint_- this->elb_){
+      if (this->current_output_ <= this->epoint_- this->elb_){
 
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
