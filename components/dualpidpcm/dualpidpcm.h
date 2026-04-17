@@ -177,8 +177,8 @@ class DUALPIDPCMComponent : public Component{
   bool current_deadband_ = false;
   bool current_swap_     = false;
 
-  float elb_             = 0.02f;
-  float eub_             = 0.02f;
+  float elb_             = 0.00f;
+  float eub_             = 0.00f;
   float epoint_          = 0.5f;
 
   float output_min_      = 0.0f;
