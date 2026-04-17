@@ -154,11 +154,11 @@ class DUALPIDPCMComponent : public Component{
 
 
   float current_setpoint_ = 0.0f;
-  float current_starting_battery_voltage_ = 50.0f;
+  float current_starting_battery_voltage_ = 51.0f;
 
-  float current_kp_ = 3.0f;
-  float current_ki_ = 0.0f;
-  float current_kd_ = 0.0f;
+  float current_kp_          = 3.0f;
+  float current_ki_          = 0.0f;
+  float current_kd_          = 0.0f;
    
   float current_kp_charging_ = 3.0f;
   float current_ki_charging_ = 0.0f;
@@ -168,10 +168,10 @@ class DUALPIDPCMComponent : public Component{
   float current_ki_discharging_ = 0.0f;
   float current_kd_discharging_ = 0.0f;  
   
-  float current_output_max_charging_ = 100.0f;
+  float current_output_max_charging_ = 1.0f;
   float current_output_min_charging_ = 0.0f;
 
-  float current_output_max_discharging_ = 100.0f;
+  float current_output_max_discharging_ = 1.0f;
   float current_output_min_discharging_ = 0.0f;
 
   bool current_deadband_ = false;
@@ -182,7 +182,7 @@ class DUALPIDPCMComponent : public Component{
   float epoint_          = 0.5f;
 
   float output_min_      = 0.0f;
-  float output_max_      = 100.0f;
+  float output_max_      = 1.0f;
 
 };
 		
