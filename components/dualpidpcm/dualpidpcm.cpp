@@ -352,6 +352,7 @@ namespace dualpidpcm {
 
       this->last_time_                   = now;
       this->previous_error_              = this->error_;
+	  this->previous_output_             = this->current_output_;	
 	  this->previous_output_charging_    = this->output_charging_;
 	  this->previous_output_discharging_ = this->output_discharging_;
 
