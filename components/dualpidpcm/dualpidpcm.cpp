@@ -126,7 +126,7 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
-	  else if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
+	  else // if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
 	    this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
