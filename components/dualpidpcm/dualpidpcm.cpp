@@ -100,7 +100,7 @@ namespace dualpidpcm {
 
 
 
-      if (this->current_output_ <= this->epoint_- this->elb_){
+      if (this->current_output_ <= this->epoint_- this->elb_){  // charge
 
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
@@ -116,8 +116,8 @@ namespace dualpidpcm {
 
 	    this->current_deadband_ = false;
 
-		alpha  = alphaP + alphaI + alphaD;
-	    this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+		alpha                     = alphaP + alphaI + alphaD;
+	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
 		tmp                       = (this->epoint_ - this->elb_ - this->current_output_); // tmp is positive
 	    this->output_charging_    = cc*tmp; //cc*tmp; ?
@@ -126,7 +126,7 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
-	  else if (this->current_output_ > this->epoint_ + this->eub_){
+	  else if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
 	    this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
@@ -139,9 +139,9 @@ namespace dualpidpcm {
 	    alphaI = coeffI * this->integral_;
 	    alphaD = coeffD * this->derivative_;
 
-	    this->current_deadband_ = false;
-		alpha  = alphaP + alphaI + alphaD;
-	    this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+	    this->current_deadband_   = false;
+		alpha                     = alphaP + alphaI + alphaD;
+	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
 		tmp                       = (this->current_output_ + this->eub_ - this->epoint_ ); // tmp is positive
 	    this->output_charging_    = 0.0f;
@@ -149,20 +149,19 @@ namespace dualpidpcm {
 	    this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 	    // this->previous_output_    = this->current_epoint_;
 	  }
-	  else{
+	  else{ // deadband
         if((epsi > -this->current_battery_voltage_*this->current_min_charging_) & (epsi < this->current_battery_voltage_*this->current_min_discharging_)){
-          alphaP = 0.0f;
-		  alphaI = 0.0f;
-		  alphaD = 0.0f;
-		  previous_state = current_state;
+          alphaP         = 0.0f;
+		  alphaI         = 0.0f;
+		  alphaD         = 0.0f;
+		  previous_state          = current_state;
 	      this->current_deadband_ = true;
 
-		  alpha  = alphaP + alphaI + alphaD;
-	      this->current_output_ = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+		  alpha                     = alphaP + alphaI + alphaD;
+	      this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 		  
 		  this->output_charging_    = 0.0f;
 		  this->output_discharging_ = 0.0f;
-	
 	
 	    }
       }
