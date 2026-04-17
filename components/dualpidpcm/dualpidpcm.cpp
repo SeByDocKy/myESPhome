@@ -151,15 +151,16 @@ namespace dualpidpcm {
 	  }
 	  // else{ // deadband
         if((epsi > -this->current_battery_voltage_*this->current_min_charging_) & (epsi < this->current_battery_voltage_*this->current_min_discharging_)){
-          alphaP                    = 0.0f;
-		  alphaI                    = 0.0f;
-		  alphaD                    = 0.0f;
+    //       alphaP                    = 0.0f;
+		  // alphaI                    = 0.0f;
+		  // alphaD                    = 0.0f;
 		  previous_state            = current_state;
 	      this->current_deadband_   = true;
 
-		  alpha                     = alphaP + alphaI + alphaD;
-	      this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
-		  
+		  // alpha                     = alphaP + alphaI + alphaD;
+	   //    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+
+		  this->current_output_     = 0.5f;	
 		  this->output_charging_    = 0.0f;
 		  this->output_discharging_ = 0.0f;
 	
