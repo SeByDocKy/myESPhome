@@ -156,13 +156,15 @@ namespace dualpidpcm {
 		  // alphaD                    = 0.0f;
 		  previous_state            = current_state;
 	      this->current_deadband_   = true;
+			
+		  // this->current_output_     = 0.5f;	
+		  // this->output_charging_    = 0.0f;
+		  // this->output_discharging_ = 0.0f;
 
-		  // alpha                     = alphaP + alphaI + alphaD;
-	   //    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
-
-		  this->current_output_     = 0.5f;	
-		  this->output_charging_    = 0.0f;
-		  this->output_discharging_ = 0.0f;
+		  this->current_output_     = this->previous_output;	
+		  this->output_charging_    = this->previous_output_charging_;
+		  this->output_discharging_ = this->previous_output_discharging_;
+	
 	
 	    }
       // }
