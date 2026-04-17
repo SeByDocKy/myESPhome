@@ -150,23 +150,20 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;
 	  }
 	  // else{ // deadband
-        if((epsi > -this->current_battery_voltage_*this->current_min_charging_) & (epsi < this->current_battery_voltage_*this->current_min_discharging_)){
-    //       alphaP                    = 0.0f;
-		  // alphaI                    = 0.0f;
-		  // alphaD                    = 0.0f;
-		  previous_state            = current_state;
-	      this->current_deadband_   = true;
+    //     if((epsi > -this->current_battery_voltage_*this->current_min_charging_) & (epsi < this->current_battery_voltage_*this->current_min_discharging_)){
+		  // previous_state            = current_state;
+	   //    this->current_deadband_   = true;
 			
-		  // this->current_output_     = 0.5f;	
-		  // this->output_charging_    = 0.0f;
-		  // this->output_discharging_ = 0.0f;
+		  // // this->current_output_     = 0.5f;	
+		  // // this->output_charging_    = 0.0f;
+		  // // this->output_discharging_ = 0.0f;
 
-		  this->current_output_     = this->previous_output_;	
-		  this->output_charging_    = this->previous_output_charging_;
-		  this->output_discharging_ = this->previous_output_discharging_;
+		  // this->current_output_     = this->previous_output_;	
+		  // this->output_charging_    = this->previous_output_charging_;
+		  // this->output_discharging_ = this->previous_output_discharging_;
 	
 	
-	    }
+	   //  }
       // }
 		
 	  // alpha  = alphaP + alphaI + alphaD;
