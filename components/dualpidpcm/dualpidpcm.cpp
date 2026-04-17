@@ -161,7 +161,7 @@ namespace dualpidpcm {
 		  // this->output_charging_    = 0.0f;
 		  // this->output_discharging_ = 0.0f;
 
-		  this->current_output_     = this->previous_output;	
+		  this->current_output_     = this->previous_output_;	
 		  this->output_charging_    = this->previous_output_charging_;
 		  this->output_discharging_ = this->previous_output_discharging_;
 	
