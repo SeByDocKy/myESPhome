@@ -282,7 +282,9 @@ namespace dualpidpcm {
 		
       if (!this->current_activation_ ){  // no regulation 
 	    this->output_charging_    = 0.0f;
-	    this->output_discharging_ = 0.0f;	
+	    this->output_discharging_ = 0.0f;
+		this->previous_output_    = 0.5f;
+		this->current_output_     = 0.5f;	  
 	    if((this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
 		  this->onoff_switch_->publish_state(false);	
@@ -326,6 +328,8 @@ namespace dualpidpcm {
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
 		  this->output_charging_    = 0.0f;
 	      this->output_discharging_ = 0.0f;
+		  this->previous_output_    = 0.5f;
+		  this->current_output_     = 0.5f;	
 
 		  this->onoff_switch_->publish_state(false);	
           this->onoff_switch_->turn_off();
