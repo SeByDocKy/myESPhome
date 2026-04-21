@@ -115,15 +115,17 @@ namespace dualpidpcm {
 	    alphaI            = coeffI * this->integral_;
 	    alphaD            = coeffD * this->derivative_;
 
-	    this->current_deadband_   = false;
+	    // this->current_deadband_   = false;
 
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 		if((this->current_output_ >  this->epoint_) & (this->current_output_ < this->epoint_ + this->eub_) ){
 			offcharge++;
+			this->current_deadband_   = true;
 		}
 		else{
             offcharge = 0;
+			this->current_deadband_   = false;
 		}
 
 		tmp                       = (this->epoint_  - this->current_output_); // - this->elb_     tmp is positive
@@ -133,7 +135,7 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
-	  if ((this->current_output_ > this->epoint_) & (offdischarge >= 0) && (offdischarge < 3) & (offcharge == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
+	  if ((this->current_output_ > this->epoint_) & (offdischarge >= 0) & (offdischarge < 3) & (offcharge == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
 	    this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
@@ -146,14 +148,17 @@ namespace dualpidpcm {
 	    alphaI            = coeffI * this->integral_;
 	    alphaD            = coeffD * this->derivative_;
 
-	    this->current_deadband_   = false;
+	    //this->current_deadband_   = false;
+		
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 		if((this->current_output_ <  this->epoint_) & (this->current_output_ > this->epoint_ - this->elb_) ){
 			offdischarge++;
+			this->current_deadband_   = true;
 		}
 		else{
             offdischarge = 0;
+			this->current_deadband_   = false;
 		}  
 
 		tmp                       = (this->current_output_  - this->epoint_ ); // + this->eub_       tmp is positive
