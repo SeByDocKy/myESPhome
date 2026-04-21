@@ -101,7 +101,7 @@ namespace dualpidpcm {
 
 
 
-      if ((this->current_output_ <= this->epoint_) && (offcharge >= 0) && (offcharge < 3) && (offdischarge == 0)){  // charge   offcharge
+      if ((this->current_output_ <= this->epoint_) & (offcharge >= 0) & (offcharge < 3) & (offdischarge == 0)){  // charge   offcharge
 
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
@@ -119,7 +119,7 @@ namespace dualpidpcm {
 
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
-		if((this->current_output_ >  this->epoint_) && (this->current_output_ < this->epoint_ + this->eub_) ){
+		if((this->current_output_ >  this->epoint_) & (this->current_output_ < this->epoint_ + this->eub_) ){
 			offcharge++;
 		}
 		else{
@@ -133,7 +133,7 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
-	  if ((this->current_output_ > this->epoint_) && (offdischarge >= 0) && (offdischarge < 3) && (offcharge == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
+	  if ((this->current_output_ > this->epoint_) & (offdischarge >= 0) && (offdischarge < 3) & (offcharge == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
 	    this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
@@ -149,7 +149,7 @@ namespace dualpidpcm {
 	    this->current_deadband_   = false;
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
-		if((this->current_output_ <  this->epoint_) && (this->current_output_ > this->epoint_ - this->elb_) ){
+		if((this->current_output_ <  this->epoint_) & (this->current_output_ > this->epoint_ - this->elb_) ){
 			offdischarge++;
 		}
 		else{
@@ -356,11 +356,11 @@ namespace dualpidpcm {
 	
 	  ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
 
-	  if ((this->output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true)){
+	  if ((this->output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) & (offcharge==0) ){
         this->device_charging_output_->set_level(this->output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
 	    delay(SET_OUTPUT_DELAY);
 	  }
-	  if ((this->output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true)){  
+	  if ((this->output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) & (offdischarge==0)){  
 	    this->device_discharging_output_->set_level(this->output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
         delay(SET_OUTPUT_DELAY);
 	  }
