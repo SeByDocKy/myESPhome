@@ -19,7 +19,7 @@ CONF_OUTPUT_CHARGING    = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_INPUT              = "input"
 CONF_OFFCHARGE          = "offcharge"
-CONF_DISOFFCHARGE       = "offdischarge"
+CONF_OFFDISCHARGE       = "offdischarge"
 
 ICON_EPSILON            = "mdi:epsilon"
 ICON_PERCENT            = "mdi:percent"
