@@ -18,6 +18,8 @@ CONF_OUTPUT             = "output"
 CONF_OUTPUT_CHARGING    = "output_charging"
 CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_INPUT              = "input"
+CONF_OFFCHARGE          = "offcharge"
+CONF_DISOFFCHARGE       = "offdischarge"
 
 ICON_EPSILON            = "mdi:epsilon"
 ICON_PERCENT            = "mdi:percent"
@@ -62,6 +64,14 @@ CONFIG_SCHEMA = {
                 device_class=DEVICE_CLASS_POWER,
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
+    cv.Optional(CONF_OFFCHARGE): sensor.sensor_schema(
+                accuracy_decimals=0,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
+    cv.Optional(CONF_OFFDISCHARGE): sensor.sensor_schema(
+                accuracy_decimals=0,
+                state_class=STATE_CLASS_MEASUREMENT,
+             ),
 }
 
 async def to_code(config):
@@ -89,4 +99,12 @@ async def to_code(config):
     if CONF_INPUT in config:
         sens = await sensor.new_sensor(config[CONF_INPUT])
         cg.add(var.set_input_sensor(sens))
+        
+    if CONF_OFFCHARGE in config:
+        sens = await sensor.new_sensor(config[CONF_OFFCHARGE])
+        cg.add(var.set_offcharge_sensor(sens))
+
+    if CONF_OFFDISCHARGE in config:
+        sens = await sensor.new_sensor(config[CONF_OFFDISCHARGE])
+        cg.add(var.set_offdischarge_sensor(sens))
  
