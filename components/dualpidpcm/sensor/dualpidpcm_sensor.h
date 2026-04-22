@@ -16,6 +16,8 @@ class DUALPIDPCMSensor : public Component, public Parented<DUALPIDPCMComponent> 
   void set_output_sensor(sensor::Sensor *sensor) { this->output_sensor_ = sensor; }
   void set_output_charging_sensor(sensor::Sensor *sensor) { this->output_charging_sensor_ = sensor; }
   void set_output_discharging_sensor(sensor::Sensor *sensor) { this->output_discharging_sensor_ = sensor; }
+  void set_offcharge_sensor(sensor::Sensor *sensor) { this->offcharge_sensor_ = sensor; }
+  void set_offdischarge_sensor(sensor::Sensor *sensor) { this->offdischarge_sensor_ = sensor; }
   
 
  protected:
@@ -26,6 +28,8 @@ class DUALPIDPCMSensor : public Component, public Parented<DUALPIDPCMComponent> 
   sensor::Sensor *output_sensor_{nullptr};
   sensor::Sensor *output_charging_sensor_{nullptr};
   sensor::Sensor *output_discharging_sensor_{nullptr};
+  sensor::Sensor *offcharge_sensor_{nullptr};
+  sensor::Sensor *offdischarge_sensor_{nullptr};
   
   void publish_data_();
 };	
