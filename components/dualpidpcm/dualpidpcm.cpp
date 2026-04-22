@@ -127,6 +127,7 @@ namespace dualpidpcm {
             offcharge = 0;
 			this->current_deadband_   = false;
 		}
+		this->offcharge_          = offcharge;
 
 		tmp                       = (this->epoint_  - this->current_output_); // - this->elb_     tmp is positive
 	    this->output_charging_    = cc*tmp; //cc*tmp; ?
@@ -159,7 +160,8 @@ namespace dualpidpcm {
 		else{
             offdischarge = 0;
 			this->current_deadband_   = false;
-		}  
+		} 
+		this->offdischarge_       = offdischarge;
 
 		tmp                       = (this->current_output_  - this->epoint_ ); // + this->eub_       tmp is positive
 	    this->output_charging_    = 0.0f;
