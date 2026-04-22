@@ -331,12 +331,12 @@ namespace dualpidpcm {
           }
 	    }
 	    else{ // in deadband, turn off PCM module
-          if((this->onoff_switch_->state == true)  ){
-	         this->onoff_switch_->turn_off();
-			 this->onoff_switch_->publish_state(false); 
-		     delay(ONOFF_DELAY);
-			 ESP_LOGI(TAG, "in deadband -> Turn off onoff"); 
-          }
+    //       if((this->onoff_switch_->state == true)  ){
+	   //       this->onoff_switch_->turn_off();
+			 // this->onoff_switch_->publish_state(false); 
+		  //    delay(ONOFF_DELAY);
+			 // ESP_LOGI(TAG, "in deadband -> Turn off onoff"); 
+    //       }
 	    }
 	  }
 
