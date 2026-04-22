@@ -39,7 +39,11 @@ sensor:
     output_charging: 
       name: ${name}_${dualpidpcm_name}_output_charging
     output_discharging: 
-      name: ${name}_${dualpidpcm_name}_output_discharging      
+      name: ${name}_${dualpidpcm_name}_output_discharging
+    offcharge:
+      name: ${name}_${dualpidpcm_name}_offcharge
+    offdischarge:
+      name: ${name}_${dualpidpcm_name}_offdischarge  
       
 
 binary_sensor:
