@@ -185,8 +185,8 @@ class DUALPIDPCMComponent : public Component{
   float offdischarge_    = 0.0f;
  
 
-  float elb_             = 0.06f;
-  float eub_             = 0.06f;
+  float elb_             = 0.05f;
+  float eub_             = 0.05f;
   float epoint_          = 0.5f;
 
   float output_min_      = 0.0f;
