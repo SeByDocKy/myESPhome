@@ -155,7 +155,7 @@ namespace dualpidpcm {
 		
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
-		if((this->current_output_ > this->epoint_ - this->elb_) & (  this->current_output_ < this->epoint_) &  ){
+		if((this->current_output_ > this->epoint_ - this->elb_) & (  this->current_output_ < this->epoint_)   ){
 			offdischarge++;
 			this->current_deadband_   = true;
 		}
