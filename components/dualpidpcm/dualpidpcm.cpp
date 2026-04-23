@@ -127,9 +127,12 @@ namespace dualpidpcm {
 			this->current_deadband_   = true;
 		}
 		else{
-            this->offcharge_          = 0;
+            //this->offcharge_          = 0;
 			this->current_deadband_   = false;
 		}
+		if(this->offcharge_ >= MAX_OFFCHARGE){
+           this->offcharge_    = 0
+		}  
 		this->offdischarge_           = 0; //offdischarge
 		// this->offcharge_          = offcharge;
 		// this->offdischarge_       = offdischarge;  
@@ -163,9 +166,12 @@ namespace dualpidpcm {
 			this->current_deadband_   = true;
 		}
 		else{
-            this->offdischarge_       = 0;
+            // this->offdischarge_       = 0;
 			this->current_deadband_   = false;
 		} 
+		if(this->offdischarge_ >= MAX_OFFDISCHARGE){
+           this->offdischarge_    = 0
+		}
 		this->offcharge_          = 0;
 		//this->offcharge_          = offcharge;
 		//this->offdischarge_       = offdischarge;
