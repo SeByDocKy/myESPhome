@@ -65,7 +65,7 @@ namespace dualpidpcm {
     float coeffP, coeffI, coeffD;
     float cc=1.0f/(this->epoint_ - this->elb_), cd=1.0f/(1.0f - this->epoint_ - this->eub_);
     bool current_state=true, previous_state=true;
-	int offcharge = 0, offdischarge = 0;
+	// int offcharge , offdischarge ;
   
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
@@ -104,7 +104,7 @@ namespace dualpidpcm {
 
 
 
-      if ((this->current_output_ < this->epoint_ + (offcharge != 0)*this->eub_) & (offcharge >= 0) & (offcharge < MAX_OFFCHARGE) & (offdischarge == 0)){  // charge   offcharge
+      if ((this->current_output_ < this->epoint_ + (this->offcharge_ != 0)*this->eub_) & (this->offcharge_ >= 0) & (this->offcharge_ < MAX_OFFCHARGE) & (this->offdischarge_ == 0)){  // charge   offcharge
 
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
@@ -123,16 +123,16 @@ namespace dualpidpcm {
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 		if((this->current_output_ >  this->epoint_) & (this->current_output_ < this->epoint_ + this->eub_) ){
-			offcharge++;
+			this->offcharge_++;
 			this->current_deadband_   = true;
 		}
 		else{
-            offcharge                 = 0;
+            this->offcharge_          = 0;
 			this->current_deadband_   = false;
 		}
-		// offdischarge              = 0;
-		this->offcharge_          = offcharge;
-		this->offdischarge_       = offdischarge;  
+		this->offdischarge_           = 0; //offdischarge
+		// this->offcharge_          = offcharge;
+		// this->offdischarge_       = offdischarge;  
 
 		tmp                       = (this->epoint_  - this->current_output_); // - this->elb_     tmp is positive
 	    this->output_charging_    = cc*tmp; //cc*tmp; ?
@@ -141,7 +141,7 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
-	  if ( (this->current_output_ >= this->epoint_   - (offdischarge != 0)*this->elb_ ) & (offdischarge >= 0) & (offdischarge < MAX_OFFDISCHARGE) & (offcharge == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
+	  if ( (this->current_output_ >= this->epoint_   - (this->offdischarge_ != 0)*this->elb_ ) & (this->offdischarge_ >= 0) & (this->offdischarge_ < MAX_OFFDISCHARGE) & (this->offcharge_ == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
 	    this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
@@ -159,16 +159,16 @@ namespace dualpidpcm {
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 		if((this->current_output_ > this->epoint_ - this->elb_) & (  this->current_output_ < this->epoint_)   ){
-			offdischarge++;
+			this->offdischarge_++;
 			this->current_deadband_   = true;
 		}
 		else{
-            // offdischarge              = 0;
+            this->offdischarge_       = 0;
 			this->current_deadband_   = false;
 		} 
-		// offcharge                 = 0;
-		this->offcharge_          = offcharge;
-		this->offdischarge_       = offdischarge;
+		this->offcharge_          = 0;
+		//this->offcharge_          = offcharge;
+		//this->offdischarge_       = offdischarge;
 
 		tmp                       = (this->current_output_  - this->epoint_ ); // + this->eub_       tmp is positive
 	    this->output_charging_    = 0.0f;
