@@ -101,7 +101,7 @@ namespace dualpidpcm {
 
 
 
-      if ((this->current_output_ <= this->epoint_) & (offcharge >= 0) & (offcharge < 3) & (offdischarge == 0)){  // charge   offcharge
+      if ((this->current_output_ < this->epoint_) & (offcharge >= 0) & (offcharge < 3) & (offdischarge == 0)){  // charge   offcharge
 
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
