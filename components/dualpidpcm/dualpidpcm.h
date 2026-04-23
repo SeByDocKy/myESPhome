@@ -181,8 +181,8 @@ class DUALPIDPCMComponent : public Component{
   bool current_deadband_ = false;
   bool current_swap_     = false;
 
-  float offcharge_       = 0.0f;
-  float offdischarge_    = 0.0f;
+  int offcharge_         = 0;
+  int offdischarge_      = 0;
  
 
   float elb_             = 0.05f;
