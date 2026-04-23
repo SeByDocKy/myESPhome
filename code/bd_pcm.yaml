@@ -1,0 +1,242 @@
+substitutions:
+  name: "bd_pcm"
+  name_controller: "lora_meter"
+  device_description: "Bidirectional battery AC coupling "
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+  baud_rate: 115200 #9600 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
+ 
+esphome:
+  name: ${name}
+  comment: ${device_description}
+  min_version: 2025.10.1
+  platformio_options:
+    # build_flags: -DBOARD_HAS_PSRAM
+    board_build.arduino.memory_type: qio_opi
+    board_build.f_flash: 80000000L
+    board_build.flash_mode: qio
+    # lib_compat_mode: "off"
+    # build_flags: -DUSE_ARDUINO
+   
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [dualpidpcm]
+    refresh: 0s
+
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "battery_bidirectional"
+    password: !secret ap_password
+    
+time:
+  - platform: sntp
+    id: my_time    
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+  
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+   level: INFO
+    
+         
+uart: 
+  - id: uart_0
+    tx_pin: GPIO43 #GPIO43
+    rx_pin: GPIO44 #GPIO44
+    baud_rate: ${baud_rate}
+    parity: none
+    data_bits: 8
+    stop_bits: 1
+
+spi:
+
+ #### when connected with the B2B connector (no change vs direct wiring)
+  - id: shared_spi
+    mosi_pin: GPIO09
+    miso_pin: GPIO08
+    clk_pin: GPIO07
+    # interface: software
+    interface: spi3   #### spi2 is for CMT2300A
+
+sx126x:
+  id: sx1262
+  spi_id: shared_spi
+  
+  #### when connected with tge B2B connector #####
+  
+  dio1_pin: GPIO39   
+  busy_pin: GPIO40
+  rst_pin: GPIO42
+  cs_pin: GPIO41
+  
+  pa_power: 10
+  bandwidth: 31_3kHz #125_0kHz
+  crc_enable: true
+  frequency: 868000000
+  modulation: LORA
+  hw_version: sx1262
+  rf_switch: true
+  sync_value: [0x14, 0x24]
+  preamble_size: 8
+  spreading_factor: 9
+  coding_rate: CR_4_6
+  tcxo_voltage: 1_8V
+  tcxo_delay: 5ms
+  data_rate: '10MHz'
+  on_packet:
+    then:
+      - lambda: |-
+          ESP_LOGD("lambda", "packet %s", format_hex(x).c_str());
+          ESP_LOGD("lambda", "rssi %.2f", rssi);
+          ESP_LOGD("lambda", "snr %.2f", snr);
+
+packet_transport:
+  platform: sx126x
+  update_interval: '1500ms'
+  providers:
+    - name: ${name_controller}
+      encryption: !secret encryption_key
+
+debug:
+  update_interval: 5s
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+    
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: packet_transport
+    id:  ${name}_power_imported
+    name: ${name}_power_imported
+    provider: ${name_controller}
+    remote_id: jsy1039_power
+    # remote_id: power
+    internal: false
+    device_class: power
+    unit_of_measurement: 'W'
+    icon: mdi:power
+    accuracy_decimals: 1
+    
+     
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+       
+binary_sensor:
+  - platform: status
+    name: ${name}_esp_status
+    
+      
+button:
+  - platform: restart
+    name: ${name}_restart
+    
+    
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s
+    
+              
+packages: 
+          
+  modbus:
+    url: https://github.com/SeByDocKy/pvbrain2/
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'pvbrain2/base/device_modbus.yaml'
+        vars:
+          modbus_id: 'modbus_id'
+          modbus_uart_id: uart_0
+          modbus_send_wait_time: '100ms'          
+          
+  bms: 
+    url: https://github.com/SeByDocKy/pvbrain2/
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'pvbrain2/bms/jikong/device_jkpbbms.yaml'
+        vars:
+          bms_name: 'jkpbbms'
+          bms_modbus_id: 'modbus_id'
+          bms_modbus_address: '1'
+          bms_update_interval: '1500ms'
+          bms_template_update: '3s'
+          bms_text_update: '60s'
+          bms_modbus_throttle: '50ms'          
+
+  pcm: 
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'code/device_mcp2515_pcm.yaml' 
+        vars:
+          pcm_name: 'pcm'
+          pcm_spid_id: 'shared_spi'
+          pcm_cs_pin: 'GPIO06'
+          pcm_canbus_id: 'pcm_can'
+          pcm_address: '1'
+          pcm_interval: '1500ms'
+
+   
+  dualpidpcm:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_dualpidpcm.yaml'
+        vars:
+          dualpidpcm_id: 'pid_id'
+          dualpidpcm_name: 'pid'
+          dualpidpcm_input_id: 'bd_pcm_power_imported'
+          dualpidpcm_battery_voltage_id: 'jkpbbms_battery_voltage' #'battery_voltage_from_ha'
+          dualpidpcm_charging_output_id: 'charging_current_output'
+          dualpidpcm_discharging_output_id: 'discharging_current_output'
+          dualpidpcm_discharge_charge_switch_id: 'discharge_charge_switch'
+          dualpidpcm_onoff_switch_id: 'power_switch'
+          dualpidpcm_current_min_charging: '3.0'
+          dualpidpcm_current_min_discharging: '3.0'
+          dualpidpcm_windows_size: '1'
