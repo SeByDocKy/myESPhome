@@ -316,7 +316,10 @@ namespace dualpidpcm {
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = 0.0f;
 		this->previous_output_    = 0.5f;
-		this->current_output_     = 0.5f;	  
+		this->current_output_     = 0.5f;
+		this->offcharge_          = 0;
+		this->offdischarge_       = 0;
+		 
 	    if((this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
 		  this->onoff_switch_->publish_state(false);	
@@ -361,7 +364,9 @@ namespace dualpidpcm {
 		  this->output_charging_    = 0.0f;
 	      this->output_discharging_ = 0.0f;
 		  this->previous_output_    = 0.5f;
-		  this->current_output_     = 0.5f;	
+		  this->current_output_     = 0.5f;
+		  this->offcharge_          = 0;
+		  this->offdischarge_       = 0;	
 
 		  this->onoff_switch_->publish_state(false);	
           this->onoff_switch_->turn_off();
