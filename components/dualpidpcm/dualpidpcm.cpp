@@ -4,6 +4,9 @@
 #define SET_OUTPUT_DELAY 0            // 50
 #define ONOFF_DELAY 0                 // 50
 #define CHARGE_DISCHARGE_DELAY 0      // 50
+#define MAX_OFFCHARGE 4
+#define MAX_OFFDISCHARGE 4
+
 
 namespace esphome {
 namespace dualpidpcm {
@@ -101,7 +104,7 @@ namespace dualpidpcm {
 
 
 
-      if ((this->current_output_ < this->epoint_ + (offcharge != 0)*this->eub_) & (offcharge >= 0) & (offcharge < 3) & (offdischarge == 0)){  // charge   offcharge
+      if ((this->current_output_ < this->epoint_ + (offcharge != 0)*this->eub_) & (offcharge >= 0) & (offcharge < MAX_OFFCHARGE) & (offdischarge == 0)){  // charge   offcharge
 
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
@@ -138,7 +141,7 @@ namespace dualpidpcm {
 	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
-	  if ( (this->current_output_ >= this->epoint_   - (offdischarge != 0)*this->elb_ ) & (offdischarge >= 0) & (offdischarge < 3) & (offcharge == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
+	  if ( (this->current_output_ >= this->epoint_   - (offdischarge != 0)*this->elb_ ) & (offdischarge >= 0) & (offdischarge < MAX_OFFDISCHARGE) & (offcharge == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
 	    this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
