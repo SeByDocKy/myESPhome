@@ -183,7 +183,7 @@ namespace dualpidpcm {
 		// } 
 		// if(this->offdischarge_ >= MAX_OFFDISCHARGE){
   //          this->offdischarge_    = 0;
-		}
+		
 		// this->offcharge_          = 0;
 		
 
@@ -191,7 +191,7 @@ namespace dualpidpcm {
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = cd*tmp; // tmp;?
 	    this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
-		
+		}
 	    // }
 		// this->previous_output_    = this->current_epoint_;
 	  }
