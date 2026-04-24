@@ -114,7 +114,7 @@ namespace dualpidpcm {
 	    coeffI            = coeffIcharging*this->current_ki_;
 	    coeffD            = coeffDcharging*this->current_kd_;
 		
-	    alphaP            = - coeffP * this->error_;
+	    alphaP            = coeffP * this->error_;
 	    alphaI            = coeffI * this->integral_;
 	    alphaD            = coeffD * this->derivative_;
 
