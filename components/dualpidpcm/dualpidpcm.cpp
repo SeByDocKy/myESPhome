@@ -153,7 +153,7 @@ namespace dualpidpcm {
 	  if ( (this->current_output_ >= this->epoint_   - 0*(this->offdischarge_ != 0)*this->elb_ ) & (this->offdischarge_ >= 0) & (this->offdischarge_ < MAX_OFFDISCHARGE) & (this->offcharge_ == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
 
 		if((this->onoff_switch_->state==true) & (this->output_discharging_ == 0.0f) & (this->error_ < 0.0f)){
-          this->current_output_   = 0.5f;
+          this->current_output_     = 0.5f;
 		  this->output_charging_    = 0.0f;	
 		  this->output_discharging_ = 0.0f;		
 		}
