@@ -104,8 +104,14 @@ namespace dualpidpcm {
 
 
 
-      if ((this->current_output_ < this->epoint_ ) ){  // charge   offcharge
+      if ((this->current_output_ < this->epoint_ + 0*(this->offcharge_ != 0)*this->eub_) & (this->offcharge_ >= 0) & (this->offcharge_ < MAX_OFFCHARGE) & (this->offdischarge_ == 0)){  // charge   offcharge
 
+		// if((this->onoff_switch_->state==true) & (this->output_charging_ == 0.0f) & (this->error_ > 0.0f)){
+  //         this->current_output_     = 0.5f;
+		//   this->output_charging_    = 0.0f;	
+		//   this->output_discharging_ = 0.0f;	
+		// }
+		// else{
 	    this->current_kp_ = this->current_kp_charging_;
 	    this->current_ki_ = this->current_ki_charging_;
 	    this->current_kd_ = this->current_kd_charging_;
@@ -127,23 +133,32 @@ namespace dualpidpcm {
 		// 	this->current_deadband_   = true;
 		// }
 		// else{
-  //           //this->offcharge_          = 0;
 		// 	this->current_deadband_   = false;
 		// }
 		// if(this->offcharge_ >= MAX_OFFCHARGE){
   //          this->offcharge_    = 0;
 		// }  
 		// this->offdischarge_           = 0; //offdischarge
+		
 
 		tmp                       = (this->epoint_  - this->current_output_); // - this->elb_     tmp is positive
 	    this->output_charging_    = cc*tmp; //cc*tmp; ?
 	    this->output_discharging_ = 0.0f;	
 	    this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+		
+	   // }
 	    // this->previous_output_    = this->current_epoint_;  
   
 	  }
-	  if ( (this->current_output_ >= this->epoint_    ) ) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
-	    this->current_kp_ = this->current_kp_discharging_;
+	  if ( (this->current_output_ >= this->epoint_   - 0*(this->offdischarge_ != 0)*this->elb_ ) & (this->offdischarge_ >= 0) & (this->offdischarge_ < MAX_OFFDISCHARGE) & (this->offcharge_ == 0)) {// if (this->current_output_ > this->epoint_ + this->eub_){ //discharge
+
+		// if((this->onoff_switch_->state==true) & (this->output_discharging_ == 0.0f) & (this->error_ < 0.0f)){
+  //         this->current_output_     = 0.5f;
+		//   this->output_charging_    = 0.0f;	
+		//   this->output_discharging_ = 0.0f;		
+		// }
+		// else{
+		this->current_kp_ = this->current_kp_discharging_;
 	    this->current_ki_ = this->current_ki_discharging_;
 	    this->current_kd_ = this->current_kd_discharging_;
 		 
@@ -164,19 +179,22 @@ namespace dualpidpcm {
 		// 	this->current_deadband_   = true;
 		// }
 		// else{
-  //           // this->offdischarge_       = 0;
 		// 	this->current_deadband_   = false;
 		// } 
 		// if(this->offdischarge_ >= MAX_OFFDISCHARGE){
   //          this->offdischarge_    = 0;
-		// }
+		
 		// this->offcharge_          = 0;
+		
 
 		tmp                       = (this->current_output_  - this->epoint_ ); // + this->eub_       tmp is positive
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = cd*tmp; // tmp;?
 	    this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
-	    // this->previous_output_    = this->current_epoint_;
+		// }
+	    
+		// }
+		// this->previous_output_    = this->current_epoint_;
 	  }
 	  // else{ // deadband
     //     if((epsi > -this->current_battery_voltage_*this->current_min_charging_) & (epsi < this->current_battery_voltage_*this->current_min_discharging_)){
@@ -377,13 +395,13 @@ namespace dualpidpcm {
 	
 	  ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
 
-	  if ((this->output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true)  ){
+	  if ((this->output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) & (this->offcharge_==0) ){
         if (this->output_charging_ > 0.0f){ 
 		  this->device_charging_output_->set_level(this->output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
 	      delay(SET_OUTPUT_DELAY);
 		}
 	  }
-	  if ((this->output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) ){  
+	  if ((this->output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) & (this->offdischarge_==0)){  
 	    if (this->output_discharging_ > 0.0f){ 
 		  this->device_discharging_output_->set_level(this->output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
           delay(SET_OUTPUT_DELAY);
