@@ -378,13 +378,13 @@ namespace dualpidpcm {
 	  ESP_LOGI(TAG, "Final computed output_charging_=%1.6f, output_discharging_=%1.6f" , this->output_charging_, this->output_discharging_);  
 
 	  if ((this->output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true)  ){
-        if (this->output_charging_ > 0.0f){ 
+        if (this->output_charging_ >= 0.0f){ 
 		  this->device_charging_output_->set_level(this->output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
 	      delay(SET_OUTPUT_DELAY);
 		}
 	  }
 	  if ((this->output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) ){  
-	    if (this->output_discharging_ > 0.0f){ 
+	    if (this->output_discharging_ >= 0.0f){ 
 		  this->device_discharging_output_->set_level(this->output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
           delay(SET_OUTPUT_DELAY);
 		}
