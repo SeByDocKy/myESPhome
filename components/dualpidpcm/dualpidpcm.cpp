@@ -122,20 +122,18 @@ namespace dualpidpcm {
 
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
-		if((this->current_output_ >  this->epoint_) & (this->current_output_ < this->epoint_ + this->eub_) ){
-			this->offcharge_++;
-			this->current_deadband_   = true;
-		}
-		else{
-            //this->offcharge_          = 0;
-			this->current_deadband_   = false;
-		}
-		if(this->offcharge_ >= MAX_OFFCHARGE){
-           this->offcharge_    = 0;
-		}  
-		this->offdischarge_           = 0; //offdischarge
-		// this->offcharge_          = offcharge;
-		// this->offdischarge_       = offdischarge;  
+		// if((this->current_output_ >  this->epoint_) & (this->current_output_ < this->epoint_ + this->eub_) ){
+		// 	this->offcharge_++;
+		// 	this->current_deadband_   = true;
+		// }
+		// else{
+  //           //this->offcharge_          = 0;
+		// 	this->current_deadband_   = false;
+		// }
+		// if(this->offcharge_ >= MAX_OFFCHARGE){
+  //          this->offcharge_    = 0;
+		// }  
+		// this->offdischarge_           = 0; //offdischarge
 
 		tmp                       = (this->epoint_  - this->current_output_); // - this->elb_     tmp is positive
 	    this->output_charging_    = cc*tmp; //cc*tmp; ?
@@ -161,20 +159,18 @@ namespace dualpidpcm {
 		
 		alpha                     = alphaP + alphaI + alphaD;
 	    this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
-		if((this->current_output_ > this->epoint_ - this->elb_) & (  this->current_output_ < this->epoint_)   ){
-			this->offdischarge_++;
-			this->current_deadband_   = true;
-		}
-		else{
-            // this->offdischarge_       = 0;
-			this->current_deadband_   = false;
-		} 
-		if(this->offdischarge_ >= MAX_OFFDISCHARGE){
-           this->offdischarge_    = 0;
-		}
-		this->offcharge_          = 0;
-		//this->offcharge_          = offcharge;
-		//this->offdischarge_       = offdischarge;
+		// if((this->current_output_ > this->epoint_ - this->elb_) & (  this->current_output_ < this->epoint_)   ){
+		// 	this->offdischarge_++;
+		// 	this->current_deadband_   = true;
+		// }
+		// else{
+  //           // this->offdischarge_       = 0;
+		// 	this->current_deadband_   = false;
+		// } 
+		// if(this->offdischarge_ >= MAX_OFFDISCHARGE){
+  //          this->offdischarge_    = 0;
+		// }
+		// this->offcharge_          = 0;
 
 		tmp                       = (this->current_output_  - this->epoint_ ); // + this->eub_       tmp is positive
 	    this->output_charging_    = 0.0f;
