@@ -13,7 +13,7 @@ namespace dualpidpcm {
 
   static const char *const TAG = "dualpidpcm";
 
-  static const float coeffPcharging = 0.000001f;
+  static const float coeffPcharging = 0.00001f;
   static const float coeffIcharging = 0.001f;
   static const float coeffDcharging = 0.001f;
 
@@ -114,7 +114,7 @@ namespace dualpidpcm {
 	    coeffI            = coeffIcharging*this->current_ki_;
 	    coeffD            = coeffDcharging*this->current_kd_;
 		
-	    alphaP            = coeffP * this->error_;
+	    alphaP            = - coeffP * this->error_;
 	    alphaI            = coeffI * this->integral_;
 	    alphaD            = coeffD * this->derivative_;
 
