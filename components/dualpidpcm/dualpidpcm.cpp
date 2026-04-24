@@ -108,8 +108,8 @@ namespace dualpidpcm {
 
 		if((this->onoff_switch_->state==true) & (this->output_charging_ == 0.0f) & (this->error_ > 0.0f)){
           this->current_output_     = 0.5f;
-		  this->output_charging_    = 0.0f;	
-		  this->output_discharging_ = 0.0f;	
+		  // this->output_charging_    = 0.0f;	
+		  // this->output_discharging_ = 0.0f;	
 		}
 		else{
 	    this->current_kp_ = this->current_kp_charging_;
@@ -153,8 +153,8 @@ namespace dualpidpcm {
 
 		if((this->onoff_switch_->state==true) & (this->output_discharging_ == 0.0f) & (this->error_ < 0.0f)){
           this->current_output_   = 0.5f;
-		  this->output_charging_    = 0.0f;	
-		  this->output_discharging_ = 0.0f;		
+		  // this->output_charging_    = 0.0f;	
+		  // this->output_discharging_ = 0.0f;		
 		}
 		else{
 		this->current_kp_ = this->current_kp_discharging_;
