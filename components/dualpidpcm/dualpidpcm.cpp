@@ -139,7 +139,7 @@ namespace dualpidpcm {
 	    this->output_charging_    = cc*tmp; //cc*tmp; ?
 	    this->output_discharging_ = 0.0f;	
 	    this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	    if((this->onoff_switch_->state==true) & (this->output_charging_ == 0.0f) & (this->error_ > 0.0f){
+	    if((this->onoff_switch_->state==true) & (this->output_charging_ == 0.0f) & (this->error_ > 0.0f)){
           this->current_output_   = 0.5f;
 		}
 	    // this->previous_output_    = this->current_epoint_;  
@@ -179,7 +179,7 @@ namespace dualpidpcm {
 	    this->output_charging_    = 0.0f;
 	    this->output_discharging_ = cd*tmp; // tmp;?
 	    this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
-	    if((this->onoff_switch_->state==true) & (this->output_discharging_ == 0.0f) & (this->error_ < 0.0f){
+	    if((this->onoff_switch_->state==true) & (this->output_discharging_ == 0.0f) & (this->error_ < 0.0f)){
           this->current_output_   = 0.5f;
 		}
 		// this->previous_output_    = this->current_epoint_;
