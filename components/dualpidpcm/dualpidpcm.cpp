@@ -22,8 +22,12 @@ namespace dualpidpcm {
   static const float coeffDdischarging = 0.001f;
 
   void DUALPIDPCMComponent::O_to_Oc(float O) {
-	 if (O > this->o_neutral_) return 0.0f;
-      return 1.0f - (O / this->o_neutral_);   // linéaire inversé
+	 if (O > this->oneutral_) return 0.0f;
+     return 1.0f - (O / this->oneutral_);   // linéaire inversé
+  }
+  void DUALPIDPCMComponent::O_to_Od(float O) {
+	if (O < this->oneutral_) return 0.0f;
+    return (O - this->oneutral_) / (1.0f - this->oneutral_);
   }
 	
 
