@@ -90,7 +90,7 @@ namespace dualpidpcm {
     float alphaP, alphaI, alphaD;
 	float alpha;
     float coeffP, coeffI, coeffD;
-	bool in_deadband;  
+	// bool in_deadband;  
   
 	// int offcharge , offdischarge ;
   
@@ -111,9 +111,9 @@ namespace dualpidpcm {
 	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
 	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
-	  this->in_deaband         = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR)
+	  this->current_deadband_  = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR)
 
-	  if (this->in_deaband && this->current_mode_ = 0) {
+	  if (this->current_deadband_ && this->current_mode_ = 0) {
         // Rien à faire, on reste off
 		if (this->onoff_switch_ != nullptr){
 		  if((this->onoff_switch_->state==true) ){
@@ -170,7 +170,7 @@ namespace dualpidpcm {
             // de O_hi (pas juste au-dessus de 0.5)
             if (this->current_output_ > this->ulb_)
                 this->current_mode_ = 2;
-            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->in_deaband)
+            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->current_deadband_)
                 this->current_mode_ = 0;
             break;
 
@@ -178,7 +178,7 @@ namespace dualpidpcm {
             // Idem, on quitte la décharge seulement sous O_lo
             if (this->current_output_ < this->olb_)
                 this->current_mode_ = 1;
-            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->in_deaband)
+            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->current_deadband_)
                 this->current_mode_ = 0;
             break;
       }	
