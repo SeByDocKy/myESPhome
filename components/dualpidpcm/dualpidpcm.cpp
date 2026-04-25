@@ -14,7 +14,7 @@ namespace dualpidpcm {
 
   static const char *const TAG = "dualpidpcm";
 
-  static const float coeffP = 0.00001f;
+  static const float coeffP = 0.001f;
   static const float coeffI = 0.001f;
   static const float coeffD = 0.001f;
 
@@ -153,7 +153,7 @@ namespace dualpidpcm {
 	  // this->previous_output_   = this->current_output_;	
 
 	   //this->new_mode_          = this->current_mode_;
-	  this->current_output_    = alpha;	
+	  // this->current_output_    = alpha;	
 	
 	  this->current_mode_	   = this->previous_mode_;
 	  switch (this->previous_mode_) {
