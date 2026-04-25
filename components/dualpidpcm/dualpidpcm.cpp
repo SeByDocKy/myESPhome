@@ -128,6 +128,7 @@ namespace dualpidpcm {
         // On n'accumule pas l'intégrateur (anti-windup)
         return;
       }	
+		
 	  tmp_i = (this->error_ * this->dt_);
       if (!std::isnan(tmp_i)){
         this->integral_ += tmp_i;
@@ -147,7 +148,7 @@ namespace dualpidpcm {
 	  this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
 	  if ((this->current_output_ <= this->output_min_) | (this->current_output_ >= this->output_max_)) {
-		this->integral_ -= tmp_i;  // annule la dernière accumulation
+		this->integral_        -= tmp_i;  // annule la dernière accumulation
       }
 	  // this->previous_output_   = this->current_output_;	
 
@@ -235,7 +236,7 @@ namespace dualpidpcm {
       }
 
       this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
+	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 		
 	  if ((this->current_output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
         if (this->current_output_charging_ > 0.0f){ 
