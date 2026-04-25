@@ -233,6 +233,10 @@ namespace dualpidpcm {
 		  delay(CHARGE_DISCHARGE_DELAY);	
         }
       }
+
+      this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+	  this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
+		
 	  if ((this->output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
         if (this->output_charging_ > 0.0f){ 
 		  this->device_charging_output_->set_level(this->output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
@@ -245,6 +249,8 @@ namespace dualpidpcm {
           delay(SET_OUTPUT_DELAY);
 		}
 	  }
+
+		
 	  this->current_output_charging_    = this->output_charging_;
 	  this->current_output_discharging_ = this->output_discharging_;  
 
