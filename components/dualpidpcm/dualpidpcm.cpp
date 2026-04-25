@@ -36,8 +36,6 @@ namespace dualpidpcm {
     return (O - this->oneutral_) / (1.0f - this->oneutral_);
   }
   
-	
-
   void DUALPIDPCMComponent::setup() { 
     ESP_LOGCONFIG(TAG, "Setting up DUALPIDPCMComponent...");
   
@@ -153,15 +151,17 @@ namespace dualpidpcm {
       }
 	  this->previous_output_   = this->current_output_;	
 
-	  this->new_mode_          = this->current_mode_;
 
-	  switch (this->current_mode_) {
+	   //this->new_mode_          = this->current_mode_;
+	
+	  this->current_mode_	   = this->previous_mode_;
+	  switch (this->previous_mode_) {
 
         case 0:
             if (this->current_output_ < this->olb_)
-                this->new_mode_ = 1;
+                this->current_mode_ = 1;
             else if (this->current_output_ > this->oub_)
-                this->new_mode_ = 2;
+                this->current_mode_ = 2;
             // sinon on reste IDLE
             break;
 
@@ -169,17 +169,17 @@ namespace dualpidpcm {
             // On quitte la charge seulement si O monte au-delà
             // de O_hi (pas juste au-dessus de 0.5)
             if (this->current_output_ > this->ulb_)
-                this->new_mode_ = 2;
+                this->current_mode_ = 2;
             else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->in_deaband)
-                this->new_mode_ = 0;
+                this->current_mode_ = 0;
             break;
 
         case 2:
             // Idem, on quitte la décharge seulement sous O_lo
-            if (s->O < O_lo)
-                this->new_mode_ = 1;
+            if (this->current_output_ < this->olb_)
+                this->current_mode_ = 1;
             else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->in_deaband)
-                this->new_mode_ = 0;
+                this->current_mode_ = 0;
             break;
       }	
 
