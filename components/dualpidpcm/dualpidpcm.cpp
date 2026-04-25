@@ -236,12 +236,12 @@ namespace dualpidpcm {
       }
 
 	  if (!this->current_activation_ ){  // no regulation 
-	    this->output_charging_    = 0.0f;
-	    this->output_discharging_ = 0.0f;
-		this->previous_output_    = 0.5f;
-		this->current_output_     = 0.5f;
-		this->previous_mode_      = 0;
-		this->current_mode_       = 0;  
+	    this->current_output_charging_    = 0.0f;
+	    this->current_output_discharging_ = 0.0f;
+		this->previous_output_            = 0.5f;
+		this->current_output_             = 0.5f;
+		this->previous_mode_              = 0;
+		this->current_mode_               = 0;  
 		  
 	    if((this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
