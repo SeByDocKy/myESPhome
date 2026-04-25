@@ -235,6 +235,26 @@ namespace dualpidpcm {
         }
       }
 
+	  if (!this->current_activation_ ){  // no regulation 
+	    this->output_charging_    = 0.0f;
+	    this->output_discharging_ = 0.0f;
+		this->previous_output_    = 0.5f;
+		this->current_output_     = 0.5f;
+		this->previous_mode_      = 0;
+		this->current_mode_       = 0;  
+		  
+	    if((this->onoff_switch_->state == true)  ){
+		  this->onoff_switch_->turn_off();
+		  this->onoff_switch_->publish_state(false);	
+		  delay(ONOFF_DELAY);
+			
+		  this->discharge_charge_switch_->turn_on();
+		  this->discharge_charge_switch_->publish_state(true);	
+		  delay(CHARGE_DISCHARGE_DELAY);
+		  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
+        }	
+      }		
+
       this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 		
