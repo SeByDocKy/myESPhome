@@ -14,7 +14,7 @@ namespace dualpidpcm {
 
   static const char *const TAG = "dualpidpcm";
 
-  static const float coeffP = 0.001f;
+  static const float coeffP = 0.0001f;
   static const float coeffI = 0.001f;
   static const float coeffD = 0.001f;
 
@@ -111,7 +111,7 @@ namespace dualpidpcm {
 	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
 	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
-	  this->current_deadband_  = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR);
+	  this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) & (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
 
 	  if (this->current_deadband_ & this->previous_mode_ == 0) {
         // Rien à faire, on reste off
