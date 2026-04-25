@@ -63,6 +63,11 @@ class DUALPIDPCMComponent : public Component{
   void add_on_pid_computed_callback(std::function<void()> &&callback) {
     pid_computed_callback_.add(std::move(callback));
   }
+
+  float O_to_Oc(float O)
+  float O_to_Od(float O)
+  float clampf(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v);}
+
   
   void set_activation(bool enable) {this->current_activation_ = enable;}
   bool get_activation(void){return this->current_activation_;}
@@ -125,6 +130,8 @@ class DUALPIDPCMComponent : public Component{
 
   bool get_deadband(void){return this->current_deadband_;}
   bool get_swap(void){return this->current_swap_;}
+
+   
   
 
  protected:
@@ -203,6 +210,14 @@ class DUALPIDPCMComponent : public Component{
 
   float output_min_      = 0.0f;
   float output_max_      = 1.0f;
+
+  float o_hysteresis_    = 0.02f;
+
+  typedef enum {
+    MODE_IDLE,       // Ni charge, ni décharge (zone morte)
+    MODE_CHARGE,     // Chargement batterie  (O ∈ [0.0 – 0.5[)
+    MODE_DISCHARGE   // Décharge batterie    (O ∈ ]0.5 – 1.0])
+  } ConverterMode_;
 
 };
 		
