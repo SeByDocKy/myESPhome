@@ -113,7 +113,7 @@ namespace dualpidpcm {
 	  
 	  this->current_deadband_  = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR);
 
-	  if (this->current_deadband_ && this->current_mode_ = 0) {
+	  if (this->current_deadband_ & this->current_mode_ = 0) {
         // Rien à faire, on reste off
 		if (this->onoff_switch_ != nullptr){
 		  if((this->onoff_switch_->state==true) ){
@@ -135,7 +135,7 @@ namespace dualpidpcm {
       this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
 	  tmp = 0.0f;
-      if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
+      if( !std::isnan(this->previous_output_) & !this->current_pid_mode_){
         tmp = this->previous_output_;
       }	
 		
@@ -146,7 +146,7 @@ namespace dualpidpcm {
 
 	  this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
-	  if (this->current_output_ <= this->output_min_ || this->current_output_ >= this->output_max_) {
+	  if ((this->current_output_ <= this->output_min_) | (this->current_output_ >= this->output_max_)) {
 		this->integral_ -= tmp_i;  // annule la dernière accumulation
       }
 	  // this->previous_output_   = this->current_output_;	
@@ -170,7 +170,7 @@ namespace dualpidpcm {
             // de O_hi (pas juste au-dessus de 0.5)
             if (this->current_output_ > this->olb_)
                 this->current_mode_ = 2;
-            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->current_deadband_)
+            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
                 this->current_mode_ = 0;
             break;
 
@@ -178,7 +178,7 @@ namespace dualpidpcm {
             // Idem, on quitte la décharge seulement sous O_lo
             if (this->current_output_ < this->olb_)
                 this->current_mode_ = 1;
-            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->current_deadband_)
+            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
                 this->current_mode_ = 0;
             break;
       }	
