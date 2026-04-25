@@ -113,7 +113,7 @@ namespace dualpidpcm {
 	  
 	  this->current_deadband_  = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR);
 
-	  if (this->current_deadband_ & this->current_mode_ = 0) {
+	  if (this->current_deadband_ & this->current_mode_ == 0) {
         // Rien à faire, on reste off
 		if (this->onoff_switch_ != nullptr){
 		  if((this->onoff_switch_->state==true) ){
