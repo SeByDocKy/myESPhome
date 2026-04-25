@@ -122,8 +122,8 @@ namespace dualpidpcm {
 		  }
 	    }  
         // s->Sonoff = false;
-		this->output_charging_    = 0.0f;	
-	    this->output_discharging_ = 0.0f;		  
+		this->current_output_charging_    = 0.0f;	
+	    this->current_output_discharging_ = 0.0f;		  
         
         // On n'accumule pas l'intégrateur (anti-windup)
         return;
@@ -197,29 +197,29 @@ namespace dualpidpcm {
 	   switch (this->previous_mode_) {
 
         case 0:
-			this->output_charging_    = 0.0f;	
-	        this->output_discharging_ = 0.0f;
-			this->current_onoff_      = false;
+			this->current_output_charging_    = 0.0f;	
+	        this->current_output_discharging_ = 0.0f;
+			this->current_onoff_              = false;
 			break;
 
         case 1:
-            this->output_charging_    = O_to_Oc(this->current_output_);   // O ∈ [0 – 0.5] → Oc ∈ [1 – 0]
-            this->output_discharging_ = 0.0f;
-			this->current_onoff_      = true;
+            this->current_output_charging_    = O_to_Oc(this->current_output_);   // O ∈ [0 – 0.5] → Oc ∈ [1 – 0]
+            this->current_output_discharging_ = 0.0f;
+			this->current_onoff_              = true;
             break;
 
         case 2:
- 			this->output_charging_    = 0.0f;
-			this->output_discharging_ = O_to_Od(this->current_output_);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
-            this->current_onoff_      = true;
+ 			this->current_output_charging_    = 0.0f;
+			this->current_output_discharging_ = O_to_Od(this->current_output_);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
+            this->current_onoff_              = true;
             break;
       }	
 	  
       if (!std::isnan(this->current_battery_voltage_)){
 	    ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-		  this->output_charging_    = 0.0f;
-	      this->output_discharging_ = 0.0f;
+		  this->current_output_charging_    = 0.0f;
+	      this->current_output_discharging_ = 0.0f;
 		  this->previous_output_    = 0.5f;
 		  this->current_output_     = 0.5f;
 		  this->current_onoff_      = false;	
@@ -234,25 +234,25 @@ namespace dualpidpcm {
         }
       }
 
-      this->output_charging_    = std::min(std::max( this->output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	  this->output_discharging_ = std::min(std::max( this->output_discharging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
+      this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);	
 		
-	  if ((this->output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
-        if (this->output_charging_ > 0.0f){ 
-		  this->device_charging_output_->set_level(this->output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
+	  if ((this->current_output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
+        if (this->current_output_charging_ > 0.0f){ 
+		  this->device_charging_output_->set_level(this->current_output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
 	      delay(SET_OUTPUT_DELAY);
 		}
 	  }
-	  if ((this->output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) ){  
-	    if (this->output_discharging_ > 0.0f){ 
-		  this->device_discharging_output_->set_level(this->output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
+	  if ((this->current_output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) ){  
+	    if (this->current_output_discharging_ > 0.0f){ 
+		  this->device_discharging_output_->set_level(this->current_output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
           delay(SET_OUTPUT_DELAY);
 		}
 	  }
 
 		
-	  this->current_output_charging_    = this->output_charging_;
-	  this->current_output_discharging_ = this->output_discharging_;  
+	  // this->current_output_charging_    = this->output_charging_;
+	  // this->current_output_discharging_ = this->output_discharging_;  
 
       this->last_time_                   = now;
       this->previous_error_              = this->error_;
