@@ -182,6 +182,39 @@ namespace dualpidpcm {
                 this->current_mode_ = 0;
             break;
       }	
+	  if (this->current_mode_ != this->previous_mode_) {
+        // Transition : on passe par une étape intermédiaire
+        // en coupant le convertisseur 1 cycle pour laisser
+        // le courant s'annuler avant de changer de sens.
+        // (dans un vrai système, attendre la confirmation HW)
+		// this->current_onoff_      = false;  
+		// this->output_charging_    = 0.0f;	
+	    // this->output_discharging_ = 0.0f;
+		this->previous_mode_      = this->current_mode_;
+         // On reviendra avec Sonoff=on au prochain cycle
+		return;  
+       }
+	   switch (this->previous_mode_) {
+
+        case 0:
+			this->output_charging_    = 0.0f;	
+	        this->output_discharging_ = 0.0f;
+			this->current_onoff_      = false;
+			break;
+
+        case 1:
+            this->output_charging_    = O_to_Oc(this->current_output);   // O ∈ [0 – 0.5] → Oc ∈ [1 – 0]
+            this->output_discharging_ = 0.0f;
+			this->current_onoff_      = true;
+            break;
+
+        case 2:
+ 			this->output_charging_    = 0.0f;
+			this->output_discharging_ = O_to_Od(this->current_output);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
+            this->current_onoff_      = true;
+            break;
+      }	
+	
 
       
 	
