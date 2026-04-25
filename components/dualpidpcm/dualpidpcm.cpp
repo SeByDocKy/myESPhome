@@ -227,6 +227,8 @@ namespace dualpidpcm {
 	      this->current_output_discharging_ = 0.0f;
 		  this->previous_output_            = 0.5f;
 		  this->current_output_             = 0.5f;
+		  this->previous_mode_              = 0;
+		  this->current_mode_               = 0;	
 		  this->current_onoff_              = false;	
 		  
 		  this->onoff_switch_->publish_state(false);	
@@ -245,7 +247,8 @@ namespace dualpidpcm {
 		this->previous_output_            = 0.5f;
 		this->current_output_             = 0.5f;
 		this->previous_mode_              = 0;
-		this->current_mode_               = 0;  
+		this->current_mode_               = 0;
+		this->current_onoff_              = false;
 		  
 	    if((this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
