@@ -69,7 +69,11 @@ namespace dualpidpcm {
 	        this->onoff_switch_->publish_state(false);  
 		  }
 	}
-  
+
+
+	this->olb_  = this->oneutral_ - this->lb_;
+	this->ulb_  = this->oneutral_ - this->ub_;  
+	  
     this->pid_computed_callback_.call();
 
     ESP_LOGI(TAG, "setup: battery_voltage=%3.2f, pid_mode = %d", this->current_battery_voltage_ , this->current_pid_mode_);  
@@ -109,9 +113,9 @@ namespace dualpidpcm {
 	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
 	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
-	  in_deaband               = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR)
+	  this->in_deaband         = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR)
 
-	  if (in_deadband && this->current_mode_ = 0) {
+	  if (this->in_deaband && this->current_mode_ = 0) {
         // Rien à faire, on reste off
 		if (this->onoff_switch_ != nullptr){
 		  if((this->onoff_switch_->state==true) ){
@@ -147,8 +151,39 @@ namespace dualpidpcm {
 	  if (this->current_output_ <= this->output_min_ || this->current_output_ >= this->output_max_) {
 		this->integral_ -= tmp_i;  // annule la dernière accumulation
       }
+	  this->previous_output_   = this->current_output_;	
 
-    s->O = O_new;	
+	  this->new_mode_          = this->current_mode_;
+
+	  switch (this->current_mode_) {
+
+        case 0:
+            if (this->current_output_ < this->olb_)
+                this->new_mode_ = 1;
+            else if (this->current_output_ > this->oub_)
+                this->new_mode_ = 2;
+            // sinon on reste IDLE
+            break;
+
+        case 1:
+            // On quitte la charge seulement si O monte au-delà
+            // de O_hi (pas juste au-dessus de 0.5)
+            if (this->current_output_ > this->ulb_)
+                this->new_mode_ = 2;
+            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->in_deaband)
+                this->new_mode_ = 0;
+            break;
+
+        case 2:
+            // Idem, on quitte la décharge seulement sous O_lo
+            if (s->O < O_lo)
+                this->new_mode_ = 1;
+            else if (this->current_output_ >= this->olb_ && this->current_output_ <= this->oub_ && this->in_deaband)
+                this->new_mode_ = 0;
+            break;
+      }	
+
+      
 	
 
 	}
