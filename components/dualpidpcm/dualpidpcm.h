@@ -188,13 +188,13 @@ class DUALPIDPCMComponent : public Component{
   float current_ki_          = 0.0f;
   float current_kd_          = 0.0f;
    
-  // float current_kp_charging_ = 3.0f;
-  // float current_ki_charging_ = 0.0f;
-  // float current_kd_charging_ = 0.0f;
+  float current_kp_charging_ = 3.0f;
+  float current_ki_charging_ = 0.0f;
+  float current_kd_charging_ = 0.0f;
   
-  // float current_kp_discharging_ = 3.0f;
-  // float current_ki_discharging_ = 0.0f;
-  // float current_kd_discharging_ = 0.0f;  
+  float current_kp_discharging_ = 3.0f;
+  float current_ki_discharging_ = 0.0f;
+  float current_kd_discharging_ = 0.0f;  
   
   float current_output_max_charging_ = 1.0f;
   float current_output_min_charging_ = 0.0f;
