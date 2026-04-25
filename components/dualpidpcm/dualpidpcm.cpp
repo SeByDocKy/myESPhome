@@ -152,7 +152,6 @@ namespace dualpidpcm {
       }
 	  // this->previous_output_   = this->current_output_;	
 
-      this->current_output_     = 0.60f;
 	   //this->new_mode_          = this->current_mode_;
 	
 	  this->current_mode_	   = this->previous_mode_;
