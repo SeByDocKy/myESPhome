@@ -211,6 +211,7 @@ namespace dualpidpcm {
         case 2:
  			this->current_output_charging_    = 0.0f;
 			this->current_output_discharging_ = O_to_Od(this->current_output_);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
+			this->current_output_discharging_ = 0.1f;
             this->current_onoff_              = true;
             break;
       }	
