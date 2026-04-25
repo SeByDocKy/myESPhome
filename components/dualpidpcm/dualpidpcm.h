@@ -153,6 +153,7 @@ class DUALPIDPCMComponent : public Component{
 
   float Pmin_charging = 5.0f*51.2f;
   float Pmin_discharging = 5.0f*51.2f;
+  float Pdeadband_ = 5.5f*51.2f;
 
   
   float current_battery_voltage_ = 54.0f;
@@ -208,17 +209,22 @@ class DUALPIDPCMComponent : public Component{
   int offdischarge_      = 0;
  
 
-  float olb_             = 0.02f;
-  float oub_             = 0.02f;
-  float oneutral_        = 0.5f;
+  float lb_             = 0.02f;
+  float ub_             = 0.02f;
+  float oneutral_       = 0.5f;
+  float olb_;
+  float oub_;
 
   float output_min_      = 0.0f;
   float output_max_      = 1.0f;
 
   float o_hysteresis_    = 0.02f;
 
+  int previous_mode_     = 0;
   int current_mode_      = 0; // 0 <=> idle, 1<-> charge, 2 <-> discharge
-  int new_mode_          = 0;
+
+  bool current_onoff_    = false;        
+  // int new_mode_          = 0;
 
   // typedef enum {
   //   MODE_IDLE,       // Ni charge, ni décharge (zone morte)
