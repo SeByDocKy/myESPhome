@@ -215,7 +215,11 @@ namespace dualpidpcm {
             this->current_onoff_              = true;
             break;
       }	
-	  
+
+
+	  this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
+	
       if (!std::isnan(this->current_battery_voltage_)){
 	    ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
@@ -255,8 +259,6 @@ namespace dualpidpcm {
         }	
       }		
 
-      this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 		
 	  if ((this->current_output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
         if (this->current_output_charging_ > 0.0f){ 
