@@ -30,13 +30,13 @@ KdNumber = dualpidpcm_ns.class_("KdNumber", number.Number, cg.Component)
 
 
 
-# KpChargingNumber = dualpidpcm_ns.class_("KpChargingNumber", number.Number, cg.Component)
-# KiChargingNumber = dualpidpcm_ns.class_("KiChargingNumber", number.Number, cg.Component)
-# KdChargingNumber = dualpidpcm_ns.class_("KdChargingNumber", number.Number, cg.Component)
+KpChargingNumber = dualpidpcm_ns.class_("KpChargingNumber", number.Number, cg.Component)
+KiChargingNumber = dualpidpcm_ns.class_("KiChargingNumber", number.Number, cg.Component)
+KdChargingNumber = dualpidpcm_ns.class_("KdChargingNumber", number.Number, cg.Component)
 
-# KpDischargingNumber = dualpidpcm_ns.class_("KpDischargingNumber", number.Number, cg.Component)
-# KiDischargingNumber = dualpidpcm_ns.class_("KiDischargingNumber", number.Number, cg.Component)
-# KdDischargingNumber = dualpidpcm_ns.class_("KdDischargingNumber", number.Number, cg.Component)
+KpDischargingNumber = dualpidpcm_ns.class_("KpDischargingNumber", number.Number, cg.Component)
+KiDischargingNumber = dualpidpcm_ns.class_("KiDischargingNumber", number.Number, cg.Component)
+KdDischargingNumber = dualpidpcm_ns.class_("KdDischargingNumber", number.Number, cg.Component)
 
 OutputMinChargingNumber = dualpidpcm_ns.class_("OutputMinChargingNumber", number.Number, cg.Component)
 OutputMaxChargingNumber = dualpidpcm_ns.class_("OutputMaxChargingNumber", number.Number, cg.Component)
