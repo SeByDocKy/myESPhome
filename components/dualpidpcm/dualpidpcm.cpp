@@ -203,14 +203,14 @@ namespace dualpidpcm {
 			break;
 
         case 1:
-            this->output_charging_    = O_to_Oc(this->current_output);   // O ∈ [0 – 0.5] → Oc ∈ [1 – 0]
+            this->output_charging_    = O_to_Oc(this->current_output_);   // O ∈ [0 – 0.5] → Oc ∈ [1 – 0]
             this->output_discharging_ = 0.0f;
 			this->current_onoff_      = true;
             break;
 
         case 2:
  			this->output_charging_    = 0.0f;
-			this->output_discharging_ = O_to_Od(this->current_output);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
+			this->output_discharging_ = O_to_Od(this->current_output_);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
             this->current_onoff_      = true;
             break;
       }	
