@@ -153,6 +153,7 @@ namespace dualpidpcm {
 	  // this->previous_output_   = this->current_output_;	
 
 	   //this->new_mode_          = this->current_mode_;
+	  this->current_output_    = 0.53f;	
 	
 	  this->current_mode_	   = this->previous_mode_;
 	  switch (this->previous_mode_) {
@@ -211,7 +212,7 @@ namespace dualpidpcm {
         case 2:
  			this->current_output_charging_    = 0.0f;
 			this->current_output_discharging_ = O_to_Od(this->current_output_);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
-			this->current_output_discharging_ = 0.1f;
+			// this->current_output_discharging_ = 0.1f;
             this->current_onoff_              = true;
             break;
       }	
