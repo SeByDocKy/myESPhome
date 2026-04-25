@@ -32,12 +32,12 @@ class DUALPIDPCMComponent : public Component{
  SUB_NUMBER(ki)
  SUB_NUMBER(kd)
 
- // SUB_NUMBER(kp_charging)
- // SUB_NUMBER(ki_charging)
- // SUB_NUMBER(kd_charging)
- // SUB_NUMBER(kp_discharging)
- // SUB_NUMBER(ki_discharging)
- // SUB_NUMBER(kd_discharging)
+ SUB_NUMBER(kp_charging)
+ SUB_NUMBER(ki_charging)
+ SUB_NUMBER(kd_charging)
+ SUB_NUMBER(kp_discharging)
+ SUB_NUMBER(ki_discharging)
+ SUB_NUMBER(kd_discharging)
 
  SUB_NUMBER(output_min_charging)
  SUB_NUMBER(output_max_charging)
@@ -93,19 +93,19 @@ class DUALPIDPCMComponent : public Component{
   void set_kd(float value) {this->current_kd_ = value;}
   float get_kd(void){return this->current_kd_;}
   
-  // void set_kp_charging(float value) {this->current_kp_charging_ = value;}
-  // float get_kp_charging(void){return this->current_kp_charging_;}
-  // void set_ki_charging(float value) {this->current_ki_charging_ = value;}
-  // float get_ki_charging(void){return this->current_ki_charging_;}
-  // void set_kd_charging(float value) {this->current_kd_charging_ = value;}
-  // float get_kd_charging(void){return this->current_kd_charging_;}
+  void set_kp_charging(float value) {this->current_kp_charging_ = value;}
+  float get_kp_charging(void){return this->current_kp_charging_;}
+  void set_ki_charging(float value) {this->current_ki_charging_ = value;}
+  float get_ki_charging(void){return this->current_ki_charging_;}
+  void set_kd_charging(float value) {this->current_kd_charging_ = value;}
+  float get_kd_charging(void){return this->current_kd_charging_;}
   
-  // void set_kp_discharging(float value) {this->current_kp_discharging_ = value;}
-  // float get_kp_discharging(void){return this->current_kp_discharging_;}
-  // void set_ki_discharging(float value) {this->current_ki_discharging_ = value;}
-  // float get_ki_discharging(void){return this->current_ki_discharging_;}
-  // void set_kd_discharging(float value) {this->current_kd_discharging_ = value;}
-  // float get_kd_discharging(void){return this->current_kd_discharging_;}
+  void set_kp_discharging(float value) {this->current_kp_discharging_ = value;}
+  float get_kp_discharging(void){return this->current_kp_discharging_;}
+  void set_ki_discharging(float value) {this->current_ki_discharging_ = value;}
+  float get_ki_discharging(void){return this->current_ki_discharging_;}
+  void set_kd_discharging(float value) {this->current_kd_discharging_ = value;}
+  float get_kd_discharging(void){return this->current_kd_discharging_;}
   
   void set_output_min_charging(float value) {this->current_output_min_charging_ = value;}
   float get_output_min_charging(void){return this->current_output_min_charging_;}
