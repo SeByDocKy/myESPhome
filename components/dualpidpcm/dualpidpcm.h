@@ -213,11 +213,14 @@ class DUALPIDPCMComponent : public Component{
 
   float o_hysteresis_    = 0.02f;
 
-  typedef enum {
-    MODE_IDLE,       // Ni charge, ni décharge (zone morte)
-    MODE_CHARGE,     // Chargement batterie  (O ∈ [0.0 – 0.5[)
-    MODE_DISCHARGE   // Décharge batterie    (O ∈ ]0.5 – 1.0])
-  } ConverterMode_;
+  int current_mode_      = 0; // 0 <=> idle, 1<-> charge, 2 <-> discharge
+  int new_mode_          = 0;
+
+  // typedef enum {
+  //   MODE_IDLE,       // Ni charge, ni décharge (zone morte)
+  //   MODE_CHARGE,     // Chargement batterie  (O ∈ [0.0 – 0.5[)
+  //   MODE_DISCHARGE   // Décharge batterie    (O ∈ ]0.5 – 1.0])
+  // } ConverterMode_;
 
 };
 		
