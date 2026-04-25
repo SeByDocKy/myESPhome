@@ -64,9 +64,9 @@ class DUALPIDPCMComponent : public Component{
     pid_computed_callback_.add(std::move(callback));
   }
 
-  float O_to_Oc(float O)
-  float O_to_Od(float O)
-  float clampf(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v);}
+  float O_to_Oc(float O);
+  float O_to_Od(float O);
+  float clampf(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v);};
 
   
   void set_activation(bool enable) {this->current_activation_ = enable;}
