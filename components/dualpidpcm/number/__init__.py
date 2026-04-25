@@ -182,8 +182,7 @@ async def to_code(config):
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_starting_battery_voltage_number(n))
 
-
-    if kp_config := config.get(CONF_KP):
+  if kp_config := config.get(CONF_KP):
         n = await number.new_number(
             kp_config, min_value=0.0, max_value=10.0, step=0.1
         )
