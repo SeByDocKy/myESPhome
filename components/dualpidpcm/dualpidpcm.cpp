@@ -168,7 +168,7 @@ namespace dualpidpcm {
         case 1:
             // On quitte la charge seulement si O monte au-delà
             // de O_hi (pas juste au-dessus de 0.5)
-            if (this->current_output_ > this->olb_)
+            if (this->current_output_ > this->oub_)
                 this->current_mode_ = 2;
             else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
                 this->current_mode_ = 0;
