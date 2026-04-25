@@ -21,6 +21,12 @@ namespace dualpidpcm {
   static const float coeffIdischarging = 0.001f;
   static const float coeffDdischarging = 0.001f;
 
+  void DUALPIDPCMComponent::O_to_Oc(float O) {
+	 if (O > this->o_neutral_) return 0.0f;
+      return 1.0f - (O / this->o_neutral_);   // linéaire inversé
+  }
+	
+
   void DUALPIDPCMComponent::setup() { 
     ESP_LOGCONFIG(TAG, "Setting up DUALPIDPCMComponent...");
   
