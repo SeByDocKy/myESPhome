@@ -220,9 +220,9 @@ namespace dualpidpcm {
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
 		  this->current_output_charging_    = 0.0f;
 	      this->current_output_discharging_ = 0.0f;
-		  this->previous_output_    = 0.5f;
-		  this->current_output_     = 0.5f;
-		  this->current_onoff_      = false;	
+		  this->previous_output_            = 0.5f;
+		  this->current_output_             = 0.5f;
+		  this->current_onoff_              = false;	
 		  
 		  this->onoff_switch_->publish_state(false);	
           this->onoff_switch_->turn_off();
