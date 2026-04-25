@@ -89,7 +89,7 @@ namespace dualpidpcm {
     float tmp, tmp_i, epsi;
     float alphaP, alphaI, alphaD;
 	float alpha;
-    float coeffP, coeffI, coeffD;
+    // float coeffP, coeffI, coeffD;
 	// bool in_deadband;  
   
 	// int offcharge , offdischarge ;
