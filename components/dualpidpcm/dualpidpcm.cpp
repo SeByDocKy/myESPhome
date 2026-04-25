@@ -6,6 +6,7 @@
 #define CHARGE_DISCHARGE_DELAY 0      // 50
 #define MAX_OFFCHARGE 4
 #define MAX_OFFDISCHARGE 4
+#define DEADBAND_FACTOR 1.05
 
 
 namespace esphome {
@@ -13,13 +14,18 @@ namespace dualpidpcm {
 
   static const char *const TAG = "dualpidpcm";
 
-  static const float coeffPcharging = 0.00001f;
-  static const float coeffIcharging = 0.001f;
-  static const float coeffDcharging = 0.001f;
+  static const float coeffP = 0.00001f;
+  static const float coeffI = 0.001f;
+  static const float coeffD = 0.001f;
 
-  static const float coeffPdischarging = 0.00001f;
-  static const float coeffIdischarging = 0.001f;
-  static const float coeffDdischarging = 0.001f;
+
+  // static const float coeffPcharging = 0.00001f;
+  // static const float coeffIcharging = 0.001f;
+  // static const float coeffDcharging = 0.001f;
+
+  // static const float coeffPdischarging = 0.00001f;
+  // static const float coeffIdischarging = 0.001f;
+  // static const float coeffDdischarging = 0.001f;
 
   void DUALPIDPCMComponent::O_to_Oc(float O) {
 	 if (O > this->oneutral_) return 0.0f;
@@ -56,6 +62,13 @@ namespace dualpidpcm {
       });
       this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
     }
+
+	if (this->onoff_switch_ != nullptr){
+		  if((this->onoff_switch_->state==true) ){
+		    this->onoff_switch_->turn_off();	 
+	        this->onoff_switch_->publish_state(false);  
+		  }
+	}
   
     this->pid_computed_callback_.call();
 
@@ -71,16 +84,74 @@ namespace dualpidpcm {
 
   void DUALPIDPCMComponent::pid_update() {
     uint32_t now = millis();
-    float tmp, epsi;
+    float tmp, tmp_i, epsi;
     float alphaP, alphaI, alphaD;
 	float alpha;
     float coeffP, coeffI, coeffD;
-    float cc=1.0f/(this->epoint_ - this->elb_), cd=1.0f/(1.0f - this->epoint_ - this->eub_);
-    bool current_state=true, previous_state=true;
+	bool in_deadband;  
+  
 	// int offcharge , offdischarge ;
   
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
+
+	
+    if (!this->current_manual_override_){
+      this->dt_    = float(now - this->last_time_)/1000.0f;
+	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	  this->error_ = epsi;   
+	  	  
+	  if (this->current_reverse_){
+		this->error_ = -this->error_;
+	  }
+	  this->current_error_ = this->error_; 
+
+	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
+	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
+	  
+	  in_deaband               = (this->current_input_ > this->Pmin_charging*DEADBAND_FACTOR) & (this->current_input_ < this->Pmin_discharging*DEADBAND_FACTOR)
+
+	  if (in_deadband && this->current_mode_ = 0) {
+        // Rien à faire, on reste off
+		if (this->onoff_switch_ != nullptr){
+		  if((this->onoff_switch_->state==true) ){
+		    this->onoff_switch_->turn_off();	 
+	        this->onoff_switch_->publish_state(false);  
+		  }
+	    }  
+        // s->Sonoff = false;
+		this->output_charging_    = 0.0f;	
+	    this->output_discharging_ = 0.0f;		  
+        
+        // On n'accumule pas l'intégrateur (anti-windup)
+        return;
+      }	
+	  tmp_i = (this->error_ * this->dt_);
+      if (!std::isnan(tmp_i)){
+        this->integral_ += tmp_i;
+      }
+      this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+
+	  tmp = 0.0f;
+      if( !std::isnan(this->previous_output_) && !this->current_pid_mode_){
+        tmp = this->previous_output_;
+      }	
+		
+	  alphaP                    = coeffP * this->current_kp_ * this->error_;
+	  alphaI                    = coeffI * this->current_ki_ * this->integral_;
+	  alphaD                    = coeffD * this->current_kd_ * this->derivative_;
+	  alpha                     = alphaP + alphaI + alphaD;	
+
+	  this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+
+	  if (this->current_output_ <= this->output_min_ || this->current_output_ >= this->output_max_) {
+		this->integral_ -= tmp_i;  // annule la dernière accumulation
+      }
+
+    s->O = O_new;	
+	
+
+	}
 
   }
 
