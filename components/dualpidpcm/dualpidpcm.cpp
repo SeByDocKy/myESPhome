@@ -161,6 +161,8 @@ namespace dualpidpcm {
 	  // this->current_output_    = alpha;	
 	
 	  this->current_mode_	   = this->previous_mode_;
+
+		
 	  switch (this->previous_mode_) {
 
         case 0:
@@ -215,6 +217,8 @@ namespace dualpidpcm {
     // sinon (IDLE → charge ou IDLE → décharge) : on garde
     // la valeur courante, le PID reprend naturellement
 		this->previous_mode_      = this->current_mode_;
+		this->last_time_          = now;
+        this->previous_error_     = this->error_;  
          // On reviendra avec Sonoff=on au prochain cycle
 		return;  
        }
@@ -224,8 +228,8 @@ namespace dualpidpcm {
         case 0:
 			this->current_output_charging_    = 0.0f;	
 	        this->current_output_discharging_ = 0.0f;
-			this->previous_output_            = this->oneutral_;
-		    this->current_output_             = this->oneutral_;
+			// this->previous_output_            = this->oneutral_;
+		 //    this->current_output_             = this->oneutral_;
 			this->current_onoff_              = false;
 			break;
 
