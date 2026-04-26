@@ -100,200 +100,200 @@ namespace dualpidpcm {
 	this->pid_computed_callback_.call();  
 
 	
- //    if (!this->current_manual_override_){
- //      this->dt_    = float(now - this->last_time_)/1000.0f;
-	//   epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
-	//   this->error_ = epsi;   
+    if (!this->current_manual_override_){
+      this->dt_    = float(now - this->last_time_)/1000.0f;
+	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
+	  this->error_ = epsi;   
 	  	  
-	//   if (this->current_reverse_){
-	// 	this->error_ = -this->error_;
-	//   }
-	//   this->current_error_ = this->error_; 
+	  if (this->current_reverse_){
+		this->error_ = -this->error_;
+	  }
+	  this->current_error_ = this->error_; 
 
-	//   this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
-	//   this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
+	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
+	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
-	//   this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) & (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
+	  this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) & (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
 
-	//   if (this->current_deadband_ & this->previous_mode_ == 0) {
- //        // Rien à faire, on reste off
-	// 	if (this->onoff_switch_ != nullptr){
-	// 	  if((this->onoff_switch_->state==true) ){
-	// 	    this->onoff_switch_->turn_off();	 
-	//         this->onoff_switch_->publish_state(false);  
-	// 	  }
-	//     }  
- //        // s->Sonoff = false;
-	// 	this->current_output_charging_    = 0.0f;	
-	//     this->current_output_discharging_ = 0.0f;		  
+	  if (this->current_deadband_ & this->previous_mode_ == 0) {
+        // Rien à faire, on reste off
+		if (this->onoff_switch_ != nullptr){
+		  if((this->onoff_switch_->state==true) ){
+		    this->onoff_switch_->turn_off();	 
+	        this->onoff_switch_->publish_state(false);  
+		  }
+	    }  
+        // s->Sonoff = false;
+		this->current_output_charging_    = 0.0f;	
+	    this->current_output_discharging_ = 0.0f;		  
         
- //        // On n'accumule pas l'intégrateur (anti-windup)
- //        return;
- //      }	
+        // On n'accumule pas l'intégrateur (anti-windup)
+        return;
+      }	
 		
-	//   tmp_i = (this->error_ * this->dt_);
- //      if (!std::isnan(tmp_i)){
- //        this->integral_ += tmp_i;
- //      }
- //      this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+	  tmp_i = (this->error_ * this->dt_);
+      if (!std::isnan(tmp_i)){
+        this->integral_ += tmp_i;
+      }
+      this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
-	//   tmp = 0.0f;
- //      if( !std::isnan(this->previous_output_) & !this->current_pid_mode_){
- //        tmp = this->previous_output_;
- //      }	
+	  tmp = 0.0f;
+      if( !std::isnan(this->previous_output_) & !this->current_pid_mode_){
+        tmp = this->previous_output_;
+      }	
 		
-	//   alphaP                    = coeffP * this->current_kp_ * this->error_;
-	//   alphaI                    = coeffI * this->current_ki_ * this->integral_;
-	//   alphaD                    = coeffD * this->current_kd_ * this->derivative_;
-	//   alpha                     = alphaP + alphaI + alphaD;	
+	  alphaP                    = coeffP * this->current_kp_ * this->error_;
+	  alphaI                    = coeffI * this->current_ki_ * this->integral_;
+	  alphaD                    = coeffD * this->current_kd_ * this->derivative_;
+	  alpha                     = alphaP + alphaI + alphaD;	
 
-	//   this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
+	  this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
-	//   if ((this->current_output_ <= this->output_min_) | (this->current_output_ >= this->output_max_)) {
-	// 	this->integral_        -= tmp_i;  // annule la dernière accumulation
- //      }
-	//   // this->previous_output_   = this->current_output_;	
+	  if ((this->current_output_ <= this->output_min_) | (this->current_output_ >= this->output_max_)) {
+		this->integral_        -= tmp_i;  // annule la dernière accumulation
+      }
+	  // this->previous_output_   = this->current_output_;	
 
-	//    //this->new_mode_          = this->current_mode_;
-	//   // this->current_output_    = alpha;	
+	   //this->new_mode_          = this->current_mode_;
+	  // this->current_output_    = alpha;	
 	
-	//   this->current_mode_	   = this->previous_mode_;
-	//   switch (this->previous_mode_) {
+	  this->current_mode_	   = this->previous_mode_;
+	  switch (this->previous_mode_) {
 
- //        case 0:
- //            if (this->current_output_ < this->olb_)
- //                this->current_mode_ = 1;
- //            else if (this->current_output_ > this->oub_)
- //                this->current_mode_ = 2;
- //            // sinon on reste IDLE
- //            break;
+        case 0:
+            if (this->current_output_ < this->olb_)
+                this->current_mode_ = 1;
+            else if (this->current_output_ > this->oub_)
+                this->current_mode_ = 2;
+            // sinon on reste IDLE
+            break;
 
- //        case 1:
- //            // On quitte la charge seulement si O monte au-delà
- //            // de O_hi (pas juste au-dessus de 0.5)
- //            if (this->current_output_ > this->oub_)
- //                this->current_mode_ = 2;
- //            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
- //                this->current_mode_ = 0;
- //            break;
+        case 1:
+            // On quitte la charge seulement si O monte au-delà
+            // de O_hi (pas juste au-dessus de 0.5)
+            if (this->current_output_ > this->oub_)
+                this->current_mode_ = 2;
+            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
+                this->current_mode_ = 0;
+            break;
 
- //        case 2:
- //            // Idem, on quitte la décharge seulement sous O_lo
- //            if (this->current_output_ < this->olb_)
- //                this->current_mode_ = 1;
- //            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
- //                this->current_mode_ = 0;
- //            break;
- //      }	
-	//   if (this->current_mode_ != this->previous_mode_) {
- //        // Transition : on passe par une étape intermédiaire
- //        // en coupant le convertisseur 1 cycle pour laisser
- //        // le courant s'annuler avant de changer de sens.
- //        // (dans un vrai système, attendre la confirmation HW)
-	// 	// this->current_onoff_      = false;  
-	// 	// this->output_charging_    = 0.0f;	
-	//     // this->output_discharging_ = 0.0f;
-	// 	this->previous_mode_      = this->current_mode_;
- //         // On reviendra avec Sonoff=on au prochain cycle
-	// 	return;  
- //       }
-	//    switch (this->previous_mode_) {
+        case 2:
+            // Idem, on quitte la décharge seulement sous O_lo
+            if (this->current_output_ < this->olb_)
+                this->current_mode_ = 1;
+            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
+                this->current_mode_ = 0;
+            break;
+      }	
+	  if (this->current_mode_ != this->previous_mode_) {
+        // Transition : on passe par une étape intermédiaire
+        // en coupant le convertisseur 1 cycle pour laisser
+        // le courant s'annuler avant de changer de sens.
+        // (dans un vrai système, attendre la confirmation HW)
+		// this->current_onoff_      = false;  
+		// this->output_charging_    = 0.0f;	
+	    // this->output_discharging_ = 0.0f;
+		this->previous_mode_      = this->current_mode_;
+         // On reviendra avec Sonoff=on au prochain cycle
+		return;  
+       }
+	   switch (this->previous_mode_) {
 
- //        case 0:
-	// 		this->current_output_charging_    = 0.0f;	
-	//         this->current_output_discharging_ = 0.0f;
-	// 		this->current_onoff_              = false;
-	// 		break;
+        case 0:
+			this->current_output_charging_    = 0.0f;	
+	        this->current_output_discharging_ = 0.0f;
+			this->current_onoff_              = false;
+			break;
 
- //        case 1:
- //            this->current_output_charging_    = O_to_Oc(this->current_output_);   // O ∈ [0 – 0.5] → Oc ∈ [1 – 0]
- //            this->current_output_discharging_ = 0.0f;
-	// 		this->current_onoff_              = true;
- //            break;
+        case 1:
+            this->current_output_charging_    = O_to_Oc(this->current_output_);   // O ∈ [0 – 0.5] → Oc ∈ [1 – 0]
+            this->current_output_discharging_ = 0.0f;
+			this->current_onoff_              = true;
+            break;
 
- //        case 2:
- // 			this->current_output_charging_    = 0.0f;
-	// 		this->current_output_discharging_ = O_to_Od(this->current_output_);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
- //            this->current_onoff_              = true;
- //            break;
- //      }	
+        case 2:
+ 			this->current_output_charging_    = 0.0f;
+			this->current_output_discharging_ = O_to_Od(this->current_output_);  // O ∈ [0.5 – 1] → Od ∈ [0 – 1]
+            this->current_onoff_              = true;
+            break;
+      }	
 
 
-	//   this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
-	//   this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
+	  this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
+	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 	
- //      if (!std::isnan(this->current_battery_voltage_)){
-	//     ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
- //        if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
-	// 	  this->current_output_charging_    = 0.0f;
-	//       this->current_output_discharging_ = 0.0f;
-	// 	  this->previous_output_            = 0.5f;
-	// 	  this->current_output_             = 0.5f;
-	// 	  this->previous_mode_              = 0;
-	// 	  this->current_mode_               = 0;	
-	// 	  this->current_onoff_              = false;	
+      if (!std::isnan(this->current_battery_voltage_)){
+	    ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f" , this->current_battery_voltage_, this->current_starting_battery_voltage_);	
+        if (this->current_battery_voltage_ < this->current_starting_battery_voltage_){
+		  this->current_output_charging_    = 0.0f;
+	      this->current_output_discharging_ = 0.0f;
+		  this->previous_output_            = 0.5f;
+		  this->current_output_             = 0.5f;
+		  this->previous_mode_              = 0;
+		  this->current_mode_               = 0;	
+		  this->current_onoff_              = false;	
 		  
-	// 	  this->onoff_switch_->publish_state(false);	
- //          this->onoff_switch_->turn_off();
-	// 	  delay(ONOFF_DELAY);	
+		  this->onoff_switch_->publish_state(false);	
+          this->onoff_switch_->turn_off();
+		  delay(ONOFF_DELAY);	
 	      
- //          this->discharge_charge_switch_->publish_state(true);			  
- //          this->discharge_charge_switch_->turn_on();
-	// 	  delay(CHARGE_DISCHARGE_DELAY);	
- //        }
- //      }
+          this->discharge_charge_switch_->publish_state(true);			  
+          this->discharge_charge_switch_->turn_on();
+		  delay(CHARGE_DISCHARGE_DELAY);	
+        }
+      }
 
-	//   if (!this->current_activation_ ){  // no regulation 
-	//     this->current_output_charging_    = 0.0f;
-	//     this->current_output_discharging_ = 0.0f;
-	// 	this->previous_output_            = 0.5f;
-	// 	this->current_output_             = 0.5f;
-	// 	this->previous_mode_              = 0;
-	// 	this->current_mode_               = 0;
-	// 	this->current_onoff_              = false;
+	  if (!this->current_activation_ ){  // no regulation 
+	    this->current_output_charging_    = 0.0f;
+	    this->current_output_discharging_ = 0.0f;
+		this->previous_output_            = 0.5f;
+		this->current_output_             = 0.5f;
+		this->previous_mode_              = 0;
+		this->current_mode_               = 0;
+		this->current_onoff_              = false;
 		  
-	//     if((this->onoff_switch_->state == true)  ){
-	// 	  this->onoff_switch_->turn_off();
-	// 	  this->onoff_switch_->publish_state(false);	
-	// 	  delay(ONOFF_DELAY);
+	    if((this->onoff_switch_->state == true)  ){
+		  this->onoff_switch_->turn_off();
+		  this->onoff_switch_->publish_state(false);	
+		  delay(ONOFF_DELAY);
 			
-	// 	  this->discharge_charge_switch_->turn_on();
-	// 	  this->discharge_charge_switch_->publish_state(true);	
-	// 	  delay(CHARGE_DISCHARGE_DELAY);
-	// 	  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
- //        }	
- //      }		
+		  this->discharge_charge_switch_->turn_on();
+		  this->discharge_charge_switch_->publish_state(true);	
+		  delay(CHARGE_DISCHARGE_DELAY);
+		  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
+        }	
+      }		
 
 		
-	//   if ((this->current_output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
- //        if (this->current_output_charging_ > 0.0f){ 
-	// 	  this->device_charging_output_->set_level(this->current_output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
-	//       delay(SET_OUTPUT_DELAY);
-	// 	}
-	//   }
-	//   if ((this->current_output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) ){  
-	//     if (this->current_output_discharging_ > 0.0f){ 
-	// 	  this->device_discharging_output_->set_level(this->current_output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
- //          delay(SET_OUTPUT_DELAY);
-	// 	}
-	//   }
+	  if ((this->current_output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
+        if (this->current_output_charging_ > 0.0f){ 
+		  this->device_charging_output_->set_level(this->current_output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
+	      delay(SET_OUTPUT_DELAY);
+		}
+	  }
+	  if ((this->current_output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) ){  
+	    if (this->current_output_discharging_ > 0.0f){ 
+		  this->device_discharging_output_->set_level(this->current_output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
+          delay(SET_OUTPUT_DELAY);
+		}
+	  }
 
 		
-	//   // this->current_output_charging_    = this->output_charging_;
-	//   // this->current_output_discharging_ = this->output_discharging_;  
+	  // this->current_output_charging_    = this->output_charging_;
+	  // this->current_output_discharging_ = this->output_discharging_;  
 
- //      this->last_time_                   = now;
- //      this->previous_error_              = this->error_;
-	//   this->previous_output_             = this->current_output_;	
-	//   this->previous_output_charging_    = this->current_output_charging_;
-	//   this->previous_output_discharging_ = this->current_output_discharging_;
+      this->last_time_                   = now;
+      this->previous_error_              = this->error_;
+	  this->previous_output_             = this->current_output_;	
+	  this->previous_output_charging_    = this->current_output_charging_;
+	  this->previous_output_discharging_ = this->current_output_discharging_;
 
- //      // this->pid_computed_callback_.call();		
+      // this->pid_computed_callback_.call();		
 	
 
-	// }
+	}
 	 
- //     this->pid_computed_callback_.call();
+     // this->pid_computed_callback_.call();
    }
 
 
