@@ -135,6 +135,25 @@ namespace dualpidpcm {
         // On n'accumule pas l'intégrateur (anti-windup)
         return;
       }	
+	  // ── Entrée en deadband depuis un mode ACTIF : arrêt immédiat ──────
+      if (this->current_deadband_ && (this->previous_mode_ != 0)) {
+        if (this->onoff_switch_ != nullptr && this->onoff_switch_->state == true) {
+          this->onoff_switch_->turn_off();
+          this->onoff_switch_->publish_state(false);
+          delay(ONOFF_DELAY);
+        }
+        this->current_output_charging_    = 0.0f;
+        this->current_output_discharging_ = 0.0f;
+        this->previous_output_            = this->oneutral_;
+        this->current_output_             = this->oneutral_;
+        this->previous_mode_              = 0;
+        this->current_mode_               = 0;
+        this->current_onoff_              = false;
+            // Intégrateur conservé : reprendra quand on sortira de la deadband
+        this->last_time_      = now;
+        this->previous_error_ = this->error_;
+        return;
+       }	
 		
 	  tmp_i = (this->error_ * this->dt_);
       if (!std::isnan(tmp_i)){
