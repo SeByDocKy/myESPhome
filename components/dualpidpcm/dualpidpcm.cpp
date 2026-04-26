@@ -291,9 +291,9 @@ namespace dualpidpcm {
 
 	}
 	 
-
+     this->pid_computed_callback_.call();
   }
-  this->pid_computed_callback_.call(); 
+   
 
  //  void DUALPIDPCMComponent::pid_update() {
  //    uint32_t now = millis();
