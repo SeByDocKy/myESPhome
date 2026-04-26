@@ -127,8 +127,10 @@ namespace dualpidpcm {
         // s->Sonoff = false;
 		this->current_output_charging_    = 0.0f;	
 	    this->current_output_discharging_ = 0.0f;
-		this->previous_output_            = this->oneutral_;
-		this->current_output_             = this->oneutral_;  
+		this->last_time_                  = now;
+        this->previous_error_             = this->error_;  
+		// this->previous_output_            = this->oneutral_;
+		// this->current_output_             = this->oneutral_;  
         
         // On n'accumule pas l'intégrateur (anti-windup)
         return;
