@@ -308,6 +308,11 @@ namespace dualpidpcm {
 			// ESP_LOGI(TAG, "Turn on on off");  
 		   }
 	     }
+		 else{
+            this->onoff_switch_->control(this->current_onoff_);	 
+	        this->onoff_switch_->publish_state(this->current_onoff_);
+			delay(ONOFF_DELAY); 
+		 }
 	   }
 	
 
