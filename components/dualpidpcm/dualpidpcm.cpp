@@ -116,7 +116,7 @@ namespace dualpidpcm {
 	  this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) & (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
       this->offcharge_  = this->previous_mode_;
 		
-	  if (this->current_deadband_ & this->previous_mode_ == 0) {
+	  if ((this->current_deadband_) & (this->previous_mode_ == 0)) {
         // Rien à faire, on reste off
 		if (this->onoff_switch_ != nullptr){
 		  if((this->onoff_switch_->state==true) ){
@@ -141,7 +141,7 @@ namespace dualpidpcm {
       this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
 	  tmp = 0.0f;
-      if( !std::isnan(this->previous_output_) & !this->current_pid_mode_){
+      if( !std::isnan(this->previous_output_) & (!this->current_pid_mode_)){
         tmp = this->previous_output_;
       }	
 		
@@ -176,7 +176,7 @@ namespace dualpidpcm {
             // de O_hi (pas juste au-dessus de 0.5)
             if (this->current_output_ > this->oub_)
                 this->current_mode_ = 2;
-            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
+            else if ( (this->current_output_ >= this->olb_) & (this->current_output_ <= this->oub_) & (this->current_deadband_))
                 this->current_mode_ = 0;
             break;
 
@@ -184,7 +184,7 @@ namespace dualpidpcm {
             // Idem, on quitte la décharge seulement sous O_lo
             if (this->current_output_ < this->olb_)
                 this->current_mode_ = 1;
-            else if (this->current_output_ >= this->olb_ & this->current_output_ <= this->oub_ & this->current_deadband_)
+            else if ( (this->current_output_ >= this->olb_) & (this->current_output_ <= this->oub_) & (this->current_deadband_))
                 this->current_mode_ = 0;
             break;
       }	
