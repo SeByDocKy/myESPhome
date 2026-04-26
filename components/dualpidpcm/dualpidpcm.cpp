@@ -39,12 +39,12 @@ namespace dualpidpcm {
   void DUALPIDPCMComponent::setup() { 
     ESP_LOGCONFIG(TAG, "Setting up DUALPIDPCMComponent...");
   
-    this->last_time_      =  millis();
-    this->integral_       = 0.0f;
-    this->previous_error_ = 0.0f;
-	this->previous_output_charging_= 0.0f;
-	this->previous_output_discharging_= 0.0f;
-	this->current_mode_   = 0;
+    this->last_time_                   =  millis();
+    this->integral_                    = 0.0f;
+    this->previous_error_              = 0.0f;
+	this->previous_output_charging_    = 0.0f;
+	this->previous_output_discharging_ = 0.0f;
+	this->current_mode_                = 0;
   
     if (this->input_sensor_ != nullptr) {
       this->input_sensor_->add_on_state_callback([this](float state) {
@@ -125,7 +125,9 @@ namespace dualpidpcm {
 	    }  
         // s->Sonoff = false;
 		this->current_output_charging_    = 0.0f;	
-	    this->current_output_discharging_ = 0.0f;		  
+	    this->current_output_discharging_ = 0.0f;
+		this->previous_output_            = this->oneutral_;
+		this->current_output_             = this->oneutral_;  
         
         // On n'accumule pas l'intégrateur (anti-windup)
         return;
@@ -202,6 +204,8 @@ namespace dualpidpcm {
         case 0:
 			this->current_output_charging_    = 0.0f;	
 	        this->current_output_discharging_ = 0.0f;
+			this->previous_output_            = this->oneutral_;
+		    this->current_output_             = this->oneutral_;
 			this->current_onoff_              = false;
 			break;
 
@@ -246,8 +250,8 @@ namespace dualpidpcm {
 	  if (!this->current_activation_ ){  // no regulation 
 	    this->current_output_charging_    = 0.0f;
 	    this->current_output_discharging_ = 0.0f;
-		this->previous_output_            = 0.5f;
-		this->current_output_             = 0.5f;
+		this->previous_output_            = this->oneutral_;
+		this->current_output_             = this->oneutral_;
 		this->previous_mode_              = 0;
 		this->current_mode_               = 0;
 		this->current_onoff_              = false;
