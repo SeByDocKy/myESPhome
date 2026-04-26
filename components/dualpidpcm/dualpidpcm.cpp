@@ -152,7 +152,7 @@ namespace dualpidpcm {
 
 	  this->current_output_     = std::min(std::max( tmp + alpha, this->output_min_ ) , this->output_max_);
 
-	  if ((this->current_output_ <= this->output_min_) | (this->current_output_ >= this->output_max_)) {
+	  if ((this->current_output_ <= this->output_min_) || (this->current_output_ >= this->output_max_)) {
 		this->integral_        -= tmp_i;  // annule la dernière accumulation
       }
 	  // this->previous_output_   = this->current_output_;	
@@ -192,17 +192,33 @@ namespace dualpidpcm {
 	  
 		
 	  if (this->current_mode_ != this->previous_mode_) {
-        // Transition : on passe par une étape intermédiaire
-        // en coupant le convertisseur 1 cycle pour laisser
-        // le courant s'annuler avant de changer de sens.
-        // (dans un vrai système, attendre la confirmation HW)
-		// this->current_onoff_      = false;  
-		// this->output_charging_    = 0.0f;	
-	    // this->output_discharging_ = 0.0f;
+        // if (this->onoff_switch_ != nullptr && this->onoff_switch_->state == true) {
+        //   this->onoff_switch_->turn_off();
+        //   this->onoff_switch_->publish_state(false);
+        //   delay(ONOFF_DELAY);
+        //  }
+        // this->current_output_charging_    = 0.0f;
+        // this->current_output_discharging_ = 0.0f;
+
+       // Figer previous_output_ À la frontière du nouveau mode
+       // pour que le PID reparte d'un point cohérent
+        if (this->current_mode_ == 0) {
+          this->previous_output_ = this->oneutral_;   // retour au neutre
+          this->current_output_  = this->oneutral_;
+        }
+       // Si on bascule charge↔décharge sans passer par IDLE,
+       // on force O au neutre pour éviter un saut de commande
+        else if (this->previous_mode_ != 0) {
+          this->previous_output_ = this->oneutral_;
+          this->current_output_  = this->oneutral_;
+        }
+    // sinon (IDLE → charge ou IDLE → décharge) : on garde
+    // la valeur courante, le PID reprend naturellement
 		this->previous_mode_      = this->current_mode_;
          // On reviendra avec Sonoff=on au prochain cycle
 		return;  
        }
+		
 	   switch (this->previous_mode_) {
 
         case 0:
@@ -274,13 +290,13 @@ namespace dualpidpcm {
 	  else{
        if (!this->current_deadband_){ // Not in deadband
           if (this->discharge_charge_switch_ != nullptr) {
- 	        if((this->current_output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
+ 	        if((this->current_output_charging_ > this->current_output_min_charging_) && (this->discharge_charge_switch_->state==false)){
 			  this->discharge_charge_switch_->turn_on();
 			  this->discharge_charge_switch_->publish_state(true);
 		      delay(ONOFF_DELAY);
 			  ESP_LOGI(TAG, "Turn on discharge_charge");	
             }
-	        else if  ((this->current_output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
+	        else if  ((this->current_output_discharging_ > this->current_output_min_discharging_) && (this->discharge_charge_switch_->state==true)){
 			  this->discharge_charge_switch_->turn_off();
 			  this->discharge_charge_switch_->publish_state(false);	
 		      delay(CHARGE_DISCHARGE_DELAY);
@@ -291,13 +307,13 @@ namespace dualpidpcm {
 	  }
 
 		
-	  if ((this->current_output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
+	  if ((this->current_output_charging_ != this->previous_output_charging_) && (this->onoff_switch_->state==true) ){
         if (this->current_output_charging_ > 0.0f){ 
 		  this->device_charging_output_->set_level(this->current_output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
 	      delay(SET_OUTPUT_DELAY);
 		}
 	  }
-	  if ((this->current_output_discharging_ != this->previous_output_discharging_) & (this->onoff_switch_->state==true) ){  
+	  if ((this->current_output_discharging_ != this->previous_output_discharging_) && (this->onoff_switch_->state==true) ){  
 	    if (this->current_output_discharging_ > 0.0f){ 
 		  this->device_discharging_output_->set_level(this->current_output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
           delay(SET_OUTPUT_DELAY);
@@ -305,7 +321,7 @@ namespace dualpidpcm {
 	  }
 	  if (this->current_activation_ ){  
 	    if (this->onoff_switch_ != nullptr){
-		  if((this->onoff_switch_->state==false) & ((this->current_output_charging_ > 0.0f) | (this->current_output_discharging_ > 0.0f))){
+		  if((this->onoff_switch_->state==false) && ((this->current_output_charging_ > 0.0f) || (this->current_output_discharging_ > 0.0f))){
 		    this->onoff_switch_->turn_on();	 
 	        this->onoff_switch_->publish_state(true);
 			delay(ONOFF_DELAY);  
