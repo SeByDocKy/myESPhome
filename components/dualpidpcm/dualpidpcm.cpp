@@ -187,6 +187,9 @@ namespace dualpidpcm {
                 this->current_mode_ = 0;
             break;
       }	
+
+	  this->offcharge_  = this->current_mode_;
+		
 	  if (this->current_mode_ != this->previous_mode_) {
         // Transition : on passe par une étape intermédiaire
         // en coupant le convertisseur 1 cycle pour laisser
