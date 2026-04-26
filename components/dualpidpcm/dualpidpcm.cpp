@@ -286,14 +286,11 @@ namespace dualpidpcm {
 	  this->previous_output_charging_    = this->current_output_charging_;
 	  this->previous_output_discharging_ = this->current_output_discharging_;
 
-      this->pid_computed_callback_.call();		
-	
-	
-
-      
+      // this->pid_computed_callback_.call();		
 	
 
 	}
+	this->pid_computed_callback_.call();  
 
   }
 
