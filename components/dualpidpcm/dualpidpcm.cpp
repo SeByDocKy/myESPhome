@@ -114,7 +114,8 @@ namespace dualpidpcm {
 	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
 	  this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) & (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
-
+      this->offcharge_  = this->previous_mode_;
+		
 	  if (this->current_deadband_ & this->previous_mode_ == 0) {
         // Rien à faire, on reste off
 		if (this->onoff_switch_ != nullptr){
@@ -188,7 +189,7 @@ namespace dualpidpcm {
             break;
       }	
 
-	  this->offcharge_  = this->current_mode_;
+	  
 		
 	  if (this->current_mode_ != this->previous_mode_) {
         // Transition : on passe par une étape intermédiaire
