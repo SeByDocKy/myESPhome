@@ -14,7 +14,7 @@ namespace dualpidpcm {
 
   static const char *const TAG = "dualpidpcm";
 
-  static const float coeffP = 0.0001f;
+  static const float coeffP = 0.00001f;
   static const float coeffI = 0.001f;
   static const float coeffD = 0.001f;
 
@@ -262,7 +262,27 @@ namespace dualpidpcm {
 		  delay(CHARGE_DISCHARGE_DELAY);
 		  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
         }	
-      }		
+      }	
+	  else{
+       if (!this->current_deadband_){ // Not in deadband
+          if (this->discharge_charge_switch_ != nullptr) {
+ 	        if((this->output_charging_ > this->current_output_min_charging_) & (this->discharge_charge_switch_->state==false)){
+			  this->discharge_charge_switch_->turn_on();
+			  this->discharge_charge_switch_->publish_state(true);
+		      delay(ONOFF_DELAY);
+			  ESP_LOGI(TAG, "Turn on discharge_charge");	
+            }
+	        else if  ((this->output_discharging_ > this->current_output_min_discharging_) & (this->discharge_charge_switch_->state==true)){
+			  this->discharge_charge_switch_->turn_off();
+			  this->discharge_charge_switch_->publish_state(false);	
+		      delay(CHARGE_DISCHARGE_DELAY);
+			  ESP_LOGI(TAG, "Turn off discharge_charge");	
+	        }
+          }
+	   }
+
+
+	  }
 
 		
 	  if ((this->current_output_charging_ != this->previous_output_charging_) & (this->onoff_switch_->state==true) ){
@@ -277,6 +297,16 @@ namespace dualpidpcm {
           delay(SET_OUTPUT_DELAY);
 		}
 	  }
+	  if (this->current_activation_ ){  
+	    if (this->onoff_switch_ != nullptr){
+		  if((this->onoff_switch_->state==false) & ((this->output_charging_ > 0.0f) | (this->output_discharging_ > 0.0f))){
+		    this->onoff_switch_->turn_on();	 
+	        this->onoff_switch_->publish_state(true);
+			delay(ONOFF_DELAY);  
+			// ESP_LOGI(TAG, "Turn on on off");  
+		  }
+	  }
+	
 
 		
 	  // this->current_output_charging_    = this->output_charging_;
