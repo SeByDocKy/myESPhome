@@ -220,6 +220,8 @@ packages:
           pcm_canbus_id: 'pcm_can'
           pcm_address: '1'
           pcm_interval: '1500ms'
+          pcm_min_charging: '5'
+          pcm_min_discharging: '5'
 
    
   dualpidpcm:
