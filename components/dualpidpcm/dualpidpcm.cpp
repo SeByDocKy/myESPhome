@@ -233,39 +233,39 @@ namespace dualpidpcm {
         // O au neutre pour que le PID reparte proprement
            this->previous_output_ = this->oneutral_;
            this->current_output_  = this->oneutral_;
-      }
-        // Transitions vers/depuis IDLE : O au neutre aussi
-      else {
-        this->previous_output_ = this->oneutral_;
-        this->current_output_  = this->oneutral_;
-      }
-
-      this->previous_mode_  = this->current_mode_;
-      this->last_time_      = now;
-      this->previous_error_ = this->error_;
-      return;
-}
-		
-	  if (this->current_mode_ != this->previous_mode_) {
-        
-        if (this->current_mode_ == 0) {
-          this->previous_output_ = this->oneutral_;   // retour au neutre
-          this->current_output_  = this->oneutral_;
         }
-       // Si on bascule charge↔décharge sans passer par IDLE,
-       // on force O au neutre pour éviter un saut de commande
-        else if (this->previous_mode_ != 0) {
+        // Transitions vers/depuis IDLE : O au neutre aussi
+        else {
           this->previous_output_ = this->oneutral_;
           this->current_output_  = this->oneutral_;
-        }
-    // sinon (IDLE → charge ou IDLE → décharge) : on garde
-    // la valeur courante, le PID reprend naturellement
-		this->previous_mode_      = this->current_mode_;
-		this->last_time_          = now;
-        this->previous_error_     = this->error_;  
-         // On reviendra avec Sonoff=on au prochain cycle
-		return;  
-       }
+      }
+
+        this->previous_mode_  = this->current_mode_;
+        this->last_time_      = now;
+        this->previous_error_ = this->error_;
+        return;
+      }
+		
+	 //  if (this->current_mode_ != this->previous_mode_) {
+        
+  //       if (this->current_mode_ == 0) {
+  //         this->previous_output_ = this->oneutral_;   // retour au neutre
+  //         this->current_output_  = this->oneutral_;
+  //       }
+  //      // Si on bascule charge↔décharge sans passer par IDLE,
+  //      // on force O au neutre pour éviter un saut de commande
+  //       else if (this->previous_mode_ != 0) {
+  //         this->previous_output_ = this->oneutral_;
+  //         this->current_output_  = this->oneutral_;
+  //       }
+  //   // sinon (IDLE → charge ou IDLE → décharge) : on garde
+  //   // la valeur courante, le PID reprend naturellement
+		// this->previous_mode_      = this->current_mode_;
+		// this->last_time_          = now;
+  //       this->previous_error_     = this->error_;  
+  //        // On reviendra avec Sonoff=on au prochain cycle
+		// return;  
+  //      }
 		
 	   switch (this->previous_mode_) {
 
