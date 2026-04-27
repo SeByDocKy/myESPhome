@@ -125,10 +125,6 @@ namespace dualpidpcm {
         this->previous_error_              = this->error_;  
 		this->previous_output_charging_    = this->current_output_charging_;
         this->previous_output_discharging_ = this->current_output_discharging_;  
-		// this->previous_output_            = this->oneutral_;
-		// this->current_output_             = this->oneutral_;  
-        
-        // On n'accumule pas l'intégrateur (anti-windup)
         return;
       }	
 	  // ── Entrée en deadband depuis un mode ACTIF : arrêt immédiat ──────
@@ -172,11 +168,7 @@ namespace dualpidpcm {
 	  if ((this->current_output_ <= this->output_min_) || (this->current_output_ >= this->output_max_)) {
 		this->integral_        -= tmp_i;  // annule la dernière accumulation
       }
-	  // this->previous_output_   = this->current_output_;	
-
-	   //this->new_mode_          = this->current_mode_;
-	  // this->current_output_    = alpha;	
-	
+	  
 	  this->current_mode_	   = this->previous_mode_;
 
 		
@@ -277,8 +269,6 @@ namespace dualpidpcm {
         case 0:
 			this->current_output_charging_    = 0.0f;	
 	        this->current_output_discharging_ = 0.0f;
-			// this->previous_output_            = this->oneutral_;
-		 //    this->current_output_             = this->oneutral_;
 			this->current_onoff_              = false;
 			break;
 
