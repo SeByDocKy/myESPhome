@@ -80,7 +80,7 @@ namespace dualpidpcm {
     float tmp, tmp_i, epsi;
     float alphaP, alphaI, alphaD;
 	float alpha;
-	bool should_be_on;  
+	bool should_be_on, raw_deadband, output_is_active;  
     
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
@@ -107,7 +107,14 @@ namespace dualpidpcm {
 	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
 	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
-	  this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) && (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
+	  // this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) && (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
+
+      raw_deadband = (epsi > this->Pmin_charging  * DEADBAND_FACTOR) && (epsi < this->Pmin_discharging * DEADBAND_FACTOR);
+
+      output_is_active = (this->current_output_charging_  > this->current_output_min_charging_) || (this->current_output_discharging_  > this->current_output_min_discharging_);
+
+      this->current_deadband_ = raw_deadband && !output_is_active;
+		
       this->offcharge_  = this->previous_mode_;
 		
 	  if ((this->current_deadband_) && (this->previous_mode_ == 0)) {
