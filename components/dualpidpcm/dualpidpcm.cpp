@@ -119,10 +119,12 @@ namespace dualpidpcm {
 		  }
 	    }  
     
-		this->current_output_charging_    = 0.0f;	
-	    this->current_output_discharging_ = 0.0f;
-		this->last_time_                  = now;
-        this->previous_error_             = this->error_;  
+		this->current_output_charging_     = 0.0f;	
+	    this->current_output_discharging_  = 0.0f;
+		this->last_time_                   = now;
+        this->previous_error_              = this->error_;  
+		this->previous_output_charging_    = this->current_output_charging_;
+        this->previous_output_discharging_ = this->current_output_discharging_;  
 		// this->previous_output_            = this->oneutral_;
 		// this->current_output_             = this->oneutral_;  
         
