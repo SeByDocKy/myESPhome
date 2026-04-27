@@ -199,7 +199,7 @@ namespace dualpidpcm {
             // de O_hi (pas juste au-dessus de 0.5)
             if (this->current_output_ > this->oub_)
                 this->current_mode_ = 2;
-            else if ( (this->current_output_ >= this->olb_) & (this->current_output_ <= this->oub_) & (this->current_deadband_))
+            else if ( (this->current_output_ >= this->olb_) && (this->current_output_ <= this->oub_) && (this->current_deadband_))
                 this->current_mode_ = 0;
             break;
 
@@ -207,7 +207,7 @@ namespace dualpidpcm {
             // Idem, on quitte la décharge seulement sous O_lo
             if (this->current_output_ < this->olb_)
                 this->current_mode_ = 1;
-            else if ( (this->current_output_ >= this->olb_) & (this->current_output_ <= this->oub_) & (this->current_deadband_))
+            else if ( (this->current_output_ >= this->olb_) && (this->current_output_ <= this->oub_) && (this->current_deadband_))
                 this->current_mode_ = 0;
             break;
       }	
