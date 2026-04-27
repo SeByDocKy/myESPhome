@@ -89,7 +89,7 @@ namespace dualpidpcm {
 
 	
     if (!this->current_manual_override_){
-      this->dt_    = float(now - this->last_time_)/1000.0f;
+      this->dt_                           = float(now - this->last_time_)/1000.0f;
 	  if (this->dt_ < 0.001f) {
        this->last_time_                   = now;   // on avance quand même l'horloge
 	   this->previous_output_charging_    = this->current_output_charging_;
