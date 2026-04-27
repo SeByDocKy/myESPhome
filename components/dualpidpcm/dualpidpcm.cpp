@@ -366,13 +366,13 @@ namespace dualpidpcm {
 	  }
 
 		
-	  if ((this->current_output_charging_ != this->previous_output_charging_) && (this->onoff_switch_->state==true) ){
+	  if ((this->current_output_charging_ != this->previous_output_charging_) && (this->onoff_switch_ != nullptr) && (this->onoff_switch_->state==true) ){
         if (this->current_output_charging_ > 0.0f){ 
 		  this->device_charging_output_->set_level(this->current_output_charging_);          // send command to PCM must be in [0.0 - 1.0] //
 	      delay(SET_OUTPUT_DELAY);
 		}
 	  }
-	  if ((this->current_output_discharging_ != this->previous_output_discharging_) && (this->onoff_switch_->state==true) ){  
+	  if ((this->current_output_discharging_ != this->previous_output_discharging_) && (this->onoff_switch_ != nullptr) && (this->onoff_switch_->state==true) ){  
 	    if (this->current_output_discharging_ > 0.0f){ 
 		  this->device_discharging_output_->set_level(this->current_output_discharging_);    // send command to PCM, must be in [0.0 - 1.0] //
           delay(SET_OUTPUT_DELAY);
