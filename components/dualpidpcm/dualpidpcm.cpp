@@ -163,7 +163,7 @@ namespace dualpidpcm {
       this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
 	  tmp = 0.0f;
-      if( !std::isnan(this->previous_output_) & (!this->current_pid_mode_)){
+      if( !std::isnan(this->previous_output_) && (!this->current_pid_mode_)){
         tmp = this->previous_output_;
       }	
 		
@@ -306,13 +306,21 @@ namespace dualpidpcm {
 		  this->current_mode_               = 0;	
 		  this->current_onoff_              = false;	
 		  
-		  this->onoff_switch_->publish_state(false);	
-          this->onoff_switch_->turn_off();
-		  delay(ONOFF_DELAY);	
+		  if (this->onoff_switch_ != nullptr) {
+           this->onoff_switch_->publish_state(false);
+           this->onoff_switch_->turn_off();
+           delay(ONOFF_DELAY);
+		  }	
+		  if (this->discharge_charge_switch_ != nullptr) {
+            this->discharge_charge_switch_->publish_state(true);
+            this->discharge_charge_switch_->turn_on();
+            delay(CHARGE_DISCHARGE_DELAY); 
+          }
+	
 	      
-          this->discharge_charge_switch_->publish_state(true);			  
-          this->discharge_charge_switch_->turn_on();
-		  delay(CHARGE_DISCHARGE_DELAY);	
+    //       this->discharge_charge_switch_->publish_state(true);			  
+    //       this->discharge_charge_switch_->turn_on();
+		  // delay(CHARGE_DISCHARGE_DELAY);	
         }
       }
 
