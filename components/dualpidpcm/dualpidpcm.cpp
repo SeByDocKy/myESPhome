@@ -104,7 +104,9 @@ namespace dualpidpcm {
     if (!this->current_manual_override_){
       this->dt_    = float(now - this->last_time_)/1000.0f;
 	  if (this->dt_ < 0.001f) {
-       this->last_time_ = now;   // on avance quand même l'horloge
+       this->last_time_                   = now;   // on avance quand même l'horloge
+	   this->previous_output_charging_    = this->current_output_charging_;
+       this->previous_output_discharging_ = this->current_output_discharging_;	  
        return;
       } 	
 	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
