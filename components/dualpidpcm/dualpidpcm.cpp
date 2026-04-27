@@ -103,6 +103,7 @@ namespace dualpidpcm {
 	
     if (!this->current_manual_override_){
       this->dt_    = float(now - this->last_time_)/1000.0f;
+	  if (this->dt_ < 0.001f) return; 	
 	  epsi         = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	  this->error_ = epsi;   
 	  	  
@@ -220,17 +221,17 @@ namespace dualpidpcm {
 
         // Commuter le relais charge/décharge AVANT d'envoyer
         // une nouvelle consigne, sans couper Sonoff
-           if (this->discharge_charge_switch_ != nullptr) {
-             if (this->current_mode_ == 1) {   // → CHARGE
-                this->discharge_charge_switch_->turn_on();
-                this->discharge_charge_switch_->publish_state(true);
-             } 
-			 else {                           // → DISCHARGE
-                this->discharge_charge_switch_->turn_off();
-                this->discharge_charge_switch_->publish_state(false);
-             }
-             delay(CHARGE_DISCHARGE_DELAY);
-           }
+    //        if (this->discharge_charge_switch_ != nullptr) {
+    //          if (this->current_mode_ == 1) {   // → CHARGE
+    //             this->discharge_charge_switch_->turn_on();
+    //             this->discharge_charge_switch_->publish_state(true);
+    //          } 
+			 // else {                           // → DISCHARGE
+    //             this->discharge_charge_switch_->turn_off();
+    //             this->discharge_charge_switch_->publish_state(false);
+    //          }
+    //          delay(CHARGE_DISCHARGE_DELAY);
+    //        }
         // O au neutre pour que le PID reparte proprement
            this->previous_output_ = this->oneutral_;
            this->current_output_  = this->oneutral_;
