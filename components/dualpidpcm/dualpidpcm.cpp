@@ -104,6 +104,15 @@ namespace dualpidpcm {
 	  }
 	  this->current_error_ = this->error_; 
 
+
+	  if (this->current_activation_ && !this->previous_activation_) {
+       this->previous_output_ = this->oneutral_;
+       this->current_output_  = this->oneutral_;
+       this->previous_error_  = this->error_;  // bonus : évite spike dérivé si Kd > 0 un jour
+       this->integral_        = 0.0f;          // repart proprement
+      }
+      this->previous_activation_ = this->current_activation_;	
+
 	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
 	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
