@@ -223,7 +223,8 @@ class DUALPIDPCMComponent : public Component{
   int previous_mode_     = 0;
   int current_mode_      = 0; // 0 <=> idle, 1<-> charge, 2 <-> discharge
 
-  bool current_onoff_    = false;        
+  bool current_onoff_    = false; 
+  bool previous_activation_ = false;
   // int new_mode_          = 0;
 
   // typedef enum {
