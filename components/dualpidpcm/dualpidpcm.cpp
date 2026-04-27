@@ -333,14 +333,16 @@ namespace dualpidpcm {
 		this->current_mode_               = 0;
 		this->current_onoff_              = false;
 		  
-	    if((this->onoff_switch_->state == true)  ){
+	    if( (this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)  ){
 		  this->onoff_switch_->turn_off();
 		  this->onoff_switch_->publish_state(false);	
 		  delay(ONOFF_DELAY);
-			
-		  this->discharge_charge_switch_->turn_on();
-		  this->discharge_charge_switch_->publish_state(true);	
-		  delay(CHARGE_DISCHARGE_DELAY);
+		  
+		  if (this->discharge_charge_switch_ != nullptr) {	
+		    this->discharge_charge_switch_->turn_on();
+		    this->discharge_charge_switch_->publish_state(true);	
+		    delay(CHARGE_DISCHARGE_DELAY);
+		  }
 		  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
         }	
       }	
