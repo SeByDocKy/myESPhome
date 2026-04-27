@@ -223,7 +223,7 @@ namespace dualpidpcm {
        this->last_time_      = now;
        this->previous_error_ = this->error_;
        return;
-    }	
+     }	
 	  // if (this->current_mode_ != this->previous_mode_) {
    //      this->previous_output_ = this->oneutral_;
    //      this->current_output_  = this->oneutral_;
