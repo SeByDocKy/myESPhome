@@ -18,15 +18,6 @@ namespace dualpidpcm {
   static const float coeffI = 0.001f;
   static const float coeffD = 0.001f;
 
-
-  // static const float coeffPcharging = 0.00001f;
-  // static const float coeffIcharging = 0.001f;
-  // static const float coeffDcharging = 0.001f;
-
-  // static const float coeffPdischarging = 0.00001f;
-  // static const float coeffIdischarging = 0.001f;
-  // static const float coeffDdischarging = 0.001f;
-
   float DUALPIDPCMComponent::O_to_Oc(float O) {
 	 if (O > this->oneutral_) return 0.0f;
      return 1.0f - (O / this->oneutral_);   // linéaire inversé
@@ -90,11 +81,7 @@ namespace dualpidpcm {
     float alphaP, alphaI, alphaD;
 	float alpha;
 	bool should_be_on;  
-    // float coeffP, coeffI, coeffD;
-	// bool in_deadband;  
-  
-	// int offcharge , offdischarge ;
-  
+    
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
 
@@ -131,7 +118,7 @@ namespace dualpidpcm {
 	        this->onoff_switch_->publish_state(false);  
 		  }
 	    }  
-        // s->Sonoff = false;
+    
 		this->current_output_charging_    = 0.0f;	
 	    this->current_output_discharging_ = 0.0f;
 		this->last_time_                  = now;
@@ -157,8 +144,8 @@ namespace dualpidpcm {
         this->current_mode_               = 0;
         this->current_onoff_              = false;
             // Intégrateur conservé : reprendra quand on sortira de la deadband
-        this->last_time_      = now;
-        this->previous_error_ = this->error_;
+        this->last_time_                  = now;
+        this->previous_error_             = this->error_;
         return;
        }	
 		
