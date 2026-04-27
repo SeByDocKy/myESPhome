@@ -89,6 +89,7 @@ namespace dualpidpcm {
     float tmp, tmp_i, epsi;
     float alphaP, alphaI, alphaD;
 	float alpha;
+	bool should_be_on;  
     // float coeffP, coeffI, coeffD;
 	// bool in_deadband;  
   
@@ -368,19 +369,32 @@ namespace dualpidpcm {
 		}
 	  }
 	  if (this->current_activation_ ){  
-	    if (this->onoff_switch_ != nullptr){
-		  if((this->onoff_switch_->state==false) && ((this->current_output_charging_ > 0.0f) || (this->current_output_discharging_ > 0.0f))){
-		    this->onoff_switch_->turn_on();	 
-	        this->onoff_switch_->publish_state(true);
-			delay(ONOFF_DELAY);  
-			// ESP_LOGI(TAG, "Turn on on off");  
-		   }
-	     }
-		 else{
-            this->onoff_switch_->control(this->current_onoff_);	 
-	        this->onoff_switch_->publish_state(this->current_onoff_);
-			delay(ONOFF_DELAY); 
-		 }
+		if (this->onoff_switch_ != nullptr) {
+          should_be_on = (this->current_output_charging_  > 0.0f) || (this->current_output_discharging_ > 0.0f);
+          if (should_be_on && !this->onoff_switch_->state) {
+            this->onoff_switch_->turn_on();
+            this->onoff_switch_->publish_state(true);
+            delay(ONOFF_DELAY);
+          } 
+		  else if (!should_be_on && this->onoff_switch_->state) {
+            this->onoff_switch_->turn_off();
+            this->onoff_switch_->publish_state(false);
+            delay(ONOFF_DELAY);
+          }
+       }
+	  //   if (this->onoff_switch_ != nullptr){
+		 //  if((this->onoff_switch_->state==false) && ((this->current_output_charging_ > 0.0f) || (this->current_output_discharging_ > 0.0f))){
+		 //    this->onoff_switch_->turn_on();	 
+	  //       this->onoff_switch_->publish_state(true);
+			// delay(ONOFF_DELAY);  
+			// // ESP_LOGI(TAG, "Turn on on off");  
+		 //   }
+	  //    }
+		 // else{
+   //          this->onoff_switch_->control(this->current_onoff_);	 
+	  //       this->onoff_switch_->publish_state(this->current_onoff_);
+			// delay(ONOFF_DELAY); 
+		 // }
 	   }
 	
 
