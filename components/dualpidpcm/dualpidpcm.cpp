@@ -202,13 +202,36 @@ namespace dualpidpcm {
 
 
 	  if (this->current_mode_ != this->previous_mode_) {
-        this->previous_output_ = this->oneutral_;
-        this->current_output_  = this->oneutral_;
-        this->previous_mode_   = this->current_mode_;
-        this->last_time_       = now;
-        this->previous_error_  = this->error_;
-        return;
-      }	
+    
+        if (this->current_mode_ == 1) {          // → CHARGE
+        // On se place juste à la frontière basse
+        // O_to_Oc(olb) = 0, mais le PID descend dès le cycle suivant
+          this->previous_output_ = this->olb_;
+          this->current_output_  = this->olb_;
+        }
+        else if (this->current_mode_ == 2) {     // → DISCHARGE
+        // Idem côté décharge
+          this->previous_output_ = this->oub_;
+          this->current_output_  = this->oub_;
+        }
+        else {                                   // → IDLE
+          this->previous_output_ = this->oneutral_;
+          this->current_output_  = this->oneutral_;
+       }
+
+       this->previous_mode_  = this->current_mode_;
+       this->last_time_      = now;
+       this->previous_error_ = this->error_;
+       return;
+    }	
+	  // if (this->current_mode_ != this->previous_mode_) {
+   //      this->previous_output_ = this->oneutral_;
+   //      this->current_output_  = this->oneutral_;
+   //      this->previous_mode_   = this->current_mode_;
+   //      this->last_time_       = now;
+   //      this->previous_error_  = this->error_;
+   //      return;
+   //    }	
 	  // if (this->current_mode_ != this->previous_mode_) {
 
    //      // Bascule directe CHARGE → DISCHARGE ou DISCHARGE → CHARGE
