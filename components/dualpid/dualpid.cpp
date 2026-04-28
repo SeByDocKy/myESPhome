@@ -85,8 +85,6 @@ void DUALPIDComponent::pid_update() {
 	
   this->pid_computed_callback_.call();	
 
-	
-  
   if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	  this->current_epoint_ = this->current_charging_epoint_;
   }
@@ -114,13 +112,6 @@ void DUALPIDComponent::pid_update() {
     this->dt_    = float(now - this->last_time_)/1000.0f;
 	tmp          = (this->current_input_ - this->current_setpoint_);  // initial epsilon error estimation
 	this->error_ = tmp;  
-	
-	// if (e & tmp<0.0f){
-	// 	this->error_ = tmp; //-tmp;
-	// }
-	// else{
-	// 	this->error_ = tmp; 
- //    }
 	  
 #ifdef USE_SWITCH	  
 	if (this->current_reverse_){
@@ -171,9 +162,6 @@ void DUALPIDComponent::pid_update() {
 	  alphaD = coeffD * this->derivative_;
 	}
 	
-	// alphaP = coeffP*this->current_kp_ * this->error_;
-	// alphaI = coeffI*this->current_ki_ * this->integral_;
-	// alphaD = coeffD*this->current_kd_ * this->derivative_;
 	alpha  = alphaP + alphaI + alphaD;
 	
     this->output_ = std::min(std::max( tmp + alpha, this->current_output_min_ ) , this->current_output_max_);
@@ -211,14 +199,6 @@ void DUALPIDComponent::pid_update() {
 	}
 	// tmp is a positive value
 
-	// if (e){
-	//   this->output_charging_    = cc*tmp; //0.0f;    //;
-	//   this->output_discharging_ = 0.0f; //0.0f;
-	// }
-	// else{
-	//   this->output_charging_    = 0.0f; //0.0f;
-	//   this->output_discharging_ = cd*tmp;   // cd*tmp;	
-	// }
   
 #ifdef USE_SWITCH  
     if (!this->current_activation_ ){
@@ -228,14 +208,6 @@ void DUALPIDComponent::pid_update() {
 	  this->output_discharging_ = 0.0f;	
     }
 #endif  
-// #ifdef USE_SWITCH 
-//    if((this->output_charging_ > 0.0f) & (this->get_r48()==false)){
-//       this->set_r48(true);
-//    }
-//    else if ((this->output_discharging_ > 0.0f) & (this->get_r48()==true)){
-//       this->set_r48(false);
-//    } 
-// #endif
 	  
     if (this->r48_general_switch_ != nullptr) {
  	 if((this->output_charging_ >= this->current_output_min_charging_) & (this->r48_general_switch_->state==false)){
