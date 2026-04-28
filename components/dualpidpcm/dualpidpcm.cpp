@@ -4,8 +4,6 @@
 #define SET_OUTPUT_DELAY 0            // 50
 #define ONOFF_DELAY 0                 // 50
 #define CHARGE_DISCHARGE_DELAY 0      // 50
-#define MAX_OFFCHARGE 4
-#define MAX_OFFDISCHARGE 4
 #define DEADBAND_FACTOR 1.05
 
 
@@ -119,12 +117,9 @@ namespace dualpidpcm {
 	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
 	  this->Pmin_discharging   =   this->current_battery_voltage_*this->current_min_discharging_;
 	  
-	  // this->current_deadband_  = (epsi > this->Pmin_charging*DEADBAND_FACTOR) && (epsi < this->Pmin_discharging*DEADBAND_FACTOR);
 
-      raw_deadband = (epsi > this->Pmin_charging  * DEADBAND_FACTOR) && (epsi < this->Pmin_discharging * DEADBAND_FACTOR);
-
+      raw_deadband     = (epsi > this->Pmin_charging  * DEADBAND_FACTOR) && (epsi < this->Pmin_discharging * DEADBAND_FACTOR);
       output_is_active = (this->current_output_charging_  > this->current_output_min_charging_) || (this->current_output_discharging_  > this->current_output_min_discharging_);
-
       this->current_deadband_ = raw_deadband && !output_is_active;
 		
       this->offcharge_  = this->previous_mode_;
@@ -293,71 +288,9 @@ namespace dualpidpcm {
        this->previous_error_ = this->error_;
        return;
      }	
-	  // if (this->current_mode_ != this->previous_mode_) {
-   //      this->previous_output_ = this->oneutral_;
-   //      this->current_output_  = this->oneutral_;
-   //      this->previous_mode_   = this->current_mode_;
-   //      this->last_time_       = now;
-   //      this->previous_error_  = this->error_;
-   //      return;
-   //    }	
-	  // if (this->current_mode_ != this->previous_mode_) {
-
-   //      // Bascule directe CHARGE → DISCHARGE ou DISCHARGE → CHARGE
-   //       if ((this->previous_mode_ == 1 && this->current_mode_ == 2) || (this->previous_mode_ == 2 && this->current_mode_ == 1)) {
-
-   //      // Commuter le relais charge/décharge AVANT d'envoyer
-   //      // une nouvelle consigne, sans couper Sonoff
-   //  //        if (this->discharge_charge_switch_ != nullptr) {
-   //  //          if (this->current_mode_ == 1) {   // → CHARGE
-   //  //             this->discharge_charge_switch_->turn_on();
-   //  //             this->discharge_charge_switch_->publish_state(true);
-   //  //          } 
-			//  // else {                           // → DISCHARGE
-   //  //             this->discharge_charge_switch_->turn_off();
-   //  //             this->discharge_charge_switch_->publish_state(false);
-   //  //          }
-   //  //          delay(CHARGE_DISCHARGE_DELAY);
-   //  //        }
-   //      // O au neutre pour que le PID reparte proprement
-   //         this->previous_output_ = this->oneutral_;
-   //         this->current_output_  = this->oneutral_;
-   //      }
-   //      // Transitions vers/depuis IDLE : O au neutre aussi
-   //      else {
-   //        this->previous_output_ = this->oneutral_;
-   //        this->current_output_  = this->oneutral_;
-   //    }
-
-   //      this->previous_mode_  = this->current_mode_;
-   //      this->last_time_      = now;
-   //      this->previous_error_ = this->error_;
-   //      return;
-   //    }
 		
-	 //  if (this->current_mode_ != this->previous_mode_) {
-        
-  //       if (this->current_mode_ == 0) {
-  //         this->previous_output_ = this->oneutral_;   // retour au neutre
-  //         this->current_output_  = this->oneutral_;
-  //       }
-  //      // Si on bascule charge↔décharge sans passer par IDLE,
-  //      // on force O au neutre pour éviter un saut de commande
-  //       else if (this->previous_mode_ != 0) {
-  //         this->previous_output_ = this->oneutral_;
-  //         this->current_output_  = this->oneutral_;
-  //       }
-  //   // sinon (IDLE → charge ou IDLE → décharge) : on garde
-  //   // la valeur courante, le PID reprend naturellement
-		// this->previous_mode_      = this->current_mode_;
-		// this->last_time_          = now;
-  //       this->previous_error_     = this->error_;  
-  //        // On reviendra avec Sonoff=on au prochain cycle
-		// return;  
-  //      }
-		
-	   switch (this->previous_mode_) {
-
+	 switch (this->previous_mode_) {
+		 
         case 0:
 			this->current_output_charging_    = 0.0f;	
 	        this->current_output_discharging_ = 0.0f;
@@ -402,11 +335,6 @@ namespace dualpidpcm {
             this->discharge_charge_switch_->turn_on();
             delay(CHARGE_DISCHARGE_DELAY); 
           }
-	
-	      
-    //       this->discharge_charge_switch_->publish_state(true);			  
-    //       this->discharge_charge_switch_->turn_on();
-		  // delay(CHARGE_DISCHARGE_DELAY);	
         }
       }
 
@@ -469,39 +397,21 @@ namespace dualpidpcm {
 		}
 	  }
 	  if (this->current_activation_ ){  
-		if (this->onoff_switch_ != nullptr) {
-          should_be_on = (this->current_output_charging_  > 0.0f) || (this->current_output_discharging_ > 0.0f);
-          if (should_be_on && !this->onoff_switch_->state) {
-            this->onoff_switch_->turn_on();
-            this->onoff_switch_->publish_state(true);
-            delay(ONOFF_DELAY);
-          } 
-		  else if (!should_be_on && this->onoff_switch_->state) {
-            this->onoff_switch_->turn_off();
-            this->onoff_switch_->publish_state(false);
-            delay(ONOFF_DELAY);
-          }
-       }
-	  //   if (this->onoff_switch_ != nullptr){
-		 //  if((this->onoff_switch_->state==false) && ((this->current_output_charging_ > 0.0f) || (this->current_output_discharging_ > 0.0f))){
-		 //    this->onoff_switch_->turn_on();	 
-	  //       this->onoff_switch_->publish_state(true);
-			// delay(ONOFF_DELAY);  
-			// // ESP_LOGI(TAG, "Turn on on off");  
-		 //   }
-	  //    }
-		 // else{
-   //          this->onoff_switch_->control(this->current_onoff_);	 
-	  //       this->onoff_switch_->publish_state(this->current_onoff_);
-			// delay(ONOFF_DELAY); 
-		 // }
+		 if (this->onoff_switch_ != nullptr) {
+           should_be_on = (this->current_output_charging_  > 0.0f) || (this->current_output_discharging_ > 0.0f);
+           if (should_be_on && !this->onoff_switch_->state) {
+             this->onoff_switch_->turn_on();
+             this->onoff_switch_->publish_state(true);
+             delay(ONOFF_DELAY);
+           } 
+		   else if (!should_be_on && this->onoff_switch_->state) {
+             this->onoff_switch_->turn_off();
+             this->onoff_switch_->publish_state(false);
+             delay(ONOFF_DELAY);
+           }
+         } 
 	   }
 	
-
-		
-	  // this->current_output_charging_    = this->output_charging_;
-	  // this->current_output_discharging_ = this->output_discharging_;  
-
       this->last_time_                   = now;
       this->previous_error_              = this->error_;
 	  this->previous_output_             = this->current_output_;	
