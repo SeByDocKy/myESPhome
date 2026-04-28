@@ -71,10 +71,10 @@ void DUALPIDComponent::pid_update() {
   float tmp, tmp_i, epsi;
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
-  float cc, cd;
-  bool e;
   bool should_be_on, raw_deadband, output_is_active;
   float Pmin_ch, Pmin_dis;
+  // float cc, cd;
+  // bool e;	
   //float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
 	
   
