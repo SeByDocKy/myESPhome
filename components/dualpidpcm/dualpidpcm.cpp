@@ -283,7 +283,6 @@ namespace dualpidpcm {
             break;
       }	
 
-
 	  this->current_output_charging_    = std::min(std::max( this->current_output_charging_ , this->current_output_min_charging_ ) , this->current_output_max_charging_);
 	  this->current_output_discharging_ = std::min(std::max( this->current_output_discharging_ , this->current_output_min_discharging_ ) , this->current_output_max_discharging_);	
 	
