@@ -17,10 +17,16 @@ static const float coeffDdischarging = 0.001f;
 void DUALPIDComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up DUALPIDComponent...");
   
-  this->last_time_ =  millis();
-  this->integral_  = 0.0f;
-  this->previous_output_ = this->current_epoint_;
-  this->previous_error_ = 0.0f;
+  this->last_time_                   =  millis();
+  this->integral_                    = 0.0f;
+  this->previous_error_              = 0.0f;
+  this->previous_output_             = this->current_epoint_;	
+  this->previous_output_charging_    = 0.0f;
+  this->previous_output_discharging_ = 0.0f;
+  this->previous_activation_         = false;
+  this->current_mode_                = 0;     // 0=IDLE, 1=CHARGE, 2=DISCHARGE
+  this->previous_mode_               = 0;
+	
   
   if (this->input_sensor_ != nullptr) {
     this->input_sensor_->add_on_state_callback([this](float state) {
@@ -37,6 +43,11 @@ void DUALPIDComponent::setup() {
     });
     this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
   }
+    // S'assurer que r48 démarre côté charge (sécurité)
+  if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == false) {
+    this->r48_general_switch_->turn_on();
+    this->r48_general_switch_->publish_state(true);
+  }	
   
   this->pid_computed_callback_.call();
   // this->pid_update();
@@ -58,9 +69,14 @@ void DUALPIDComponent::pid_update() {
   float coeffP, coeffI, coeffD;
   float cc, cd;
   bool e;
+  bool  raw_deadband, output_is_active;	
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
+	
+  this->pid_computed_callback_.call();	
+
+	
   
   if(this->current_battery_voltage_ < this->current_discharged_battery_voltage_){
 	  this->current_epoint_ = this->current_charging_epoint_;
