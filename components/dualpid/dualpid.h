@@ -158,9 +158,9 @@ SUB_NUMBER(output_max_discharging)
   float error_ = 0.0f;
   float previous_error_ = 0.0f;
   float output_ = 0.5f;
+  float previous_output_ = 0.5f;
   float output_charging_ = 0.0f;
   float output_discharging_ = 0.0f;
-  float previous_output_ = 0.5f;
   float previous_output_charging_ = 0.0f;
   float previous_output_discharging_ = 0.0f;
   float integral_= 0.0f; 
@@ -174,6 +174,11 @@ SUB_NUMBER(output_max_discharging)
   float current_battery_voltage_ = 54.0f;
   float current_device_output_charging_ = 0.0f;
   float current_device_output_discharging_ = 0.0f;
+
+  int current_mode_                = 0;
+  int previous_mode_               = 0;
+  bool previous_activation_        = false;
+  
   
   sensor::Sensor *input_sensor_;
   sensor::Sensor *battery_voltage_sensor_;
