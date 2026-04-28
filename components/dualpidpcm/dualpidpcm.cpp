@@ -143,25 +143,52 @@ namespace dualpidpcm {
         this->previous_output_discharging_ = this->current_output_discharging_;  
         return;
       }	
-	  // ── Entrée en deadband depuis un mode ACTIF : arrêt immédiat ──────
+	  // // ── Entrée en deadband depuis un mode ACTIF : arrêt immédiat ──────
+   //    if (this->current_deadband_ && (this->previous_mode_ != 0)) {
+   //      if (this->onoff_switch_ != nullptr && this->onoff_switch_->state == true) {
+   //        this->onoff_switch_->turn_off();
+   //        this->onoff_switch_->publish_state(false);
+   //        delay(ONOFF_DELAY);
+   //      }
+   //      this->current_output_charging_    = 0.0f;
+   //      this->current_output_discharging_ = 0.0f;
+   //      this->previous_output_            = this->oneutral_;
+   //      this->current_output_             = this->oneutral_;
+   //      this->previous_mode_              = 0;
+   //      this->current_mode_               = 0;
+   //      this->current_onoff_              = false;
+   //          // Intégrateur conservé : reprendra quand on sortira de la deadband
+   //      this->last_time_                  = now;
+   //      this->previous_error_             = this->error_;
+   //      return;
+   //    }
+		
       if (this->current_deadband_ && (this->previous_mode_ != 0)) {
         if (this->onoff_switch_ != nullptr && this->onoff_switch_->state == true) {
           this->onoff_switch_->turn_off();
           this->onoff_switch_->publish_state(false);
           delay(ONOFF_DELAY);
         }
-        this->current_output_charging_    = 0.0f;
-        this->current_output_discharging_ = 0.0f;
-        this->previous_output_            = this->oneutral_;
-        this->current_output_             = this->oneutral_;
-        this->previous_mode_              = 0;
-        this->current_mode_               = 0;
-        this->current_onoff_              = false;
-            // Intégrateur conservé : reprendra quand on sortira de la deadband
-        this->last_time_                  = now;
-        this->previous_error_             = this->error_;
-        return;
-       }	
+       this->current_output_charging_    = 0.0f;
+       this->current_output_discharging_ = 0.0f;
+       this->current_onoff_              = false;
+      // Repartir à la frontière du mode qu'on vient de quitter
+      // pour que le PID franchisse le seuil dès le 1er cycle
+       if (this->previous_mode_ == 2) {
+          this->previous_output_ = this->oub_;
+          this->current_output_  = this->oub_;
+       } 
+	  else if (this->previous_mode_ == 1) {
+        this->previous_output_ = this->olb_;
+        this->current_output_  = this->olb_;
+      }
+
+      this->previous_mode_ = 0;
+      this->current_mode_  = 0;
+      this->last_time_     = now;
+      this->previous_error_ = this->error_;
+      return;
+     }		
 		
 	  tmp_i = (this->error_ * this->dt_);
       if (!std::isnan(tmp_i)){
