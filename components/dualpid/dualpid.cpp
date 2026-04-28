@@ -7,8 +7,6 @@ namespace dualpid {
 // Facteur zone morte : |epsi| < Pmin * DEADBAND_FACTOR → on ne fait rien
 #define DEADBAND_FACTOR  1.05f
 
-
-
 static const char *const TAG = "dualpid";
 
 static const float coeffPcharging = 0.0001f;
@@ -18,7 +16,6 @@ static const float coeffDcharging = 0.001f;
 static const float coeffPdischarging = 0.001f;
 static const float coeffIdischarging = 0.0001f;
 static const float coeffDdischarging = 0.001f;
-
 
 
 void DUALPIDComponent::setup() { 
@@ -77,7 +74,9 @@ void DUALPIDComponent::pid_update() {
   float cc, cd;
   bool e;
   bool should_be_on, raw_deadband, output_is_active;
-  float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
+  float Pmin_ch, Pmin_dis;
+  //float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
+	
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
@@ -198,28 +197,25 @@ void DUALPIDComponent::pid_update() {
     //   epsi < -Pmin_ch × k    → surplus suffisant → CHARGE
     //   epsi > 0               → moindre conso → DISCHARGE
 
-    float Pmin_ch  = this->current_battery_voltage_ * this->current_min_charging_;
+    Pmin_ch  = this->current_battery_voltage_ * this->current_min_charging_;
     // Pmin_dis = 0 pour le HMS : on utilise un seuil symbolique > 0
     // pour éviter des oscillations sur le bruit de mesure
-    float Pmin_dis = this->current_battery_voltage_ * this->current_min_discharging_;
+    Pmin_dis = this->current_battery_voltage_ * this->current_min_discharging_;
     // Si current_min_discharging_ = 0 dans la config, Pmin_dis = 0
     // et la deadband côté décharge est quasi nulle — comportement voulu.
 
     // deadband = vrai si epsi est dans la zone où aucun appareil ne peut agir :
     //   - surplus trop faible pour que le R48 charge  (epsi > -Pmin_ch × k)
     //   - conso trop faible pour que le HMS décharge  (epsi < +Pmin_dis × k)
-    raw_deadband = (epsi > -(Pmin_ch  * DEADBAND_FACTOR))   // pas assez de surplus
-               && (epsi <  (Pmin_dis * DEADBAND_FACTOR));   // pas assez de conso
+    raw_deadband = (epsi > -(Pmin_ch * DEADBAND_FACTOR)) && (epsi <  (Pmin_dis * DEADBAND_FACTOR));   // pas assez de surplus   // pas assez de conso
 
     // Inhibe la deadband si une sortie physique est déjà active
     // (évite la coupure prématurée pendant le démarrage ~3-4s du R48)
-    output_is_active = (this->current_output_charging_   > this->current_output_min_charging_)
-                    || (this->current_output_discharging_ > this->current_output_min_discharging_);
+    output_is_active = (this->current_output_charging_ > this->current_output_min_charging_) || (this->current_output_discharging_ > this->current_output_min_discharging_);
 
     this->current_deadband_ = raw_deadband && !output_is_active;
 
-    ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d active=%d db=%d",
-             epsi, Pmin_ch, Pmin_dis, raw_deadband, output_is_active, this->current_deadband_);
+    ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d active=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, output_is_active, this->current_deadband_);
 
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
@@ -292,14 +288,11 @@ void DUALPIDComponent::pid_update() {
     this->current_output_ = std::min(std::max(tmp + alpha, this->current_output_min_), this->current_output_max_);
 
     // Anti-windup global
-    if ((this->current_output_ <= this->current_output_min_)
-     || (this->current_output_ >= this->current_output_max_)) {
+    if ( (this->current_output_ <= this->current_output_min_) || (this->current_output_ >= this->current_output_max_)) {
         this->integral_ -= tmp_i;
     }
 
-    ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f",
-             this->error_, this->integral_, this->derivative_,
-             alpha, tmp, this->current_output_);
+    ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f", this->error_, this->integral_, this->derivative_, alpha, tmp, this->current_output_);
 
     // ── Machine d'état ────────────────────────────────────────────────
     this->current_mode_ = this->previous_mode_;
@@ -387,13 +380,10 @@ void DUALPIDComponent::pid_update() {
             // output = elb → Oc = 0,  output = 0 → Oc = max
             float span = (elb > 0.0f) ? elb : 1.0f;
             float oc   = (elb - this->current_output_) / span;
-            this->output_charging_    = std::min(std::max(oc,
-                                                  this->current_output_min_charging_),
-                                                  this->current_output_max_charging_);
+            this->output_charging_    = std::min(std::max(oc, this->current_output_min_charging_), this->current_output_max_charging_);
             this->output_discharging_ = 0.0f;
             // Anti-windup côté borne physique
-            if ((this->output_charging_ <= this->current_output_min_charging_)
-             || (this->output_charging_ >= this->current_output_max_charging_)) {
+            if ( (this->output_charging_ <= this->current_output_min_charging_) || (this->output_charging_ >= this->current_output_max_charging_) ) {
                 this->integral_ -= tmp_i;
             }
             break;
@@ -403,12 +393,9 @@ void DUALPIDComponent::pid_update() {
             float span = (1.0f - eub > 0.0f) ? (1.0f - eub) : 1.0f;
             float od   = (this->current_output_ - eub) / span;
             this->output_charging_    = 0.0f;
-            this->output_discharging_ = std::min(std::max(od,
-                                                  this->current_output_min_discharging_),
-                                                  this->current_output_max_discharging_);
+            this->output_discharging_ = std::min(std::max(od, this->current_output_min_discharging_), this->current_output_max_discharging_);
             // Anti-windup côté borne physique
-            if ((this->output_discharging_ <= this->current_output_min_discharging_)
-             || (this->output_discharging_ >= this->current_output_max_discharging_)) {
+            if ( (this->output_discharging_ <= this->current_output_min_discharging_) || (this->output_discharging_ >= this->current_output_max_discharging_) ) {
                 this->integral_ -= tmp_i;
             }
             break;
@@ -418,13 +405,12 @@ void DUALPIDComponent::pid_update() {
     // ── Commutation r48 selon la sortie effective ─────────────────────
     // (filet de sécurité — normalement géré dans les transitions)
     if (this->r48_general_switch_ != nullptr) {
-        if ((this->output_charging_    > this->current_output_min_charging_)
+        if ((this->output_charging_  > this->current_output_min_charging_)
          && !this->r48_general_switch_->state) {
             this->r48_general_switch_->turn_on();
             this->r48_general_switch_->publish_state(true);
             ESP_LOGI(TAG, "r48 turned ON (charge)");
-        } else if ((this->output_discharging_ > this->current_output_min_discharging_)
-                && this->r48_general_switch_->state) {
+        } else if ( (this->output_discharging_ > this->current_output_min_discharging_) && this->r48_general_switch_->state) {
             this->r48_general_switch_->turn_off();
             this->r48_general_switch_->publish_state(false);
             ESP_LOGI(TAG, "r48 turned OFF (discharge)");
@@ -437,8 +423,7 @@ void DUALPIDComponent::pid_update() {
     }
     if (this->output_discharging_ != this->previous_output_discharging_) {
 #ifdef USE_BINARY_SENSOR
-        if (this->producing_binary_sensor_ != nullptr
-         && this->producing_binary_sensor_->state == true) {
+        if ( (this->producing_binary_sensor_ != nullptr) && (this->producing_binary_sensor_->state == true)) {
 #endif
             this->device_discharging_output_->set_level(this->output_discharging_);
 #ifdef USE_BINARY_SENSOR
