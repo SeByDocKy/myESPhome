@@ -71,10 +71,9 @@ void DUALPIDComponent::dump_config() {
 
 void DUALPIDComponent::pid_update() {
   uint32_t now = millis();
-  float tmp;
+  float tmp, tmp_i, epsi;
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
-  float epsi;
   float cc, cd;
   bool e;
   bool should_be_on, raw_deadband, output_is_active;
@@ -280,7 +279,7 @@ void DUALPIDComponent::pid_update() {
     if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
-    float tmp = 0.0f;
+    tmp = 0.0f;
     if (!std::isnan(this->previous_output_) && !this->current_pid_mode_) {
         tmp = this->previous_output_;
     }
