@@ -4,6 +4,11 @@
 namespace esphome {
 namespace dualpid {
 
+// Facteur zone morte : |epsi| < Pmin * DEADBAND_FACTOR → on ne fait rien
+#define DEADBAND_FACTOR  1.05f
+
+
+
 static const char *const TAG = "dualpid";
 
 static const float coeffPcharging = 0.0001f;
@@ -13,6 +18,8 @@ static const float coeffDcharging = 0.001f;
 static const float coeffPdischarging = 0.001f;
 static const float coeffIdischarging = 0.0001f;
 static const float coeffDdischarging = 0.001f;
+
+
 
 void DUALPIDComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up DUALPIDComponent...");
