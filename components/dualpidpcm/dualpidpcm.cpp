@@ -216,8 +216,8 @@ namespace dualpidpcm {
 
       // ── Nouveau : clamping de O selon le mode courant ──────────────
      if (this->previous_mode_ == 1) {        // CHARGE
-       o_min_charge = (1.0f - this->current_output_max_charging_) * 0.5f;
-       o_max_charge = (1.0f - this->current_output_min_charging_) * 0.5f;
+       o_min_charge = (1.0f - this->current_output_max_charging_) * this->oneutral_;
+       o_max_charge = (1.0f - this->current_output_min_charging_) * this->oneutral_;
        o_clamped    = std::min(std::max(this->current_output_, o_min_charge), o_max_charge);
        if (o_clamped != this->current_output_) {
          this->integral_ -= tmp_i;   // anti-windup : on était contre une borne
@@ -225,8 +225,8 @@ namespace dualpidpcm {
        this->current_output_ = o_clamped;
      } 
 	 else if (this->previous_mode_ == 2) { // DISCHARGE
-       o_min_discharge = this->current_output_min_discharging_ * 0.5f + 0.5f;
-       o_max_discharge = this->current_output_max_discharging_ * 0.5f + 0.5f;
+       o_min_discharge = this->current_output_min_discharging_ * this->oneutral_ + this->oneutral_;
+       o_max_discharge = this->current_output_max_discharging_ * this->oneutral_ + this->oneutral_;
        o_clamped       = std::min(std::max(this->current_output_, o_min_discharge), o_max_discharge);
        if (o_clamped != this->current_output_) {
         this->integral_ -= tmp_i;   // anti-windup
