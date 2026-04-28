@@ -35,6 +35,8 @@ namespace dualpidpcm {
     this->previous_error_              = 0.0f;
 	this->previous_output_charging_    = 0.0f;
 	this->previous_output_discharging_ = 0.0f;
+	this->previous_activation_         = false;
+	this->previous_mode_               = 0;  
 	this->current_mode_                = 0;
   
     if (this->input_sensor_ != nullptr) {
@@ -428,7 +430,11 @@ namespace dualpidpcm {
 		    delay(CHARGE_DISCHARGE_DELAY);
 		  }
 		  ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");	
-        }	
+        }
+        this->previous_output_charging_    = this->current_output_charging_;
+        this->previous_output_discharging_ = this->current_output_discharging_;
+        this->pid_computed_callback_.call();
+       return;   // ← indispensable 
       }	
 	  else{
        if (!this->current_deadband_){ // Not in deadband
