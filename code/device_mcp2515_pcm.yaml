@@ -929,12 +929,8 @@ output:
           can_id: 0x02000A31
           use_extended_id: true
           data: !lambda |-
-            // float raw_state = id(charging_current_fan).speed;  //from fan
-            // float raw_state = id(charging_current_number).state;
             float raw_state  = state*100.0f;
-            // float alpha      = 65.0f/100.0f; //99.0f;  // (70 - 5)/(100 - 1)
-            float alpha      = (${charge_current_max} - ${pcm_min_charging})/100.0f;  //
-            // float beta       = 5 - alpha*0;
+            float alpha      = (${charge_current_max} - ${pcm_min_charging})/100.0f; 
             float beta       = ${pcm_min_charging} - alpha*0;
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
@@ -956,12 +952,8 @@ output:
           can_id: 0x02000A32
           use_extended_id: true
           data: !lambda |-
-            // float raw_state = id(discharging_current_fan).speed;  // from fan
-            // float raw_state = id(discharge_current).state;
             float raw_state  = state*100.0f;
-            // float alpha      = 70.0f/100.0f; //99.0f;  // (75 - 5)/(100 - 1)
             float alpha      = (${discharge_current_max} - ${pcm_min_discharging}) /100.0f;
-            // float beta       = 5 - alpha*0;
             float beta       = ${pcm_min_discharging} - alpha*0;
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
             ESP_LOGVV("output discharging", "Raw: %f, Current: %d", raw_state, current);
