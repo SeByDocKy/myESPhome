@@ -61,7 +61,7 @@ namespace dualpidpcm {
 
 
 	this->olb_  = this->oneutral_ - this->lb_;
-	this->oub_  = this->oneutral_ - this->ub_;  
+	this->oub_  = this->oneutral_ + this->ub_;  
 	  
     this->pid_computed_callback_.call();
 
