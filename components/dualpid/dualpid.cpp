@@ -77,6 +77,8 @@ void DUALPIDComponent::pid_update() {
   float cc, cd;
   bool e;
   bool  raw_deadband, output_is_active;	
+  bool should_be_on, raw_deadband, output_is_active;
+  float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;	
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
