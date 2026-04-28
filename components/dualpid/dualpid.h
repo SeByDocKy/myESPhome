@@ -178,6 +178,7 @@ SUB_NUMBER(output_max_discharging)
   int current_mode_                = 0;
   int previous_mode_               = 0;
   bool previous_activation_        = false;
+  float o_hysteresis_              = 0.02f;
   
   
   sensor::Sensor *input_sensor_;
