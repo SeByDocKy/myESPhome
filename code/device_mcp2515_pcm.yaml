@@ -4,6 +4,9 @@ substitutions:
   discharge_current_min: '5'
   discharge_current_max: '70'
   text_update_interval: '1s'
+  delay_interval: '100ms'
+  delay_number: '100ms'
+  delay_switch: '100ms'
   
 esphome:
   on_boot: #!extend
@@ -1130,7 +1133,7 @@ number:
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1166,7 +1169,7 @@ number:
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1200,7 +1203,7 @@ number:
               (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1236,7 +1239,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1272,7 +1275,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1309,7 +1312,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1345,7 +1348,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1382,7 +1385,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1419,7 +1422,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1456,7 +1459,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1492,7 +1495,7 @@ number:
               (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
               0x00, 0x00
             };
-      - delay: 100ms
+      - delay: ${delay_number}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1518,7 +1521,7 @@ switch:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_switch}
     turn_off_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1543,7 +1546,7 @@ switch:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_switch}
     turn_off_action: #discharge
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1645,7 +1648,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query Frequency Setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1653,7 +1656,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query AC Voltage Setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1661,7 +1664,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query Phase Mode
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1677,7 +1680,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query Discharge Parameters
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1685,7 +1688,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query AC Voltage Protection
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1693,7 +1696,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query AC Voltage Alarm
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1701,7 +1704,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query DC Voltage Protection
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1709,7 +1712,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       # Query DC Voltage Alarm
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
