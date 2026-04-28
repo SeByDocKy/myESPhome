@@ -76,7 +76,6 @@ void DUALPIDComponent::pid_update() {
   float coeffP, coeffI, coeffD;
   float cc, cd;
   bool e;
-  bool  raw_deadband, output_is_active;	
   bool should_be_on, raw_deadband, output_is_active;
   float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;	
   
