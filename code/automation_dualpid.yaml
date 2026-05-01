@@ -1,13 +1,13 @@
 interval:
   - interval: ${automation_time_interval}    
     then:
-    - if:
-         condition:
-           and:
-             - lambda: |-
-                return ( !id(${automation_reachable}).has_state() ); 
-         then:
-           - switch.turn_off: ${automation_activation}
+    # - if:
+    #      condition:
+    #        and:
+    #          - lambda: |-
+    #             return ( !id(${automation_reachable}).has_state() ); 
+    #      then:
+    #        - switch.turn_off: ${automation_activation}
     - if:
          condition:
            and:
@@ -19,13 +19,13 @@ interval:
            - switch.turn_off: ${automation_activation}
            - button.press: ${automation_restart}
 
-    - if:
-         condition:
-           and:
-             - lambda: |-
-                return ( id(${automation_reachable}).has_state() );
-             - binary_sensor.is_on: ${automation_reachable}
-             - binary_sensor.is_on: ${automation_producing}       
-         then:
-           - switch.turn_on: ${automation_activation}
+    # - if:
+    #      condition:
+    #        and:
+    #          - lambda: |-
+    #             return ( id(${automation_reachable}).has_state() );
+    #          - binary_sensor.is_on: ${automation_reachable}
+    #          - binary_sensor.is_on: ${automation_producing}       
+    #      then:
+    #        - switch.turn_on: ${automation_activation}
 
