@@ -18,7 +18,6 @@ interval:
          then:
            - switch.turn_off: ${automation_activation}
            - button.press: ${automation_restart}
-
     # - if:
     #      condition:
     #        and:
@@ -28,4 +27,3 @@ interval:
     #          - binary_sensor.is_on: ${automation_producing}       
     #      then:
     #        - switch.turn_on: ${automation_activation}
-
