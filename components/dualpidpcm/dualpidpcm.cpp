@@ -4,7 +4,7 @@
 #define SET_OUTPUT_DELAY 0            // 50
 #define ONOFF_DELAY 0                 // 50
 #define CHARGE_DISCHARGE_DELAY 0      // 50
-#define DEADBAND_FACTOR 1.05
+#define DEADBAND_FACTOR 1.02
 
 
 namespace esphome {
