@@ -329,18 +329,19 @@ void DUALPIDComponent::pid_update() {
 
         if (this->current_mode_ == 1) {        // → CHARGE
             // Commuter r48 en mode charge AVANT d'envoyer la consigne
-            if (this->r48_general_switch_ != nullptr
-             && this->r48_general_switch_->state == false) {
+            if ( (this->r48_general_switch_ != nullptr) && (this->r48_general_switch_->state == false) ) {
                 this->r48_general_switch_->turn_on();
                 this->r48_general_switch_->publish_state(true);
             }
-            this->previous_output_ = elb;
-            this->current_output_  = elb;
+			this->device_discharging_output_->set_level(0.0f);
+            this->output_discharging_          = 0.0f;
+            this->previous_output_discharging_ = 0.0f;
+            this->previous_output_             = elb;
+            this->current_output_              = elb;
 
         } else if (this->current_mode_ == 2) { // → DISCHARGE
             // Commuter r48 en mode décharge
-            if (this->r48_general_switch_ != nullptr
-             && this->r48_general_switch_->state == true) {
+            if ( (this->r48_general_switch_ != nullptr) && (this->r48_general_switch_->state == true) ) {
                 this->r48_general_switch_->turn_off();
                 this->r48_general_switch_->publish_state(false);
             }
@@ -378,6 +379,10 @@ void DUALPIDComponent::pid_update() {
         case 1: {  // CHARGE  — output ∈ [0, elb] → Oc ∈ [Ocmax, 0]
             // Distance normalisée depuis elb vers 0
             // output = elb → Oc = 0,  output = 0 → Oc = max
+			if (this->output_discharging_ > 0.0f) {
+              this->device_discharging_output_->set_level(0.0f);
+              this->output_discharging_ = 0.0f;
+			}
             float span = (elb > 0.0f) ? elb : 1.0f;
             float oc   = (elb - this->current_output_) / span;
             this->output_charging_    = std::min(std::max(oc, this->current_output_min_charging_), this->current_output_max_charging_);
