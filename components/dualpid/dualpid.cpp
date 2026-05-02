@@ -5,7 +5,7 @@ namespace esphome {
 namespace dualpid {
 
 // Facteur zone morte : |epsi| < Pmin * DEADBAND_FACTOR → on ne fait rien
-#define DEADBAND_FACTOR  1.05f
+#define DEADBAND_FACTOR  1.03f
 
 static const char *const TAG = "dualpid";
 
