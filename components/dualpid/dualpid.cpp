@@ -6,6 +6,7 @@ namespace dualpid {
 
 // Facteur zone morte : |epsi| < Pmin * DEADBAND_FACTOR → on ne fait rien
 #define DEADBAND_FACTOR  1.03f
+#define HMS_MIN_LEVEL  0.02f
 
 static const char *const TAG = "dualpid";
 
@@ -121,22 +122,42 @@ void DUALPIDComponent::pid_update() {
     this->current_error_ = this->error_;
 
     // ── Reset propre au passage activation off → on ───────────────────
+    // if (this->current_activation_ && !this->previous_activation_) {
+    //     this->previous_output_ = this->current_epoint_;   // neutre = epoint_
+    //     this->current_output_  = this->current_epoint_;
+    //     this->previous_error_  = this->error_;
+    //     this->integral_        = 0.0f;
+    //     this->previous_mode_   = 0;
+    //     this->current_mode_    = 0;
+    //     ESP_LOGI(TAG, "Activation ON: reset to epoint=%.4f", this->current_epoint_);
+    // }
     if (this->current_activation_ && !this->previous_activation_) {
-        this->previous_output_ = this->current_epoint_;   // neutre = epoint_
-        this->current_output_  = this->current_epoint_;
-        this->previous_error_  = this->error_;
-        this->integral_        = 0.0f;
-        this->previous_mode_   = 0;
-        this->current_mode_    = 0;
-        ESP_LOGI(TAG, "Activation ON: reset to epoint=%.4f", this->current_epoint_);
+      this->previous_error_ = this->error_;
+      this->integral_       = 0.0f;
+      this->previous_mode_  = 0;
+      this->current_mode_   = 0;
+
+      // Pré-positionner du bon côté selon le signe de l'erreur
+      if (this->error_ > 0.0f) {
+        // Conso réseau → on va décharger → partir de eub
+        this->previous_output_ = eub;
+        this->current_output_  = eub;
+      } 
+	  else {
+         // Surplus solaire → on va charger → partir de elb
+        this->previous_output_ = elb;
+        this->current_output_  = elb;
+      }
     }
+    
+	
     this->previous_activation_ = this->current_activation_;
 
     // ── Bloc désactivation ────────────────────────────────────────────
 #ifdef USE_SWITCH
     if (!this->current_activation_) {
         this->output_charging_    = 0.0f;
-        this->output_discharging_ = 0.0f;
+        this->output_discharging_ = HMS_MIN_LEVEL;
         this->current_output_     = this->current_epoint_;
         this->previous_output_    = this->current_epoint_;
         this->previous_mode_      = 0;
@@ -148,7 +169,7 @@ void DUALPIDComponent::pid_update() {
             this->r48_general_switch_->publish_state(true);
         }
         this->device_charging_output_->set_level(0.0f);
-        this->device_discharging_output_->set_level(0.0f);
+        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 
         this->previous_output_charging_    = 0.0f;
         this->previous_output_discharging_ = 0.0f;
@@ -169,7 +190,7 @@ void DUALPIDComponent::pid_update() {
             this->previous_mode_      = 0;
             this->current_mode_       = 0;
             this->device_charging_output_->set_level(0.0f);
-            this->device_discharging_output_->set_level(0.0f);
+            this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
             this->previous_output_charging_    = 0.0f;
             this->previous_output_discharging_ = 0.0f;
             this->last_time_ = now;
@@ -220,7 +241,7 @@ void DUALPIDComponent::pid_update() {
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
         this->output_charging_             = 0.0f;
-        this->output_discharging_          = 0.0f;
+        this->output_discharging_          = HMS_MIN_LEVEL;
         this->last_time_                   = now;
         this->previous_error_              = this->error_;
         this->previous_output_charging_    = 0.0f;
@@ -232,7 +253,7 @@ void DUALPIDComponent::pid_update() {
     // ── Deadband depuis mode ACTIF : arrêt immédiat ───────────────────
     if (this->current_deadband_ && this->previous_mode_ != 0) {
         this->output_charging_    = 0.0f;
-        this->output_discharging_ = 0.0f;
+        this->output_discharging_ = HMS_MIN_LEVEL;
 
         // Repartir à la frontière du mode quitté pour redémarrer vite
         if (this->previous_mode_ == 2) {
@@ -250,7 +271,7 @@ void DUALPIDComponent::pid_update() {
             this->r48_general_switch_->publish_state(true);
         }
         this->device_charging_output_->set_level(0.0f);
-        this->device_discharging_output_->set_level(0.0f);
+        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 
         this->last_time_                   = now;
         this->previous_error_              = this->error_;
@@ -333,8 +354,8 @@ void DUALPIDComponent::pid_update() {
                 this->r48_general_switch_->turn_on();
                 this->r48_general_switch_->publish_state(true);
             }
-			this->device_discharging_output_->set_level(0.0f);
-            this->output_discharging_          = 0.0f;
+			this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+            this->output_discharging_          = HMS_MIN_LEVEL;
             this->previous_output_discharging_ = 0.0f;
             this->previous_output_             = elb;
             this->current_output_              = elb;
