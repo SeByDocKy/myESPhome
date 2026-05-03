@@ -313,6 +313,33 @@ void DUALPIDComponent::pid_update() {
         this->integral_ -= tmp_i;
     }
 
+   
+
+    if (this->previous_mode_ == 1) {        // CHARGE — output ∈ [0, elb]
+      // elb → Oc=0,  0 → Oc=max
+      // Oc = (elb - output) / elb  →  output = elb - Oc * elb = elb * (1 - Oc)
+      float o_min_charge = elb * (1.0f - this->current_output_max_charging_);
+      float o_max_charge = elb * (1.0f - this->current_output_min_charging_);
+      float o_clamped    = std::min(std::max(this->current_output_, o_min_charge), o_max_charge);
+      if ((o_clamped != this->current_output_) && (tmp_i < 0.0f)) {
+        this->integral_ -= tmp_i;
+      }
+      this->current_output_ = o_clamped;
+    } 
+	else if (this->previous_mode_ == 2) { // DISCHARGE — output ∈ [eub, 1]
+    // eub → Od=0,  1 → Od=max
+    // Od = (output - eub) / (1 - eub)  →  output = eub + Od * (1 - eub)
+      float span          = 1.0f - eub;
+      float o_min_discharge = eub + this->current_output_min_discharging_ * span;
+      float o_max_discharge = eub + this->current_output_max_discharging_ * span;
+      float o_clamped       = std::min(std::max(this->current_output_, o_min_discharge), o_max_discharge);
+      if ((o_clamped != this->current_output_) && (tmp_i > 0.0f)) {
+        this->integral_ -= tmp_i;
+      }
+      this->current_output_ = o_clamped;
+    }
+// Mode IDLE (0) : pas de clamping, output flotte librement autour de epoint_
+	
     ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f", this->error_, this->integral_, this->derivative_, alpha, tmp, this->current_output_);
 
     // ── Machine d'état ────────────────────────────────────────────────
