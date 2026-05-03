@@ -245,7 +245,7 @@ void DUALPIDComponent::pid_update() {
         this->last_time_                   = now;
         this->previous_error_              = this->error_;
         this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
         this->pid_computed_callback_.call();
         return;
     }
@@ -276,7 +276,7 @@ void DUALPIDComponent::pid_update() {
         this->last_time_                   = now;
         this->previous_error_              = this->error_;
         this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
         this->pid_computed_callback_.call();
         return;
     }
@@ -356,7 +356,7 @@ void DUALPIDComponent::pid_update() {
             }
 			this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
             this->output_discharging_          = HMS_MIN_LEVEL;
-            this->previous_output_discharging_ = 0.0f;
+            this->previous_output_discharging_ = HMS_MIN_LEVEL;
             this->previous_output_             = elb;
             this->current_output_              = elb;
 
@@ -376,7 +376,7 @@ void DUALPIDComponent::pid_update() {
 
         // Couper les sorties pendant le cycle de transition
         this->output_charging_             = 0.0f;
-        this->output_discharging_          = 0.0f;
+        this->output_discharging_          = HMS_MIN_LEVEL;
         this->device_charging_output_->set_level(0.0f);
         this->device_discharging_output_->set_level(0.0f);
 
@@ -384,7 +384,7 @@ void DUALPIDComponent::pid_update() {
         this->last_time_                   = now;
         this->previous_error_              = this->error_;
         this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
         this->pid_computed_callback_.call();
         return;
     }
@@ -401,8 +401,8 @@ void DUALPIDComponent::pid_update() {
             // Distance normalisée depuis elb vers 0
             // output = elb → Oc = 0,  output = 0 → Oc = max
 			if (this->output_discharging_ > 0.0f) {
-              this->device_discharging_output_->set_level(0.0f);
-              this->output_discharging_ = 0.0f;
+              this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+              this->output_discharging_ = HMS_MIN_LEVELf;
 			}
             float span = (elb > 0.0f) ? elb : 1.0f;
             float oc   = (elb - this->current_output_) / span;
