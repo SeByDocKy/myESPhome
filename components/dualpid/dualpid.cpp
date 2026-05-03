@@ -22,7 +22,7 @@ static const float coeffDdischarging = 0.001f;
 void DUALPIDComponent::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up DUALPIDComponent...");
   
-  this->last_time_                   =  millis();
+  this->last_time_                   = millis();
   this->integral_                    = 0.0f;
   this->previous_error_              = 0.0f;
   this->previous_output_             = this->current_epoint_;	
@@ -174,14 +174,13 @@ void DUALPIDComponent::pid_update() {
         this->previous_output_charging_    = 0.0f;
         this->previous_output_discharging_ = HMS_MIN_LEVEL;
         this->pid_computed_callback_.call();
-        return;   // ← indispensable
+        return;  
     }
 #endif
 
     // ── Protection sous-tension batterie ─────────────────────────────
     if (!std::isnan(this->current_battery_voltage_)) {
-        ESP_LOGI(TAG, "battery_voltage=%.2f, starting=%.2f",
-                 this->current_battery_voltage_, this->current_starting_battery_voltage_);
+        ESP_LOGI(TAG, "battery_voltage=%.2f, starting=%.2f", this->current_battery_voltage_, this->current_starting_battery_voltage_);
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_) {
             this->output_charging_    = 0.0f;
             this->output_discharging_ = HMS_MIN_LEVEL;
@@ -259,7 +258,8 @@ void DUALPIDComponent::pid_update() {
         if (this->previous_mode_ == 2) {
             this->previous_output_ = eub;
             this->current_output_  = eub;
-        } else {
+        } 
+		else {
             this->previous_output_ = elb;
             this->current_output_  = elb;
         }
@@ -312,8 +312,6 @@ void DUALPIDComponent::pid_update() {
     if ( (this->current_output_ <= this->current_output_min_) || (this->current_output_ >= this->current_output_max_)) {
         this->integral_ -= tmp_i;
     }
-
-   
 
     if (this->previous_mode_ == 1) {        // CHARGE — output ∈ [0, elb]
       // elb → Oc=0,  0 → Oc=max
