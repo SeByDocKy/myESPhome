@@ -172,7 +172,7 @@ void DUALPIDComponent::pid_update() {
         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 
         this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
         this->pid_computed_callback_.call();
         return;   // ← indispensable
     }
@@ -184,7 +184,7 @@ void DUALPIDComponent::pid_update() {
                  this->current_battery_voltage_, this->current_starting_battery_voltage_);
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_) {
             this->output_charging_    = 0.0f;
-            this->output_discharging_ = 0.0f;
+            this->output_discharging_ = HMS_MIN_LEVEL;
             this->current_output_     = this->current_epoint_;
             this->previous_output_    = this->current_epoint_;
             this->previous_mode_      = 0;
@@ -192,7 +192,7 @@ void DUALPIDComponent::pid_update() {
             this->device_charging_output_->set_level(0.0f);
             this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
             this->previous_output_charging_    = 0.0f;
-            this->previous_output_discharging_ = 0.0f;
+            this->previous_output_discharging_ = HMS_MIN_LEVEL;
             this->last_time_ = now;
             this->pid_computed_callback_.call();
             return;
