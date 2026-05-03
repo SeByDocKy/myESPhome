@@ -156,13 +156,17 @@ void DUALPIDComponent::pid_update() {
     // ── Bloc désactivation ────────────────────────────────────────────
 #ifdef USE_SWITCH
     if (!this->current_activation_) {
-        this->output_charging_    = 0.0f;
-        this->output_discharging_ = HMS_MIN_LEVEL;
-        this->current_output_     = this->current_epoint_;
-        this->previous_output_    = this->current_epoint_;
-        this->previous_mode_      = 0;
-        this->current_mode_       = 0;
-        this->last_time_          = now;   // évite dt_ aberrant au redémarrage
+        this->output_charging_             = 0.0f;
+        this->output_discharging_          = HMS_MIN_LEVEL;
+		this->current_output_charging_     = 0.0f;
+        this->current_output_discharging_  = HMS_MIN_LEVEL;
+        this->previous_output_charging_    = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
+        this->current_output_              = this->current_epoint_;
+        this->previous_output_             = this->current_epoint_;
+        this->previous_mode_               = 0;
+        this->current_mode_                = 0;
+        this->last_time_                   = now;   // évite dt_ aberrant au redémarrage
 
         if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == false) {
             this->r48_general_switch_->turn_on();
@@ -182,17 +186,19 @@ void DUALPIDComponent::pid_update() {
     if (!std::isnan(this->current_battery_voltage_)) {
         ESP_LOGI(TAG, "battery_voltage=%.2f, starting=%.2f", this->current_battery_voltage_, this->current_starting_battery_voltage_);
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_) {
-            this->output_charging_    = 0.0f;
-            this->output_discharging_ = HMS_MIN_LEVEL;
-            this->current_output_     = this->current_epoint_;
-            this->previous_output_    = this->current_epoint_;
-            this->previous_mode_      = 0;
-            this->current_mode_       = 0;
+            this->output_charging_             = 0.0f;
+            this->output_discharging_          = HMS_MIN_LEVEL;
+            this->current_output_              = this->current_epoint_;
+            this->previous_output_             = this->current_epoint_;
+            this->previous_mode_               = 0;
+            this->current_mode_                = 0;
             this->device_charging_output_->set_level(0.0f);
             this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+			this->current_output_charging_     = 0.0f;
+            this->current_output_discharging_  = HMS_MIN_LEVEL;
             this->previous_output_charging_    = 0.0f;
             this->previous_output_discharging_ = HMS_MIN_LEVEL;
-            this->last_time_ = now;
+            this->last_time_                   = now;
             this->pid_computed_callback_.call();
             return;
         }
