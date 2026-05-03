@@ -113,7 +113,7 @@ sx126x:
   coding_rate: CR_4_6
   tcxo_voltage: 1_8V
   tcxo_delay: 5ms
-  data_rate: '5MHz'
+  data_rate: '10MHz'
   on_packet:
     then:
       - lambda: |-
