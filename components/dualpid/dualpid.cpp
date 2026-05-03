@@ -72,7 +72,7 @@ void DUALPIDComponent::pid_update() {
   float tmp, tmp_i, epsi;
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
-  bool should_be_on, raw_deadband, output_is_active;
+  bool raw_deadband, output_is_active;
   float Pmin_ch, Pmin_dis;
   // float cc, cd;
   // bool e;	
@@ -429,10 +429,10 @@ void DUALPIDComponent::pid_update() {
             float oc   = (elb - this->current_output_) / span;
             this->output_charging_    = std::min(std::max(oc, this->current_output_min_charging_), this->current_output_max_charging_);
             this->output_discharging_ = 0.0f;
-            // Anti-windup côté borne physique
-			if (oc != this->output_charging_) {
-		      if (tmp_i < 0.0f) this->integral_ -= tmp_i;  // anti-windup : on était contre une borne
-            }
+   //          // Anti-windup côté borne physique
+			// if (oc != this->output_charging_) {
+		 //      if (tmp_i < 0.0f) this->integral_ -= tmp_i;  // anti-windup : on était contre une borne
+   //          }
             // if ( (this->output_charging_ <= this->current_output_min_charging_) || (this->output_charging_ >= this->current_output_max_charging_) ) {
             //     this->integral_ -= tmp_i;
             // }
@@ -450,10 +450,10 @@ void DUALPIDComponent::pid_update() {
             float od   = (this->current_output_ - eub) / span;
             this->output_charging_    = 0.0f;
             this->output_discharging_ = std::min(std::max(od, this->current_output_min_discharging_), this->current_output_max_discharging_);
-            // Anti-windup côté borne physique
-			if (od != this->output_discharging_) {
-		      if (tmp_i < 0.0f) this->integral_ -= tmp_i;  // anti-windup : on était contre une borne
-            }
+   //          // Anti-windup côté borne physique
+			// if (od != this->output_discharging_) {
+		 //      if (tmp_i > 0.0f) this->integral_ -= tmp_i;  // anti-windup : on était contre une borne
+   //          }
             // if ( (this->output_discharging_ <= this->current_output_min_discharging_) || (this->output_discharging_ >= this->current_output_max_discharging_) ) {
             //     this->integral_ -= tmp_i;
             // }
