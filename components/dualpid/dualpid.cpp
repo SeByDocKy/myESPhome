@@ -76,7 +76,7 @@ void DUALPIDComponent::pid_update() {
   float Pmin_ch, Pmin_dis;
   // float cc, cd;
   // bool e;	
-  //float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
+  float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped, span;
 	
   
   ESP_LOGI(TAG, "Entered in pid_update()");
@@ -318,9 +318,9 @@ void DUALPIDComponent::pid_update() {
     if (this->previous_mode_ == 1) {        // CHARGE — output ∈ [0, elb]
       // elb → Oc=0,  0 → Oc=max
       // Oc = (elb - output) / elb  →  output = elb - Oc * elb = elb * (1 - Oc)
-      float o_min_charge = elb * (1.0f - this->current_output_max_charging_);
-      float o_max_charge = elb * (1.0f - this->current_output_min_charging_);
-      float o_clamped    = std::min(std::max(this->current_output_, o_min_charge), o_max_charge);
+      o_min_charge = elb * (1.0f - this->current_output_max_charging_);
+      o_max_charge = elb * (1.0f - this->current_output_min_charging_);
+      o_clamped    = std::min(std::max(this->current_output_, o_min_charge), o_max_charge);
       if ((o_clamped != this->current_output_) && (tmp_i < 0.0f)) {
         this->integral_ -= tmp_i;
       }
@@ -329,10 +329,10 @@ void DUALPIDComponent::pid_update() {
 	else if (this->previous_mode_ == 2) { // DISCHARGE — output ∈ [eub, 1]
     // eub → Od=0,  1 → Od=max
     // Od = (output - eub) / (1 - eub)  →  output = eub + Od * (1 - eub)
-      float span          = 1.0f - eub;
-      float o_min_discharge = eub + this->current_output_min_discharging_ * span;
-      float o_max_discharge = eub + this->current_output_max_discharging_ * span;
-      float o_clamped       = std::min(std::max(this->current_output_, o_min_discharge), o_max_discharge);
+      span          = 1.0f - eub;
+      o_min_discharge = eub + this->current_output_min_discharging_ * span;
+      o_max_discharge = eub + this->current_output_max_discharging_ * span;
+      o_clamped       = std::min(std::max(this->current_output_, o_min_discharge), o_max_discharge);
       if ((o_clamped != this->current_output_) && (tmp_i > 0.0f)) {
         this->integral_ -= tmp_i;
       }
