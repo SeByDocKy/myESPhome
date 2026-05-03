@@ -402,7 +402,7 @@ void DUALPIDComponent::pid_update() {
             // output = elb → Oc = 0,  output = 0 → Oc = max
 			if (this->output_discharging_ > 0.0f) {
               this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-              this->output_discharging_ = HMS_MIN_LEVELf;
+              this->output_discharging_ = HMS_MIN_LEVEL;
 			}
             float span = (elb > 0.0f) ? elb : 1.0f;
             float oc   = (elb - this->current_output_) / span;
