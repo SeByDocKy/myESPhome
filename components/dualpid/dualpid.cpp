@@ -401,7 +401,7 @@ void DUALPIDComponent::pid_update() {
         this->output_charging_             = 0.0f;
         this->output_discharging_          = HMS_MIN_LEVEL;
         this->device_charging_output_->set_level(0.0f);
-        this->device_discharging_output_->set_level(0.0f);
+        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 
         this->previous_mode_               = this->current_mode_;
         this->last_time_                   = now;
