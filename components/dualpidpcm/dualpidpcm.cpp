@@ -106,12 +106,33 @@ namespace dualpidpcm {
 	  this->current_error_ = this->error_; 
 
 
-	  if (this->current_activation_ && !this->previous_activation_) {
-       this->previous_output_ = this->oneutral_;
-       this->current_output_  = this->oneutral_;
-       this->previous_error_  = this->error_;  // bonus : évite spike dérivé si Kd > 0 un jour
-       this->integral_        = 0.0f;          // repart proprement
+	  // if (this->current_activation_ && !this->previous_activation_) {
+   //     this->previous_output_ = this->oneutral_;
+   //     this->current_output_  = this->oneutral_;
+   //     this->previous_error_  = this->error_;  // bonus : évite spike dérivé si Kd > 0 un jour
+   //     this->integral_        = 0.0f;          // repart proprement
+   //    }
+
+      if (this->current_activation_ && !this->previous_activation_) {
+        this->previous_error_ = this->error_;
+        this->integral_       = 0.0f;
+
+       // Pré-positionner O du bon côté pour franchir le seuil dès le 1er cycle
+        if (this->error_ > 0.0f) {
+          // epsi > 0 → conso réseau → on va décharger → partir de oub_
+         this->previous_output_ = this->oub_;
+         this->current_output_  = this->oub_;
+        } 
+	    else {
+          // epsi < 0 → surplus solaire → on va charger → partir de olb_
+         this->previous_output_ = this->olb_;
+         this->current_output_  = this->olb_;
+        }
+       this->previous_mode_ = 0;
+       this->current_mode_  = 0;
       }
+
+		
       this->previous_activation_ = this->current_activation_;	
 
 	  this->Pmin_charging      = - this->current_battery_voltage_*this->current_min_charging_;
