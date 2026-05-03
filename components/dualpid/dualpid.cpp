@@ -336,7 +336,7 @@ void DUALPIDComponent::pid_update() {
       }
       this->current_output_ = o_clamped;
     }
-// Mode IDLE (0) : pas de clamping, output flotte librement autour de epoint_
+   // Mode IDLE (0) : pas de clamping, output flotte librement autour de epoint_
 	
     ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f", this->error_, this->integral_, this->derivative_, alpha, tmp, this->current_output_);
 
@@ -354,18 +354,14 @@ void DUALPIDComponent::pid_update() {
         case 1:  // CHARGE
             if (this->current_output_ > eub)
                 this->current_mode_ = 2;
-            else if ((this->current_output_ >= elb)
-                  && (this->current_output_ <= eub)
-                  && this->current_deadband_)
+            else if ((this->current_output_ >= elb) && (this->current_output_ <= eub) && this->current_deadband_)
                 this->current_mode_ = 0;
             break;
 
         case 2:  // DISCHARGE
             if (this->current_output_ < elb)
                 this->current_mode_ = 1;
-            else if ((this->current_output_ >= elb)
-                  && (this->current_output_ <= eub)
-                  && this->current_deadband_)
+            else if ((this->current_output_ >= elb) && (this->current_output_ <= eub) && this->current_deadband_)
                 this->current_mode_ = 0;
             break;
     }
