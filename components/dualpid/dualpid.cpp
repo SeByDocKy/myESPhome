@@ -253,6 +253,8 @@ void DUALPIDComponent::pid_update() {
     if (this->current_deadband_ && this->previous_mode_ != 0) {
         this->output_charging_    = 0.0f;
         this->output_discharging_ = HMS_MIN_LEVEL;
+		this->current_output_charging_     = 0.0f;       
+        this->current_output_discharging_  = HMS_MIN_LEVEL; 
 
         // Repartir à la frontière du mode quitté pour redémarrer vite
         if (this->previous_mode_ == 2) {
@@ -415,7 +417,7 @@ void DUALPIDComponent::pid_update() {
 
         case 0:  // IDLE
             this->output_charging_    = 0.0f;
-            this->output_discharging_ = 0.0f;
+            this->output_discharging_ = HMS_MIN_LEVEL;
             break;
 
         case 1: {  // CHARGE  — output ∈ [0, elb] → Oc ∈ [Ocmax, 0]
@@ -428,7 +430,7 @@ void DUALPIDComponent::pid_update() {
             float span = (elb > 0.0f) ? elb : 1.0f;
             float oc   = (elb - this->current_output_) / span;
             this->output_charging_    = std::min(std::max(oc, this->current_output_min_charging_), this->current_output_max_charging_);
-            this->output_discharging_ = 0.0f;
+            this->output_discharging_ = HMS_MIN_LEVEL;
    //          // Anti-windup côté borne physique
 			// if (oc != this->output_charging_) {
 		 //      if (tmp_i < 0.0f) this->integral_ -= tmp_i;  // anti-windup : on était contre une borne
