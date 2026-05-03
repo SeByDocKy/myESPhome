@@ -5,7 +5,7 @@ substitutions:
   my_hours: '23'
   my_minute: '59'
   my_second: '59'
-  baud_rate: 9600 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
+  baud_rate: 115200 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
  
 esphome:
   name: ${name}
