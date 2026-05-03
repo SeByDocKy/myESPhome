@@ -27,7 +27,7 @@ void DUALPIDComponent::setup() {
   this->previous_error_              = 0.0f;
   this->previous_output_             = this->current_epoint_;	
   this->previous_output_charging_    = 0.0f;
-  this->previous_output_discharging_ = 0.0f;
+  this->previous_output_discharging_ = HMS_MIN_LEVEL;
   this->previous_activation_         = false;
   this->current_mode_                = 0;     // 0=IDLE, 1=CHARGE, 2=DISCHARGE
   this->previous_mode_               = 0;
