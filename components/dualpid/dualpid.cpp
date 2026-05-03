@@ -308,10 +308,10 @@ void DUALPIDComponent::pid_update() {
 
     this->current_output_ = std::min(std::max(tmp + alpha, this->current_output_min_), this->current_output_max_);
 
-    // Anti-windup global
-    if ( (this->current_output_ <= this->current_output_min_) || (this->current_output_ >= this->current_output_max_)) {
-        this->integral_ -= tmp_i;
-    }
+    // // Anti-windup global
+    // if ( (this->current_output_ <= this->current_output_min_) || (this->current_output_ >= this->current_output_max_)) {
+    //     this->integral_ -= tmp_i;
+    // }
 
     if (this->previous_mode_ == 1) {        // CHARGE — output ∈ [0, elb]
       // elb → Oc=0,  0 → Oc=max
@@ -444,6 +444,12 @@ void DUALPIDComponent::pid_update() {
         }
 
         case 2: {  // DISCHARGE  — output ∈ [eub, 1] → Od ∈ [0, Odmax]
+			// Sécurité : forcer le R48 à 0 si encore actif
+            if (this->output_charging_ > 0.0f) {
+             this->device_charging_output_->set_level(0.0f);
+             this->output_charging_ = 0.0f;
+			}
+			
             float span = (1.0f - eub > 0.0f) ? (1.0f - eub) : 1.0f;
             float od   = (this->current_output_ - eub) / span;
             this->output_charging_    = 0.0f;
@@ -462,17 +468,18 @@ void DUALPIDComponent::pid_update() {
     // ── Commutation r48 selon la sortie effective ─────────────────────
     // (filet de sécurité — normalement géré dans les transitions)
     if (this->r48_general_switch_ != nullptr) {
-        if ((this->output_charging_  > this->current_output_min_charging_)
-         && !this->r48_general_switch_->state) {
-            this->r48_general_switch_->turn_on();
-            this->r48_general_switch_->publish_state(true);
-            ESP_LOGI(TAG, "r48 turned ON (charge)");
-        } else if ( (this->output_discharging_ > this->current_output_min_discharging_) && this->r48_general_switch_->state) {
-            this->r48_general_switch_->turn_off();
-            this->r48_general_switch_->publish_state(false);
-            ESP_LOGI(TAG, "r48 turned OFF (discharge)");
-        }
+      if ((this->output_charging_  > this->current_output_min_charging_) && !this->r48_general_switch_->state) {
+        this->r48_general_switch_->turn_on();
+        this->r48_general_switch_->publish_state(true);
+        ESP_LOGI(TAG, "r48 turned ON (charge)");
+      } 
+	  else if ((this->previous_mode_ == 2)  && this->r48_general_switch_->state) {
+        this->r48_general_switch_->turn_off();
+        this->r48_general_switch_->publish_state(false);
+        ESP_LOGI(TAG, "r48 turned OFF (discharge)");
+	  }
     }
+    // }
 
     // ── Envoi des consignes (uniquement si valeur a changé) ───────────
     if (this->output_charging_ != this->previous_output_charging_) {
