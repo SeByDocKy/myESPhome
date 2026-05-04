@@ -181,7 +181,6 @@ void DUALPIDComponent::pid_update() {
 		
 		this->device_charging_output_->set_level(0.0f);
         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-		delay(200);
 		this->device_discharging_output_->set_level(0.0f);
 		
 		
