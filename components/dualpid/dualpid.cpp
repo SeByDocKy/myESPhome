@@ -192,8 +192,8 @@ void DUALPIDComponent::pid_update() {
     }
 
 	if (!this->current_activation_) {
-
-
+        this->device_charging_output_->set_level(0.0f);
+        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 	}
 
 
