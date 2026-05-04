@@ -168,9 +168,9 @@ void DUALPIDComponent::pid_update() {
         this->current_mode_                = 0;
         this->last_time_                   = now;   // évite dt_ aberrant au redémarrage
 
-        if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == false) {
-            this->r48_general_switch_->turn_on();
-            this->r48_general_switch_->publish_state(true);
+        if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
+            this->r48_general_switch_->turn_off();
+            this->r48_general_switch_->publish_state(false);
         }
         this->device_charging_output_->set_level(0.0f);
         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
