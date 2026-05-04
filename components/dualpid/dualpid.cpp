@@ -384,11 +384,12 @@ void DUALPIDComponent::pid_update() {
                 this->r48_general_switch_->turn_on();
                 this->r48_general_switch_->publish_state(true);
             }
-			this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+			
             this->output_discharging_          = HMS_MIN_LEVEL;
             this->previous_output_discharging_ = HMS_MIN_LEVEL;
             this->previous_output_             = elb;
             this->current_output_              = elb;
+			this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 
         } 
 		else if (this->current_mode_ == 2) { // → DISCHARGE
