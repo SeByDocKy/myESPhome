@@ -523,7 +523,7 @@ void DUALPIDComponent::pid_update() {
         }
 
         this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = HMS_MIN_LEVEL;
+        this->previous_output_discharging_ = 0.15f; //HMS_MIN_LEVEL;
 				
         this->pid_computed_callback_.call(); 
     }
