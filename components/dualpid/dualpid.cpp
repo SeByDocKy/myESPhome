@@ -257,8 +257,8 @@ void DUALPIDComponent::pid_update() {
 
     // ── Deadband depuis mode ACTIF : arrêt immédiat ───────────────────
     if (this->current_deadband_ && this->previous_mode_ != 0) {
-        this->output_charging_    = 0.0f;
-        this->output_discharging_ = HMS_MIN_LEVEL;
+        this->output_charging_             = 0.0f;
+        this->output_discharging_          = HMS_MIN_LEVEL;
 		this->current_output_charging_     = 0.0f;       
         this->current_output_discharging_  = HMS_MIN_LEVEL; 
 
@@ -389,7 +389,8 @@ void DUALPIDComponent::pid_update() {
             this->previous_output_             = elb;
             this->current_output_              = elb;
 
-        } else if (this->current_mode_ == 2) { // → DISCHARGE
+        } 
+		else if (this->current_mode_ == 2) { // → DISCHARGE
             // Commuter r48 en mode décharge
             if ( (this->r48_general_switch_ != nullptr) && (this->r48_general_switch_->state == true) ) {
                 this->r48_general_switch_->turn_off();
@@ -398,7 +399,8 @@ void DUALPIDComponent::pid_update() {
             this->previous_output_ = eub;
             this->current_output_  = eub;
 
-        } else {                               // → IDLE
+        } 
+		else {                               // → IDLE
             this->previous_output_ = this->current_epoint_;
             this->current_output_  = this->current_epoint_;
         }
@@ -429,7 +431,7 @@ void DUALPIDComponent::pid_update() {
         case 1: {  // CHARGE  — output ∈ [0, elb] → Oc ∈ [Ocmax, 0]
             // Distance normalisée depuis elb vers 0
             // output = elb → Oc = 0,  output = 0 → Oc = max
-			if (this->output_discharging_ > 0.0f) {
+			if (this->output_discharging_ > HMS_MIN_LEVEL) {
               this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
               this->output_discharging_ = HMS_MIN_LEVEL;
 			}
