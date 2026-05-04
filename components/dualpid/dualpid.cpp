@@ -87,9 +87,7 @@ void DUALPIDComponent::activation_handle() {
         this->previous_output_             = this->current_epoint_;
         this->previous_mode_               = 0;
         this->current_mode_                = 0;
-        this->last_time_                   = now;   // évite dt_ aberrant au redémarrage
-
-
+     
         if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
             this->r48_general_switch_->turn_off();
             this->r48_general_switch_->publish_state(false);
