@@ -54,13 +54,13 @@ void DUALPIDComponent::setup() {
     this->r48_general_switch_->publish_state(true);
   }	
 
- // Dans setup(), après les autres callbacks :
-  // if (this->activation_switch_ != nullptr) {
-  //   this->activation_switch_->add_on_state_callback([this](bool state) {
-  //       //this->current_activation_ = state;
-  //       this->activation_handle();   // ← forcer un cycle quand activation change
-  //   });
-  // }	
+ // // Dans setup(), après les autres callbacks :
+ //  if (this->activation_switch_ != nullptr) {
+ //    this->activation_switch_->add_on_state_callback([this](bool state) {
+ //        this->current_activation_ = state;
+ //        this->pid_update();   // ← forcer un cycle quand activation change
+ //    });
+ //  }	
   
   this->pid_computed_callback_.call();
   // this->pid_update();
@@ -73,34 +73,6 @@ void DUALPIDComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
   ESP_LOGVV(TAG, "setup import part: battery_voltage=%3.2f", this->current_battery_voltage_ );
   this->pid_computed_callback_.call(); 
-}
-
-// void DUALPIDComponent::activation_handle() {
-//     if (!this->current_activation_) {
-//         this->output_charging_             = 0.0f;
-//         this->output_discharging_          = HMS_MIN_LEVEL;
-// 		this->current_output_charging_     = 0.0f;
-//         this->current_output_discharging_  = HMS_MIN_LEVEL;
-//         this->previous_output_charging_    = 0.0f;
-//         this->previous_output_discharging_ = HMS_MIN_LEVEL;
-//         this->current_output_              = this->current_epoint_;
-//         this->previous_output_             = this->current_epoint_;
-//         this->previous_mode_               = 0;
-//         this->current_mode_                = 0;
-     
-//         if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
-//             this->r48_general_switch_->turn_off();
-//             this->r48_general_switch_->publish_state(false);
-//         }
-
-//         this->previous_output_charging_    = 0.0f;
-//         this->previous_output_discharging_ = HMS_MIN_LEVEL;
-		
-// 		this->device_charging_output_->set_level(0.0f);
-//         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-//     }
-
-
 }
 
 void DUALPIDComponent::pid_update() {
@@ -117,19 +89,6 @@ void DUALPIDComponent::pid_update() {
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
-
-  // ESP_LOGI(TAG, ">>> pid_update: activation=%d prev_activation=%d mode=%d Oc=%.3f Od=%.3f switch_state=%d",
-  //       (int)this->current_activation_,
-  //       (int)this->previous_activation_,
-  //       this->previous_mode_,
-  //       this->output_charging_,
-  //       this->output_discharging_,
-  //       this->r48_general_switch_ != nullptr ? (int)this->r48_general_switch_->state : -1);
-
-
-
-
-	
 	
   this->pid_computed_callback_.call();	
 
@@ -226,9 +185,7 @@ void DUALPIDComponent::pid_update() {
         this->previous_output_discharging_ = HMS_MIN_LEVEL;
 		
 		this->device_charging_output_->set_level(0.0f);
-		ESP_LOGI(TAG, ">>> DESACTIVATION: sending set_level(%.3f) to HMS", (float)HMS_MIN_LEVEL);
         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-		ESP_LOGI(TAG, ">>> DESACTIVATION: set_level sent");
 		
         this->pid_computed_callback_.call();
         return;  
