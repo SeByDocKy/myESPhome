@@ -54,13 +54,13 @@ void DUALPIDComponent::setup() {
     this->r48_general_switch_->publish_state(true);
   }	
 
- // // Dans setup(), après les autres callbacks :
- //  if (this->activation_switch_ != nullptr) {
- //    this->activation_switch_->add_on_state_callback([this](bool state) {
- //        this->current_activation_ = state;
- //        this->pid_update();   // ← forcer un cycle quand activation change
- //    });
- //  }	
+ // Dans setup(), après les autres callbacks :
+  if (this->activation_switch_ != nullptr) {
+    this->activation_switch_->add_on_state_callback([this](bool state) {
+        //this->current_activation_ = state;
+        this->activation_handle();   // ← forcer un cycle quand activation change
+    });
+  }	
   
   this->pid_computed_callback_.call();
   // this->pid_update();
