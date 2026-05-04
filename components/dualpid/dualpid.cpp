@@ -55,12 +55,12 @@ void DUALPIDComponent::setup() {
   }	
 
  // Dans setup(), après les autres callbacks :
-  if (this->activation_switch_ != nullptr) {
-    this->activation_switch_->add_on_state_callback([this](bool state) {
-        //this->current_activation_ = state;
-        this->activation_handle();   // ← forcer un cycle quand activation change
-    });
-  }	
+  // if (this->activation_switch_ != nullptr) {
+  //   this->activation_switch_->add_on_state_callback([this](bool state) {
+  //       //this->current_activation_ = state;
+  //       this->activation_handle();   // ← forcer un cycle quand activation change
+  //   });
+  // }	
   
   this->pid_computed_callback_.call();
   // this->pid_update();
@@ -75,30 +75,30 @@ void DUALPIDComponent::dump_config() {
   this->pid_computed_callback_.call(); 
 }
 
-void DUALPIDComponent::activation_handle() {
-    if (!this->current_activation_) {
-        this->output_charging_             = 0.0f;
-        this->output_discharging_          = HMS_MIN_LEVEL;
-		this->current_output_charging_     = 0.0f;
-        this->current_output_discharging_  = HMS_MIN_LEVEL;
-        this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = HMS_MIN_LEVEL;
-        this->current_output_              = this->current_epoint_;
-        this->previous_output_             = this->current_epoint_;
-        this->previous_mode_               = 0;
-        this->current_mode_                = 0;
+// void DUALPIDComponent::activation_handle() {
+//     if (!this->current_activation_) {
+//         this->output_charging_             = 0.0f;
+//         this->output_discharging_          = HMS_MIN_LEVEL;
+// 		this->current_output_charging_     = 0.0f;
+//         this->current_output_discharging_  = HMS_MIN_LEVEL;
+//         this->previous_output_charging_    = 0.0f;
+//         this->previous_output_discharging_ = HMS_MIN_LEVEL;
+//         this->current_output_              = this->current_epoint_;
+//         this->previous_output_             = this->current_epoint_;
+//         this->previous_mode_               = 0;
+//         this->current_mode_                = 0;
      
-        if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
-            this->r48_general_switch_->turn_off();
-            this->r48_general_switch_->publish_state(false);
-        }
+//         if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
+//             this->r48_general_switch_->turn_off();
+//             this->r48_general_switch_->publish_state(false);
+//         }
 
-        this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = HMS_MIN_LEVEL;
+//         this->previous_output_charging_    = 0.0f;
+//         this->previous_output_discharging_ = HMS_MIN_LEVEL;
 		
-		this->device_charging_output_->set_level(0.0f);
-        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-    }
+// 		this->device_charging_output_->set_level(0.0f);
+//         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+//     }
 
 
 }
