@@ -21,6 +21,7 @@ esphome:
   on_boot:
      priority: -100
      then: 
+        - delay: 3s
         - output.set_level: 
             id: r48_max_current
             level: '4%'
