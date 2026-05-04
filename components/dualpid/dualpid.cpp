@@ -118,13 +118,13 @@ void DUALPIDComponent::pid_update() {
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
 
-  ESP_LOGI(TAG, ">>> pid_update: activation=%d prev_activation=%d mode=%d Oc=%.3f Od=%.3f switch_state=%d",
-        (int)this->current_activation_,
-        (int)this->previous_activation_,
-        this->previous_mode_,
-        this->output_charging_,
-        this->output_discharging_,
-        this->r48_general_switch_ != nullptr ? (int)this->r48_general_switch_->state : -1);
+  // ESP_LOGI(TAG, ">>> pid_update: activation=%d prev_activation=%d mode=%d Oc=%.3f Od=%.3f switch_state=%d",
+  //       (int)this->current_activation_,
+  //       (int)this->previous_activation_,
+  //       this->previous_mode_,
+  //       this->output_charging_,
+  //       this->output_discharging_,
+  //       this->r48_general_switch_ != nullptr ? (int)this->r48_general_switch_->state : -1);
 
 
 
