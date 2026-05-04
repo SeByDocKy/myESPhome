@@ -55,6 +55,7 @@ CONF_PALEVEL = "palevel"
 CONF_REACHABLE = "reachable"
 CONF_PRODUCING = "producing"
 CONF_RESTART = "restart"
+# CONF_FULL_POWER = "full_power"
 
 CONF_POWER = "power"
 CONF_ENERGY = "energy"
@@ -66,6 +67,7 @@ ICON_WIFI = "mdi:wifi-arrow-up-down"
 
 CHANNEL_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(_chan_cls),
+    
     cv.Optional(CONF_POWER): sensor.sensor_schema(
         unit_of_measurement="W",
         accuracy_decimals=0,
@@ -102,6 +104,7 @@ CHANNEL_SCHEMA = cv.Schema({
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(_inv_cls),
     cv.Required(CONF_SERIAL_NO): cv.string,
+    # cv.Optional(CONF_FULL_POWER, default=True): cv.boolean,
     cv.Optional(CONF_RSSI): sensor.sensor_schema(
                 unit_of_measurement=UNIT_DECIBEL_MILLIWATT,
                 accuracy_decimals=0,
@@ -264,4 +267,7 @@ async def to_code(config):
     if CONF_GPIO2 in config[CONF_PINS]:
       cg.add(var.set_gpio2(await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO2])))
     if CONF_GPIO3 in config[CONF_PINS]:
-      cg.add(var.set_gpio3(await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO3])))  
+      cg.add(var.set_gpio3(await cg.gpio_pin_expression(config[CONF_PINS][CONF_GPIO3])))
+
+    # if CONF_FULL_POWER in 
+    #  cg.add(var.set_gp8413(config[CONF_GP8413])) 
