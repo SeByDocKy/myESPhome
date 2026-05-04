@@ -117,6 +117,19 @@ void DUALPIDComponent::pid_update() {
   
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
+
+  ESP_LOGI(TAG, ">>> pid_update: activation=%d prev_activation=%d mode=%d Oc=%.3f Od=%.3f switch_state=%d",
+        (int)this->current_activation_,
+        (int)this->previous_activation_,
+        this->previous_mode_,
+        this->output_charging_,
+        this->output_discharging_,
+        this->r48_general_switch_ != nullptr ? (int)this->r48_general_switch_->state : -1);
+
+
+
+
+	
 	
   this->pid_computed_callback_.call();	
 
@@ -213,7 +226,9 @@ void DUALPIDComponent::pid_update() {
         this->previous_output_discharging_ = HMS_MIN_LEVEL;
 		
 		this->device_charging_output_->set_level(0.0f);
+		ESP_LOGI(TAG, ">>> DESACTIVATION: sending set_level(%.3f) to HMS", (float)HMS_MIN_LEVEL);
         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+		ESP_LOGI(TAG, ">>> DESACTIVATION: set_level sent");
 		
         this->pid_computed_callback_.call();
         return;  
