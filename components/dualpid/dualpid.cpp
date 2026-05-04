@@ -54,13 +54,13 @@ void DUALPIDComponent::setup() {
     this->r48_general_switch_->publish_state(true);
   }	
 
- // Dans setup(), après les autres callbacks :
-  if (this->activation_switch_ != nullptr) {
-    this->activation_switch_->add_on_state_callback([this](bool state) {
-        this->current_activation_ = state;
-        this->pid_update();   // ← forcer un cycle quand activation change
-    });
-  }	
+ // // Dans setup(), après les autres callbacks :
+ //  if (this->activation_switch_ != nullptr) {
+ //    this->activation_switch_->add_on_state_callback([this](bool state) {
+ //        this->current_activation_ = state;
+ //        this->pid_update();   // ← forcer un cycle quand activation change
+ //    });
+ //  }	
   
   this->pid_computed_callback_.call();
   // this->pid_update();
@@ -162,7 +162,6 @@ void DUALPIDComponent::pid_update() {
     this->previous_activation_ = this->current_activation_;
 
     // ── Bloc désactivation ────────────────────────────────────────────
-#ifdef USE_SWITCH
     if (!this->current_activation_) {
         this->output_charging_             = 0.0f;
         this->output_discharging_          = HMS_MIN_LEVEL;
@@ -193,7 +192,7 @@ void DUALPIDComponent::pid_update() {
         this->pid_computed_callback_.call();
         return;  
     }
-#endif
+
 
     // ── Protection sous-tension batterie ─────────────────────────────
     if (!std::isnan(this->current_battery_voltage_)) {
@@ -501,18 +500,48 @@ void DUALPIDComponent::pid_update() {
     }
     // }
 
+    
+     if (!this->current_activation_) {
+        this->output_charging_             = 0.0f;
+        this->output_discharging_          = HMS_MIN_LEVEL;
+		this->current_output_charging_     = 0.0f;
+        this->current_output_discharging_  = HMS_MIN_LEVEL;
+        this->previous_output_charging_    = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
+        this->current_output_              = this->current_epoint_;
+        this->previous_output_             = this->current_epoint_;
+        this->previous_mode_               = 0;
+        this->current_mode_                = 0;
+        this->last_time_                   = now;   // évite dt_ aberrant au redémarrage
+
+
+		
+
+        if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
+            this->r48_general_switch_->turn_off();
+            this->r48_general_switch_->publish_state(false);
+        }
+
+        this->previous_output_charging_    = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
+		
+		this->device_charging_output_->set_level(0.0f);
+        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+		
+        this->pid_computed_callback_.call();
+        return;  
+    }
+
+
+	
     // ── Envoi des consignes (uniquement si valeur a changé) ───────────
     if (this->output_charging_ != this->previous_output_charging_) {
         this->device_charging_output_->set_level(this->output_charging_);
     }
     if (this->output_discharging_ != this->previous_output_discharging_) {
-#ifdef USE_BINARY_SENSOR
         if ( (this->producing_binary_sensor_ != nullptr) && (this->producing_binary_sensor_->state == true)) {
-#endif
             this->device_discharging_output_->set_level(this->output_discharging_);
-#ifdef USE_BINARY_SENSOR
         }
-#endif
     }
 
     ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d",
