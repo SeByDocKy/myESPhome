@@ -53,6 +53,14 @@ void DUALPIDComponent::setup() {
     this->r48_general_switch_->turn_on();
     this->r48_general_switch_->publish_state(true);
   }	
+
+ // Dans setup(), après les autres callbacks :
+  if (this->activation_switch_ != nullptr) {
+    this->activation_switch_->add_on_state_callback([this](bool state) {
+        this->current_activation_ = state;
+        this->pid_update();   // ← forcer un cycle quand activation change
+    });
+  }	
   
   this->pid_computed_callback_.call();
   // this->pid_update();
@@ -181,8 +189,6 @@ void DUALPIDComponent::pid_update() {
 		
 		this->device_charging_output_->set_level(0.0f);
         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-		this->device_discharging_output_->set_level(0.0f);
-		
 		
         this->pid_computed_callback_.call();
         return;  
