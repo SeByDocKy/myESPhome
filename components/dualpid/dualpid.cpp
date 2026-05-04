@@ -524,12 +524,8 @@ void DUALPIDComponent::pid_update() {
 
         this->previous_output_charging_    = 0.0f;
         this->previous_output_discharging_ = HMS_MIN_LEVEL;
-		
-		this->device_charging_output_->set_level(0.0f);
-        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-		
-        this->pid_computed_callback_.call();
-        return;  
+				
+        this->pid_computed_callback_.call(); 
     }
 
 
