@@ -169,17 +169,20 @@ void DUALPIDComponent::pid_update() {
         this->last_time_                   = now;   // évite dt_ aberrant au redémarrage
 
 
-		this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = HMS_MIN_LEVEL;
 		
-		this->device_charging_output_->set_level(0.0f);
-        // this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-		this->device_discharging_output_->set_level(0.0f);
 
         if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
             this->r48_general_switch_->turn_off();
             this->r48_general_switch_->publish_state(false);
         }
+
+        this->previous_output_charging_    = 0.0f;
+        this->previous_output_discharging_ = HMS_MIN_LEVEL;
+		
+		this->device_charging_output_->set_level(0.0f);
+        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+		delay(200);
+		this->device_discharging_output_->set_level(0.0f);
 		
 		
         this->pid_computed_callback_.call();
