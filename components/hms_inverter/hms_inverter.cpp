@@ -4,6 +4,7 @@ namespace esphome {
 namespace hms_inverter {
 
 #define TAG "HMS"
+#define HMS_MIN 2.0f
 
 size_t EsphLogPrint::write(uint8_t value) {
     if (value == 10) return 1; // Skip new line
@@ -200,7 +201,12 @@ void HmsInverter::loop() {
      }
      if (this->limit_percent_number_ != nullptr) {
         float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
-        this->limit_percent_number_->publish_state(percent);
+        if(this->full_power_startup_){
+          this->limit_percent_number_->publish_state(percent);
+        }
+        else{
+          this->limit_percent_number_->publish_state(HMS_MIN);
+        }
         // limit_percent_number_->publish_state(100);
      }
      if (this->limit_absolute_number_ != nullptr) {
