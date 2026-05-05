@@ -84,11 +84,11 @@ void DUALPIDComponent::pid_update() {
   bool raw_deadband, output_is_active;
   bool in_startup;	
   float Pmin_ch, Pmin_dis;
+  float elb, eub;
   // float cc, cd;
   // bool e;	
   float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped, span;
 	
-  
   ESP_LOGI(TAG, "Entered in pid_update()");
   ESP_LOGI(TAG, "Current pid mode %d" , this->current_pid_mode_);
 	
@@ -110,25 +110,26 @@ void DUALPIDComponent::pid_update() {
     // ── Calcul du point de pivot epoint_ selon tension batterie ───────
     if (this->current_battery_voltage_ < this->current_discharged_battery_voltage_) {
         this->current_epoint_ = this->current_charging_epoint_;
-    } else if (this->current_battery_voltage_ < this->current_charged_battery_voltage_) {
+    } 
+	else if (this->current_battery_voltage_ < this->current_charged_battery_voltage_) {
         this->current_epoint_ = this->current_absorbing_epoint_;
-    } else {
+    } 
+	else {
         this->current_epoint_ = this->current_floating_epoint_;
     }
 
     // Bornes d'hystérésis autour de epoint_ (équivalent olb_/oub_)
-    float elb = this->current_epoint_ - this->o_hysteresis_; //EPOINT_HYST;   // frontière basse  → CHARGE
+    elb = this->current_epoint_ - this->o_hysteresis_; //EPOINT_HYST;   // frontière basse  → CHARGE
 	elb = std::min(std::max(elb, this->current_output_min_), this->current_output_max_);
-    float eub = this->current_epoint_ + this->o_hysteresis_; //EPOINT_HYST;   // frontière haute  → DISCHARGE
+    eub = this->current_epoint_ + this->o_hysteresis_; //EPOINT_HYST;   // frontière haute  → DISCHARGE
 	eub = std::min(std::max(eub, this->current_output_min_), this->current_output_max_);
 
 
     // ── Calcul de l'erreur ────────────────────────────────────────────
     epsi          = this->current_input_ - this->current_setpoint_;
     this->error_  = epsi;
-#ifdef USE_SWITCH
     if (this->current_reverse_) this->error_ = -this->error_;
-#endif
+	
     this->current_error_ = this->error_;
 
     // ── Reset propre au passage activation off → on ───────────────────
@@ -193,10 +194,10 @@ void DUALPIDComponent::pid_update() {
         return;  
     }
 
-	if (!this->current_activation_) {
-        // this->device_charging_output_->set_level(0.0f);
-        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-	}
+	// if (!this->current_activation_) {
+ //        // this->device_charging_output_->set_level(0.0f);
+ //        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+	// }
 
 
     // ── Protection sous-tension batterie ─────────────────────────────
