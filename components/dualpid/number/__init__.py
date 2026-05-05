@@ -350,7 +350,7 @@ async def to_code(config):
 
   if output_min_discharging_config := config.get(CONF_OUTPUT_MIN_DISCHARGING):
         n = await number.new_number(
-            output_min_discharging_config, min_value=2.0, max_value=100.0, step=0.5
+            output_min_discharging_config, min_value=0.0, max_value=100.0, step=0.5
         )
         await cg.register_component(n, output_min_discharging_config)
         await cg.register_parented(n, dualpid_component)
@@ -358,7 +358,7 @@ async def to_code(config):
 
   if output_max_discharging_config := config.get(CONF_OUTPUT_MAX_DISCHARGING):
         n = await number.new_number(
-            output_max_discharging_config, min_value=2.0, max_value=100.0, step=0.5
+            output_max_discharging_config, min_value=0.0, max_value=100.0, step=0.5
         )
         await cg.register_component(n, output_max_discharging_config)
         await cg.register_parented(n, dualpid_component)
