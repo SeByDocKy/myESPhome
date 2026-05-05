@@ -251,6 +251,7 @@ packages:
           hms_inverter_id: 'hoymiles_id'
           hms_inverter_name: 'hms1_1000'
           hms_inverter_sn: !secret hms1000_sn1
+          hms_inverter_full_power_startup: false
           
   # hms_inverter2: 
     # url: https://github.com/SeByDocKy/myESPhome/
@@ -261,7 +262,8 @@ packages:
         # vars:
           # hms_inverter_id: 'hoymiles_id'
           # hms_inverter_name: 'hms2_1000'
-          # hms_inverter_sn: !secret hms1000_sn2         
+          # hms_inverter_sn: !secret hms1000_sn2
+          # hms_inverter_full_power_startup: false
           
   # hms_inverter2: 
     # url: https://github.com/SeByDocKy/myESPhome/
@@ -272,7 +274,8 @@ packages:
         # vars:
           # hms_inverter_id: 'hoymiles_id'
           # hms_inverter_name: 'hms2_2000'
-          # hms_inverter_sn: !secret hms2000_sn1        
+          # hms_inverter_sn: !secret hms2000_sn1
+          # hms_inverter_full_power_startup: false
 
   emerson:
     url: https://github.com/SeByDocKy/myESPhome/
