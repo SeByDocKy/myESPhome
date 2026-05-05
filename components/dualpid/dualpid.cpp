@@ -317,7 +317,8 @@ void DUALPIDComponent::pid_update() {
         coeffP = coeffPcharging    * this->current_kp_charging_;
         coeffI = coeffIcharging    * this->current_ki_charging_;
         coeffD = coeffDcharging    * this->current_kd_charging_;
-    } else {                           // DISCHARGE ou IDLE → gains décharge
+    } 
+	else {                           // DISCHARGE ou IDLE → gains décharge
         coeffP = coeffPdischarging * this->current_kp_discharging_;
         coeffI = coeffIdischarging * this->current_ki_discharging_;
         coeffD = coeffDdischarging * this->current_kd_discharging_;
