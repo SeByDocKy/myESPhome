@@ -26,7 +26,7 @@ hms_inverter:
   inverters:
     - id: ${hms_inverter_name}_id  #!extend
       serial: ${hms_inverter_sn} # Serial No of your inverter 
-      full_power_startup: false #"${hms_inverter_full_power_startup}
+      full_power_startup: ${hms_inverter_full_power_startup}
       rssi:
         name: ${name}_${hms_inverter_name}_rssi  # Sensor
       limit_percent: # Number Entity 0 - 100%
