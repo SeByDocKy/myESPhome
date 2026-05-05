@@ -371,6 +371,10 @@ void DUALPIDComponent::pid_update() {
       this->current_output_ = o_clamped;
     }
    // Mode IDLE (0) : pas de clamping, output flotte librement autour de epoint_
+
+    if (this->previous_mode_ == 0) {
+      this->current_output_ = std::min(std::max(this->current_output_, elb), eub);
+    }
 	
     ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f", this->error_, this->integral_, this->derivative_, alpha, tmp, this->current_output_);
 
