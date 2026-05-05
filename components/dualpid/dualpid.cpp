@@ -264,8 +264,9 @@ void DUALPIDComponent::pid_update() {
 	
     
 
-    ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d active=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, output_is_active, this->current_deadband_);
-
+    //ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d active=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, output_is_active, this->current_deadband_);
+    
+	ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
         this->output_charging_             = 0.0f;
@@ -377,9 +378,9 @@ void DUALPIDComponent::pid_update() {
 
     switch (this->previous_mode_) {
         case 0:  // IDLE
-            if (this->current_output_ < elb)
+            if (this->current_output_ <= elb)
                 this->current_mode_ = 1;   // → CHARGE
-            else if (this->current_output_ > eub)
+            else if (this->current_output_ >= eub)
                 this->current_mode_ = 2;   // → DISCHARGE
             break;
 		    
@@ -457,6 +458,13 @@ void DUALPIDComponent::pid_update() {
               this->previous_output_ = eub;
               this->current_output_  = eub;
             }
+			 // Couper les sorties physiques
+           this->output_charging_    = 0.0f;
+           this->output_discharging_ = HMS_MIN_LEVEL;
+           this->device_charging_output_->set_level(0.0f);
+           this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+           this->current_output_charging_    = 0.0f;
+           this->current_output_discharging_ = HMS_MIN_LEVEL;
         }
 
         // // Couper les sorties pendant le cycle de transition
