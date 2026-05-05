@@ -444,8 +444,19 @@ void DUALPIDComponent::pid_update() {
 
         } 
 		else {                               // → IDLE
-            this->previous_output_ = this->current_epoint_;
-            this->current_output_  = this->current_epoint_;
+            // this->previous_output_ = this->current_epoint_;
+            // this->current_output_  = this->current_epoint_;
+			this->integral_ = 0.0f;   // ← reset intégrale !
+            if (this->error_ < 0.0f) {
+            // Surplus → on va recharger au prochain cycle
+              this->previous_output_ = elb;
+              this->current_output_  = elb;
+            } 
+			else {
+              // Conso → on va redécharger au prochain cycle
+              this->previous_output_ = eub;
+              this->current_output_  = eub;
+            }
         }
 
         // // Couper les sorties pendant le cycle de transition
