@@ -390,7 +390,7 @@ void DUALPIDComponent::pid_update() {
              this->current_mode_ = 0;
             }
             // Nouveau : error franchement positif → surplus insuffisant → IDLE
-            else if (this->error_ > (Pmin_ch * DEADBAND_FACTOR)) {
+            else if (!in_startup && this->error_ > (Pmin_ch * DEADBAND_FACTOR)) {
               this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
             }
             break;
@@ -406,7 +406,7 @@ void DUALPIDComponent::pid_update() {
               this->current_mode_ = 0;
              }
              // Nouveau : error franchement négatif → surplus suffisant → IDLE
-            else if (this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) {
+            else if (!in_startup && this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) {
               this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE
             }
             break;
@@ -427,6 +427,9 @@ void DUALPIDComponent::pid_update() {
                 this->r48_general_switch_->publish_state(true);
             }
 			this->mode_start_time_             = now;
+			this->output_charging_             = 0.0f;          // ← ajouter
+            this->current_output_charging_     = 0.0f;          // ← ajouter
+            this->device_charging_output_->set_level(0.0f);     // ← ajouter
             this->output_discharging_          = HMS_MIN_LEVEL;
             this->previous_output_discharging_ = HMS_MIN_LEVEL;
             this->previous_output_             = elb;
@@ -440,6 +443,9 @@ void DUALPIDComponent::pid_update() {
                 this->r48_general_switch_->turn_off();
                 this->r48_general_switch_->publish_state(false);
             }
+			this->output_charging_         = 0.0f;           // ← ajouter
+            this->current_output_charging_ = 0.0f;           // ← ajouter
+            this->device_charging_output_->set_level(0.0f);  // ← ajouter
             this->previous_output_ = eub;
             this->current_output_  = eub;
 
