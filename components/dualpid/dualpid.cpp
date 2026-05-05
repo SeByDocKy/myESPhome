@@ -32,6 +32,7 @@ void DUALPIDComponent::setup() {
   this->previous_activation_         = false;
   this->current_mode_                = 0;     // 0=IDLE, 1=CHARGE, 2=DISCHARGE
   this->previous_mode_               = 0;
+  this->mode_start_time_             = millis() - STARTUP_INHIBIT_MS; 	
 	
   
   if (this->input_sensor_ != nullptr) {
@@ -427,6 +428,7 @@ void DUALPIDComponent::pid_update() {
                 this->r48_general_switch_->publish_state(true);
             }
 			this->mode_start_time_             = now;
+			this->integral_                    = 0.0f;
 			this->output_charging_             = 0.0f;          // ← ajouter
             this->current_output_charging_     = 0.0f;          // ← ajouter
             this->device_charging_output_->set_level(0.0f);     // ← ajouter
@@ -446,8 +448,9 @@ void DUALPIDComponent::pid_update() {
 			this->output_charging_         = 0.0f;           // ← ajouter
             this->current_output_charging_ = 0.0f;           // ← ajouter
             this->device_charging_output_->set_level(0.0f);  // ← ajouter
-            this->previous_output_ = eub;
-            this->current_output_  = eub;
+            this->previous_output_         = eub;
+            this->current_output_          = eub;
+			this->integral_                = 0.0f;
 
         } 
 		else {                               // → IDLE
