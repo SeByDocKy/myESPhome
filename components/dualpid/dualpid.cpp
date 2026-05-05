@@ -382,20 +382,38 @@ void DUALPIDComponent::pid_update() {
             else if (this->current_output_ > eub)
                 this->current_mode_ = 2;   // → DISCHARGE
             break;
+		    
 
         case 1:  // CHARGE
-            if (this->current_output_ > eub)
-                this->current_mode_ = 2;
-            else if ( this->current_deadband_) // (this->current_output_ >= elb) && (this->current_output_ <= eub) &&
-                this->current_mode_ = 0;
+		    if (this->current_deadband_) {
+             this->current_mode_ = 0;
+            }
+            // Nouveau : error franchement positif → surplus insuffisant → IDLE
+            else if (this->error_ > (Pmin_ch * DEADBAND_FACTOR)) {
+              this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
+            }
             break;
+		
+            // if (this->current_output_ > eub)
+            //     this->current_mode_ = 2;
+            // else if ( this->current_deadband_) // (this->current_output_ >= elb) && (this->current_output_ <= eub) &&
+            //     this->current_mode_ = 0;
+            // break;
 
         case 2:  // DISCHARGE
-            if (this->current_output_ < elb)
-                this->current_mode_ = 1;
-            else if ( this->current_deadband_) // (this->current_output_ >= elb) && (this->current_output_ <= eub) &&
-                this->current_mode_ = 0;
+		    if (this->current_deadband_) {
+              this->current_mode_ = 0;
+             }
+             // Nouveau : error franchement négatif → surplus suffisant → IDLE
+            else if (this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) {
+              this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE
+            }
             break;
+            // if (this->current_output_ < elb)
+            //     this->current_mode_ = 1;
+            // else if ( this->current_deadband_) // (this->current_output_ >= elb) && (this->current_output_ <= eub) &&
+            //     this->current_mode_ = 0;
+            // break;
     }
 
     // ── Transition de mode ────────────────────────────────────────────
