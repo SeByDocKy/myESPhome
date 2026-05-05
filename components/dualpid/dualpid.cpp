@@ -7,6 +7,7 @@ namespace dualpid {
 // Facteur zone morte : |epsi| < Pmin * DEADBAND_FACTOR → on ne fait rien
 #define DEADBAND_FACTOR  1.03f
 #define HMS_MIN_LEVEL  0.02f
+#define STARTUP_INHIBIT_MS  4000
 
 static const char *const TAG = "dualpid";
 
@@ -81,6 +82,7 @@ void DUALPIDComponent::pid_update() {
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
   bool raw_deadband, output_is_active;
+  bool in_startup;	
   float Pmin_ch, Pmin_dis;
   // float cc, cd;
   // bool e;	
@@ -252,9 +254,14 @@ void DUALPIDComponent::pid_update() {
 
     // Inhibe la deadband si une sortie physique est déjà active
     // (évite la coupure prématurée pendant le démarrage ~3-4s du R48)
-    output_is_active = (this->current_output_charging_ > this->current_output_min_charging_) || (this->current_output_discharging_ > this->current_output_min_discharging_);
-
-    this->current_deadband_ = raw_deadband && !output_is_active;
+    
+	// output_is_active = (this->current_output_charging_ > this->current_output_min_charging_) || (this->current_output_discharging_ > this->current_output_min_discharging_);
+ //    this->current_deadband_ = raw_deadband && !output_is_active;
+    
+	in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
+    this->current_deadband_ = raw_deadband && !in_startup;
+	
+    
 
     ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d active=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, output_is_active, this->current_deadband_);
 
@@ -398,7 +405,7 @@ void DUALPIDComponent::pid_update() {
                 this->r48_general_switch_->turn_on();
                 this->r48_general_switch_->publish_state(true);
             }
-			
+			this->mode_start_time_             = now;
             this->output_discharging_          = HMS_MIN_LEVEL;
             this->previous_output_discharging_ = HMS_MIN_LEVEL;
             this->previous_output_             = elb;
