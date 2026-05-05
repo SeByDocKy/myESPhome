@@ -55,7 +55,7 @@ CONF_PALEVEL = "palevel"
 CONF_REACHABLE = "reachable"
 CONF_PRODUCING = "producing"
 CONF_RESTART = "restart"
-# CONF_FULL_POWER = "full_power"
+CONF_FULL_POWER_STARTUP = "full_power_startup"
 
 CONF_POWER = "power"
 CONF_ENERGY = "energy"
@@ -104,7 +104,7 @@ CHANNEL_SCHEMA = cv.Schema({
 INVERTER_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(_inv_cls),
     cv.Required(CONF_SERIAL_NO): cv.string,
-    # cv.Optional(CONF_FULL_POWER, default=True): cv.boolean,
+    cv.Optional(CONF_FULL_POWER_STARTUP, default=True): cv.boolean,
     cv.Optional(CONF_RSSI): sensor.sensor_schema(
                 unit_of_measurement=UNIT_DECIBEL_MILLIWATT,
                 accuracy_decimals=0,
@@ -235,6 +235,9 @@ async def to_code(config):
         await cg.register_component(inv_var, inv_conf)
         cg.add(var.add_inverter(inv_var))
 
+        if CONF_FULL_POWER_STARTUP in inv_conf:
+            cg.add(inv_var.set_full_power_startup(inv_conf[CONF_FULL_POWER_STARTUP]))
+            
         if CONF_RSSI in inv_conf:
             cg.add(inv_var.set_rssi(await sensor.new_sensor(inv_conf[CONF_RSSI])))
         if CONF_LIMIT_PERCENT in inv_conf:        
