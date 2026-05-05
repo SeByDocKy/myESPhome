@@ -149,6 +149,7 @@ class HmsInverter : public esphome::Component {
 
         bool first_ = true;
         bool active_ = true;
+        bool full_power_startup_ = true;
 
     public:
         void setup() override;
@@ -174,6 +175,8 @@ class HmsInverter : public esphome::Component {
         void set_is_producing_sensor(esphome::binary_sensor::BinarySensor* sensor) { this->is_producing_sensor_ = sensor; }
         void set_serial_no(std::string serial) { this->serial_ = std::stoll(serial, nullptr, 16); }
         uint64_t serial() { return this->serial_; }
+        void set_full_power_startup(bool b) {this->full_power_startup_ = b;}
+
         void set_inverter(std::shared_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
         // void set_inverter(std::unique_ptr<InverterAbstract> inverter) { this->inverter_ = inverter; }
         void set_rssi (esphome::sensor::Sensor* sensor) { this->rssi_ = sensor; }
