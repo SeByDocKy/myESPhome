@@ -82,7 +82,7 @@ void DUALPIDComponent::pid_update() {
   float tmp, tmp_i, epsi;
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
-  bool raw_deadband, output_is_active;
+  bool raw_deadband;
   bool in_startup;	
   float Pmin_ch, Pmin_dis;
   float elb, eub;
@@ -327,7 +327,7 @@ void DUALPIDComponent::pid_update() {
     }
 
     tmp_i = this->error_ * this->dt_;
-    if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
+    if (!std::isnan(tmp_i) && (this->previous_mode_ != 0) ) this->integral_ += tmp_i;
     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
     tmp = 0.0f;
@@ -451,6 +451,7 @@ void DUALPIDComponent::pid_update() {
             this->previous_output_         = eub;
             this->current_output_          = eub;
 			this->integral_                = 0.0f;
+			this->mode_start_time_         = now;
 
         } 
 		else {                               // → IDLE
