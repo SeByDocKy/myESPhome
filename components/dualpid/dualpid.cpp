@@ -384,14 +384,14 @@ void DUALPIDComponent::pid_update() {
         case 1:  // CHARGE
             if (this->current_output_ > eub)
                 this->current_mode_ = 2;
-            else if ((this->current_output_ >= elb) && (this->current_output_ <= eub) && this->current_deadband_)
+            else if ( this->current_deadband_) // (this->current_output_ >= elb) && (this->current_output_ <= eub) &&
                 this->current_mode_ = 0;
             break;
 
         case 2:  // DISCHARGE
             if (this->current_output_ < elb)
                 this->current_mode_ = 1;
-            else if ((this->current_output_ >= elb) && (this->current_output_ <= eub) && this->current_deadband_)
+            else if ( this->current_deadband_) // (this->current_output_ >= elb) && (this->current_output_ <= eub) &&
                 this->current_mode_ = 0;
             break;
     }
