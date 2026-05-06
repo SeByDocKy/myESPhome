@@ -433,9 +433,9 @@ void DUALPIDComponent::pid_update() {
             }
 			this->mode_start_time_             = now;
 			this->integral_                    = 0.0f;
-			this->output_charging_             = 0.0f;          // ← ajouter
-            this->current_output_charging_     = 0.0f;          // ← ajouter
-            this->device_charging_output_->set_level(0.0f);     // ← ajouter
+			this->output_charging_             = 0.0f;          
+            this->current_output_charging_     = 0.0f;          
+            this->device_charging_output_->set_level(0.0f);     
             this->output_discharging_          = HMS_MIN_LEVEL;
             this->previous_output_discharging_ = HMS_MIN_LEVEL;
             this->previous_output_             = elb;
@@ -449,9 +449,9 @@ void DUALPIDComponent::pid_update() {
                 this->r48_general_switch_->turn_off();
                 this->r48_general_switch_->publish_state(false);
             }
-			this->output_charging_         = 0.0f;           // ← ajouter
-            this->current_output_charging_ = 0.0f;           // ← ajouter
-            this->device_charging_output_->set_level(0.0f);  // ← ajouter
+			this->output_charging_         = 0.0f;           
+            this->current_output_charging_ = 0.0f;           
+            this->device_charging_output_->set_level(0.0f); 
             this->previous_output_         = eub;
             this->current_output_          = eub;
 			this->integral_                = 0.0f;
@@ -473,12 +473,12 @@ void DUALPIDComponent::pid_update() {
               this->current_output_  = eub;
             }
 			 // Couper les sorties physiques
-           this->output_charging_    = 0.0f;
-           this->output_discharging_ = HMS_MIN_LEVEL;
-           this->device_charging_output_->set_level(0.0f);
-           this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+           this->output_charging_            = 0.0f;
+           this->output_discharging_         = HMS_MIN_LEVEL;
            this->current_output_charging_    = 0.0f;
            this->current_output_discharging_ = HMS_MIN_LEVEL;
+		   this->device_charging_output_->set_level(0.0f);
+           this->device_discharging_output_->set_level(HMS_MIN_LEVEL);	
         }
 
         // // Couper les sorties pendant le cycle de transition
@@ -600,12 +600,7 @@ void DUALPIDComponent::pid_update() {
         }
     }
 
-    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d",
-             this->current_output_,
-             this->output_charging_,
-             this->output_discharging_,
-             this->previous_mode_,
-             this->current_deadband_);
+    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d", this->current_output_, this->output_charging_, this->output_discharging_, this->previous_mode_, this->current_deadband_);
 
     // ── Mise à jour des états précédents ──────────────────────────────
     this->last_time_                   = now;
