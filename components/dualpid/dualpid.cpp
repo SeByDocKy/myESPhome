@@ -50,11 +50,11 @@ void DUALPIDComponent::setup() {
     });
     this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
   }
-    // S'assurer que r48 démarre côté charge (sécurité)
-  if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == false) {
-    this->r48_general_switch_->turn_on();
-    this->r48_general_switch_->publish_state(true);
-  }	
+  //   // S'assurer que r48 démarre côté charge (sécurité)
+  // if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == false) {
+  //   this->r48_general_switch_->turn_on();
+  //   this->r48_general_switch_->publish_state(true);
+  // }	
 
  // // Dans setup(), après les autres callbacks :
  //  if (this->activation_switch_ != nullptr) {
@@ -95,9 +95,12 @@ void DUALPIDComponent::pid_update() {
 	
   this->pid_computed_callback_.call();	
 
-  #ifdef USE_SWITCH
-    if (this->current_manual_override_) return;
-#endif
+  
+    if (this->current_manual_override_) {
+		return;
+	}
+	else{
+
 	
     // ── Garde dt ──────────────────────────────────────────────────────
     this->dt_ = float(now - this->last_time_) / 1000.0f;
@@ -612,6 +615,7 @@ void DUALPIDComponent::pid_update() {
     this->previous_output_discharging_ = this->output_discharging_;
 
     this->pid_computed_callback_.call();
+}
 }
 
 
