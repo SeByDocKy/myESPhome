@@ -42,6 +42,12 @@ sensor:
       name: ${name}_${dualpid_name}_epoint  
 
 
+binary_sensor:
+  - platform: dualpid
+    deadband:
+      name: ${name}_${dualpid_name}_deadband
+
+
 switch:
   - platform: dualpid
     dualpid_id: ${dualpid_id}
