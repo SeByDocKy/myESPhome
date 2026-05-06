@@ -206,7 +206,6 @@ SUB_NUMBER(output_max_discharging)
   float current_output_discharging_ = 0.0f;
   float current_target_ = 0.0f;
   float current_epoint_ = 50.0f;
-  float current_mode_   = 0.0f;
 #endif   
 
 #ifdef USE_SWITCH  
