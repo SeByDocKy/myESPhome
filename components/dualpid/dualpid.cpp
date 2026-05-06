@@ -426,7 +426,7 @@ void DUALPIDComponent::pid_update() {
     }
 
     // ── Transition de mode ────────────────────────────────────────────
-    if (this->current_mode_ != this->previous_mode_) {
+    if (this->current_mode_ != this->previous_mode_ && this->current_activation_) {
 
         if (this->current_mode_ == 1) {        // → CHARGE
             // Commuter r48 en mode charge AVANT d'envoyer la consigne
