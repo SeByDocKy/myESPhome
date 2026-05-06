@@ -77,7 +77,7 @@ void DUALPIDComponent::pid_update() {
   float alphaP, alphaI, alphaD, alpha;
   float coeffP, coeffI, coeffD;
   bool raw_deadband;
-  bool in_startup;	
+  bool in_startup, output_is_active;	
   float Pmin_ch, Pmin_dis;
   float elb, eub;
   // float cc, cd;
@@ -249,12 +249,13 @@ void DUALPIDComponent::pid_update() {
     //   - surplus trop faible pour que le R48 charge  (epsi > -Pmin_ch × k)
     //   - conso trop faible pour que le HMS décharge  (epsi < +Pmin_dis × k)
     raw_deadband = (epsi > -(Pmin_ch * DEADBAND_FACTOR)) && (epsi <  (Pmin_dis * DEADBAND_FACTOR));   // pas assez de surplus   // pas assez de conso
+	output_is_active = (this->current_output_charging_  > this->current_output_min_charging_) || (this->current_output_discharging_  > this->current_output_min_discharging_);	
 
     // Inhibe la deadband si une sortie physique est déjà active
     // (évite la coupure prématurée pendant le démarrage ~3-4s du R48)
         
 	in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
-    this->current_deadband_ = raw_deadband && !in_startup;
+    this->current_deadband_ = raw_deadband && !in_startup && !output_is_active;
 	 
 	ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
