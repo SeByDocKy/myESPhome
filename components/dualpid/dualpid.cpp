@@ -253,8 +253,8 @@ void DUALPIDComponent::pid_update() {
     // (évite la coupure prématurée pendant le démarrage ~3-4s du R48)
         
 	in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
-    // this->current_deadband_ = raw_deadband && !in_startup && !output_is_active;
-	this->current_deadband_ = (raw_deadband && !in_startup) && (output_is_active && this->current_activation_);	
+    this->current_deadband_ = raw_deadband && !in_startup && (!output_is_active && this->current_activation_);
+	// this->current_deadband_ = (raw_deadband && !in_startup) ;	
 	 
 	ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
