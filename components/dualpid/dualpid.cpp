@@ -95,9 +95,7 @@ void DUALPIDComponent::pid_update() {
 	
   this->pid_computed_callback_.call();	
 
-  #ifdef USE_SWITCH
     if (this->current_manual_override_) return;
-#endif
 	
     // ── Garde dt ──────────────────────────────────────────────────────
     this->dt_ = float(now - this->last_time_) / 1000.0f;
@@ -202,7 +200,7 @@ void DUALPIDComponent::pid_update() {
 
 
     // ── Protection sous-tension batterie ─────────────────────────────
-    if (!std::isnan(this->current_battery_voltage_)) {
+    if (!std::isnan(this->current_battery_voltage_) && this->current_activation_ ) {
         ESP_LOGI(TAG, "battery_voltage=%.2f, starting=%.2f", this->current_battery_voltage_, this->current_starting_battery_voltage_);
         if (this->current_battery_voltage_ < this->current_starting_battery_voltage_) {
             this->output_charging_             = 0.0f;
@@ -281,7 +279,7 @@ void DUALPIDComponent::pid_update() {
     }
 
     // ── Deadband depuis mode ACTIF : arrêt immédiat ───────────────────
-    if (this->current_deadband_ && this->previous_mode_ != 0) {
+    if (this->current_deadband_ && this->previous_mode_ != 0 && this->current_activation_) {
         this->output_charging_             = 0.0f;
         this->output_discharging_          = HMS_MIN_LEVEL;
 		this->current_output_charging_     = 0.0f;       
@@ -423,7 +421,7 @@ void DUALPIDComponent::pid_update() {
     }
 
     // ── Transition de mode ────────────────────────────────────────────
-    if (this->current_mode_ != this->previous_mode_) {
+    if ( (this->current_mode_ != this->previous_mode_) && this->current_activation_) {
 
         if (this->current_mode_ == 1) {        // → CHARGE
             // Commuter r48 en mode charge AVANT d'envoyer la consigne
@@ -497,6 +495,7 @@ void DUALPIDComponent::pid_update() {
     }
 
     // ── Calcul des sorties physiques selon le mode ────────────────────
+	if(!this->current_activation_){
     switch (this->previous_mode_) {
 
         case 0:  // IDLE
@@ -546,16 +545,17 @@ void DUALPIDComponent::pid_update() {
             break;
         }
     }
+	}
 
     // ── Commutation r48 selon la sortie effective ─────────────────────
     // (filet de sécurité — normalement géré dans les transitions)
-    if (this->r48_general_switch_ != nullptr) {
+    if (this->r48_general_switch_ != nullptr && this->current_activation_) {
       if ((this->output_charging_  > this->current_output_min_charging_) && !this->r48_general_switch_->state) {
         this->r48_general_switch_->turn_on();
         this->r48_general_switch_->publish_state(true);
         ESP_LOGI(TAG, "r48 turned ON (charge)");
       } 
-	  else if ((this->previous_mode_ == 2)  && this->r48_general_switch_->state) {
+	  else if ((this->previous_mode_ == 2)  && this->r48_general_switch_->state && this->current_activation_) {
         this->r48_general_switch_->turn_off();
         this->r48_general_switch_->publish_state(false);
         ESP_LOGI(TAG, "r48 turned OFF (discharge)");
@@ -591,10 +591,10 @@ void DUALPIDComponent::pid_update() {
 
 	
     // ── Envoi des consignes (uniquement si valeur a changé) ───────────
-    if (this->output_charging_ != this->previous_output_charging_) {
+    if (this->output_charging_ != this->previous_output_charging_ && this->current_activation_) {
         this->device_charging_output_->set_level(this->output_charging_);
     }
-    if (this->output_discharging_ != this->previous_output_discharging_) {
+    if (this->output_discharging_ != this->previous_output_discharging_ && this->current_activation_) {
         if ( (this->producing_binary_sensor_ != nullptr) && (this->producing_binary_sensor_->state == true)) {
             this->device_discharging_output_->set_level(this->output_discharging_);
         }
