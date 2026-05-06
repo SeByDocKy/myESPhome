@@ -39,7 +39,9 @@ sensor:
     target:
       name: ${name}_${dualpid_name}_target
     epoint:
-      name: ${name}_${dualpid_name}_epoint  
+      name: ${name}_${dualpid_name}_epoint
+    mode: 
+      name: ${name}_${dualpid_name}_mode
 
 
 binary_sensor:
