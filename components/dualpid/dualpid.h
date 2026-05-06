@@ -151,6 +151,7 @@ SUB_NUMBER(output_max_discharging)
   float get_output_discharging(void) { return this->current_output_discharging_; }  
   float get_target(void) { return this->current_target_; }
   float get_epoint(void) { return this->current_epoint_; }
+  float get_mode(void) {return this->current_mode_;}
 #endif
 
  bool get_deadband(void){return this->current_deadband_;}
