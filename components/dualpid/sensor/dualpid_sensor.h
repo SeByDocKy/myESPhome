@@ -18,7 +18,7 @@ class DUALPIDSensor : public Component, public Parented<DUALPIDComponent> {
   void set_output_discharging_sensor(sensor::Sensor *sensor) { this->output_discharging_sensor_ = sensor; }
   void set_target_sensor(sensor::Sensor *sensor) { this->target_sensor_ = sensor; }
   void set_epoint_sensor(sensor::Sensor *sensor) { this->epoint_sensor_ = sensor; }
- void  set_mode_sensor (sensor::Sensor *sensor) { this->mode_sensor_ = sensor; }
+  void  set_mode_sensor (sensor::Sensor *sensor) { this->mode_sensor_ = sensor; }
 
  protected:
   sensor::Sensor *error_sensor_{nullptr};
