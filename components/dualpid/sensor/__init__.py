@@ -19,11 +19,12 @@ CONF_OUTPUT_DISCHARGING = "output_discharging"
 CONF_ERROR  = "error"
 CONF_TARGET = "target"
 CONF_EPOINT = "epoint"
-CONF_MODE = "mode"
+CONF_MODE   = "mode"
 
 ICON_EPSILON = "mdi:epsilon"
 ICON_PERCENT = "mdi:percent"
-ICON_TARGET = "mdi:target"
+ICON_TARGET  = "mdi:target"
+ICON_NUMERIC = "mdi:numeric"
 
 
 from .. import CONF_DUALPID_ID, DUALPIDComponent, dualpid_ns
@@ -76,6 +77,7 @@ CONFIG_SCHEMA = {
              ),
     cv.Optional(CONF_MODE): sensor.sensor_schema(
                 accuracy_decimals=0,
+                icon = ICON_NUMERIC, 
                 state_class=STATE_CLASS_MEASUREMENT,
              ),
 }
