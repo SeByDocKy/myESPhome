@@ -284,7 +284,7 @@ void DUALPIDComponent::pid_update() {
     }
 
     // ── Deadband depuis mode ACTIF : arrêt immédiat ───────────────────
-    if (this->current_deadband_ && this->previous_mode_ != 0) {
+    if (this->current_deadband_ && this->previous_mode_ != 0 && this->current_activation_) {
         this->output_charging_             = 0.0f;
         this->output_discharging_          = HMS_MIN_LEVEL;
 		this->current_output_charging_     = 0.0f;       
