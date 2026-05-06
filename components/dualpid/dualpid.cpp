@@ -7,7 +7,7 @@ namespace dualpid {
 // Facteur zone morte : |epsi| < Pmin * DEADBAND_FACTOR → on ne fait rien
 #define DEADBAND_FACTOR  1.03f
 #define HMS_MIN_LEVEL  0.02f
-#define STARTUP_INHIBIT_MS  4000
+#define STARTUP_INHIBIT_MS  5000
 
 static const char *const TAG = "dualpid";
 
