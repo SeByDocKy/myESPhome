@@ -43,13 +43,11 @@ sensor:
     mode: 
       name: ${name}_${dualpid_name}_mode
 
-
 binary_sensor:
   - platform: dualpid
     dualpid_id: ${dualpid_id}
     deadband:
       name: ${name}_${dualpid_name}_deadband
-
 
 switch:
   - platform: dualpid
@@ -66,9 +64,6 @@ switch:
     reverse: 
       name: ${name}_${dualpid_name}_reverse
       id:  ${dualpid_name}_reverse
-    # r48: 
-    #   name: ${name}_${dualpid_name}_r48
-    #   id:  ${dualpid_name}_r48
       
 number:
   - platform: dualpid
@@ -111,9 +106,4 @@ number:
       name: ${name}_${dualpid_name}_output_min_discharging
     output_max_discharging: 
       name: ${name}_${dualpid_name}_output_max_discharging
-
-
-
-
-
 
