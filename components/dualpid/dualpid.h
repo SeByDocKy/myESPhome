@@ -187,8 +187,7 @@ SUB_NUMBER(output_max_discharging)
   bool current_deadband_           = false;
   float o_hysteresis_              = 0.02f;
   uint32_t mode_start_time_        = 0;
-  bool current_deadband_           = false;
-  
+   
   
   sensor::Sensor *input_sensor_;
   sensor::Sensor *battery_voltage_sensor_;
