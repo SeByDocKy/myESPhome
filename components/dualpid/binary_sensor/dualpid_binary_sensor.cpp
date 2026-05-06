@@ -16,7 +16,7 @@ void DUALPIDBinarySensor::dump_config() {
   LOG_BINARY_SENSOR("  ", "deadband", this->deadband_binary_sensor_);
 }	
 
-void DUALPIDPCMBinarySensor::publish_data_() {
+void DUALPIDBinarySensor::publish_data_() {
   if (this->deadband_binary_sensor_ != nullptr)
     this->deadband_binary_sensor_->publish_state(this->parent_->get_deadband());  
 }
