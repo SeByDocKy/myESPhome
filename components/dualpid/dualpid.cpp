@@ -330,6 +330,12 @@ void DUALPIDComponent::pid_update() {
         this->integral_ -= tmp_i;
       }
       this->current_output_ = o_clamped;
+	  // ── Freeze pendant démarrage Emerson ──────────────────────────
+      if (in_startup) {
+        this->current_output_ = elb;          // output bloqué à elb = Oc=0
+        this->integral_       = 0.0f;         // intégrale gelée aussi
+        this->previous_output_ = elb;         // pas de saut au déblocage
+      }	
     } 
 	else if (this->previous_mode_ == 2) { // DISCHARGE — output ∈ [eub, 1]
     // eub → Od=0,  1 → Od=max
