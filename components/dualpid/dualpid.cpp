@@ -5,8 +5,9 @@ namespace esphome {
 namespace dualpid {
 
 // Facteur zone morte : |epsi| < Pmin * DEADBAND_FACTOR → on ne fait rien
+
 #define DEADBAND_FACTOR  1.03f
-#define HMS_MIN_LEVEL  0.02f
+#define HMS_MIN_LEVEL  0.03f
 #define STARTUP_INHIBIT_MS  5000
 
 static const char *const TAG = "dualpid";
@@ -50,19 +51,12 @@ void DUALPIDComponent::setup() {
     });
     this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
   }
-  //   // S'assurer que r48 démarre côté charge (sécurité)
-  // if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == false) {
-  //   this->r48_general_switch_->turn_on();
-  //   this->r48_general_switch_->publish_state(true);
-  // }	
+    // S'assurer que r48 démarre côté charge (sécurité)
+  if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
+    this->r48_general_switch_->turn_off();
+    this->r48_general_switch_->publish_state(false);
+  }	
 
- // // Dans setup(), après les autres callbacks :
- //  if (this->activation_switch_ != nullptr) {
- //    this->activation_switch_->add_on_state_callback([this](bool state) {
- //        this->current_activation_ = state;
- //        this->pid_update();   // ← forcer un cycle quand activation change
- //    });
- //  }	
   
   this->pid_computed_callback_.call();
   // this->pid_update();
@@ -136,16 +130,6 @@ void DUALPIDComponent::pid_update() {
 	
     this->current_error_ = this->error_;
 
-    // ── Reset propre au passage activation off → on ───────────────────
-    // if (this->current_activation_ && !this->previous_activation_) {
-    //     this->previous_output_ = this->current_epoint_;   // neutre = epoint_
-    //     this->current_output_  = this->current_epoint_;
-    //     this->previous_error_  = this->error_;
-    //     this->integral_        = 0.0f;
-    //     this->previous_mode_   = 0;
-    //     this->current_mode_    = 0;
-    //     ESP_LOGI(TAG, "Activation ON: reset to epoint=%.4f", this->current_epoint_);
-    // }
     if (this->current_activation_ && !this->previous_activation_) {
       this->previous_error_ = this->error_;
       this->integral_       = 0.0f;
@@ -197,22 +181,10 @@ void DUALPIDComponent::pid_update() {
             this->r48_general_switch_->turn_off();
             this->r48_general_switch_->publish_state(false);
         }
-
-  //       this->previous_output_charging_    = 0.0f;
-  //       this->previous_output_discharging_ = HMS_MIN_LEVEL;
-		
-		// this->device_charging_output_->set_level(0.0f);
-  //       this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 		
         this->pid_computed_callback_.call();
         return;  
     }
-
-	// if (!this->current_activation_) {
- //        // this->device_charging_output_->set_level(0.0f);
- //        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
-	// }
-
 
     // ── Protection sous-tension batterie ─────────────────────────────
     if (!std::isnan(this->current_battery_voltage_)) {
@@ -269,17 +241,10 @@ void DUALPIDComponent::pid_update() {
 
     // Inhibe la deadband si une sortie physique est déjà active
     // (évite la coupure prématurée pendant le démarrage ~3-4s du R48)
-    
-	// output_is_active = (this->current_output_charging_ > this->current_output_min_charging_) || (this->current_output_discharging_ > this->current_output_min_discharging_);
- //    this->current_deadband_ = raw_deadband && !output_is_active;
-    
+        
 	in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
     this->current_deadband_ = raw_deadband && !in_startup;
-	
-    
-
-    //ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d active=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, output_is_active, this->current_deadband_);
-    
+	 
 	ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
@@ -355,11 +320,6 @@ void DUALPIDComponent::pid_update() {
 
     this->current_output_ = std::min(std::max(tmp + alpha, this->current_output_min_), this->current_output_max_);
 
-    // // Anti-windup global
-    // if ( (this->current_output_ <= this->current_output_min_) || (this->current_output_ >= this->current_output_max_)) {
-    //     this->integral_ -= tmp_i;
-    // }
-
     if (this->previous_mode_ == 1) {        // CHARGE — output ∈ [0, elb]
       // elb → Oc=0,  0 → Oc=max
       // Oc = (elb - output) / elb  →  output = elb - Oc * elb = elb * (1 - Oc)
@@ -402,7 +362,6 @@ void DUALPIDComponent::pid_update() {
                 this->current_mode_ = 2;   // → DISCHARGE
             break;
 		    
-
         case 1:  // CHARGE
 		    if (this->current_deadband_) {
              this->current_mode_ = 0;
@@ -528,13 +487,6 @@ void DUALPIDComponent::pid_update() {
             float oc   = (elb - this->current_output_) / span;
             this->output_charging_    = std::min(std::max(oc, this->current_output_min_charging_), this->current_output_max_charging_);
             this->output_discharging_ = HMS_MIN_LEVEL;
-   //          // Anti-windup côté borne physique
-			// if (oc != this->output_charging_) {
-		 //      if (tmp_i < 0.0f) this->integral_ -= tmp_i;  // anti-windup : on était contre une borne
-   //          }
-            // if ( (this->output_charging_ <= this->current_output_min_charging_) || (this->output_charging_ >= this->current_output_max_charging_) ) {
-            //     this->integral_ -= tmp_i;
-            // }
             break;
         }
 
@@ -549,13 +501,6 @@ void DUALPIDComponent::pid_update() {
             float od   = (this->current_output_ - eub) / span;
             this->output_charging_    = 0.0f;
             this->output_discharging_ = std::min(std::max(od, this->current_output_min_discharging_), this->current_output_max_discharging_);
-   //          // Anti-windup côté borne physique
-			// if (od != this->output_discharging_) {
-		 //      if (tmp_i > 0.0f) this->integral_ -= tmp_i;  // anti-windup : on était contre une borne
-   //          }
-            // if ( (this->output_discharging_ <= this->current_output_min_discharging_) || (this->output_discharging_ >= this->current_output_max_discharging_) ) {
-            //     this->integral_ -= tmp_i;
-            // }
             break;
         }
     }
