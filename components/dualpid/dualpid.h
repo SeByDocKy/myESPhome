@@ -182,7 +182,7 @@ SUB_NUMBER(output_max_discharging)
   float current_min_charging_      = 3.5f;
   float current_min_discharging_   = 0.0f;
 
-  int current_mode_                = 0;
+  
   int previous_mode_               = 0;
   bool previous_activation_        = false;
   bool current_deadband_           = false;
@@ -199,21 +199,20 @@ SUB_NUMBER(output_max_discharging)
   
   CallbackManager<void()> pid_computed_callback_;
 
-#ifdef USE_SENSOR
   float current_error_ = 0.0f;
   float current_output_ = 0.0f;
   float current_output_charging_ = 0.0f;
   float current_output_discharging_ = 0.0f;
   float current_target_ = 0.0f;
   float current_epoint_ = 50.0f;
-#endif   
+  int current_mode_     = 0;
+
 
 #ifdef USE_SWITCH  
   bool current_activation_ = false;
   bool current_manual_override_ = false;
   bool current_pid_mode_ = false;
   bool current_reverse_ = false;
-  // bool current_r48_ = false;
 #endif  
   
 #ifdef USE_NUMBER
