@@ -173,7 +173,17 @@ void DUALPIDComponent::pid_update() {
         this->output_charging_             = 0.0f;
         this->output_discharging_          = HMS_MIN_LEVEL;
 		this->current_output_charging_     = 0.0f;
-        this->current_output_discharging_  = HMS_MIN_LEVEL;
+		this->current_output_discharging_  = HMS_MIN_LEVEL;
+		
+		if(this->current_output_charging_ != this->previous_output_charging_){
+          this->device_charging_output_->set_level(0.0f);
+		}
+		
+		if(this->current_output_discharging_ != this->previous_output_discharging_){
+          this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+		}
+		
+        
         this->previous_output_charging_    = 0.0f;
         this->previous_output_discharging_ = HMS_MIN_LEVEL;
         this->current_output_              = this->current_epoint_;
@@ -188,11 +198,11 @@ void DUALPIDComponent::pid_update() {
             this->r48_general_switch_->publish_state(false);
         }
 
-        this->previous_output_charging_    = 0.0f;
-        this->previous_output_discharging_ = HMS_MIN_LEVEL;
+  //       this->previous_output_charging_    = 0.0f;
+  //       this->previous_output_discharging_ = HMS_MIN_LEVEL;
 		
-		this->device_charging_output_->set_level(0.0f);
-        this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
+		// this->device_charging_output_->set_level(0.0f);
+  //       this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
 		
         this->pid_computed_callback_.call();
         return;  
