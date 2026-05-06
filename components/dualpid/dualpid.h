@@ -153,6 +153,8 @@ SUB_NUMBER(output_max_discharging)
   float get_epoint(void) { return this->current_epoint_; }
 #endif
 
+ bool get_deadband(void){return this->current_deadband_;}
+
  protected:
   uint32_t last_time_ = 0;
   float dt_;
@@ -185,6 +187,7 @@ SUB_NUMBER(output_max_discharging)
   bool current_deadband_           = false;
   float o_hysteresis_              = 0.02f;
   uint32_t mode_start_time_        = 0;
+  bool current_deadband_           = false;
   
   
   sensor::Sensor *input_sensor_;
