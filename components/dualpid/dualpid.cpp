@@ -94,8 +94,6 @@ void DUALPIDComponent::pid_update() {
 		return;
 	}
 	else{
-
-	
     // ── Garde dt ──────────────────────────────────────────────────────
     this->dt_ = float(now - this->last_time_) / 1000.0f;
     if (this->dt_ < 0.001f) {
@@ -256,7 +254,7 @@ void DUALPIDComponent::pid_update() {
         
 	in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
     // this->current_deadband_ = raw_deadband && !in_startup && !output_is_active;
-	this->current_deadband_ = raw_deadband && !in_startup;	
+	this->current_deadband_ = (raw_deadband && !in_startup) && (output_is_active && this->current_activation_);	
 	 
 	ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
