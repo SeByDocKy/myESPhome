@@ -510,7 +510,7 @@ void DUALPIDComponent::pid_update() {
         case 1: {  // CHARGE  — output ∈ [0, elb] → Oc ∈ [Ocmax, 0]
             // Distance normalisée depuis elb vers 0
             // output = elb → Oc = 0,  output = 0 → Oc = max
-			if (this->output_discharging_ > HMS_MIN_LEVEL) {
+			if (this->output_discharging_ > HMS_MIN_LEVEL && this->current_activation_ ) {
               this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
               this->output_discharging_ = HMS_MIN_LEVEL;
 			}
@@ -530,7 +530,7 @@ void DUALPIDComponent::pid_update() {
 
         case 2: {  // DISCHARGE  — output ∈ [eub, 1] → Od ∈ [0, Odmax]
 			// Sécurité : forcer le R48 à 0 si encore actif
-            if (this->output_charging_ > 0.0f) {
+            if (this->output_charging_ > 0.0f && this->current_activation_) {
              this->device_charging_output_->set_level(0.0f);
              this->output_charging_ = 0.0f;
 			}
@@ -594,10 +594,10 @@ void DUALPIDComponent::pid_update() {
 
 	
     // ── Envoi des consignes (uniquement si valeur a changé) ───────────
-    if (this->output_charging_ != this->previous_output_charging_) {
+    if (this->output_charging_ != this->previous_output_charging_ && this->current_activation_ ) {
         this->device_charging_output_->set_level(this->output_charging_);
     }
-    if (this->output_discharging_ != this->previous_output_discharging_) {
+    if (this->output_discharging_ != this->previous_output_discharging_ && this->current_activation_) {
         if ( (this->producing_binary_sensor_ != nullptr) && (this->producing_binary_sensor_->state == true)) {
             this->device_discharging_output_->set_level(this->output_discharging_);
         }
