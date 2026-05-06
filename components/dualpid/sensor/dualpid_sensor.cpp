@@ -18,7 +18,8 @@ void DUALPIDSensor::dump_config() {
   LOG_SENSOR("  ", "Output Charging", this->output_charging_sensor_);
   LOG_SENSOR("  ", "Output Discharging", this->output_discharging_sensor_);
   LOG_SENSOR("  ", "Target", this->target_sensor_);
-  LOG_SENSOR("  ", "Epoint", this->epoint_sensor_);	
+  LOG_SENSOR("  ", "Epoint", this->epoint_sensor_);
+  LOG_SENSOR("  ", "Mode", this->mode_sensor_);	
 }	
 
 void DUALPIDSensor::publish_data_() {
@@ -33,7 +34,9 @@ void DUALPIDSensor::publish_data_() {
   if (this->target_sensor_ != nullptr)
     this->target_sensor_->publish_state(this->parent_->get_target());
   if (this->epoint_sensor_ != nullptr)
-    this->epoint_sensor_->publish_state(this->parent_->get_epoint()*100.0f);	
+    this->epoint_sensor_->publish_state(this->parent_->get_epoint()*100.0f);
+  if (this->mode_sensor_ != nullptr)
+    this->mode_sensor_->publish_state(this->parent_->get_mode());	
 }
 
 } // dualpid
