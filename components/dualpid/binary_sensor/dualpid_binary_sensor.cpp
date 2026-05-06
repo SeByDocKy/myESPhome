@@ -1,4 +1,4 @@
-#include "dualpidpcm_binary_sensor.h"
+#include "dualpid_binary_sensor.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
