@@ -154,16 +154,25 @@ void DUALPIDComponent::pid_update() {
 
     // ── Bloc désactivation ────────────────────────────────────────────
     if (!this->current_activation_) {
+		if(this->current_output_discharging_ > this->output_min_discharging_){
+			this->device_discharging_output_->set_level(HMS_MIN_LEVEL);	
+		}
+		if(this->current_output_charging_ > this->output_min_charging_){
+			this->device_charging_output_->set_level(0.0f);	
+		}
+		
         this->output_charging_             = 0.0f;
         this->output_discharging_          = HMS_MIN_LEVEL;
 		this->current_output_charging_     = 0.0f;
 		this->current_output_discharging_  = HMS_MIN_LEVEL;
 		
 		// if(this->current_output_charging_ != this->previous_output_charging_){
-		if(!this->current_activation_ != !this->previous_activation_){ 	
-          this->device_charging_output_->set_level(0.0f);
-		  this->device_discharging_output_->set_level(HMS_MIN_LEVEL);	
-		}
+		// if(!this->current_activation_ != !this->previous_activation_){ 	
+  //         this->device_charging_output_->set_level(0.0f);
+		//   this->device_discharging_output_->set_level(HMS_MIN_LEVEL);	
+		// }
+		
+
 		
 		// if(this->current_output_discharging_ != this->previous_output_discharging_){
   //         this->device_discharging_output_->set_level(HMS_MIN_LEVEL);
