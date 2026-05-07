@@ -24,31 +24,65 @@ static const float coeffDdischarging = 0.001f;
 // ── Helpers d'envoi de consignes (n'envoient que si valeur change) ────────────
 
 void DUALPIDComponent::set_charging_level(float level) {
-    if (level != this->current_output_charging_) {
+    // Comparer avec previous pour détecter un vrai changement depuis
+    // le dernier cycle envoyé — current peut avoir été modifié manuellement
+    if (level != this->previous_output_charging_) {
         this->device_charging_output_->set_level(level);
-        this->current_output_charging_ = level;
         ESP_LOGD(TAG, "set_charging_level: %.4f", level);
     }
+    // Toujours mettre à jour current et previous
+    this->current_output_charging_  = level;
+    this->previous_output_charging_ = level;
 }
 
 void DUALPIDComponent::set_discharging_level(float level) {
-    if (level != this->current_output_discharging_) {
+    if (level != this->previous_output_discharging_) {
         if (level <= HMS_MIN_LEVEL) {
-            // Retour au niveau minimum : toujours envoyer (sécurité)
             this->device_discharging_output_->set_level(level);
-            this->current_output_discharging_ = level;
             ESP_LOGD(TAG, "set_discharging_level (min/stop): %.4f", level);
         } else {
-            // Consigne active : envoyer seulement si HMS prêt à produire
             if ((this->producing_binary_sensor_ == nullptr)
                 || (this->producing_binary_sensor_->state == true)) {
                 this->device_discharging_output_->set_level(level);
-                this->current_output_discharging_ = level;
                 ESP_LOGD(TAG, "set_discharging_level: %.4f", level);
             }
         }
     }
+    this->current_output_discharging_  = level;
+    this->previous_output_discharging_ = level;
 }
+
+
+
+
+
+
+// void DUALPIDComponent::set_charging_level(float level) {
+//     if (level != this->current_output_charging_) {
+//         this->device_charging_output_->set_level(level);
+//         this->current_output_charging_ = level;
+//         ESP_LOGD(TAG, "set_charging_level: %.4f", level);
+//     }
+// }
+
+// void DUALPIDComponent::set_discharging_level(float level) {
+//     if (level != this->current_output_discharging_) {
+//         if (level <= HMS_MIN_LEVEL) {
+//             // Retour au niveau minimum : toujours envoyer (sécurité)
+//             this->device_discharging_output_->set_level(level);
+//             this->current_output_discharging_ = level;
+//             ESP_LOGD(TAG, "set_discharging_level (min/stop): %.4f", level);
+//         } else {
+//             // Consigne active : envoyer seulement si HMS prêt à produire
+//             if ((this->producing_binary_sensor_ == nullptr)
+//                 || (this->producing_binary_sensor_->state == true)) {
+//                 this->device_discharging_output_->set_level(level);
+//                 this->current_output_discharging_ = level;
+//                 ESP_LOGD(TAG, "set_discharging_level: %.4f", level);
+//             }
+//         }
+//     }
+// }
 
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
