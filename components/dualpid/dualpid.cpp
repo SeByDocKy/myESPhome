@@ -282,8 +282,7 @@ void DUALPIDComponent::pid_update() {
     Pmin_ch  = this->current_battery_voltage_ * this->current_min_charging_;
     Pmin_dis = this->current_battery_voltage_ * this->current_min_discharging_;
 
-    raw_deadband = (epsi > -(Pmin_ch * DEADBAND_FACTOR))
-                && (epsi <  (Pmin_dis * DEADBAND_FACTOR));
+    raw_deadband = (epsi > -(Pmin_ch * DEADBAND_FACTOR)) && (epsi <  (Pmin_dis * DEADBAND_FACTOR));
 
     // ── Fix ii) : deadband basée uniquement sur raw_deadband + in_startup ──
     // Suppression de output_is_active : il causait une sortie prématurée de
@@ -292,7 +291,7 @@ void DUALPIDComponent::pid_update() {
     // est assurée par in_startup seul, et la sortie de mode par la machine
     // d'état (condition error > Pmin_ch dans case 1 et case 2).
     in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
-    this->current_deadband_ = raw_deadband && !in_startup;
+    this->current_deadband_ = raw_deadband && !in_startup && this->current_activation_;
 
     ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d",
              epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
