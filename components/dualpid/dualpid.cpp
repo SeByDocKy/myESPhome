@@ -231,6 +231,7 @@ void DUALPIDComponent::pid_update() {
         this->previous_output_             = this->current_epoint_;
         this->previous_mode_               = 0;
         this->current_mode_                = 0;
+        this->current_deadband_            = false; 
         this->last_time_                   = now;
         // ─────────────────────── Arrêt de l'emerson R48  ─────────────────────── 
         if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
