@@ -82,7 +82,7 @@ void DUALPIDComponent::setup() {
         this->current_battery_voltage_ = this->battery_voltage_sensor_->state;
     }
 
-    // S'assurer que r48 démarre côté charge (sécurité)
+    // S'assurer que le r48 est bien arrêté avant (sécurité)
     if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
         this->r48_general_switch_->turn_off();
         this->r48_general_switch_->publish_state(false);
@@ -114,6 +114,7 @@ void DUALPIDComponent::pid_update() {
     float Pmin_ch, Pmin_dis;
     float elb, eub;
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped, span;
+    float span_c, oc, span_d, od;
 
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d", this->current_pid_mode_);
@@ -177,6 +178,7 @@ void DUALPIDComponent::pid_update() {
 
     // ── Bloc désactivation ────────────────────────────────────────────
     if (!this->current_activation_) {
+        // ─────────────────────── transition activation on à off ───────────────────────
         if (this->current_output_discharging_ > this->current_output_min_discharging_) {
             this->set_discharging_level(HMS_MIN_LEVEL);
         }
@@ -195,7 +197,7 @@ void DUALPIDComponent::pid_update() {
         this->previous_mode_               = 0;
         this->current_mode_                = 0;
         this->last_time_                   = now;
-
+        // ─────────────────────── Arrêt de l'emerson R48  ─────────────────────── 
         if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
             this->r48_general_switch_->turn_off();
             this->r48_general_switch_->publish_state(false);
@@ -429,8 +431,7 @@ void DUALPIDComponent::pid_update() {
             this->current_output_              = elb;
         }
         else if (this->current_mode_ == 2) {   // → DISCHARGE
-            if ((this->r48_general_switch_ != nullptr)
-                && (this->r48_general_switch_->state == true)) {
+            if ((this->r48_general_switch_ != nullptr) && (this->r48_general_switch_->state == true)) {
                 this->r48_general_switch_->turn_off();
                 this->r48_general_switch_->publish_state(false);
             }
@@ -483,11 +484,9 @@ void DUALPIDComponent::pid_update() {
                 this->set_discharging_level(HMS_MIN_LEVEL);
                 this->output_discharging_ = HMS_MIN_LEVEL;
             }
-            float span_c = (elb > 0.0f) ? elb : 1.0f;
-            float oc     = (elb - this->current_output_) / span_c;
-            this->output_charging_    = std::min(std::max(oc,
-                                                           this->current_output_min_charging_),
-                                                 this->current_output_max_charging_);
+            span_c                    = (elb > 0.0f) ? elb : 1.0f;
+            oc                        = (elb - this->current_output_) / span_c;
+            this->output_charging_    = std::min(std::max(oc, this->current_output_min_charging_), this->current_output_max_charging_);
             this->output_discharging_ = HMS_MIN_LEVEL;
             break;
         }
@@ -498,20 +497,17 @@ void DUALPIDComponent::pid_update() {
                 this->set_charging_level(0.0f);
                 this->output_charging_ = 0.0f;
             }
-            float span_d = (1.0f - eub > 0.0f) ? (1.0f - eub) : 1.0f;
-            float od     = (this->current_output_ - eub) / span_d;
+            span_d                    = (1.0f - eub > 0.0f) ? (1.0f - eub) : 1.0f;
+            od                        = (this->current_output_ - eub) / span_d;
             this->output_charging_    = 0.0f;
-            this->output_discharging_ = std::min(std::max(od,
-                                                           this->current_output_min_discharging_),
-                                                 this->current_output_max_discharging_);
+            this->output_discharging_ = std::min(std::max(od, this->current_output_min_discharging_), this->current_output_max_discharging_);
             break;
         }
     }
 
     // ── Commutation r48 selon la sortie effective (filet de sécurité) ─
     if (this->r48_general_switch_ != nullptr) {
-        if ((this->output_charging_ > this->current_output_min_charging_)
-            && !this->r48_general_switch_->state) {
+        if ((this->output_charging_ > this->current_output_min_charging_) && !this->r48_general_switch_->state) {
             this->r48_general_switch_->turn_on();
             this->r48_general_switch_->publish_state(true);
             ESP_LOGI(TAG, "r48 turned ON (charge safety net)");
