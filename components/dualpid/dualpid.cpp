@@ -8,7 +8,7 @@ namespace dualpid {
 
 #define DEADBAND_FACTOR  1.03f
 #define HMS_MIN_LEVEL  0.02f
-#define STARTUP_INHIBIT_MS  5000
+#define STARTUP_INHIBIT_MS  6000
 
 static const char *const TAG = "dualpid";
 
