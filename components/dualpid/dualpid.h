@@ -71,6 +71,8 @@ SUB_NUMBER(output_max_discharging)
   void set_device_discharging_output(output::FloatOutput *output) {this->device_discharging_output_ = output; }
   void set_r48_general_switch(switch_::Switch *sw) {this->r48_general_switch_ = sw;}
   void set_producing_binary_sensor(binary_sensor::BinarySensor *bs) {this->producing_binary_sensor_ = bs;}
+  void set_charging_level(float level);
+  void set_discharging_level(float level);
 
   // void activation_handle();
   void pid_update();
