@@ -331,10 +331,10 @@ void DUALPIDComponent::pid_update() {
         }
         this->previous_mode_ = 0;
         this->current_mode_  = 0;
-
-        if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == false) {
-            this->r48_general_switch_->turn_on();
-            this->r48_general_switch_->publish_state(true);
+        // --- arrêt de l'emerson 48 ---
+        if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
+            this->r48_general_switch_->turn_off();
+            this->r48_general_switch_->publish_state(false);
         }
         this->set_charging_level(0.0f);
         this->set_discharging_level(HMS_MIN_LEVEL);
