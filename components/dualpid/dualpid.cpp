@@ -428,12 +428,15 @@ void DUALPIDComponent::pid_update() {
             break;
 
         case 1:  // CHARGE
-            if (this->current_deadband_) {
-                this->current_mode_ = 0;
-            }
-            // error franchement positif → surplus insuffisant → IDLE
-            else if (!in_startup && this->error_ > (Pmin_ch * DEADBAND_FACTOR)) {
-                this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
+            // if (this->current_deadband_) {
+            //     this->current_mode_ = 0;
+            // }
+            // // error franchement positif → surplus insuffisant → IDLE
+            // else if (!in_startup && this->error_ > (Pmin_ch * DEADBAND_FACTOR)) {
+            //     this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
+            // }
+            if (!in_startup && this->error_ > (Pmin_ch * DEADBAND_FACTOR)) {
+               this->current_mode_ = 0;
             }
             break;
 
