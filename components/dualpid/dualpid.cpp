@@ -145,6 +145,7 @@ void DUALPIDComponent::pid_update() {
     float coeffP, coeffI, coeffD;
     bool raw_deadband;
     bool in_startup;
+    bool outputs_at_rest;
     float Pmin_ch, Pmin_dis;
     float elb, eub;
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped, span;
@@ -291,8 +292,9 @@ void DUALPIDComponent::pid_update() {
     // error était encore < 0. La protection contre le démarrage prématuré
     // est assurée par in_startup seul, et la sortie de mode par la machine
     // d'état (condition error > Pmin_ch dans case 1 et case 2).
-      in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
-      this->current_deadband_ = raw_deadband && !in_startup;
+      in_startup              = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
+      outputs_at_rest         = (this->current_output_charging_  <= this->current_output_min_charging_) && (this->current_output_discharging_ <= this->current_output_min_discharging_);  
+      this->current_deadband_ = raw_deadband && !in_startup && outputs_at_rest;
    }
    else{
     this->current_deadband_ = false;
@@ -413,8 +415,7 @@ void DUALPIDComponent::pid_update() {
         this->current_output_ = std::min(std::max(this->current_output_, elb), eub);
     }
 
-    ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f",
-             this->error_, this->integral_, this->derivative_, alpha, tmp, this->current_output_);
+    ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f", this->error_, this->integral_, this->derivative_, alpha, tmp, this->current_output_);
 
     // ── Machine d'état ────────────────────────────────────────────────
     this->current_mode_ = this->previous_mode_;
