@@ -57,6 +57,8 @@ class DUALPIDPCMComponent : public Component{
   void set_onoff_switch(switch_::Switch *sw) {this->onoff_switch_ = sw;}
   void set_current_min_charging_register(float current){this->current_min_charging_ = current;}
   void set_current_min_discharging_register(float current){this->current_min_discharging_ = current;}
+  void set_charging_level(float level);
+  void set_discharging_level(float level);
    
   void pid_update();
   
