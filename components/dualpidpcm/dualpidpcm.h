@@ -204,11 +204,12 @@ class DUALPIDPCMComponent : public Component{
   float current_output_max_discharging_ = 1.0f;
   float current_output_min_discharging_ = 0.0f;
 
-  bool current_deadband_ = false;
-  bool current_swap_     = false;
+  bool current_deadband_                = false;
+  bool current_swap_                    = false;
 
-  int offcharge_         = 0;
-  int offdischarge_      = 0;
+  int offcharge_                        = 0;
+  int offdischarge_                     = 0;
+  uint32_t mode_start_time_             = 0;
  
 
   float lb_             = 0.02f;
