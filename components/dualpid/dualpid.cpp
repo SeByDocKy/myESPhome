@@ -294,7 +294,21 @@ void DUALPIDComponent::pid_update() {
     // est assurée par in_startup seul, et la sortie de mode par la machine
     // d'état (condition error > Pmin_ch dans case 1 et case 2).
       in_startup              = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
-      outputs_at_rest         = (this->current_output_charging_  <= this->current_output_min_charging_) && (this->current_output_discharging_ <= this->current_output_min_discharging_);  
+      // outputs_at_rest         = (this->current_output_charging_  <= this->current_output_min_charging_) && (this->current_output_discharging_ <= this->current_output_min_discharging_);  
+      
+      if (this->previous_mode_ == 1) {
+       // En charge : on attend que output_charging soit au repos
+       outputs_at_rest = (this->current_output_charging_ <= this->current_output_min_charging_);
+      }
+      else if (this->previous_mode_ == 2) {
+       // En décharge : on attend que output_discharging soit au repos
+       outputs_at_rest = (this->current_output_discharging_ <= this->current_output_min_discharging_);
+      }
+      else {
+       // IDLE : toujours au repos
+       outputs_at_rest = true;
+      }     
+      
       this->current_deadband_ = raw_deadband && !in_startup && outputs_at_rest;
    }
    else{
