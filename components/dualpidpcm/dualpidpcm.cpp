@@ -277,11 +277,10 @@ void DUALPIDPCMComponent::pid_update() {
     // ── Clamping O selon le mode courant ──────────────────────────────
     if (this->previous_mode_ == 1) {        // CHARGE
         o_min_charge = (1.0f - this->current_output_max_charging_) * this->oneutral_;
-        o_max_charge =  std::min((1.0f - this->current_output_min_charging_) * this->oneutral_ , this->olb_ );
+        o_max_charge = (1.0f - this->current_output_min_charging_) * this->oneutral_;
         o_clamped    = std::min(std::max(this->current_output_, o_min_charge), o_max_charge);
         if (o_clamped != this->current_output_) {
-            //if (tmp_i < 0.0f) this->integral_ -= tmp_i;
-            this->integral_ -= tmp_i;
+            if (tmp_i < 0.0f) this->integral_ -= tmp_i;
         }
         this->current_output_ = o_clamped;
 
@@ -298,12 +297,11 @@ void DUALPIDPCMComponent::pid_update() {
         }
     }
     else if (this->previous_mode_ == 2) {   // DISCHARGE
-        o_min_discharge = std::max(this->current_output_min_discharging_ * this->oneutral_ + this->oneutral_ , this->oub_);
+        o_min_discharge = this->current_output_min_discharging_ * this->oneutral_ + this->oneutral_;
         o_max_discharge = this->current_output_max_discharging_ * this->oneutral_ + this->oneutral_;
         o_clamped       = std::min(std::max(this->current_output_, o_min_discharge), o_max_discharge);
         if (o_clamped != this->current_output_) {
-            //if (tmp_i > 0.0f) this->integral_ -= tmp_i;
-            this->integral_ -= tmp_i;
+            if (tmp_i > 0.0f) this->integral_ -= tmp_i;
         }
         this->current_output_ = o_clamped;
 
@@ -333,27 +331,21 @@ void DUALPIDPCMComponent::pid_update() {
             break;
 
         case 1:  // CHARGE
-            // if (this->current_output_ > this->oub_)
-            //     this->current_mode_ = 2;
-            // else if ((this->current_output_ >= this->olb_)
-            //       && (this->current_output_ <= this->oub_)
-            //       && this->current_deadband_)
-            //     this->current_mode_ = 0;
-            if (!in_startup && epsi > this->Pmin_discharging * DEADBAND_FACTOR) {
-              this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE au cycle suivant
-            }
+            if (this->current_output_ > this->oub_)
+                this->current_mode_ = 2;
+            else if ((this->current_output_ >= this->olb_)
+                  && (this->current_output_ <= this->oub_)
+                  && this->current_deadband_)
+                this->current_mode_ = 0;
             break;
 
         case 2:  // DISCHARGE
-            // if (this->current_output_ < this->olb_)
-            //     this->current_mode_ = 1;
-            // else if ((this->current_output_ >= this->olb_)
-            //       && (this->current_output_ <= this->oub_)
-            //       && this->current_deadband_)
-            //     this->current_mode_ = 0;
-            if (!in_startup && epsi < this->Pmin_charging * DEADBAND_FACTOR) {
-             this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE au cycle suivant
-            }
+            if (this->current_output_ < this->olb_)
+                this->current_mode_ = 1;
+            else if ((this->current_output_ >= this->olb_)
+                  && (this->current_output_ <= this->oub_)
+                  && this->current_deadband_)
+                this->current_mode_ = 0;
             break;
     }
 
