@@ -454,7 +454,6 @@ void DUALPIDComponent::pid_update() {
                this->current_mode_ = 0;
             }
 
-            
             // if (!in_startup && (this->output_charging_ <= this->current_output_min_charging_ + 0.01f) &&  (this->error_ > (Pmin_ch * DEADBAND_FACTOR) ) {
             //     this->current_mode_ = 0;
             // }
@@ -474,8 +473,6 @@ void DUALPIDComponent::pid_update() {
             // if ( !in_startup && (this->output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (this->error_ < -(Pmin_ch * DEADBAND_FACTOR) )  {    
             //     this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE
             // }
-
-
             
             break;
     }
