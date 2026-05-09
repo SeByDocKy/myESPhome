@@ -457,9 +457,9 @@ void DUALPIDComponent::pid_update() {
             break;
 
         case 2:  // DISCHARGE
-            if (this->current_deadband_) {
-                this->current_mode_ = 0;
-            }
+            // if (this->current_deadband_) {
+            //     this->current_mode_ = 0;
+            // }
             // error franchement négatif → surplus suffisant → IDLE
             else if (!in_startup && this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) {
                 this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE
