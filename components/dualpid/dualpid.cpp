@@ -315,8 +315,7 @@ void DUALPIDComponent::pid_update() {
     this->current_deadband_ = false;
    }
 
-    ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d",
-             epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
+    ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
 
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
@@ -390,9 +389,7 @@ void DUALPIDComponent::pid_update() {
     alphaD = coeffD * this->derivative_;
     alpha  = alphaP + alphaI + alphaD;
 
-    this->current_output_ = std::min(std::max(tmp + alpha,
-                                               this->current_output_min_),
-                                     this->current_output_max_);
+    this->current_output_ = std::min(std::max(tmp + alpha, this->current_output_min_), this->current_output_max_);
 
     if (this->previous_mode_ == 1) {        // CHARGE — output ∈ [0, elb]
         o_min_charge = elb * (1.0f - this->current_output_max_charging_);
