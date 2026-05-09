@@ -339,6 +339,9 @@ void DUALPIDPCMComponent::pid_update() {
             //       && (this->current_output_ <= this->oub_)
             //       && this->current_deadband_)
             //     this->current_mode_ = 0;
+            if (!in_startup && epsi > this->Pmin_discharging * DEADBAND_FACTOR) {
+              this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE au cycle suivant
+            }
             break;
 
         case 2:  // DISCHARGE
@@ -348,6 +351,9 @@ void DUALPIDPCMComponent::pid_update() {
             //       && (this->current_output_ <= this->oub_)
             //       && this->current_deadband_)
             //     this->current_mode_ = 0;
+            if (!in_startup && epsi < this->Pmin_charging * DEADBAND_FACTOR) {
+             this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE au cycle suivant
+            }
             break;
     }
 
