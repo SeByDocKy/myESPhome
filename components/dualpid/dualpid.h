@@ -182,7 +182,7 @@ SUB_NUMBER(output_max_discharging)
   float current_device_output_discharging_ = 0.0f;
 
   float current_min_charging_      = 3.5f;
-  float current_min_discharging_   = 0.0f;
+  float current_min_discharging_   = 0.1f;
 
   
   int previous_mode_               = 0;
