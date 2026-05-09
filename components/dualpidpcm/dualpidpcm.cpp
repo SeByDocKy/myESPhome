@@ -277,7 +277,7 @@ void DUALPIDPCMComponent::pid_update() {
     // ── Clamping O selon le mode courant ──────────────────────────────
     if (this->previous_mode_ == 1) {        // CHARGE
         o_min_charge = (1.0f - this->current_output_max_charging_) * this->oneutral_;
-        o_max_charge = (1.0f - this->current_output_min_charging_) * this->oneutral_;
+        o_max_charge =  std::min((1.0f - this->current_output_min_charging_) * this->oneutral_ , this->olb_ );
         o_clamped    = std::min(std::max(this->current_output_, o_min_charge), o_max_charge);
         if (o_clamped != this->current_output_) {
             //if (tmp_i < 0.0f) this->integral_ -= tmp_i;
@@ -298,7 +298,7 @@ void DUALPIDPCMComponent::pid_update() {
         }
     }
     else if (this->previous_mode_ == 2) {   // DISCHARGE
-        o_min_discharge = this->current_output_min_discharging_ * this->oneutral_ + this->oneutral_;
+        o_min_discharge = std::max(this->current_output_min_discharging_ * this->oneutral_ + this->oneutral_ , this->oub_);
         o_max_discharge = this->current_output_max_discharging_ * this->oneutral_ + this->oneutral_;
         o_clamped       = std::min(std::max(this->current_output_, o_min_discharge), o_max_discharge);
         if (o_clamped != this->current_output_) {
