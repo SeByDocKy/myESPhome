@@ -398,7 +398,7 @@ void DUALPIDComponent::pid_update() {
         o_min_charge = elb * (1.0f - this->current_output_max_charging_);
         o_max_charge = elb * (1.0f - this->current_output_min_charging_);
         o_clamped    = std::min(std::max(this->current_output_, o_min_charge), o_max_charge);
-        if ((o_clamped != this->current_output_) ) { // && (tmp_i < 0.0f)
+        if ((o_clamped != this->current_output_) && (tmp_i < 0.0f) ) { // 
             this->integral_ -= tmp_i;
         }
         this->current_output_ = o_clamped;
@@ -418,7 +418,7 @@ void DUALPIDComponent::pid_update() {
         o_min_discharge = eub + this->current_output_min_discharging_ * span;
         o_max_discharge = eub + this->current_output_max_discharging_ * span;
         o_clamped       = std::min(std::max(this->current_output_, o_min_discharge), o_max_discharge);
-        if ((o_clamped != this->current_output_) ) { // && (tmp_i > 0.0f)
+        if ((o_clamped != this->current_output_) && (tmp_i > 0.0f) ) { // 
             this->integral_ -= tmp_i;
         }
         this->current_output_ = o_clamped;
