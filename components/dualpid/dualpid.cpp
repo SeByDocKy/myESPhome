@@ -35,23 +35,43 @@ void DUALPIDComponent::set_charging_level(float level) {
     this->previous_output_charging_ = level;
 }
 
+// void DUALPIDComponent::set_discharging_level(float level) {
+//     if (level != this->previous_output_discharging_) {
+//         if (level <= HMS_MIN_LEVEL) {
+//             this->device_discharging_output_->set_level(level);
+//             ESP_LOGD(TAG, "set_discharging_level (min/stop): %.4f", level);
+//         } else {
+//             if ((this->producing_binary_sensor_ == nullptr)
+//                 || (this->producing_binary_sensor_->state == true)) {
+//                 this->device_discharging_output_->set_level(level);
+//                 ESP_LOGD(TAG, "set_discharging_level: %.4f", level);
+//             }
+//         }
+//     }
+//     this->current_output_discharging_  = level;
+//     this->previous_output_discharging_ = level;
+// }
+
 void DUALPIDComponent::set_discharging_level(float level) {
-    if (level != this->previous_output_discharging_) {
-        if (level <= HMS_MIN_LEVEL) {
-            this->device_discharging_output_->set_level(level);
-            ESP_LOGD(TAG, "set_discharging_level (min/stop): %.4f", level);
+    // Quantifier à 0.5% près pour éviter de saturer le canal radio HMS/OpenDTU
+    // ex: 0.2137 → 0.215 (21.5%), 0.2024 → 0.200 (20.0%)
+    float quantized = std::round(level * 200.0f) / 200.0f;
+
+    if (quantized != this->previous_output_discharging_) {
+        if (quantized <= HMS_MIN_LEVEL) {
+            this->device_discharging_output_->set_level(quantized);
+            ESP_LOGD(TAG, "set_discharging_level (min/stop): %.4f", quantized);
         } else {
             if ((this->producing_binary_sensor_ == nullptr)
                 || (this->producing_binary_sensor_->state == true)) {
-                this->device_discharging_output_->set_level(level);
-                ESP_LOGD(TAG, "set_discharging_level: %.4f", level);
+                this->device_discharging_output_->set_level(quantized);
+                ESP_LOGD(TAG, "set_discharging_level: %.4f", quantized);
             }
         }
     }
-    this->current_output_discharging_  = level;
-    this->previous_output_discharging_ = level;
+    this->current_output_discharging_  = quantized;
+    this->previous_output_discharging_ = quantized;
 }
-
 
 
 
