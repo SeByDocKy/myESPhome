@@ -514,6 +514,11 @@ void DUALPIDComponent::pid_update() {
             this->current_output_discharging_ = HMS_MIN_LEVEL;
             this->set_charging_level(0.0f);
             this->set_discharging_level(HMS_MIN_LEVEL);
+            // ── Arrêt du R48 ──────────────────────────────────────────────
+            if (this->r48_general_switch_ != nullptr && this->r48_general_switch_->state == true) {
+              this->r48_general_switch_->turn_off();
+              this->r48_general_switch_->publish_state(false);
+            }
         }
 
         this->previous_mode_               = this->current_mode_;
