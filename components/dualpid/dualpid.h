@@ -203,8 +203,8 @@ SUB_NUMBER(output_max_discharging)
 
   float current_error_ = 0.0f;
   float current_output_ = 0.0f;
-  float current_output_charging_ = 0.0f;
-  float current_output_discharging_ = 0.0f;
+  float current_output_charging_ = 0.00f;
+  float current_output_discharging_ = 0.00f;
   float current_target_ = 0.0f;
   float current_epoint_ = 50.0f;
   int current_mode_     = 0;
