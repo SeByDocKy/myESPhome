@@ -132,6 +132,7 @@ void HmsInverter::set_limit_absolute_number(AbsoluteNumber* number) {
 }
 
 void HmsInverter::loop() {
+    float percent;
     if (this->inverter_ == nullptr) return;
     auto check_updated = [](Parser* parser, uint32_t value) {
         return (parser->getLastUpdate() > 0) && (parser->getLastUpdate() != value); 
@@ -200,7 +201,7 @@ void HmsInverter::loop() {
        this->palevel_number_->publish_state(level);
      }
      if (this->limit_percent_number_ != nullptr) {
-        float percent = this->inverter_->SystemConfigPara()->getLimitPercent();
+        percent = this->inverter_->SystemConfigPara()->getLimitPercent();
         if(this->full_power_startup_){
           this->limit_percent_number_->publish_state(percent);
         }
