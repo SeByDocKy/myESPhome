@@ -210,7 +210,7 @@ void HmsInverter::loop() {
         // limit_percent_number_->publish_state(100);
      }
      if (this->limit_absolute_number_ != nullptr) {
-        auto max_power = this->inverter_->DevInfo()->getMaxPower();
+        auto max_power = percent*this->inverter_->DevInfo()->getMaxPower();
         // limit_absolute_number_->publish_state((connected && (max_power > 0))? percent * max_power / 100.0: NAN);
         this->limit_absolute_number_->publish_state(max_power);
         // limit_absolute_number_->publish_state(1000); 
