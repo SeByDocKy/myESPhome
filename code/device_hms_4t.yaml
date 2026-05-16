@@ -31,8 +31,10 @@ hms_inverter:
         name: ${name}_${hms_inverter_name}_rssi  # Sensor
       limit_percent: # Number Entity 0 - 100%
         name: ${name}_${hms_inverter_name}_percent_power_limit
+        id: ${hms_inverter_name}_percent_power_limit
       limit_absolute: # Number Entity 0 - 2500 W
         name: ${name}_${hms_inverter_name}_absolute_power_limit
+        id: ${hms_inverter_name}_absolute_power_limit
       palevel:
         name: ${name}_${hms_inverter_name}_palevel  
       percent_output:
