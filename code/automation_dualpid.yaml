@@ -13,7 +13,9 @@ interval:
              - lambda: |-
                 return ( !id(${automation_percent_power}).get_state()==100.0f );   
          then:
-           - switch.turn_off: ${automation_activation}
+           - number.set:
+               id: ${automation_percent_power}
+               value: 2
 
   - interval: ${automation_time_interval}    
     then:
