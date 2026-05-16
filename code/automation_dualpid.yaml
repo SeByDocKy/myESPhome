@@ -8,14 +8,18 @@ interval:
                 return ( !id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_off: ${automation_producing}
-             - lambda: |-
-                return ( !id(${automation_percent_power_id}).has_state() );
-             - lambda: |-
-                return ( id(${automation_percent_power_id}).state==100.0f );   
+             - binary_sensor.is_on: ${automation_hms_100}
+             # - lambda: |-
+             #    return ( !id(${automation_percent_power_id}).has_state() );
+             # - lambda: |-
+             #    return ( id(${automation_percent_power_id}).state==100.0f );   
          then:
-           - number.set:
-               id: ${automation_percent_power_id}
-               value: 2
+           # - number.set:
+           #     id: ${automation_percent_power_id}
+           #     value: 2
+           - fan.turn_on:
+               id: ${automation_hms_fan_id}
+               speed: 2
 
   - interval: ${automation_time_interval}    
     then:
