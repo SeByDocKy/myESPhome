@@ -7,8 +7,11 @@ interval:
              - lambda: |-
                 return ( !id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
-             - binary_sensor.is_off: ${automation_producing}  
-             
+             - binary_sensor.is_off: ${automation_producing}
+             - lambda: |-
+                return ( !id(${automation_percent_power}).has_state() );
+             - lambda: |-
+                return ( !id(${automation_percent_power}).get_state()==100.0f );   
          then:
            - switch.turn_off: ${automation_activation}
 
