@@ -183,7 +183,17 @@ binary_sensor:
     condition: 
       and:
         - binary_sensor.is_on: hms1_1000_producing
-        # - binary_sensor.is_on: hms2_1000_producing        
+        # - binary_sensor.is_on: hms2_1000_producing
+
+  - platform: template
+    id: hms_is_100
+    name: ${name}_hms_is_100
+    condition: 
+      or:
+        - lambda: |-
+            return (id(hms1_1000_percent_power_limit).state==100.0f );
+        # - lambda: |-
+            # return (id(hms2_1000_percent_power_limit).state==100.0f );       
   
     
 button:
@@ -377,7 +387,10 @@ packages:
     files:
       - path: 'code/automation_dualpid.yaml'
         vars: 
-          automation_time_interval: '30s'
+          automation_time_interval: '60s'
+          automation_time_interval_fast: '10s'
+          automation_hms_100: hms_is_100
+          automation_hms_fan_id: output_combined_command 
           automation_activation: 'pid_activation'
           automation_reachable: 'hms_reachable'
           automation_producing: 'hms_producing'
