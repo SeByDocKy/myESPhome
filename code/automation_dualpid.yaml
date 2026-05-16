@@ -11,7 +11,7 @@ interval:
              - lambda: |-
                 return ( !id(${automation_percent_power_id}).has_state() );
              - lambda: |-
-                return ( !id(${automation_percent_power_id}).state()==100.0f );   
+                return ( id(${automation_percent_power_id}).state()==100.0f );   
          then:
            - number.set:
                id: ${automation_percent_power_id}
