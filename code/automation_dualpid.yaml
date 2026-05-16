@@ -9,7 +9,7 @@ interval:
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_on: ${automation_hms_100}
-             - switch_is_off: ${automation_activation}
+             - switch.is_off: ${automation_activation}
              # - lambda: |-
              #    return ( !id(${automation_percent_power_id}).has_state() );
              # - lambda: |-
