@@ -384,6 +384,21 @@ void DUALPIDPCMComponent::pid_update() {
         else {                                    // → IDLE
             this->previous_output_ = this->oneutral_;
             this->current_output_  = this->oneutral_;
+              // Couper les sorties physiques immédiatement
+            this->set_charging_level(0.0f);
+            this->set_discharging_level(0.0f);
+            this->current_onoff_ = false;
+            if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
+              this->onoff_switch_->turn_off();
+              this->onoff_switch_->publish_state(false);
+              delay(ONOFF_DELAY);
+            }
+              // Remettre discharge_charge_switch en position charge (sécurité)
+           if (this->discharge_charge_switch_ != nullptr && this->discharge_charge_switch_->state == false) {
+             this->discharge_charge_switch_->turn_on();
+             this->discharge_charge_switch_->publish_state(true);
+             delay(CHARGE_DISCHARGE_DELAY);
+           }
         }
 
         this->previous_mode_  = this->current_mode_;
