@@ -460,15 +460,13 @@ void DUALPIDPCMComponent::pid_update() {
 
     // ── Gestion discharge_charge_switch ──────────────────────────────
     if (!this->current_deadband_ && this->discharge_charge_switch_ != nullptr) {
-        if ((this->current_output_charging_ > this->current_output_min_charging_)
-            && (this->discharge_charge_switch_->state == false)) {
+        if ((this->current_output_charging_ > this->current_output_min_charging_) && (this->discharge_charge_switch_->state == false)) {
             this->discharge_charge_switch_->turn_on();
             this->discharge_charge_switch_->publish_state(true);
             delay(ONOFF_DELAY);
             ESP_LOGI(TAG, "Turn on discharge_charge");
         }
-        else if ((this->current_output_discharging_ > this->current_output_min_discharging_)
-                 && (this->discharge_charge_switch_->state == true)) {
+        else if ((this->current_output_discharging_ > this->current_output_min_discharging_) && (this->discharge_charge_switch_->state == true)) {
             this->discharge_charge_switch_->turn_off();
             this->discharge_charge_switch_->publish_state(false);
             delay(CHARGE_DISCHARGE_DELAY);
@@ -484,8 +482,7 @@ void DUALPIDPCMComponent::pid_update() {
 
     // ── Gestion onoff_switch ──────────────────────────────────────────
     if (this->onoff_switch_ != nullptr) {
-        should_be_on = (this->current_output_charging_  > 0.0f)
-                    || (this->current_output_discharging_ > 0.0f);
+        should_be_on = (this->current_output_charging_  > 0.0f) || (this->current_output_discharging_ > 0.0f);
         if (should_be_on && !this->onoff_switch_->state) {
             this->onoff_switch_->turn_on();
             this->onoff_switch_->publish_state(true);
