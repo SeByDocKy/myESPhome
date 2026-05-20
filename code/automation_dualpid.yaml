@@ -35,12 +35,12 @@ interval:
              - binary_sensor.is_on: ${automation_rssi_available}
              - switch.is_off: ${automation_activation}  
          then:
-           - number.set:
-               id: ${automation_percent_power_id}
-               value: '2%'
-           # - output.set_level:
-           #     id: ${automation_output_combined}
-           #     level: '3%'
+           # - number.set:
+           #     id: ${automation_percent_power_id}
+           #     value: '2%'
+           - output.set_level:
+               id: ${automation_output_combined}
+               level: '2%'
            # - switch.turn_on: ${automation_hms_witness}
            # - number.set:
            #     id: ${automation_combined_percent_power_number}
