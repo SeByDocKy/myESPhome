@@ -10,10 +10,7 @@ interval:
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_on: ${automation_hms_100}
              - switch.is_off: ${automation_activation}
-             # - lambda: |-
-             #    return ( !id(${automation_percent_power_id}).has_state() );
-             # - lambda: |-
-             #    return ( id(${automation_percent_power_id}).state==100.0f );   
+            
          then:
            # - number.set:
            #     id: ${automation_percent_power_id}
@@ -34,11 +31,7 @@ interval:
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_on: ${automation_hms_2}
              - binary_sensor.is_on: ${automation_hms_0w}
-             - switch.is_off: ${automation_activation}
-             # - lambda: |-
-             #    return ( !id(${automation_percent_power_id}).has_state() );
-             # - lambda: |-
-             #    return ( id(${automation_percent_power_id}).state==100.0f );   
+             - switch.is_off: ${automation_activation}  
          then:
            # - number.set:
            #     id: ${automation_percent_power_id}
