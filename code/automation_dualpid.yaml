@@ -41,9 +41,13 @@ interval:
            # - output.set_level:
            #     id: ${automation_output_combined}
            #     level: '3%'
+           - switch_turn_on: automation_hms_witness
            - number.set:
                id: ${automation_combined_percent_power_number}
                value: 3
+           - delay: 1s
+           - switch_turn_off: automation_hms_witness
+               
 
   - interval: ${automation_time_interval}    
     then:
