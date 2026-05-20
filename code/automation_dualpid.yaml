@@ -20,7 +20,7 @@ interval:
            #     value: 2
            - output.set_level:
                id: ${automation_output_combined}
-               level: 2
+               level: 0.02
            # - fan.turn_on:
            #     id: ${automation_hms_fan_id}
            #     speed: 2
