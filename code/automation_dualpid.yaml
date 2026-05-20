@@ -1,7 +1,7 @@
 interval:
   - interval: ${automation_time_interval_fast}    
     then:
-    - if:
+    - if:    ############## if start at 100%  -----> 2% ##############"
          condition:
            and:
              # - lambda: |-
@@ -23,7 +23,7 @@ interval:
            #     id: ${automation_hms_fan_id}
            #     speed: 2
 
-    - if:
+    - if:  ############## if start at 2% & P=0W  -----> 2%,10*#mppt W ##############"
          condition:
            and:
              # - lambda: |-
@@ -51,20 +51,20 @@ interval:
 
   - interval: ${automation_time_interval}    
     then:
-    - if:
+    - if:  ############## if !reachable -> turn_off actvation  ##############"
          condition:
            and:
              - lambda: |-
                 return ( !id(${automation_reachable}).has_state() ); 
          then:
            - switch.turn_off: ${automation_activation}
-    - if:
+    - if: ############## if reachable but no rssi -> turn_off actvation  ##############"
          condition:
            and:
              # - lambda: |-
              #    return ( id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
-             - binary_sensor.is_off: ${automation_producing}
+             # - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_off: ${automation_rssi_available}
          then:
            - switch.turn_off: ${automation_activation}
