@@ -9,6 +9,7 @@ interval:
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_on: ${automation_hms_100}
+             - binary_sensor.is_on: ${automation_rssi_available}
              - switch.is_off: ${automation_activation}
             
          then:
@@ -31,6 +32,7 @@ interval:
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_on: ${automation_hms_2}
              - binary_sensor.is_on: ${automation_hms_0w}
+             - binary_sensor.is_on: ${automation_rssi_available}
              - switch.is_off: ${automation_activation}  
          then:
            # - number.set:
@@ -58,7 +60,8 @@ interval:
              - lambda: |-
                 return ( id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
-             - binary_sensor.is_off: ${automation_producing}     
+             - binary_sensor.is_off: ${automation_producing}
+             - binary_sensor.is_off: ${automation_rssi_available}
          then:
            - switch.turn_off: ${automation_activation}
            - button.press: ${automation_restart}
