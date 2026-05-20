@@ -29,6 +29,7 @@ hm_inverter:
       serial: ${hm_inverter_sn} # Serial No of your inverter 
       rssi:
         name: ${name}_${hm_inverter_name}_rssi  # Sensor
+        id: ${hm_inverter_name}_rssi
       limit_percent: # Number Entity 0 - 100%
         name: ${name}_${hm_inverter_name}_percent_power_limit
       limit_absolute: # Number Entity 0 - 2500 W
