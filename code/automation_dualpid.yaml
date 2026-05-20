@@ -14,7 +14,7 @@ interval:
          then:
            - number.set:
                id: ${automation_combined_percent_power_number}
-               value: 2
+               value: 3
            # - output.set_level:
            #     id: ${automation_output_combined}
            #     level: '2%'
@@ -41,7 +41,7 @@ interval:
            #     level: '3%'
            - number.set:
                id: ${automation_combined_percent_power_number}
-               value: 2
+               value: 3
 
   - interval: ${automation_time_interval}    
     then:
