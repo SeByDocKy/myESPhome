@@ -421,7 +421,6 @@ packages:
           automation_time_interval: '60s'
           automation_time_interval_fast: '5s'
           automation_output_combined: output_combined
-          # automation_combined_percent_power_number: combined_percent_power_number
           automation_activation: 'pid_activation'
           automation_reachable: 'hms_reachable'
           automation_producing: 'hms_producing'
