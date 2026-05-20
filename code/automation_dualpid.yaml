@@ -13,12 +13,12 @@ interval:
              - switch.is_off: ${automation_activation}
             
          then:
-           - number.set:
-               id: ${automation_combined_percent_power_number}
-               value: 2
-           # - output.set_level:
-           #     id: ${automation_output_combined}
-           #     level: '2%'
+           # - number.set:
+           #     id: ${automation_combined_percent_power_number}
+           #     value: 2
+           - output.set_level:
+               id: ${automation_output_combined}
+               level: '2%'
            # - fan.turn_on:
            #     id: ${automation_hms_fan_id}
            #     speed: 2
@@ -35,16 +35,16 @@ interval:
              - binary_sensor.is_on: ${automation_rssi_available}
              - switch.is_off: ${automation_activation}  
          then:
-           # - number.set:
-           #     id: ${automation_percent_power_id}
-           #     value: 2
+           - number.set:
+               id: ${automation_percent_power_id}
+               value: '2%'
            # - output.set_level:
            #     id: ${automation_output_combined}
            #     level: '3%'
            # - switch.turn_on: ${automation_hms_witness}
-           - number.set:
-               id: ${automation_combined_percent_power_number}
-               value: 2
+           # - number.set:
+           #     id: ${automation_combined_percent_power_number}
+           #     value: 2
            # - delay: 1s
            # - switch.turn_off: ${automation_hms_witness}
                
