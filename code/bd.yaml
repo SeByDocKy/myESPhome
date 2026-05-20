@@ -186,6 +186,17 @@ binary_sensor:
         # - binary_sensor.is_on: hms2_1000_producing
 
   - platform: template
+    id: hms_rssi_available
+    name: ${name}_hms_rssi_available
+    condition: 
+      and:
+        - lambda: |-
+            return (id(hms1_1000_rssi).has_state() );
+        # - lambda: |-
+            # return (id(hms2_1000_rssi).has_state() );    
+
+
+  - platform: template
     id: hms_is_100
     name: ${name}_hms_is_100
     condition: 
@@ -193,8 +204,28 @@ binary_sensor:
         - lambda: |-
             return (id(hms1_1000_percent_power_limit).state==100.0f );
         # - lambda: |-
-            # return (id(hms2_1000_percent_power_limit).state==100.0f );       
-  
+            # return (id(hms2_1000_percent_power_limit).state==100.0f );
+
+
+  - platform: template
+    id: hms_is_2
+    name: ${name}_hms_is_2
+    condition: 
+      or:
+        - lambda: |-
+            return (id(hms1_1000_percent_power_limit).state==2.0f );
+        # - lambda: |-
+            # return (id(hms2_1000_percent_power_limit).state==2.0f );
+
+  - platform: template
+    id: hms_is_0w
+    name: ${name}_hms_is_0w
+    condition: 
+      or:
+        - lambda: |-
+            return (id(hms1_1000_absolute_power_limit).state==0.0f );
+        # - lambda: |-
+            # return (id(hms2_1000_absolute_power_limit).state==0.0f );  
     
 button:
   - platform: restart
@@ -388,10 +419,14 @@ packages:
       - path: 'code/automation_dualpid.yaml'
         vars: 
           automation_time_interval: '60s'
-          automation_time_interval_fast: '10s'
-          automation_hms_100: hms_is_100
-          automation_hms_fan_id: output_combined_command 
+          automation_time_interval_fast: '5s'
+          automation_output_combined: output_combined
+          # automation_combined_percent_power_number: combined_percent_power_number
           automation_activation: 'pid_activation'
           automation_reachable: 'hms_reachable'
           automation_producing: 'hms_producing'
+          automation_rssi_available: 'hms_rssi_available'
+          automation_hms_100: 'hms_is_100'
+          automation_hms_2: 'hms_is_2'
+          automation_hms_0w: 'hms_is_0w'
           automation_restart: 'hms_restart'
