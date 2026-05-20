@@ -4,8 +4,8 @@ interval:
     - if:
          condition:
            and:
-             - lambda: |-
-                return ( !id(${automation_reachable}).has_state() );
+             # - lambda: |-
+             #    return ( !id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_on: ${automation_hms_100}
@@ -26,8 +26,8 @@ interval:
     - if:
          condition:
            and:
-             - lambda: |-
-                return ( !id(${automation_reachable}).has_state() );
+             # - lambda: |-
+             #    return ( !id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_on: ${automation_hms_2}
@@ -61,8 +61,8 @@ interval:
     - if:
          condition:
            and:
-             - lambda: |-
-                return ( id(${automation_reachable}).has_state() );
+             # - lambda: |-
+             #    return ( id(${automation_reachable}).has_state() );
              - binary_sensor.is_on: ${automation_reachable}
              - binary_sensor.is_off: ${automation_producing}
              - binary_sensor.is_off: ${automation_rssi_available}
