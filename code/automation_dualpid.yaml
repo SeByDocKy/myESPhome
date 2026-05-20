@@ -38,7 +38,7 @@ interval:
            #     value: 2
            - output.set_level:
                id: ${automation_output_combined}
-               level: '3%"
+               level: '3%'
 
   - interval: ${automation_time_interval}    
     then:
