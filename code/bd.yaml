@@ -411,7 +411,7 @@ packages:
           dualpid_producing_id: 'hms_producing'
           dualpid_windows_size: '1'
           
-  automation:
+  automation:     ############### permet de (re)démarrer/synchroniser/éliminer le passage plus puissance automatiquement  pour la parte HMS   ######
     url: https://github.com/SeByDocKy/myESPhome/
     ref: main
     refresh: 0s
