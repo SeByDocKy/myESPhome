@@ -219,10 +219,12 @@ packages:
           pcm_cs_pin: 'GPIO06'
           pcm_canbus_id: 'pcm_can'
           pcm_address: '1'
-          pcm_interval: '1500ms'
-          pcm_min_charging: '5'
-          pcm_min_discharging: '5'
-
+          pcm_interval: '4000ms' #'1500ms'
+          pcm_text_sensor_interval: '1500ms'
+          pcm_min_charging: '1'
+          pcm_max_charging: '70'
+          pcm_min_discharging: '1'
+          pcm_max_discharging: '75'
    
   dualpidpcm:
     url: https://github.com/SeByDocKy/myESPhome/
