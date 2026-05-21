@@ -1,5 +1,4 @@
 substitutions:
-  # text_update_interval: '1s'
   delay_interval: '100ms'
   delay_number: '100ms'
   delay_switch: '100ms'
