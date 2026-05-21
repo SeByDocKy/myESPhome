@@ -241,6 +241,6 @@ packages:
           dualpidpcm_discharging_output_id: 'discharging_current_output'
           dualpidpcm_discharge_charge_switch_id: 'discharge_charge_switch'
           dualpidpcm_onoff_switch_id: 'power_switch'
-          dualpidpcm_current_min_charging: '3.0'
-          dualpidpcm_current_min_discharging: '3.0'
+          dualpidpcm_current_min_charging: '1.0'
+          dualpidpcm_current_min_discharging: '1.0'
           dualpidpcm_windows_size: '1'
