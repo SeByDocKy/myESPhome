@@ -1,8 +1,8 @@
 substitutions:
-  charge_current_min: '5'
-  charge_current_max: '70'
-  discharge_current_min: '5'
-  discharge_current_max: '70'
+  # charge_current_min: '5'
+  # charge_current_max: '70'
+  # discharge_current_min: '5'
+  # discharge_current_max: '70'
   text_update_interval: '1s'
   delay_interval: '100ms'
   delay_number: '100ms'
@@ -930,7 +930,7 @@ output:
           use_extended_id: true
           data: !lambda |-
             float raw_state  = state*100.0f;
-            float alpha      = (${charge_current_max} - ${pcm_min_charging})/100.0f; 
+            float alpha      = (${pcm_max_charging} - ${pcm_min_charging})/100.0f; 
             float beta       = ${pcm_min_charging} - alpha*0;
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
@@ -953,7 +953,7 @@ output:
           use_extended_id: true
           data: !lambda |-
             float raw_state  = state*100.0f;
-            float alpha      = (${discharge_current_max} - ${pcm_min_discharging}) /100.0f;
+            float alpha      = (${pcm_max_discharging} - ${pcm_min_discharging}) /100.0f;
             float beta       = ${pcm_min_discharging} - alpha*0;
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
             ESP_LOGVV("output discharging", "Raw: %f, Current: %d", raw_state, current);
