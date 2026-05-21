@@ -1,9 +1,5 @@
 substitutions:
-  # charge_current_min: '5'
-  # charge_current_max: '70'
-  # discharge_current_min: '5'
-  # discharge_current_max: '70'
-  text_update_interval: '1s'
+  # text_update_interval: '1s'
   delay_interval: '100ms'
   delay_number: '100ms'
   delay_switch: '100ms'
@@ -1554,7 +1550,7 @@ text_sensor:
     id: running_mode_text
     name: ${name}_${pcm_name}_running_mode
     icon: mdi:state-machine
-    update_interval: ${text_update_interval}
+    update_interval: ${pcm_text_sensor_interval}
     lambda: |-
       int mode = id(running_mode_sensor).state;
       switch(mode) {
@@ -1571,7 +1567,7 @@ text_sensor:
     id: inverter_frequency_text
     name: ${name}_${pcm_name}_inverter_frequency
     icon: mdi:metronome
-    update_interval: ${text_update_interval}
+    update_interval: ${pcm_text_sensor_interval}
     lambda: |-
       int freq = id(offgrid_frequency_sensor).state;
       if (freq == 50) return {"50 Hz"};
