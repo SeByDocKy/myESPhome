@@ -570,7 +570,7 @@ sensor:
     accuracy_decimals: 1
     icon: mdi:battery-alert-variant-outline
 
- - platform: template
+  - platform: template
     id: fan_speed_readback
     name: ${name}_${pcm_name}_fan_speed_readback
     unit_of_measurement: '%'
