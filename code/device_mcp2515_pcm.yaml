@@ -81,7 +81,7 @@ canbus:
                        dc_voltage/10.0, dc_current/10.0, load_current/10.0, dc_power);
       
       # Feedback Parameter 3 - 0x010A0053
-      - can_id: 0x010A0053
+      - can_id: 0x010A${pcm_address}53 #0x010A0053
         use_extended_id: true
         then:
           - lambda: |-
@@ -106,7 +106,7 @@ canbus:
                        temp1, temp2, power/10.0, warning_flags);
       
       # Running Status Feedback - 0x010A0054
-      - can_id: 0x010A0054
+      - can_id: 0x010A${pcm_address}54 #0x010A0054
         use_extended_id: true
         then:
           - lambda: |-
@@ -154,7 +154,7 @@ canbus:
                        running_mode, inverter_freq == 0 ? 50 : 60, fault1, fault2, fault3);
       
       # Version Response - 0x010A0007
-      - can_id: 0x010A0007
+      - can_id: 0x010A${pcm_address}07 #0x010A0007
         use_extended_id: true
         then:
           - lambda: |-
@@ -166,7 +166,7 @@ canbus:
               ESP_LOGD("canbus", "Program Version: %s", version_str);
       
       # SN Code Response - 0x010A0005
-      - can_id: 0x010A0005
+      - can_id: 0x010A${pcm_address}05 #0x010A0005
         use_extended_id: true
         then:
           - lambda: |-
@@ -177,7 +177,7 @@ canbus:
               ESP_LOGD("canbus", "SN Code: %s", sn_str);
 
       # Grid Mode Response - 0x010A0002
-      - can_id: 0x010A0002
+      - can_id: 0x010A${pcm_address}02 #0x010A0002
         use_extended_id: true
         then:
           - lambda: |-
@@ -191,7 +191,7 @@ canbus:
               ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
       
       # Frequency Setting Response - 0x010A0011
-      - can_id: 0x010A0011
+      - can_id: 0x010A${pcm_address}11 #0x010A0011
         use_extended_id: true
         then:
           - lambda: |-
@@ -205,7 +205,7 @@ canbus:
               ESP_LOGD("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
       
       # AC Voltage Setting Response - 0x010A0012
-      - can_id: 0x010A0012
+      - can_id: 0x010A${pcm_address}12 #0x010A0012
         use_extended_id: true
         then:
           - lambda: |-
@@ -219,7 +219,7 @@ canbus:
               ESP_LOGD("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
       
       # Phase Mode Response - 0x010A000A
-      - can_id: 0x010A000A
+      - can_id: 0x010A${pcm_address}0A #0x010A000A
         use_extended_id: true
         then:
           - lambda: |-
@@ -233,7 +233,7 @@ canbus:
               ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
       
       # Charging Parameters Response - 0x010A0031
-      - can_id: 0x010A0031
+      - can_id: 0x010A${pcm_address}31 #0x010A0031
         use_extended_id: true
         then:
           - lambda: |-
@@ -247,7 +247,7 @@ canbus:
                        charge_voltage/10.0, charge_current/10.0);
       
       # Discharge Parameters Response - 0x010A0032
-      - can_id: 0x010A0032
+      - can_id: 0x010A${pcm_address}32 #0x010A0032
         use_extended_id: true
         then:
           - lambda: |-
@@ -257,7 +257,7 @@ canbus:
               ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
       
       # AC Voltage Protection Response - 0x010A0013
-      - can_id: 0x010A0013
+      - can_id: 0x010A${pcm_address}13 #0x010A0013
         use_extended_id: true
         then:
           - lambda: |-
@@ -271,7 +271,7 @@ canbus:
                        ac_overvoltage/10.0, ac_undervoltage/10.0);
       
       # AC Voltage Alarm Response - 0x010A0014
-      - can_id: 0x010A0014
+      - can_id: 0x010A${pcm_address}14 #0x010A0014
         use_extended_id: true
         then:
           - lambda: |-
@@ -283,7 +283,7 @@ canbus:
                        ac_overvoltage_alarm/10.0, ac_undervoltage_alarm/10.0);
       
       # DC Voltage Protection Response - 0x010A0033
-      - can_id: 0x010A0033
+      - can_id: 0x010A${pcm_address}33 #0x010A0033
         use_extended_id: true
         then:
           - lambda: |-
@@ -297,7 +297,7 @@ canbus:
                        dc_overvoltage/10.0, dc_undervoltage/10.0);
       
       # DC Voltage Alarm Response - 0x010A0034
-      - can_id: 0x010A0034
+      - can_id: 0x010A${pcm_address}34 #0x010A0034
         use_extended_id: true
         then:
           - lambda: |-
@@ -309,13 +309,13 @@ canbus:
                        dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);
 
       # Fan speed Response - 0x010A0035
-      # - can_id: 0x010A0035
-      #   use_extended_id: true
-      #   then:
-      #     - lambda: |-
-      #         uint8_t fan_speed = x[3];
-      #         id(fan_speed_readback).publish_state(fan_speed);
-      #         ESP_LOGD("canbus", "Fan speed: %d", fan_speed);                 
+      - can_id: 0x010A${pcm_address}35 #0x010A0035
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t fan_speed = x[3];
+              id(fan_speed_readback).publish_state(fan_speed);
+              ESP_LOGD("canbus", "Fan speed: %d", fan_speed);                 
               
 sensor:
 
