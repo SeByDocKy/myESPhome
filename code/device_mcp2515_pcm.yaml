@@ -1743,4 +1743,13 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval} 
+      
+      # Query Fan speed
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A35
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
