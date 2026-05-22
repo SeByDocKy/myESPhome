@@ -1688,6 +1688,7 @@ text_sensor:
 
 # Interval updates to request status
 interval:
+
   - interval: ${pcm_interval}
     then:
       # Request all status updates periodically
