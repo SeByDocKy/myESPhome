@@ -10,7 +10,8 @@ esphome:
         - delay: 2s
         - canbus.send:
             canbus_id: ${pcm_canbus_id}
-            can_id: 0x03000A07
+            # can_id: 0x03000A07
+            can_id: 0x03${pcm_address}0A07
             use_extended_id: true
             data: !lambda |-
               return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
