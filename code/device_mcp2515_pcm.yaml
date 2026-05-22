@@ -1518,7 +1518,7 @@ number:
     unit_of_measurement: '%'
     min_value: 0
     max_value: 100
-    initial_value: 50
+    initial_value: 0
     step: 1
     mode: 'slider'
     optimistic: false
