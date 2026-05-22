@@ -20,8 +20,8 @@ esphome:
 
         - canbus.send:
             canbus_id: ${pcm_canbus_id}
-            # can_id: 0x03000A05
-            can_id: 0x03${pcm_canbus_id}0A05
+            can_id: 0x03000A05
+            # can_id: 0x03${pcm_canbus_id}0A05
             use_extended_id: true
             data: !lambda |-
               return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
