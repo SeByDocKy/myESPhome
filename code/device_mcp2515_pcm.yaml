@@ -1692,12 +1692,12 @@ interval:
   - interval: ${pcm_interval}
     then:
       # Request all status updates periodically
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A51   
-          can_id: 0x03${pcm_address}0A51
-          use_extended_id: true
-          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      # - canbus.send:
+      #     canbus_id: ${pcm_canbus_id}
+      #     # can_id: 0x03000A51   
+      #     can_id: 0x03${pcm_address}0A51
+      #     use_extended_id: true
+      #     data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
       - delay: 100ms
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
