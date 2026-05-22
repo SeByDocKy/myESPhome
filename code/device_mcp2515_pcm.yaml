@@ -307,13 +307,13 @@ canbus:
                        dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);
 
       # Fan speed Response - 0x010A0035
-      - can_id: 0x010A0035
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t fan_speed = x[3];
-              id(fan_speed_readback).publish_state(fan_speed);
-              ESP_LOGD("canbus", "Fan speed: %d", fan_speed);                 
+      # - can_id: 0x010A0035
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint8_t fan_speed = x[3];
+      #         id(fan_speed_readback).publish_state(fan_speed);
+      #         ESP_LOGD("canbus", "Fan speed: %d", fan_speed);                 
               
 sensor:
 
