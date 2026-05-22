@@ -1591,7 +1591,8 @@ switch:
     turn_on_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x02000A01
+          # can_id: 0x02000A01
+          can_id: 0x02${pcm_address}0A01
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1599,7 +1600,8 @@ switch:
     turn_off_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x02000A01
+          # can_id: 0x02000A01
+          can_id: 0x02${pcm_address}0A01
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1616,7 +1618,8 @@ switch:
     turn_on_action: #charge
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x02000A02
+          # can_id: 0x02000A02
+          can_id: 0x02${pcm_address}0A02
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1624,7 +1627,8 @@ switch:
     turn_off_action: #discharge
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x02000A02
+          # can_id: 0x02000A02
+          can_id: 0x02${pcm_address}0A02
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1689,27 +1693,29 @@ interval:
       # Request all status updates periodically
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A51
+          # can_id: 0x03000A51   
+          can_id: 0x03${pcm_address}0A51
           use_extended_id: true
-          data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
       - delay: 100ms
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A52
+          # can_id: 0x03000A52
+          can_id: 0x03${pcm_address}0A52
           use_extended_id: true
-          data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
       - delay: 100ms
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A53
           use_extended_id: true
-          data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
       - delay: 100ms
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           can_id: 0x03000A54
           use_extended_id: true
-          data: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] 
+          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] 
 
 
 # Query configuration parameters periodically (every 30s)
@@ -1718,7 +1724,8 @@ interval:
       # Query Grid Mode
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A02
+          # can_id: 0x03000A02
+          can_id: 0x03${pcm_address}0A02
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1726,7 +1733,8 @@ interval:
       # Query Frequency Setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A11
+          # can_id: 0x03000A11
+          can_id: 0x03${pcm_address}0A11
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1734,7 +1742,8 @@ interval:
       # Query AC Voltage Setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A12
+          #can_id: 0x03000A12
+          can_id: 0x03${pcm_address}0A12
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1742,7 +1751,8 @@ interval:
       # Query Phase Mode
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A0A
+          # can_id: 0x03000A0A
+          can_id: 0x03${pcm_address}0A0A
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1750,7 +1760,8 @@ interval:
       # Query Charging Parameters
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A31
+          # can_id: 0x03000A31
+          can_id: 0x03${pcm_address}0A31
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1758,7 +1769,8 @@ interval:
       # Query Discharge Parameters
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A32
+          # can_id: 0x03000A32
+          can_id: 0x03${pcm_address}0A32
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1766,7 +1778,8 @@ interval:
       # Query AC Voltage Protection
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A13
+          # can_id: 0x03000A13
+          can_id: 0x03${pcm_address}0A13
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1774,7 +1787,8 @@ interval:
       # Query AC Voltage Alarm
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A14
+          # can_id: 0x03000A14
+          can_id: 0x03${pcm_address}0A14
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1782,7 +1796,8 @@ interval:
       # Query DC Voltage Protection
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A33
+          # can_id: 0x03000A33
+          can_id: 0x03${pcm_address}0A33
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -1790,17 +1805,19 @@ interval:
       # Query DC Voltage Alarm
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          can_id: 0x03000A34
+          # can_id: 0x03000A34
+          can_id: 0x03${pcm_address}0A34
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: ${delay_interval} 
       
       # # Query Fan speed
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     can_id: 0x03000A35
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A35
+          can_id: 0x03${pcm_address}0A35
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
           
