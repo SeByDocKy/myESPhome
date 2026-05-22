@@ -1689,8 +1689,8 @@ text_sensor:
 # Interval updates to request status
 interval:
 
-  # - interval: ${pcm_interval}
-  #   then:
+  - interval: ${pcm_interval}
+    then:
   #     # Request all status updates periodically
   #     - canbus.send:
   #         canbus_id: ${pcm_canbus_id}
@@ -1700,26 +1700,26 @@ interval:
   #         data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
   #     - delay: 100ms
       
-  #     - canbus.send:
-  #         canbus_id: ${pcm_canbus_id}
-  #         # can_id: 0x03000A52
-  #         can_id: 0x03${pcm_address}0A52
-  #         use_extended_id: true
-  #         data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-  #     - delay: 100ms
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A52
+          can_id: 0x03${pcm_address}0A52
+          use_extended_id: true
+          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      - delay: 100ms
       
-  #     - canbus.send:
-  #         canbus_id: ${pcm_canbus_id}
-  #         can_id: 0x03000A53
-  #         use_extended_id: true
-  #         data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-  #     - delay: 100ms
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A53
+          use_extended_id: true
+          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      - delay: 100ms
       
-  #     - canbus.send:
-  #         canbus_id: ${pcm_canbus_id}
-  #         can_id: 0x03000A54
-  #         use_extended_id: true
-  #         data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] 
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03000A54
+          use_extended_id: true
+          data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] 
 
 
 # Query configuration parameters periodically (every 30s)
