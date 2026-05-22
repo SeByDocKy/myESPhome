@@ -304,7 +304,16 @@ canbus:
               id(dc_overvoltage_alarm_readback).publish_state(dc_overvoltage_alarm / 10.0);
               id(dc_undervoltage_alarm_readback).publish_state(dc_undervoltage_alarm / 10.0);
               ESP_LOGD("canbus", "DC Alarm Readback: OV=%.1fV, UV=%.1fV", 
-                       dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);        
+                       dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);
+
+      # Fan speed Response - 0x010A0035
+      - can_id: 0x010A0035
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t fan_speed = x[3];
+              id(fan_speed_readback).publish_state(fan_speed);
+              ESP_LOGD("canbus", "Fan speed: %d", fan_speed);                 
               
 sensor:
 
@@ -560,6 +569,15 @@ sensor:
     state_class: measurement
     accuracy_decimals: 1
     icon: mdi:battery-alert-variant-outline
+
+ - platform: template
+    id: fan_speed_readback
+    name: ${name}_${pcm_name}_fan_speed_readback
+    unit_of_measurement: '%'
+    device_class: fan
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:fan   
 
 binary_sensor:
 
