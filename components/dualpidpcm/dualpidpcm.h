@@ -155,9 +155,9 @@ class DUALPIDPCMComponent : public Component{
   float current_min_charging_ = 5.0f;
   float current_min_discharging_ = 5.0f;
 
-  float Pmin_charging = 5.0f*51.2f;
-  float Pmin_discharging = 5.0f*51.2f;
-  float Pdeadband_ = 5.5f*51.2f;
+  float Pmin_charging = 1.0f*51.2f;
+  float Pmin_discharging = 1.0f*51.2f;
+  float Pdeadband_ = 1.5f*51.2f;
 
   
   float current_battery_voltage_ = 54.0f;
