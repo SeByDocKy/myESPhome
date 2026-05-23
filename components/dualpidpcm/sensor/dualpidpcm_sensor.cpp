@@ -18,8 +18,9 @@ void DUALPIDPCMSensor::dump_config() {
   LOG_SENSOR("  ", "Output Charging", this->output_charging_sensor_);
   LOG_SENSOR("  ", "Output Discharging", this->output_discharging_sensor_);
   LOG_SENSOR("  ", "Input", this->input_sensor_);
-  LOG_SENSOR("  ", "offcharge", this->offcharge_sensor_);
-  LOG_SENSOR("  ", "offdischarge", this->offdischarge_sensor_);	
+  LOG_SENSOR("  ", "Mode", this->mode_sensor_);
+  // LOG_SENSOR("  ", "offcharge", this->offcharge_sensor_);
+  // LOG_SENSOR("  ", "offdischarge", this->offdischarge_sensor_);	
 }	
 
 void DUALPIDPCMSensor::publish_data_() {
@@ -33,10 +34,10 @@ void DUALPIDPCMSensor::publish_data_() {
     this->output_discharging_sensor_->publish_state(this->parent_->get_output_discharging()*100.0f); 
   if (this->input_sensor_ != nullptr)
     this->input_sensor_->publish_state(this->parent_->get_input());	
-  if (this->offcharge_sensor_ != nullptr)
-    this->offcharge_sensor_ ->publish_state(this->parent_->get_offcharge());
-  if (this->offdischarge_sensor_ != nullptr)
-    this->offdischarge_sensor_->publish_state(this->parent_->get_offdischarge());	
+  // if (this->offcharge_sensor_ != nullptr)
+  //   this->offcharge_sensor_ ->publish_state(this->parent_->get_offcharge());
+  // if (this->offdischarge_sensor_ != nullptr)
+  //   this->offdischarge_sensor_->publish_state(this->parent_->get_offdischarge());	
 	
 }
 
