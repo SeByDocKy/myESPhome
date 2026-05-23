@@ -170,7 +170,7 @@ canbus:
         use_extended_id: true
         then:
           - lambda: |-
-              # uint32_t sn_code = (x[4] << 24) | (x[3] << 16) | (x[2] << 8) | x[1];
+                 //  uint32_t sn_code = (x[4] << 24) | (x[3] << 16) | (x[2] << 8) | x[1];
               uint16_t sn_code = (x[4] << 8) | x[3] ;
               char sn_str[12];
               snprintf(sn_str, sizeof(sn_str), "%08X", sn_code);
