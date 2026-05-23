@@ -133,7 +133,7 @@ class DUALPIDPCMComponent : public Component{
 
 
   bool get_deadband(void){return this->current_deadband_;}
-  bool get_swap(void){return this->current_swap_;}
+  // bool get_swap(void){return this->current_swap_;}
 
    
   
@@ -207,7 +207,7 @@ class DUALPIDPCMComponent : public Component{
   float current_output_min_discharging_ = 0.0f;
 
   bool current_deadband_                = false;
-  bool current_swap_                    = false;
+  // bool current_swap_                    = false;
 
   // int offcharge_                        = 0;
   // int offdischarge_                     = 0;
