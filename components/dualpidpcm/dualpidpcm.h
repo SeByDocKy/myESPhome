@@ -125,8 +125,10 @@ class DUALPIDPCMComponent : public Component{
   float get_output_discharging(void) { return this->current_output_discharging_; }  
   float get_input(void)  { return this->current_input_; }
 
-  float get_offcharge(void) {return this->offcharge_;}
-  float get_offdischarge(void) {return this->offdischarge_;}
+  float get_mode(void) {return this->current_mode_;}
+
+  // float get_offcharge(void) {return this->offcharge_;}
+  // float get_offdischarge(void) {return this->offdischarge_;}
 
 
 
@@ -207,8 +209,11 @@ class DUALPIDPCMComponent : public Component{
   bool current_deadband_                = false;
   bool current_swap_                    = false;
 
-  int offcharge_                        = 0;
-  int offdischarge_                     = 0;
+  // int offcharge_                        = 0;
+  // int offdischarge_                     = 0;
+
+  uint8_t current_mode_                 = 0;
+
   uint32_t mode_start_time_             = 0;
  
 
