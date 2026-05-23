@@ -1472,7 +1472,7 @@ number:
     unit_of_measurement: 'V'
     min_value: 40.0
     max_value: 57.5
-    initial_value: 57.5
+    initial_value: 56.6
     step: 0.1
     mode: slider
     optimistic: false
