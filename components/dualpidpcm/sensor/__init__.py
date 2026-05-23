@@ -106,12 +106,16 @@ async def to_code(config):
     if CONF_INPUT in config:
         sens = await sensor.new_sensor(config[CONF_INPUT])
         cg.add(var.set_input_sensor(sens))
-        
-    if CONF_OFFCHARGE in config:
-        sens = await sensor.new_sensor(config[CONF_OFFCHARGE])
-        cg.add(var.set_offcharge_sensor(sens))
 
-    if CONF_OFFDISCHARGE in config:
-        sens = await sensor.new_sensor(config[CONF_OFFDISCHARGE])
-        cg.add(var.set_offdischarge_sensor(sens))
+    if CONF_MODE in config:
+        sens = await sensor.new_sensor(config[CONF_MODE])
+        cg.add(var.set_mode_sensor(sens))
+        
+    # if CONF_OFFCHARGE in config:
+    #     sens = await sensor.new_sensor(config[CONF_OFFCHARGE])
+    #     cg.add(var.set_offcharge_sensor(sens))
+
+    # if CONF_OFFDISCHARGE in config:
+    #     sens = await sensor.new_sensor(config[CONF_OFFDISCHARGE])
+    #     cg.add(var.set_offdischarge_sensor(sens))
  
