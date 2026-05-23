@@ -171,12 +171,12 @@ canbus:
         then:
           - lambda: |-
               // uint32_t sn_code = (x[4] << 24) | (x[3] << 16) | (x[2] << 8) | x[1];
-              uint16_t sn_code = (x[3] << 8) | x[2];
-              // uint8_t sn_low = x[2];
-              // uint8_t sn_high = x[3];
+              // uint16_t sn_code = (x[3] << 8) | x[2];
+              uint8_t sn_low = x[2];
+              uint8_t sn_high = x[3];
               char sn_str[10];
-              // snprintf(sn_str, sizeof(sn_str), "V%d.%02d", sn_high, sn_low);
-              snprintf(sn_str, sizeof(sn_str), "V%04X", sn_code);
+              snprintf(sn_str, sizeof(sn_str), "V%d.%02d", sn_high, sn_low);
+              // snprintf(sn_str, sizeof(sn_str), "V%04X", sn_code);
               id(sn_code_text_sensor).publish_state(sn_str);
               ESP_LOGD("canbus", "SN Code: %s", sn_str);
 
