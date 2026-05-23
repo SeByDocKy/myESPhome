@@ -196,7 +196,7 @@ void DUALPIDPCMComponent::pid_update() {
         this->current_deadband_ = false;
     }
 
-    this->offcharge_ = this->previous_mode_;
+    this->current_mode_ = this->previous_mode_;
 
     // ── Désactivation ─────────────────────────────────────────────────
     if (!this->current_activation_) {
