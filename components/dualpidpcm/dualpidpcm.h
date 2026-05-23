@@ -217,8 +217,8 @@ class DUALPIDPCMComponent : public Component{
   uint32_t mode_start_time_             = 0;
  
 
-  float lb_             = 0.02f;
-  float ub_             = 0.02f;
+  float lb_             = 0.01f;
+  float ub_             = 0.01f;
   float oneutral_       = 0.5f;
   float olb_;
   float oub_;
