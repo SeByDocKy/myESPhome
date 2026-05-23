@@ -171,7 +171,7 @@ canbus:
         then:
           - lambda: |-
               // uint32_t sn_code = (x[4] << 24) | (x[3] << 16) | (x[2] << 8) | x[1];
-              uint16_t sn_code = (x[4] << 8) | x[3];
+              uint16_t sn_code = (x[3] << 8) | x[2];
               char sn_str[12];
               snprintf(sn_str, sizeof(sn_str), "%08X", sn_code);
               id(sn_code_text_sensor).publish_state(sn_str);
