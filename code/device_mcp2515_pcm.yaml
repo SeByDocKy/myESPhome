@@ -1552,7 +1552,7 @@ number:
     initial_value: 0
     step: 1
     mode: 'slider'
-    optimistic: false
+    optimistic: true
     restore_value: true
     set_action:
       - canbus.send:
