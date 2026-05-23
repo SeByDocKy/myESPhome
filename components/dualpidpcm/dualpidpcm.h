@@ -212,7 +212,7 @@ class DUALPIDPCMComponent : public Component{
   // int offcharge_                        = 0;
   // int offdischarge_                     = 0;
 
-  uint8_t current_mode_                 = 0;
+  // uint8_t current_mode_                 = 0;
 
   uint32_t mode_start_time_             = 0;
  
