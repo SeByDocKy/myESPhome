@@ -33,7 +33,9 @@ void DUALPIDPCMSensor::publish_data_() {
   if (this->output_discharging_sensor_ != nullptr)
     this->output_discharging_sensor_->publish_state(this->parent_->get_output_discharging()*100.0f); 
   if (this->input_sensor_ != nullptr)
-    this->input_sensor_->publish_state(this->parent_->get_input());	
+    this->input_sensor_->publish_state(this->parent_->get_input());
+  if (this->mode_sensor_ != nullptr)
+    this->mode_sensor_->publish_state(this->parent_->get_mode());		
   // if (this->offcharge_sensor_ != nullptr)
   //   this->offcharge_sensor_ ->publish_state(this->parent_->get_offcharge());
   // if (this->offdischarge_sensor_ != nullptr)
