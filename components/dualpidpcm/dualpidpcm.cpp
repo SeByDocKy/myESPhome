@@ -48,8 +48,8 @@ void DUALPIDPCMComponent::set_charging_level(float level) {
         }
         // Pas de set_level pour level == 0 : c'est le onoff_switch qui coupe
     }
-    this->current_output_charging_  = level;
-    this->previous_output_charging_ = level;
+    this->current_output_charging_  = quantized;
+    this->previous_output_charging_ = quantized;
 }
 
 void DUALPIDPCMComponent::set_discharging_level(float level) {
@@ -63,8 +63,8 @@ void DUALPIDPCMComponent::set_discharging_level(float level) {
             }
         }
     }
-    this->current_output_discharging_  = level;
-    this->previous_output_discharging_ = level;
+    this->current_output_discharging_  = quantized;
+    this->previous_output_discharging_ = quantized;
 }
 
 
