@@ -5,7 +5,7 @@
 #define ONOFF_DELAY            0   // 50
 #define CHARGE_DISCHARGE_DELAY 0   // 50
 #define DEADBAND_FACTOR        1.02
-#define STARTUP_INHIBIT_MS     5000
+#define STARTUP_INHIBIT_MS     6000
 
 namespace esphome {
 namespace dualpidpcm {
