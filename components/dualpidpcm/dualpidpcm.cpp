@@ -36,8 +36,8 @@ float DUALPIDPCMComponent::O_to_Od(float O) {
 // manuellement avant l'appel). Cela évite de saturer le canal radio HMS/OpenDTU.
 
 void DUALPIDPCMComponent::set_charging_level(float level) {
-    // float quantized = std::round(level * 10.0f) / 10.0f;
-    float quantized = level;
+    float quantized = std::round(level * 1000.0f) / 1000.0f;
+    // float quantized = level;
     if (quantized != this->previous_output_charging_) {
         if (quantized > 0.0f) {
             // N'envoyer une consigne active que si le switch est allumé
@@ -54,8 +54,8 @@ void DUALPIDPCMComponent::set_charging_level(float level) {
 }
 
 void DUALPIDPCMComponent::set_discharging_level(float level) {
-    // float quantized = std::round(level * 10.0f) / 10.0f;
-    float quantized = level;
+    float quantized = std::round(level * 1000.0f) / 1000.0f;
+    //float quantized = level;
     if (quantized != this->previous_output_discharging_) {
         if (quantized > 0.0f) {
             if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
