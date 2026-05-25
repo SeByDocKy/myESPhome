@@ -3,6 +3,7 @@ substitutions:
   delay_number: '100ms'
   delay_switch: '100ms'
   
+  
 esphome:
   on_boot: #!extend
     - priority: -100
@@ -1735,7 +1736,7 @@ interval:
           # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1745,7 +1746,7 @@ interval:
           # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1754,7 +1755,7 @@ interval:
           # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_interval}
       
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1763,6 +1764,7 @@ interval:
           # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}      
 
 
 # Query configuration parameters periodically (every 30s)
@@ -1867,4 +1869,5 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}      
           
