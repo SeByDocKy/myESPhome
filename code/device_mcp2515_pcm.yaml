@@ -1610,7 +1610,7 @@ switch:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_switch}
 
 
   # Power ON/OFF
@@ -1637,7 +1637,7 @@ switch:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_switch}
 
 # charge/discharge mode
   - platform: template
@@ -1664,7 +1664,7 @@ switch:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_switch}
       
 # Text Sensors
 text_sensor:
