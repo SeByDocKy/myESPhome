@@ -468,13 +468,13 @@ void DUALPIDPCMComponent::pid_update() {
             this->discharge_charge_switch_->turn_on();
             this->discharge_charge_switch_->publish_state(true);
             delay(ONOFF_DELAY);
-            ESP_LOGI(TAG, "Turn on discharge_charge");
+            ESP_LOGI(TAG, "Turn on charge mode");
         }
         else if ((this->current_output_discharging_ > this->current_output_min_discharging_) && (this->discharge_charge_switch_->state == true)) {
             this->discharge_charge_switch_->turn_off();
             this->discharge_charge_switch_->publish_state(false);
             delay(CHARGE_DISCHARGE_DELAY);
-            ESP_LOGI(TAG, "Turn off discharge_charge");
+            ESP_LOGI(TAG, "Turn on discharge mode");
         }
     }
 
