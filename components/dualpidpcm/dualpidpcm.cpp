@@ -41,11 +41,11 @@ void DUALPIDPCMComponent::set_charging_level(float level) {
     if (quantized != this->previous_output_charging_) {
         if (quantized > 0.0f) {
             // N'envoyer une consigne active que si le switch est allumé
-            if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
+    //        if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
                 this->device_charging_output_->set_level(quantized);
                 delay(SET_OUTPUT_DELAY);
                 ESP_LOGD(TAG, "set_charging_level: %.4f", quantized);
-            }
+    //        }
         }
         // Pas de set_level pour level == 0 : c'est le onoff_switch qui coupe
     }
@@ -58,11 +58,11 @@ void DUALPIDPCMComponent::set_discharging_level(float level) {
     //float quantized = level;
     if (quantized != this->previous_output_discharging_) {
         if (quantized > 0.0f) {
-            if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
+        //    if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
                 this->device_discharging_output_->set_level(quantized);
                 delay(SET_OUTPUT_DELAY);
                 ESP_LOGD(TAG, "set_discharging_level: %.4f", quantized);
-            }
+         //   }
         }
     }
     this->current_output_discharging_  = quantized;
