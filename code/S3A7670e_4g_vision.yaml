@@ -1,0 +1,577 @@
+
+##### Schematic https://files.waveshare.com/wiki/ESP32-S3-A7670E-4G/manual/ESP32-S3-A-SIM7670X-4G%20V2.0.pdf
+
+# detect     = coco_detect
+# pose       = coco_pose
+# pedestrian = pedestrian_detect
+# hand       = hand_detect
+# face       = human_face_detect
+# classify   = imagenet_cls
+# gesture    = hand_gesture_recognition
+
+substitutions:
+  name: s3a7670e_4g_vision
+  gps_update: '120s'
+  # update_sensors: '30s'
+  # update_relays: '15s'
+  device_description: "4G camera ESPhome via MQTT Synchronizer"
+  resolution: '320x240'
+  # resolution: '640x480'
+  # model_family: pose
+  # model_name: coco_pose_yolo11n_pose_s8_v2.espdl 
+  
+  #coco_detect_yolo11n_320_s8_v3.espdl #mobilenetv2_0_5_128_128_gesture.espdl 
+  
+  #yolo26n_512_s8_s3.espdl #espdet_pico_224_224_hand.espdl #coco_detect_yolo11n_320_s8_v3.espdl #imagenet_cls_mobilenetv2_s8_v1.espdl #espdet_pico_224_224_face.espdl #
+  
+  model_family: detect
+  model_name: coco_detect_yolo11n_320_s8_v3.espdl
+  
+  # model_family: classify
+  # model_name: imagenet_cls_mobilenetv2_s8_v1.espdl
+  
+  
+  income_topic: "mqtt-cloud-synchronizer"
+  
+  md5_url: "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/esp32_S3_A7670E/firmware.md5"
+  bin_url: "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/esp32_S3_A7670E/firmware.ota.bin"
+ 
+esphome:
+  name: ${name}
+  min_version: 2026.1.0
+  on_boot:
+    # - priority: -100
+      # then:
+        # - component.suspend: gps_id
+        # - script.execute: delay_start_gps
+    - priority: -100
+      then:
+        - if:
+            condition:
+              modem.connected:
+            then:
+              - mqtt.publish: 
+                  topic: device/${name}/camera/config
+                  retain: true
+                  payload: |-  
+                    {"component": "image", "name": "ESP32 Camera Picture", "unique_id": ${name}"_camera", "content_type": "image/jpeg", "image_encoding": "b64", "encoding": "image_encoding", "icon": "mdi:image", "device": {
+                    "identifiers": [${name}], "name": ${name}, "manufacturer": "Espressif", "model": "ESP32-S3", "sw_version": "1.0.0"}}
+              - mqtt.publish:
+                  topic: device/${name}/sensor/config
+                  retain: true
+                  payload: |-
+                    {"component":"sensor","name":"ESP32 face detection", "unique_id": ${name}"_face_detection",  "icon":"mdi:human-male-female","device":{"identifier":${name}, "name":${name},"manufacturer":"Smartphoton","model":"MQTT-2ways-sync","sw_version":"1.0.3"}}         
+  
+esp32:
+  board: esp32-s3-devkitc-1
+  cpu_frequency: 240Mhz
+  flash_size: 16MB
+  partitions: partitions_custom_16mb.csv
+  framework:
+    type: esp-idf
+    version: dev
+    advanced:
+      enable_idf_experimental_features: yes
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_PERF: y
+      CONFIG_ESP32_DEFAULT_CPU_FREQ_240: y
+      CONFIG_UART_ISR_IN_IRAM: y
+      ESP_MODEM_CMUX_DEFRAGMENT_PAYLOAD: n
+      ESP_MODEM_USE_INFLATABLE_BUFFER_IF_NEEDED: y
+      ESP_MODEM_CMUX_USE_SHORT_PAYLOADS_ONLY: y
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "60"  #"60"
+      CONFIG_PARTITION_TABLE_CUSTOM: "y"
+      CONFIG_PARTITION_TABLE_CUSTOM_FILENAME: "partitions_custom_16mb.csv"
+      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: "y"
+      
+
+# script:
+  # - id: delay_start_gps
+    # then:
+      # - delay: 90s
+      # - uart.write:
+          # id: my_uart
+          # data: "AT+CGNSSPWR=1\r\n"
+      # - delay: 10s
+      # - uart.write:
+          # id: my_uart
+          # data: "AT+CGNSSTST=1\r\n"
+      # - delay: 2s
+      # - uart.write:
+          # id: my_uart
+          # data: "AT+CGNSSPORTSWITCH=0,1\r\n"
+      # - delay: 2s
+      # - component.resume: gps_id
+      
+
+# uart:
+  # id: my_uart
+  # rx_pin: 
+    # number: GPIO17
+    # allow_other_uses: true
+  # tx_pin: 
+    # number: GPIO18
+    # allow_other_uses: true
+  # baud_rate: 115200
+  # debug:
+    # direction: BOTH
+    # dummy_receiver: false
+    # after:
+      # delimiter: "\n"
+    # sequence:
+      # - lambda: UARTDebug::log_string(direction, bytes);  
+
+# Enable logging
+logger:
+  # baud_rate: 0
+  hardware_uart: UART0 
+  level: verbose
+   
+ota:
+  - platform: http_request
+    on_begin:
+      then:
+        - logger.log: "OTA start"
+  # - platform: esphome
+
+http_request:
+  verify_ssl: false
+
+external_components:
+    - source: github://pr#6721
+      components: [ network, modem ]  # also add 'watchdog' if not found
+      refresh: 10s
+      
+    - source: github://jesserockz/esphome-components@1b449c22e749933d11ca57c77d8303f851a817e1
+      components: [file]
+      refresh: 10s
+            
+    - source: github://pr#14554
+      components:  [nmea, template]
+      refresh: 10s
+      
+    - source: github://pr#13585 #github://Option-Zero/esphome-components@max17048
+      components: [max17048]
+      refresh: 10s
+      
+    - source:
+        type: git
+        url: https://github.com/youkorr/s3_vision
+        # ref: claude/check-model-callbacks-hevdY
+        ref: main
+      components: [vision]
+      refresh: 0s  
+      
+     
+mqtt:
+  broker: !secret cloud_mqtt_address 
+  port: 8883
+  topic_prefix: null
+  discovery_prefix: device/${name}/camera/config
+  birth_message:
+    topic: device/${name}/birth/topic
+    payload: online
+  will_message:
+    topic: device/${name}/will/topic
+    payload: offline
+  shutdown_message:
+    topic: device/${name}/shutdown/topic
+    payload: "mqtt disconnected"
+  username: !secret cloud_mqtt_user 
+  password: !secret cloud_mqtt_password
+  client_id: ${name}
+  certificate_authority: !secret cloud_certificate
+  skip_cert_cn_check: false
+  on_message:
+    # Topic pour contrôler l'inference : envoyer "on" ou "off"
+    - topic: ${income_topic}/s3a7670e_inference
+      qos: 0
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "on" || x == "ON" || x == "1" || x == "true";'
+            then:
+              - vision.start: 
+                  id: my_vision
+              - mqtt.publish:
+                  topic: device/${name}/inference/state
+                  retain: true
+                  payload: "on"
+              - logger.log: "VISION enabled via MQTT"
+            else:
+              - vision.stop: 
+                  id: my_vision
+              - mqtt.publish:
+                  topic: device/${name}/inference/state
+                  retain: true
+                  payload: "off"
+              - logger.log: "VISION disabled via MQTT"
+
+    - topic: ${income_topic}/s3a7670e_flash_ota 
+      qos: 0
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "on" || x == "ON" || x == "1" || x == "true";'
+            then:
+              - ota.http_request.flash:
+                  md5_url: ${md5_url}
+                  url: ${bin_url}              
+              - logger.log: "This message should be not displayed because the device reboots"
+              
+    - topic: ${income_topic}/s3a7670e_led 
+      qos: 0
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "on" || x == "ON" || x == "1" || x == "true";'
+            then:
+              - light.turn_on:
+                  id: led
+              - mqtt.publish:
+                  topic: device/${name}/led/state
+                  retain: true
+                  payload: "on"    
+              - logger.log: "LED is turned on"
+            else:
+              - light.turn_off:
+                  id: led
+              - mqtt.publish:
+                  topic: device/${name}/led/state
+                  retain: true
+                  payload: "off"    
+              - logger.log: "LED is turned on"
+              
+    - topic: ${income_topic}/s3a7670e_relay
+      qos: 0
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "on" || x == "ON" || x == "1" || x == "true";'
+            then:
+              - switch.turn_on:
+                  id: relay
+              - mqtt.publish:
+                  topic: device/${name}/relay/state
+                  retain: true
+                  payload: "on"    
+              - logger.log: "Relay is turned on"
+            else:
+              - switch.turn_off:
+                  id: relay
+              - mqtt.publish:
+                  topic: device/${name}/relay/state
+                  retain: true
+                  payload: "off"    
+              - logger.log: "Relay is turned on"              
+                  
+psram:
+  mode: octal
+  speed: '80Mhz' #120Mhz is crashing with
+
+i2c: 
+  - id: my_i2c
+    sda: GPIO15 
+    scl: GPIO16
+  
+light:
+  - platform: esp32_rmt_led_strip
+    rgb_order: GRB
+    pin: GPIO38
+    num_leds: 1
+    chipset: ws2812
+    name: ${name}_led
+    # rmt_channel: 0
+    id: led
+    default_transition_length: 0s
+    
+  
+esp32_camera:
+  name: ${name}_camera
+  id: my_camera
+  external_clock:
+    pin: GPIO39 
+    frequency: 20MHz
+  i2c_id: my_i2c
+  data_pins: [GPIO07, GPIO08, GPIO09, GPIO10, GPIO11, GPIO12, GPIO13, GPIO14]
+  vsync_pin: GPIO42 #GPIO36
+  href_pin: GPIO41 #GPIO35
+  pixel_clock_pin: GPIO46 #GPIO37
+  resolution: ${resolution} #640x480
+  pixel_format: rgb565 
+  # jpeg_quality: 10
+  frame_buffer_count: 1
+  frame_buffer_location: 'PSRAM'
+  idle_framerate: 0.05fps
+  vertical_flip: false
+  horizontal_mirror: false
+  # on_image:
+    # then: 
+        # if:
+          # condition:
+            # modem.connected: #atmodem
+          # then:
+            # - mqtt.publish:
+                # topic: device/${name}/camera/snapshot
+                # payload: !lambda return esphome::base64_encode(image.data, image.length);
+            # - logger.log:
+                 # format: "mqtt publish succesfully image with length %s"
+                 # args: [ 'std::to_string(image.length).c_str()' ]
+
+file:
+  - id: my_model
+    path: ./${model_name}
+
+vision:
+  id: my_vision
+  esp32_camera_id: my_camera
+  model_family: ${model_family}
+  model_id: my_model  
+  score_threshold: 0.30
+  nms_threshold: 0.50
+  detection_interval_ms: 200
+  max_detections: 5
+  inference_task_stack_size: 8192
+  inference_task_priority: 5
+  draw_outputs: true
+  frame_width: 320
+  frame_height: 240
+
+  on_object_detected:
+    - then:
+        - logger.log:
+            format: "Detected %d objects: %s"
+            args: ["object_count", "summary.c_str()"]
+
+  on_augmented_image:
+    - then:
+        - if:
+            condition:
+              modem.connected:
+            then:
+              - mqtt.publish:
+                  topic: device/${name}/camera/snapshot
+                  payload: !lambda |-
+                    return esphome::base64_encode(image.data, image.length);
+                    
+              - logger.log:
+                  format: "MQTT snapshot published (%u bytes)"
+                  args: ['(unsigned) image.length']
+                  
+              - mqtt.publish:
+                  topic: device/${name}/camera_event/state
+                  payload: !lambda return id(my_vision).get_inference_json();    
+                  
+              # - mqtt.publish:
+                  # topic: device/${name}/camera_event/state
+                  # payload: !lambda |-
+                    # auto dets = id(my_vision).get_detections();
+                    # std::string out = "{\"count\":";
+                    # out += std::to_string(dets.size());
+                    # out += ",\"objects\":[";
+                    # for (size_t i = 0; i < dets.size(); i++) {
+                      # if (i) out += ",";
+                      # char buf[128];
+                      # snprintf(buf, sizeof(buf),
+                        # "{\"class\":\"%s\",\"score\":%d,\"x1\":%d,\"y1\":%d,\"x2\":%d,\"y2\":%d}",
+                        # dets[i].label,
+                        # (int)(dets[i].score * 100),
+                        # dets[i].x1, dets[i].y1, dets[i].x2, dets[i].y2);
+                      # out += buf;
+                    # }
+                    # out += "]}";
+                    # return out;
+              
+# gps:
+  # id: gps_id
+  # uart_id: my_uart #
+  # latitude:
+    # name: ${name}_latitude
+  # longitude:
+    # name: ${name}_longitude
+  # altitude:
+    # name: ${name}_altitude
+  # update_interval: ${gps_update}  
+
+modem:
+  id: atmodem
+  rx_pin: 
+    number: GPIO17
+    # allow_other_uses: true
+  tx_pin: 
+    number: GPIO18
+    # allow_other_uses: true
+  
+  # power_pin:
+    # number: GPIO33
+    # inverted: True
+  model: SIM7670  # or SIM7670 BG96 SIM7000 SIM800 GENERIC
+  apn: free
+  pin_code: !secret sim_pin
+  # enable_cmux: True
+  dte_buffer_size: 1024
+  # we can send initial AT commands at setup
+  init_at:
+    - AT+GMM  # model
+    - AT+CGNSSPWR=1
+    - AT+CGNSSTST=1
+    - AT+CGNSSPORTSWITCH=0,1
+  # on_not_responding:
+    # - logger.log: "modem not responding"
+  on_connect:
+    - logger.log: "modem got IP"
+  on_disconnect:
+    - logger.log: "modem lost IP"
+
+
+# nmea:
+  # platform: modem
+  # id: nmea_data
+  # update_interval: ${gps_update}
+  # on_update:
+    # - component.update: gps_id
+
+# gps:
+  # uart_id: nmea_data
+  # id: gps_id
+  # update_interval:  never      
+      
+      
+sensor:
+  - platform: uptime
+    id: uptime_sec
+    update_interval: '5s'
+    
+  - platform: max17048
+    i2c_id: my_i2c
+    address: 0x36
+    update_interval: 60s
+    battery_voltage:
+      name: ${name}_battery_voltage
+      id : battery_voltage
+      on_value:
+        then: 
+          if:
+            condition:
+              modem.connected:
+            then:
+              - mqtt.publish:
+                  topic: device/${name}/battery_voltage/state
+                  payload: !lambda "return std::to_string(x);"
+              - logger.log:
+                   format: "mqtt publish succesfully battery voltage with value %s"
+                   args: [ 'std::to_string(x).c_str()' ]
+    battery_level:
+      name: ${name}_battery_level
+      id: battery_level
+      on_value:
+        then: 
+          if:
+            condition:
+              modem.connected:
+            then:
+              - mqtt.publish:
+                  topic: device/${name}/battery_soc/state
+                  payload: !lambda "return std::to_string(x);"
+              - logger.log:
+                   format: "mqtt publish succesfully battery soc with value %s"
+                   args: [ 'std::to_string(x).c_str()' ]
+    rate:
+      name: ${name}_battery_discharge_rate
+      id: battery_discharge_rate
+    
+  # - platform: modem
+    # rssi:
+      # # name: ${name}_rssi
+      # id: ${name}_rssi
+      # accuracy_decimals: 1
+      # filters:
+        # - round: 1
+    # ber:
+      # id: ${name}_ber
+
+
+    # latitude:
+      # id: ${name}_latitude
+    # longitude:
+      # id: ${name}_longitude
+    # altitude:
+      # id: ${name}_altitude
+    # accuracy:
+      # id: ${name}_accuracy
+    
+  - platform: internal_temperature
+    name: ${name}_temperature
+    id: ${name}_temperature
+    accuracy_decimals: 1
+    filters:
+      - round: 1
+    on_value:
+      then: 
+        if:
+          condition:
+            modem.connected:
+          then:
+            - mqtt.publish:
+                topic: device/${name}/temperature/state
+                payload: !lambda "return std::to_string(x);"
+            - logger.log:
+                 format: "mqtt publish succesfully temperature with value %s"
+                 args: [ 'std::to_string(x).c_str()' ]   
+    
+    
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s
+    on_value:
+      then: 
+        if:
+          condition:
+            modem.connected: 
+          then:
+            - mqtt.publish:
+                topic: device/${name}/uptime/state
+                payload: !lambda "return x;"
+            - logger.log:
+                 format: "mqtt publish succesfully uptime with value %s"
+                 args: [ 'x' ]
+ 
+switch:
+  # - platform: modem
+    # gnss:
+      # name: GNSS # only on SIM7600 or SIM7670
+      # restore_mode: ALWAYS_ON
+      
+  - platform: gpio
+    name: ${name}_switch_gnss
+    pin:
+      number: GPIO21
+      inverted: true
+    restore_mode: ALWAYS_ON
+    
+    
+  - platform: gpio
+    pin: 
+      number: GPIO05
+    name: ${name}_relay
+    id: relay    
+           

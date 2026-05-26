@@ -1,0 +1,32 @@
+# ESP32-P4 16 MB flash partition table
+# Single factory app partition, no OTA. Mirrors the esp32_p4_eye factory_demo
+# layout but enlarged to 12 MB so the firmware + embedded YOLO11 model
+# (~8.4 MB) fits with room to grow.
+#
+# Map:
+#   0x0      - 0x9000      bootloader + partition table (~36 KB)
+#   0x9000   - 0xF000      NVS (24 KB)
+#   0xF000   - 0x10000     phy_init (4 KB)
+#   0x10000  - 0xC10000    factory app (12 MB)
+#   0xC10000 - 0xC11000    nvs_keys (4 KB)
+#   0xC11000 - 0x1000000   ~4 MB free
+#
+# To use it from ESPHome:
+#   esp32:
+#     board: esp32-p4-evboard
+#     flash_size: 16MB
+#     partitions: partitions_custom_16mb.csv
+#     framework:
+#       type: esp-idf
+#       sdkconfig_options:
+#         CONFIG_PARTITION_TABLE_CUSTOM: "y"
+#         CONFIG_PARTITION_TABLE_CUSTOM_FILENAME: "partitions_custom_16mb.csv"
+#         CONFIG_ESPTOOLPY_FLASHSIZE_16MB: "y"
+#
+# Drop this file next to your *.yaml in /config/esphome/.
+#
+# Name,     Type, SubType,  Offset,   Size,     Flags
+nvs,        data, nvs,      0x9000,   0x6000,
+phy_init,   data, phy,      0xf000,   0x1000,
+factory,    app,  factory,  0x10000,  0xC00000,
+nvs_keys,   data, nvs_keys, 0xC10000, 0x1000,
