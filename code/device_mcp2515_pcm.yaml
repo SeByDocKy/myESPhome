@@ -36,7 +36,7 @@ canbus:
     can_id: 0x0A
     bit_rate: 250kbps
     mode: NORMAL
-    data_rate: '10MHz'
+    data_rate: '6MHz' #'10MHz'
     # data_rate: '5MHz'
 
     on_frame:
