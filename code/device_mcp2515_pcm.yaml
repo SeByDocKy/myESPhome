@@ -33,10 +33,12 @@ canbus:
     spi_id: ${pcm_spid_id}
     use_extended_id: true
     cs_pin: ${pcm_cs_pin}
+    # int_pin: ${pcm_int_pin}
     can_id: 0x0A
     bit_rate: 250kbps
     mode: NORMAL
     data_rate: '10MHz'
+    clock_frequency: 8MHz
     # data_rate: '5MHz'
 
     on_frame:
