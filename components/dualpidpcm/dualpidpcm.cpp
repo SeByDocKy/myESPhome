@@ -350,23 +350,28 @@ void DUALPIDPCMComponent::pid_update() {
            if (this->current_output_ > this->oub_) {
              this->current_mode_ = 2;
            }
-           // Retour IDLE : seulement si output_charging est au minimum ET deadband
-           // (le PID a déjà ramené la charge à zéro avant de considérer l'arrêt)
            else if (this->current_deadband_ && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && !in_startup) {
-               this->current_mode_ = 0;
-            }
+            this->current_mode_ = 0;
+           }
+            // ← Nouveau : sortie franche si error franchement positif
+           // et output_charging déjà au minimum (le PID a fait son travail)
+           else if (!in_startup && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && (epsi > this->Pmin_discharging * DEADBAND_FACTOR)) {
+             this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
+           }
            break;
 
         case 2:  // DISCHARGE
-           // Sortie directe vers CHARGE si output franchit olb_
-          if (this->current_output_ < this->olb_) {
-            this->current_mode_ = 1;
-          }
-          // Retour IDLE : seulement si output_discharging est au minimum ET deadband
-          else if (this->current_deadband_ && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && !in_startup) {
+           if (this->current_output_ < this->olb_) {
+             this->current_mode_ = 1;
+           }
+           else if (this->current_deadband_ && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && !in_startup) {
              this->current_mode_ = 0;
-          }
-          break;
+           }
+           // ← Nouveau : sortie franche si error franchement négatif
+           else if (!in_startup && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (epsi < this->Pmin_charging * DEADBAND_FACTOR)) {
+            this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE
+           }
+           break;
      }
 
     // ── Transition de mode ────────────────────────────────────────────
