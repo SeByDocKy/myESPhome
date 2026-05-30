@@ -2,7 +2,7 @@
 #include "esphome/core/log.h"
 
 #define SET_OUTPUT_DELAY       0   // 50
-#define ONOFF_DELAY            0   // 50
+#define ONOFF_DELAY            10   // 50
 #define CHARGE_DISCHARGE_DELAY 0   // 50
 #define DEADBAND_FACTOR        1.02
 #define STARTUP_INHIBIT_MS     6000
@@ -38,17 +38,17 @@ float DUALPIDPCMComponent::O_to_Od(float O) {
 void DUALPIDPCMComponent::set_charging_level(float level) {
     float quantized = std::round(level * 1000.0f) / 1000.0f;
     // float quantized = level;
-    if (quantized != this->previous_output_charging_) {
+    // if (quantized != this->previous_output_charging_) {
         if (quantized > 0.0f) {
             // N'envoyer une consigne active que si le switch est allumé
-            if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
+              if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
                 this->device_charging_output_->set_level(quantized);
                 delay(SET_OUTPUT_DELAY);
                 ESP_LOGD(TAG, "set_charging_level: %.4f", quantized);
-            }
+              }
         }
         // Pas de set_level pour level == 0 : c'est le onoff_switch qui coupe
-    }
+  //  }
     this->current_output_charging_  = quantized;
     this->previous_output_charging_ = quantized;
 }
@@ -56,7 +56,7 @@ void DUALPIDPCMComponent::set_charging_level(float level) {
 void DUALPIDPCMComponent::set_discharging_level(float level) {
     float quantized = std::round(level * 1000.0f) / 1000.0f;
     //float quantized = level;
-    if (quantized != this->previous_output_discharging_) {
+    // if (quantized != this->previous_output_discharging_) {
         if (quantized > 0.0f) {
             if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
                 this->device_discharging_output_->set_level(quantized);
@@ -64,7 +64,7 @@ void DUALPIDPCMComponent::set_discharging_level(float level) {
                 ESP_LOGD(TAG, "set_discharging_level: %.4f", quantized);
             }
         }
-    }
+   //  }
     this->current_output_discharging_  = quantized;
     this->previous_output_discharging_ = quantized;
 }
