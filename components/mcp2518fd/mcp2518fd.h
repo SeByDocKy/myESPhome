@@ -23,21 +23,21 @@ namespace esphome::mcp2518fd {
 
 // Oscillator frequency selection (crystal / oscillator on OSC1/OSC2)
 enum CanClock : uint8_t {
-  MCP_40MHZ = 0,  ///< 40 MHz oscillator
+  MCP_40MHZ = 0,  ///< 40 MHz oscillator (recommended)
   MCP_20MHZ = 1,  ///< 20 MHz oscillator
-  MCP_10MHZ = 2,  ///< 10 MHz oscillator (using PLL 4 MHz × 10 = 40 MHz)
-  MCP_4MHZ  = 3,  ///< 4 MHz oscillator  (using PLL 4 MHz × 10 = 40 MHz)
+  MCP_10MHZ = 2,  ///< 10 MHz oscillator
+  MCP_4MHZ  = 3,  ///< 4 MHz oscillator  (uses 10× PLL → 40 MHz system clock)
 };
 
-// Operating mode exposed to YAML
+// Operating mode exposed to YAML (same names as mcp2515 where possible)
 enum CanMode : uint8_t {
-  CAN_MODE_NORMAL           = CAN_NORMAL_MODE,
-  CAN_MODE_LISTEN_ONLY      = CAN_LISTEN_ONLY_MODE,
-  CAN_MODE_LOOPBACK_INT     = CAN_INTERNAL_LOOPBACK,
-  CAN_MODE_LOOPBACK_EXT     = CAN_EXTERNAL_LOOPBACK,
-  CAN_MODE_SLEEP            = CAN_SLEEP_MODE,
-  CAN_MODE_CLASSIC          = CAN_CLASSIC_MODE,
-  CAN_MODE_RESTRICTED       = CAN_RESTRICTED_MODE,
+  CAN_MODE_NORMAL       = CAN_NORMAL_MODE,
+  CAN_MODE_LISTEN_ONLY  = CAN_LISTEN_ONLY_MODE,
+  CAN_MODE_LOOPBACK_INT = CAN_INTERNAL_LOOPBACK,
+  CAN_MODE_LOOPBACK_EXT = CAN_EXTERNAL_LOOPBACK,
+  CAN_MODE_SLEEP        = CAN_SLEEP_MODE,
+  CAN_MODE_CLASSIC      = CAN_CLASSIC_MODE,
+  CAN_MODE_RESTRICTED   = CAN_RESTRICTED_MODE,
 };
 
 // ============================================================
@@ -72,32 +72,19 @@ class MCP2518FD : public canbus::Canbus,
 
  private:
   // ---- Configuration -------------------------------------------------------
-  CanClock       mcp_clock_     {MCP_40MHZ};
-  CanMode        mcp_mode_      {CAN_MODE_NORMAL};
-  bool           canfd_enabled_ {false};
-  canbus::CanSpeed data_rate_   {canbus::CAN_500KBPS};
+  CanClock         mcp_clock_     {MCP_40MHZ};
+  CanMode          mcp_mode_      {CAN_MODE_NORMAL};
+  bool             canfd_enabled_ {false};
+  canbus::CanSpeed data_rate_     {canbus::CAN_500KBPS};
 
   // ---- SPI helpers ---------------------------------------------------------
-  /** Send RESET instruction (0x00) */
   canbus::Error reset_();
-
-  /** Read a 32-bit SFR */
-  uint32_t read_sfr_(uint16_t addr);
-
-  /** Write a 32-bit SFR */
-  void write_sfr_(uint16_t addr, uint32_t value);
-
-  /** Read a byte-width register (uses 8-bit read) */
-  uint8_t read_byte_(uint16_t addr);
-
-  /** Write a single byte at byte-level (word access, modify, write-back) */
-  void write_byte_(uint16_t addr, uint8_t value);
-
-  /** Read n bytes from RAM */
-  void read_ram_(uint16_t addr, uint8_t *data, uint8_t n);
-
-  /** Write n bytes to RAM */
-  void write_ram_(uint16_t addr, const uint8_t *data, uint8_t n);
+  uint32_t      read_sfr_(uint16_t addr);
+  void          write_sfr_(uint16_t addr, uint32_t value);
+  uint8_t       read_byte_(uint16_t addr);
+  void          write_byte_(uint16_t addr, uint8_t value);
+  void          read_ram_(uint16_t addr, uint8_t *data, uint8_t n);
+  void          write_ram_(uint16_t addr, const uint8_t *data, uint8_t n);
 
   // ---- Initialisation helpers ----------------------------------------------
   canbus::Error configure_osc_();
@@ -113,30 +100,30 @@ class MCP2518FD : public canbus::Canbus,
   bool check_receive_();
   bool check_error_();
 
-  // ---- RAM address of FIFO heads -------------------------------------------
-  uint16_t tx_fifo_addr_();   ///< User Address of TXQ head
-  uint16_t rx_fifo_addr_();   ///< User Address of RX FIFO1 head
+  uint16_t tx_fifo_addr_();
+  uint16_t rx_fifo_addr_();
 
-  // ---- Utility -------------------------------------------------------------
-  /** Build the two SPI command bytes: [CMD_HIGH | ADDR_HIGH, ADDR_LOW] */
+  // ---- SPI command builder -------------------------------------------------
+  // MCP2518FD SPI header: [CMD(3:0)|ADDR(11:8), ADDR(7:0)]
   inline void build_cmd_(uint16_t addr, uint8_t instr, uint8_t cmd_out[2]) {
     cmd_out[0] = static_cast<uint8_t>((instr << 4) | ((addr >> 8) & 0x0F));
     cmd_out[1] = static_cast<uint8_t>(addr & 0xFF);
   }
 
-  /** DLC code → byte count (CAN FD table) */
+  // ---- Utility -------------------------------------------------------------
   static uint8_t dlc_to_bytes_(uint8_t dlc);
-
-  /** byte count → DLC code (nearest that fits) */
   static uint8_t bytes_to_dlc_(uint8_t len);
 
-  /** Nominal bit-time register words from CanSpeed + CanClock */
-  bool calc_nbt_(canbus::CanSpeed speed, CanClock clk,
-                 uint32_t &nbtcfg) const;
-
-  /** Data bit-time register words from CanSpeed + CanClock */
+  bool calc_nbt_(canbus::CanSpeed speed, CanClock clk, uint32_t &nbtcfg) const;
   bool calc_dbt_(canbus::CanSpeed speed, CanClock clk,
                  uint32_t &dbtcfg, uint32_t &tdcval) const;
+
+  // Internal CAN FD frame buffer (64 bytes data) — allocated on stack in
+  // read_message_fifo_ to avoid heap fragmentation.
+  // The public API CanFrame only holds 8 bytes; for CAN FD we copy the first
+  // min(8, nbytes) bytes so the rest of the ESPHome pipeline stays compatible.
+  // Full 64-byte FD payloads are available via the add_callback() raw API.
+  uint8_t fd_rx_buf_[CAN_FD_MAX_DATA_LENGTH]{};
 };
 
 }  // namespace esphome::mcp2518fd
