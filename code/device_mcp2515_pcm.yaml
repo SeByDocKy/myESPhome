@@ -1,5 +1,5 @@
 substitutions:
-  delay_interval: '120ms'
+  delay_interval: '20ms' #'120ms'
   delay_number: '120ms'
   delay_switch: '120ms'
   
