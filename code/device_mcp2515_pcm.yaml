@@ -38,7 +38,7 @@ canbus:
     bit_rate: 250kbps
     mode: NORMAL
     data_rate: '10MHz'
-    clock_frequency: 8MHz
+    # clock_frequency: 8MHz
     # data_rate: '5MHz'
 
     on_frame:
