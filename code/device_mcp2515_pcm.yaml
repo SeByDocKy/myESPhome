@@ -1,7 +1,7 @@
 substitutions:
-  delay_interval: '40ms' #'120ms'
-  delay_number: '40ms'
-  delay_switch: '40ms'
+  delay_interval: '20ms' #'120ms'
+  delay_number: '20ms'
+  delay_switch: '20ms'
   
   
 esphome:
