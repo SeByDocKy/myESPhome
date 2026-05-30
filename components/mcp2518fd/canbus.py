@@ -3,6 +3,7 @@ from esphome.components import canbus, spi
 from esphome.components.canbus import CanbusComponent
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
+import voluptuous as vol
 
 CODEOWNERS = ["@sebyd"]
 DEPENDENCIES = ["spi"]
@@ -36,49 +37,73 @@ CAN_MODE = {
 }
 
 
-def _validate_can_speed(value):
-    """Accept both legacy enum style ('500kbps'/'500KBPS') and
-    frequency style ('500kHz') used in ESPHome 2026.6+."""
-    if isinstance(value, str):
-        # 1. Direct enum match (e.g. '500KBPS', '500kbps' via upper())
-        upper = value.upper()
-        if upper in canbus.CAN_SPEEDS:
-            return upper
-        # 2. Frequency notation (e.g. '500kHz' -> 500000 Hz)
-        try:
-            hz = cv.frequency(value)
-            bps = int(hz)
-            for key in canbus.CAN_SPEEDS:
-                if canbus.get_rate(key) == bps:
-                    return key
-        except (cv.Invalid, ValueError):
-            pass
-        # 3. Explicit bps notation (e.g. '500kbps' -> 500000 bps)
-        try:
-            bps_val = cv.bps(value)
-            bps = int(bps_val)
-            for key in canbus.CAN_SPEEDS:
-                if canbus.get_rate(key) == bps:
-                    return key
-        except (cv.Invalid, ValueError):
-            pass
+def _normalize_speed(value):
+    """Normalize a CAN speed string to the uppercase key used in CAN_SPEEDS.
+
+    Accepts all three formats used across ESPHome versions:
+      - '500kbps' / '500KBPS'   (legacy enum style, all versions)
+      - '500kHz'  / '1MHz'      (frequency style, ESPHome >= 2026.6-dev)
+      - '500000bps'              (explicit bps)
+    """
+    if not isinstance(value, str):
+        raise cv.Invalid(f"Expected a string for CAN speed, got {type(value)}")
+    upper = value.upper()
+    # 1. Direct match in CAN_SPEEDS dict  (e.g. '500KBPS')
+    if upper in canbus.CAN_SPEEDS:
+        return upper
+    # 2. bps notation  (e.g. '500kbps' -> 500000 bps)
+    try:
+        bps = int(cv.bps(value))
+        for key in canbus.CAN_SPEEDS:
+            if canbus.get_rate(key) == bps:
+                return key
+    except (cv.Invalid, ValueError):
+        pass
+    # 3. Frequency notation  (e.g. '500kHz' -> 500000 Hz == 500 kbps)
+    try:
+        hz = int(cv.frequency(value))
+        for key in canbus.CAN_SPEEDS:
+            if canbus.get_rate(key) == hz:
+                return key
+    except (cv.Invalid, ValueError):
+        pass
     raise cv.Invalid(
         f"Invalid CAN speed '{value}'. "
         "Use e.g. '500kbps', '500KBPS', or '500kHz'."
     )
 
 
-CONFIG_SCHEMA = canbus.CANBUS_SCHEMA.extend(
-    {
-        cv.GenerateID(): cv.declare_id(mcp2518fd),
-        # Override bit_rate to accept both old ('500kbps') and new ('500kHz') formats
-        cv.Optional("bit_rate", default="125KBPS"): _validate_can_speed,
-        cv.Optional(CONF_MCP_CLOCK, default="40MHz"): cv.enum(CAN_CLOCK),
-        cv.Optional(CONF_MCP_MODE,  default="NORMAL"): cv.enum(CAN_MODE),
-        cv.Optional(CONF_CANFD_ENABLED, default=False): cv.boolean,
-        cv.Optional(CONF_DATA_RATE, default="500KBPS"): _validate_can_speed,
-    }
-).extend(spi.spi_device_schema(True))
+def _normalize_bit_rate(config):
+    """Pre-process config dict: normalize bit_rate BEFORE CANBUS_SCHEMA validates it.
+
+    This ensures compatibility with both:
+      - ESPHome <= 2026.5  which uses cv.enum(CAN_SPEEDS) for bit_rate
+      - ESPHome >= 2026.6  which uses cv.frequency for bit_rate
+    """
+    if "bit_rate" in config and isinstance(config["bit_rate"], str):
+        try:
+            normalized = _normalize_speed(config["bit_rate"])
+            config = dict(config)
+            config["bit_rate"] = normalized
+        except cv.Invalid:
+            pass  # leave as-is; CANBUS_SCHEMA will raise a clear error
+    return config
+
+
+CONFIG_SCHEMA = cv.Schema(
+    vol.All(
+        _normalize_bit_rate,
+        canbus.CANBUS_SCHEMA.extend(
+            {
+                cv.GenerateID(): cv.declare_id(mcp2518fd),
+                cv.Optional(CONF_MCP_CLOCK, default="40MHz"): cv.enum(CAN_CLOCK),
+                cv.Optional(CONF_MCP_MODE,  default="NORMAL"): cv.enum(CAN_MODE),
+                cv.Optional(CONF_CANFD_ENABLED, default=False): cv.boolean,
+                cv.Optional(CONF_DATA_RATE, default="500KBPS"): _normalize_speed,
+            }
+        ).extend(spi.spi_device_schema(True)),
+    )
+)
 
 
 async def to_code(config):
