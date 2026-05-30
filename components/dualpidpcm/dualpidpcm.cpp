@@ -481,10 +481,10 @@ void DUALPIDPCMComponent::pid_update() {
     // ── Envoi des consignes via les helpers ───────────────────────────
     // set_charging_level / set_discharging_level ne transmettent que si
     // la valeur a changé → évite de saturer le canal radio HMS/OpenDTU
-    if(his->current_output_charging_  > 0.0f){    
+    if(this->current_output_charging_  > 0.0f){    
       this->set_charging_level(this->current_output_charging_);
     }
-    if(his->current_output_discharging_  > 0.0f){     
+    if(this->current_output_discharging_  > 0.0f){     
       this->set_discharging_level(this->current_output_discharging_);
     }
 
