@@ -32,13 +32,6 @@ class DUALPIDPCMComponent : public Component{
  SUB_NUMBER(ki)
  SUB_NUMBER(kd)
 
- // SUB_NUMBER(kp_charging)
- // SUB_NUMBER(ki_charging)
- // SUB_NUMBER(kd_charging)
- // SUB_NUMBER(kp_discharging)
- // SUB_NUMBER(ki_discharging)
- // SUB_NUMBER(kd_discharging)
-
  SUB_NUMBER(output_min_charging)
  SUB_NUMBER(output_max_charging)
  SUB_NUMBER(output_min_discharging)
@@ -94,21 +87,7 @@ class DUALPIDPCMComponent : public Component{
   float get_ki(void){return this->current_ki_;}
   void set_kd(float value) {this->current_kd_ = value;}
   float get_kd(void){return this->current_kd_;}
-  
-  // void set_kp_charging(float value) {this->current_kp_charging_ = value;}
-  // float get_kp_charging(void){return this->current_kp_charging_;}
-  // void set_ki_charging(float value) {this->current_ki_charging_ = value;}
-  // float get_ki_charging(void){return this->current_ki_charging_;}
-  // void set_kd_charging(float value) {this->current_kd_charging_ = value;}
-  // float get_kd_charging(void){return this->current_kd_charging_;}
-  
-  // void set_kp_discharging(float value) {this->current_kp_discharging_ = value;}
-  // float get_kp_discharging(void){return this->current_kp_discharging_;}
-  // void set_ki_discharging(float value) {this->current_ki_discharging_ = value;}
-  // float get_ki_discharging(void){return this->current_ki_discharging_;}
-  // void set_kd_discharging(float value) {this->current_kd_discharging_ = value;}
-  // float get_kd_discharging(void){return this->current_kd_discharging_;}
-  
+    
   void set_output_min_charging(float value) {this->current_output_min_charging_ = value;}
   float get_output_min_charging(void){return this->current_output_min_charging_;}
   void set_output_max_charging(float value) {this->current_output_max_charging_ = value;}
@@ -180,15 +159,7 @@ class DUALPIDPCMComponent : public Component{
   float current_kp_          = 1.1f;
   float current_ki_          = 0.0f;
   float current_kd_          = 0.0f;
-   
-  // float current_kp_charging_ = 3.0f;
-  // float current_ki_charging_ = 0.0f;
-  // float current_kd_charging_ = 0.0f;
-  
-  // float current_kp_discharging_ = 3.0f;
-  // float current_ki_discharging_ = 0.0f;
-  // float current_kd_discharging_ = 0.0f;  
-  
+     
   float current_output_max_charging_ = 1.0f;
   float current_output_min_charging_ = 0.0f;
 
@@ -196,13 +167,7 @@ class DUALPIDPCMComponent : public Component{
   float current_output_min_discharging_ = 0.0f;
 
   bool current_deadband_                = false;
-  // bool current_swap_                    = false;
-
-  // int offcharge_                        = 0;
-  // int offdischarge_                     = 0;
-
-  // uint8_t current_mode_                 = 0;
-
+ 
   uint32_t mode_start_time_             = 0;
  
 
@@ -222,8 +187,7 @@ class DUALPIDPCMComponent : public Component{
 
   bool current_onoff_    = false; 
   bool previous_activation_ = false;
-  // int new_mode_          = 0;
-
+  
   // typedef enum {
   //   MODE_IDLE,       // Ni charge, ni décharge (zone morte)
   //   MODE_CHARGE,     // Chargement batterie  (O ∈ [0.0 – 0.5[)
