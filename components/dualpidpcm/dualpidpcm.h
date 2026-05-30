@@ -32,12 +32,12 @@ class DUALPIDPCMComponent : public Component{
  SUB_NUMBER(ki)
  SUB_NUMBER(kd)
 
- SUB_NUMBER(kp_charging)
- SUB_NUMBER(ki_charging)
- SUB_NUMBER(kd_charging)
- SUB_NUMBER(kp_discharging)
- SUB_NUMBER(ki_discharging)
- SUB_NUMBER(kd_discharging)
+ // SUB_NUMBER(kp_charging)
+ // SUB_NUMBER(ki_charging)
+ // SUB_NUMBER(kd_charging)
+ // SUB_NUMBER(kp_discharging)
+ // SUB_NUMBER(ki_discharging)
+ // SUB_NUMBER(kd_discharging)
 
  SUB_NUMBER(output_min_charging)
  SUB_NUMBER(output_max_charging)
@@ -126,16 +126,7 @@ class DUALPIDPCMComponent : public Component{
   float get_input(void)  { return this->current_input_; }
 
   float get_mode(void) {return this->current_mode_;}
-
-  // float get_offcharge(void) {return this->offcharge_;}
-  // float get_offdischarge(void) {return this->offdischarge_;}
-
-
-
   bool get_deadband(void){return this->current_deadband_;}
-  // bool get_swap(void){return this->current_swap_;}
-
-   
   
 
  protected:
@@ -143,8 +134,6 @@ class DUALPIDPCMComponent : public Component{
   float dt_;
   float error_ = 0.0f;
   float previous_error_ = 0.0f;
-  // float output_charging_ = 0.0f;
-  // float output_discharging_ = 0.0f;
 
   float previous_output_ = 0.5f;
   float previous_output_charging_ = 0.0f;
