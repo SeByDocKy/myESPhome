@@ -1768,7 +1768,7 @@ interval:
 
 
 # Query configuration parameters periodically (every 30s)
-  - interval: ${pcm_interval}
+  - interval: ${pcm_interval_slow}
     then:
       # Query Grid Mode
       - canbus.send:
@@ -1859,8 +1859,7 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_interval} 
-      
+      - delay: ${delay_interval}   
       # # Query Fan speed
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
