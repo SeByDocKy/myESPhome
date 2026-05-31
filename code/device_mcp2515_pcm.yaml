@@ -229,12 +229,14 @@ canbus:
         then:
           - lambda: |-
               uint8_t phase_mode = x[2];
-              id(phase_mode_readback).publish_state(phase_mode);
               if (phase_mode == 0) {
                 id(phase_mode_select).publish_state("Single-Phase");
+                id(phase_mode_readback).publish_state(phase_mode+1);
               } else if (phase_mode == 1) {
                 id(phase_mode_select).publish_state("Three-Phase");
+                id(phase_mode_readback).publish_state(phase_mode+2);
               }
+              
               ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
       
       # Charging Parameters Response - 0x010A0031
