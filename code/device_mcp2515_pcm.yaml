@@ -418,7 +418,7 @@ sensor:
     id: running_mode_sensor
     name: ${name}_${pcm_name}_running_mode_value
     accuracy_decimals: 0
-    internal: true
+    # internal: true
   
   # Inverter Frequency
   - platform: template
