@@ -418,6 +418,8 @@ sensor:
     id: running_mode_sensor
     name: ${name}_${pcm_name}_running_mode_value
     accuracy_decimals: 0
+    state_class: measurement
+    icon: mdi:numeric
     # internal: true
   
   # Inverter Frequency
