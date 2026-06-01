@@ -400,11 +400,11 @@ void DUALPIDPCMComponent::pid_update() {
               delay(ONOFF_DELAY);
             }
               // Remettre discharge_charge_switch en position charge (sécurité)
-           if (this->discharge_charge_switch_ != nullptr && this->discharge_charge_switch_->state == false) {
-             this->discharge_charge_switch_->turn_on();
-             this->discharge_charge_switch_->publish_state(true);
-             delay(CHARGE_DISCHARGE_DELAY);
-           }
+           // if (this->discharge_charge_switch_ != nullptr && this->discharge_charge_switch_->state == false) {
+           //   this->discharge_charge_switch_->turn_on();
+           //   this->discharge_charge_switch_->publish_state(true);
+           //   delay(CHARGE_DISCHARGE_DELAY);
+           // }
         }
 
         this->previous_mode_  = this->current_mode_;
