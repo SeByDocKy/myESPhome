@@ -13,8 +13,8 @@ namespace dualpidpcm {
 static const char *const TAG = "dualpidpcm";
 
 static const float coeffP = 0.00001f;
-static const float coeffI = 0.001f;
-static const float coeffD = 0.001f;
+static const float coeffI = 0.00001f;
+static const float coeffD = 0.00001f;
 
 
 // ── Helpers O_to_Oc / O_to_Od ────────────────────────────────────────────────
