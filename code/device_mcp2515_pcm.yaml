@@ -154,19 +154,24 @@ canbus:
               
               ESP_LOGD("canbus", "Status - Mode: %d, Freq: %dHz, Faults: 0x%02X 0x%02X 0x%02X", 
                        running_mode, inverter_freq == 0 ? 50 : 60, fault1, fault2, fault3);
-      
-      # Version Response - 0x010A0007
-      - can_id: 0x010A${pcm_address}07 #0x010A0007
+
+
+      # Grid Mode Response - 0x010A0002
+      - can_id: 0x010A${pcm_address}02 #0x010A0002
         use_extended_id: true
         then:
           - lambda: |-
-              uint8_t version_low = x[2];
-              uint8_t version_high = x[3];
-              char version_str[10];
-              snprintf(version_str, sizeof(version_str), "V%d.%02d", version_high, version_low);
-              id(program_version).publish_state(version_str);
-              ESP_LOGD("canbus", "Program Version: %s", version_str);
-      
+              // uint8_t grid_mode = x[2] | (x[1] << 8);
+              uint8_t grid_mode = x[2];
+              id(grid_mode_readback).publish_state(grid_mode);
+              if (grid_mode == 0) {
+                id(grid_mode_select).publish_state("Charge mode");
+              } else if (grid_mode == 1) {
+                id(grid_mode_select).publish_state("Discharge mode");
+              }
+              ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
+
+
       # SN Code Response - 0x010A0005
       - can_id: 0x010A${pcm_address}05 #0x010A0005
         use_extended_id: true
@@ -181,48 +186,19 @@ canbus:
               // snprintf(sn_str, sizeof(sn_str), "V%04X", sn_code);
               id(sn_code_text_sensor).publish_state(sn_str);
               ESP_LOGD("canbus", "SN Code: %s", sn_str);
-
-      # Grid Mode Response - 0x010A0002
-      - can_id: 0x010A${pcm_address}02 #0x010A0002
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t grid_mode = x[2] | (x[1] << 8);
-              id(grid_mode_readback).publish_state(grid_mode);
-              if (grid_mode == 0) {
-                id(grid_mode_select).publish_state("Charge mode");
-              } else if (grid_mode == 1) {
-                id(grid_mode_select).publish_state("Discharge mode");
-              }
-              ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
+                       
       
-      # Frequency Setting Response - 0x010A0011
-      - can_id: 0x010A${pcm_address}11 #0x010A0011
+      # Version Response - 0x010A0007
+      - can_id: 0x010A${pcm_address}07 #0x010A0007
         use_extended_id: true
         then:
           - lambda: |-
-              uint8_t freq = x[2] | (x[1] << 8);
-              id(frequency_setting_readback).publish_state((freq== 0 ? 50 : 60));
-              if (freq == 0) {
-                id(frequency_select).publish_state("50 Hz");
-              } else if (freq == 1) {
-                id(frequency_select).publish_state("60 Hz");
-              }
-              ESP_LOGD("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
-      
-      # AC Voltage Setting Response - 0x010A0012
-      - can_id: 0x010A${pcm_address}12 #0x010A0012
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t voltage = x[2] | (x[1] << 8);
-              id(ac_voltage_setting_readback).publish_state((voltage== 0 ? 230 : 240));
-              if (voltage == 0) {
-                id(ac_voltage_select).publish_state("230V");
-              } else if (voltage == 2) {
-                id(ac_voltage_select).publish_state("240V");
-              }
-              ESP_LOGD("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
+              uint8_t version_low = x[2];
+              uint8_t version_high = x[3];
+              char version_str[10];
+              snprintf(version_str, sizeof(version_str), "V%d.%02d", version_high, version_low);
+              id(program_version).publish_state(version_str);
+              ESP_LOGD("canbus", "Program Version: %s", version_str);
       
       # Phase Mode Response - 0x010A000A
       - can_id: 0x010A${pcm_address}0A #0x010A000A
@@ -239,6 +215,38 @@ canbus:
               }
               
               ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
+
+      
+      # Frequency Setting Response - 0x010A0011
+      - can_id: 0x010A${pcm_address}11 #0x010A0011
+        use_extended_id: true
+        then:
+          - lambda: |-
+              // uint8_t freq = x[2] | (x[1] << 8);
+              uint8_t freq = x[2];
+              id(frequency_setting_readback).publish_state((freq== 0 ? 50 : 60));
+              if (freq == 0) {
+                id(frequency_select).publish_state("50 Hz");
+              } else if (freq == 1) {
+                id(frequency_select).publish_state("60 Hz");
+              }
+              ESP_LOGD("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
+      
+      # AC Voltage Setting Response - 0x010A0012
+      - can_id: 0x010A${pcm_address}12 #0x010A0012
+        use_extended_id: true
+        then:
+          - lambda: |-
+              // uint8_t voltage = x[2] | (x[1] << 8);
+              uint8_t voltage = x[2];
+              id(ac_voltage_setting_readback).publish_state((voltage== 0 ? 230 : 240));
+              if (voltage == 0) {
+                id(ac_voltage_select).publish_state("230V");
+              } else if (voltage == 2) {
+                id(ac_voltage_select).publish_state("240V");
+              }
+              ESP_LOGD("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
+      
       
       # Charging Parameters Response - 0x010A0031
       - can_id: 0x010A${pcm_address}31 #0x010A0031
@@ -1596,8 +1604,6 @@ number:
 # Switches and Controls
 switch:
 
-
-
   # Power ON/OFF
   - platform: template
     name: ${name}_${pcm_name}_power
@@ -1678,7 +1684,6 @@ switch:
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: ${delay_switch}
       
-      
 # Text Sensors
 text_sensor:
   - platform: template
@@ -1729,7 +1734,6 @@ text_sensor:
     id: sn_code_text_sensor
     name: ${name}_${pcm_name}_sn
     icon: mdi:barcode
-
 
 # Interval updates to request status
 interval:
