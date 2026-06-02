@@ -2,6 +2,34 @@ external_components:
   - source: "github://SeByDocKy/myESPhome/"
     components: [dualpidpcm]
     refresh: 0s
+
+
+globals:    
+  - id: ${dualpidpcm_name}_exported_energy_yesterday_global
+    type: float
+    restore_value: yes
+    
+  - id: ${dualpidpcm_name}_imported_energy_yesterday_global
+    type: float
+    restore_value: yes
+
+time:
+  - platform: homeassistant #sntp
+    id: my_time
+  
+    on_time:
+      - seconds: 59
+        minutes: 59
+        hours: 23
+        then:  
+          - globals.set:
+              id: ${dualpidpcm_name}_exported_energy_yesterday_global
+              value: !lambda return ( id(${dualpidpcm_name}_exported_energy_yesterday_global) =  float( id(${dualpidpcm_name}_exported_energy_today).state) ); 
+                
+          - globals.set:
+              id: ${dualpidpcm_name}_imported_energy_yesterday_global
+              value: !lambda return ( id(${dualpidpcm_name}_imported_energy_yesterday_global) =  float( id(${dualpidpcm_name}_imported_energy_today).state) );
+
     
 dualpidpcm:
   - id: ${dualpidpcm_id}
