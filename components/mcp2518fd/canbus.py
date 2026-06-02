@@ -1,17 +1,26 @@
+from esphome import automation
 import esphome.codegen as cg
+import esphome.pins as pins
 from esphome.components import canbus, spi
-from esphome.components.canbus import CanbusComponent
+from esphome.components.canbus import (
+    CanbusComponent, CanbusTrigger, CAN_SPEEDS,
+    CONF_CAN_ID, CONF_BIT_RATE, CONF_ON_FRAME, CONF_USE_EXTENDED_ID,
+    CONF_CAN_ID_MASK, CONF_REMOTE_TRANSMISSION_REQUEST, CONF_TRIGGER_ID,
+    validate_id, setup_canbus_core_,
+)
 import esphome.config_validation as cv
-from esphome.const import CONF_ID
-import voluptuous as vol
+from esphome.const import CONF_ID, CONF_NUMBER, CONF_INVERTED
 
 CODEOWNERS = ["@sebyd"]
 DEPENDENCIES = ["spi"]
 
-CONF_MCP_CLOCK     = "mcp_clock"
-CONF_MCP_MODE      = "mcp_mode"
-CONF_CANFD_ENABLED = "canfd_enabled"
-CONF_DATA_RATE     = "data_rate"
+CONF_CAN_CLOCK      = "can_clock"
+CONF_MCP_MODE       = "mcp_mode"
+CONF_CANFD_ENABLED  = "canfd_enabled"
+CONF_CAN_DATA_RATE  = "can_data_rate"
+CONF_INT_PIN        = "int_pin"
+CONF_INT0_PIN       = "int0_pin"
+CONF_INT1_PIN       = "int1_pin"
 
 mcp2518fd_ns = cg.esphome_ns.namespace("mcp2518fd")
 mcp2518fd = mcp2518fd_ns.class_("MCP2518FD", CanbusComponent, spi.SPIDevice)
@@ -37,83 +46,106 @@ CAN_MODE = {
 }
 
 
-def _normalize_speed(value):
-    """Normalize a CAN speed string to the uppercase key used in CAN_SPEEDS.
-
-    Accepts all three formats used across ESPHome versions:
-      - '500kbps' / '500KBPS'   (legacy enum style, all versions)
-      - '500kHz'  / '1MHz'      (frequency style, ESPHome >= 2026.6-dev)
-      - '500000bps'              (explicit bps)
-    """
-    if not isinstance(value, str):
-        raise cv.Invalid(f"Expected a string for CAN speed, got {type(value)}")
-    upper = value.upper()
-    # 1. Direct match in CAN_SPEEDS dict  (e.g. '500KBPS')
-    if upper in canbus.CAN_SPEEDS:
-        return upper
-    # 2. bps notation  (e.g. '500kbps' -> 500000 bps)
-    try:
-        bps = int(cv.bps(value))
-        for key in canbus.CAN_SPEEDS:
-            if canbus.get_rate(key) == bps:
-                return key
-    except (cv.Invalid, ValueError):
-        pass
-    # 3. Frequency notation  (e.g. '500kHz' -> 500000 Hz == 500 kbps)
-    try:
-        hz = int(cv.frequency(value))
-        for key in canbus.CAN_SPEEDS:
-            if canbus.get_rate(key) == hz:
-                return key
-    except (cv.Invalid, ValueError):
-        pass
-    raise cv.Invalid(
-        f"Invalid CAN speed '{value}'. "
-        "Use e.g. '500kbps', '500KBPS', or '500kHz'."
-    )
-
-
-def _normalize_bit_rate(config):
-    """Pre-process config dict: normalize bit_rate BEFORE CANBUS_SCHEMA validates it.
-
-    This ensures compatibility with both:
-      - ESPHome <= 2026.5  which uses cv.enum(CAN_SPEEDS) for bit_rate
-      - ESPHome >= 2026.6  which uses cv.frequency for bit_rate
-    """
-    if "bit_rate" in config and isinstance(config["bit_rate"], str):
+def _can_speed(value):
+    """Accept '500kbps', '500KBPS', or '500kHz'."""
+    if isinstance(value, str):
+        if value.upper() in CAN_SPEEDS:
+            return value.upper()
         try:
-            normalized = _normalize_speed(config["bit_rate"])
-            config = dict(config)
-            config["bit_rate"] = normalized
-        except cv.Invalid:
-            pass  # leave as-is; CANBUS_SCHEMA will raise a clear error
-    return config
-
-
-CONFIG_SCHEMA = cv.Schema(
-    vol.All(
-        _normalize_bit_rate,
-        canbus.CANBUS_SCHEMA.extend(
-            {
-                cv.GenerateID(): cv.declare_id(mcp2518fd),
-                cv.Optional(CONF_MCP_CLOCK, default="40MHz"): cv.enum(CAN_CLOCK),
-                cv.Optional(CONF_MCP_MODE,  default="NORMAL"): cv.enum(CAN_MODE),
-                cv.Optional(CONF_CANFD_ENABLED, default=False): cv.boolean,
-                cv.Optional(CONF_DATA_RATE, default="500KBPS"): _normalize_speed,
-            }
-        ).extend(spi.spi_device_schema(True)),
+            bps = int(cv.bps(value))
+            for k in CAN_SPEEDS:
+                if canbus.get_rate(k) == bps:
+                    return k
+        except (cv.Invalid, ValueError):
+            pass
+        try:
+            hz = int(cv.frequency(value))
+            for k in CAN_SPEEDS:
+                if canbus.get_rate(k) == hz:
+                    return k
+        except (cv.Invalid, ValueError):
+            pass
+    raise cv.Invalid(
+        f"Invalid CAN speed '{value}'. Use e.g. '500kbps', '500KBPS', or '500kHz'."
     )
+
+
+def _int_pin_schema(value):
+    """Validate an interrupt pin.
+
+    The MCP2518FD INT/INT0/INT1 pins are ALWAYS active-low (open-drain).
+    The user just specifies the GPIO number — inverted is forced to True
+    internally so that digital_read() returns True when the interrupt fires.
+
+    Accepts both shorthand (just a pin number) and dict form:
+        int1_pin: GPIO4
+        int1_pin:
+          number: GPIO4
+          # inverted is always forced to True — no need to declare it
+    """
+    # Normalise shorthand to dict
+    if not isinstance(value, dict):
+        value = {CONF_NUMBER: value}
+    # Force inverted=True regardless of what the user wrote
+    value = dict(value)
+    value[CONF_INVERTED] = True
+    return pins.gpio_input_pin_schema(value)
+
+
+CONFIG_SCHEMA = (
+    cv.Schema(
+        {
+            cv.GenerateID(): cv.declare_id(mcp2518fd),
+            cv.Required(CONF_CAN_ID): cv.int_range(min=0, max=0x1FFFFFFF),
+            cv.Optional(CONF_BIT_RATE, default="125KBPS"): _can_speed,
+            cv.Optional(CONF_USE_EXTENDED_ID, default=False): cv.boolean,
+            cv.Optional(CONF_ON_FRAME): automation.validate_automation(
+                {
+                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(CanbusTrigger),
+                    cv.Required(CONF_CAN_ID): cv.int_range(min=0, max=0x1FFFFFFF),
+                    cv.Optional(CONF_CAN_ID_MASK, default=0x1FFFFFFF):
+                        cv.int_range(min=0, max=0x1FFFFFFF),
+                    cv.Optional(CONF_USE_EXTENDED_ID, default=False): cv.boolean,
+                    cv.Optional(CONF_REMOTE_TRANSMISSION_REQUEST): cv.boolean,
+                },
+                validate_id,
+            ),
+            cv.Optional(CONF_CAN_CLOCK,     default="40MHz"):   cv.enum(CAN_CLOCK),
+            cv.Optional(CONF_MCP_MODE,      default="NORMAL"):  cv.enum(CAN_MODE),
+            cv.Optional(CONF_CANFD_ENABLED, default=False):     cv.boolean,
+            cv.Optional(CONF_CAN_DATA_RATE, default="500KBPS"): _can_speed,
+            # Interrupt pins — inverted forced internally (always active-low)
+            cv.Optional(CONF_INT_PIN):  _int_pin_schema,
+            cv.Optional(CONF_INT0_PIN): _int_pin_schema,
+            cv.Optional(CONF_INT1_PIN): _int_pin_schema,
+        }
+    )
+    .extend(cv.COMPONENT_SCHEMA)
+    .extend(spi.spi_device_schema(cs_pin_required=True))
 )
+
+CONFIG_SCHEMA.add_extra(validate_id)
 
 
 async def to_code(config):
-    rhs = mcp2518fd.new()
-    var = cg.Pvariable(config[CONF_ID], rhs)
-    await canbus.register_canbus(var, config)
+    var = cg.new_Pvariable(config[CONF_ID])
+    await setup_canbus_core_(var, config)
 
-    cg.add(var.set_mcp_clock(CAN_CLOCK[config[CONF_MCP_CLOCK]]))
+    cg.add(var.set_can_clock(CAN_CLOCK[config[CONF_CAN_CLOCK]]))
     cg.add(var.set_mcp_mode(CAN_MODE[config[CONF_MCP_MODE]]))
     cg.add(var.set_canfd_enabled(config[CONF_CANFD_ENABLED]))
-    cg.add(var.set_data_rate(canbus.CAN_SPEEDS[config[CONF_DATA_RATE]]))
+    cg.add(var.set_data_rate(CAN_SPEEDS[config[CONF_CAN_DATA_RATE]]))
+
+    if CONF_INT_PIN in config:
+        pin = await cg.gpio_pin_expression(config[CONF_INT_PIN])
+        cg.add(var.set_int_pin(pin))
+
+    if CONF_INT0_PIN in config:
+        pin = await cg.gpio_pin_expression(config[CONF_INT0_PIN])
+        cg.add(var.set_int0_pin(pin))
+
+    if CONF_INT1_PIN in config:
+        pin = await cg.gpio_pin_expression(config[CONF_INT1_PIN])
+        cg.add(var.set_int1_pin(pin))
 
     await spi.register_spi_device(var, config)

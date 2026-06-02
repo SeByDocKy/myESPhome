@@ -2,18 +2,20 @@
 #include "esphome/core/log.h"
 
 // ============================================================
-// ESPHome native component  —  MCP2518FD
-// CAN FD controller (SPI interface)
+// ESPHome native component — MCP2518FD
 //
-// Architecture:
-//   - TXQ  (FIFO CH0)  used for transmit
-//   - FIFO CH1          used for receive
-//   - Filter 0          accept-all (SID/EID both 0, mask 0)
+// SPI command format:
+//   Byte 0: [CMD(3:0) | ADDR(11:8)]
+//   Byte 1: ADDR(7:0)
+//   Byte 2+: data, little-endian 32-bit words
 //
-// SPI command format (MCP2518FD):
-//   Byte 0:  [CMD(3:0) | ADDR(11:8)]
-//   Byte 1:  ADDR(7:0)
-//   Byte 2+: data (LSB first, 32-bit words in little-endian order)
+// Interrupt wiring (all active-low, open-drain):
+//   INT  → any enabled CiINT source  (general fallback)
+//   INT0 → CiINT.TXIF & TXIE         (TX done)
+//   INT1 → CiINT.RXIF & RXIE         (RX available)
+//
+// When an interrupt pin is declared in YAML, it is used to
+// gate the corresponding SPI access (no pin = polling).
 // ============================================================
 
 namespace esphome::mcp2518fd {
@@ -21,13 +23,12 @@ namespace esphome::mcp2518fd {
 static const char *const TAG = "mcp2518fd";
 
 // ============================================================
-// SPI low-level primitives
+// SPI low-level
 // ============================================================
 
 uint32_t MCP2518FD::read_sfr_(uint16_t addr) {
   uint8_t cmd[2];
   build_cmd_(addr, MCP2518FD_INSTRUCTION_READ, cmd);
-
   this->enable();
   this->transfer_byte(cmd[0]);
   this->transfer_byte(cmd[1]);
@@ -43,7 +44,6 @@ uint32_t MCP2518FD::read_sfr_(uint16_t addr) {
 void MCP2518FD::write_sfr_(uint16_t addr, uint32_t value) {
   uint8_t cmd[2];
   build_cmd_(addr, MCP2518FD_INSTRUCTION_WRITE, cmd);
-
   this->enable();
   this->transfer_byte(cmd[0]);
   this->transfer_byte(cmd[1]);
@@ -55,12 +55,14 @@ void MCP2518FD::write_sfr_(uint16_t addr, uint32_t value) {
 }
 
 uint8_t MCP2518FD::read_byte_(uint16_t addr) {
-  return static_cast<uint8_t>(read_sfr_(addr & ~0x03u) >> ((addr & 0x03u) * 8));
+  uint16_t word_addr = addr & ~0x03u;
+  uint8_t  shift     = (addr & 0x03u) * 8;
+  return static_cast<uint8_t>(read_sfr_(word_addr) >> shift);
 }
 
 void MCP2518FD::write_byte_(uint16_t addr, uint8_t value) {
   uint16_t word_addr = addr & ~0x03u;
-  uint32_t shift = (addr & 0x03u) * 8;
+  uint32_t shift     = (addr & 0x03u) * 8;
   uint32_t reg = read_sfr_(word_addr);
   reg = (reg & ~(0xFFUL << shift)) | (static_cast<uint32_t>(value) << shift);
   write_sfr_(word_addr, reg);
@@ -69,26 +71,22 @@ void MCP2518FD::write_byte_(uint16_t addr, uint8_t value) {
 void MCP2518FD::read_ram_(uint16_t addr, uint8_t *data, uint8_t n) {
   uint8_t cmd[2];
   build_cmd_(addr, MCP2518FD_INSTRUCTION_READ, cmd);
-
   this->enable();
   this->transfer_byte(cmd[0]);
   this->transfer_byte(cmd[1]);
-  for (uint8_t i = 0; i < n; i++) {
+  for (uint8_t i = 0; i < n; i++)
     data[i] = this->transfer_byte(0x00);
-  }
   this->disable();
 }
 
 void MCP2518FD::write_ram_(uint16_t addr, const uint8_t *data, uint8_t n) {
   uint8_t cmd[2];
   build_cmd_(addr, MCP2518FD_INSTRUCTION_WRITE, cmd);
-
   this->enable();
   this->transfer_byte(cmd[0]);
   this->transfer_byte(cmd[1]);
-  for (uint8_t i = 0; i < n; i++) {
+  for (uint8_t i = 0; i < n; i++)
     this->transfer_byte(data[i]);
-  }
   this->disable();
 }
 
@@ -97,13 +95,11 @@ void MCP2518FD::write_ram_(uint16_t addr, const uint8_t *data, uint8_t n) {
 // ============================================================
 
 canbus::Error MCP2518FD::reset_() {
-  // The RESET instruction is 0x00 on both command bytes
   this->enable();
   this->transfer_byte(0x00);
   this->transfer_byte(0x00);
   this->disable();
   delay(5);
-  ESP_LOGV(TAG, "reset_() complete");
   return canbus::ERROR_OK;
 }
 
@@ -113,71 +109,44 @@ canbus::Error MCP2518FD::reset_() {
 
 canbus::Error MCP2518FD::set_mode_(CanOperationMode mode) {
   uint32_t reg = read_sfr_(REG_CiCON);
-
-  // Clear REQOP bits, set new mode
   reg &= ~CiCON_REQOP_MASK;
   reg |= (static_cast<uint32_t>(mode) << CiCON_REQOP_SHIFT) & CiCON_REQOP_MASK;
   write_sfr_(REG_CiCON, reg);
 
-  // Poll OPMOD until it matches (with 10 ms timeout)
-  uint32_t t_start = millis();
-  while ((millis() - t_start) < 10) {
-    uint32_t con = read_sfr_(REG_CiCON);
-    uint8_t opmod = static_cast<uint8_t>((con & CiCON_OPMOD_MASK) >> CiCON_OPMOD_SHIFT);
-    if (opmod == static_cast<uint8_t>(mode)) {
+  uint32_t t0 = millis();
+  while ((millis() - t0) < 10) {
+    uint32_t con   = read_sfr_(REG_CiCON);
+    uint8_t  opmod = static_cast<uint8_t>((con & CiCON_OPMOD_MASK) >> CiCON_OPMOD_SHIFT);
+    if (opmod == static_cast<uint8_t>(mode))
       return canbus::ERROR_OK;
-    }
   }
-  ESP_LOGE(TAG, "set_mode_: timeout waiting for mode %d", mode);
+  ESP_LOGE(TAG, "set_mode_ timeout (wanted %d)", mode);
   return canbus::ERROR_FAIL;
 }
 
 // ============================================================
-// Oscillator configuration
+// Oscillator
 // ============================================================
 
 canbus::Error MCP2518FD::configure_osc_() {
-  // Determine desired oscillator / PLL configuration
-  // MCP2518FD always runs its CAN core at 40 MHz (System Clock = 40 MHz)
-  // Supported input oscillators: 40, 20, 10, 4 MHz (4 MHz uses 10× PLL)
   uint32_t osc_val = 0;
-
-  switch (this->mcp_clock_) {
-    case MCP_40MHZ:
-      // No PLL, no dividers — direct 40 MHz input
-      osc_val = 0x00000000UL;
-      break;
-    case MCP_20MHZ:
-      // SCLKDIV=1 → SCLK = 40/2 = 20 MHz → but we need 40 MHz system clock
-      // So use PLL: 20 MHz × 2 = 40 MHz is not how MCP2518FD works.
-      // Actually with 20 MHz crystal, SCLKDIV=0 → SCLK=20 MHz, PLL not usable.
-      // Run at 20 MHz (lower SPI throughput but simpler)
-      osc_val = 0x00000000UL;  // OSC=20 MHz, no PLL, no division
-      break;
-    case MCP_10MHZ:
-      osc_val = 0x00000000UL;
-      break;
-    case MCP_4MHZ:
-      // Enable 10× PLL: 4 MHz × 10 = 40 MHz
-      osc_val = OSC_PLLEN;
-      break;
-  }
+  if (this->can_clock_ == MCP_4MHZ)
+    osc_val = OSC_PLLEN;   // 4 MHz × 10 PLL → 40 MHz SYSCLK
 
   write_sfr_(REG_OSC, osc_val);
 
-  // Wait for oscillator / PLL ready
-  uint32_t t_start = millis();
-  while ((millis() - t_start) < 10) {
-    uint32_t status = read_sfr_(REG_OSC);
-    bool pll_needed = (osc_val & OSC_PLLEN) != 0;
-    bool osc_rdy = (status & OSC_OSCRDY) != 0;
-    bool pll_rdy = !pll_needed || ((status & OSC_PLLRDY) != 0);
+  uint32_t t0 = millis();
+  while ((millis() - t0) < 10) {
+    uint32_t status  = read_sfr_(REG_OSC);
+    bool pll_needed  = (osc_val & OSC_PLLEN) != 0;
+    bool osc_rdy     = (status & OSC_OSCRDY) != 0;
+    bool pll_rdy     = !pll_needed || ((status & OSC_PLLRDY) != 0);
     if (osc_rdy && pll_rdy) {
-      ESP_LOGV(TAG, "OSC ready, OSC reg=0x%08X", status);
+      ESP_LOGV(TAG, "OSC ready, OSC=0x%08X", status);
       return canbus::ERROR_OK;
     }
   }
-  ESP_LOGE(TAG, "configure_osc_: oscillator/PLL not ready");
+  ESP_LOGE(TAG, "OSC/PLL not ready");
   return canbus::ERROR_FAIL;
 }
 
@@ -185,191 +154,90 @@ canbus::Error MCP2518FD::configure_osc_() {
 // Bit timing
 // ============================================================
 
-// Pre-computed NBT register values for common speeds
-// Format: {BRP, TSEG1, TSEG2, SJW}  → CiNBTCFG = BRP<<24 | TSEG1<<16 | TSEG2<<8 | SJW
-// Table entries indexed by [CanClock][CanSpeed]
-//
-// Formula: Tbit = (1 + TSEG1 + TSEG2) × TQ  where TQ = (BRP+1)/Fosc
-// All values use BRP=0 unless noted.
-
-struct NbtEntry {
-  uint8_t brp;
-  uint8_t tseg1;
-  uint8_t tseg2;
-  uint8_t sjw;
-};
+struct NbtEntry { uint8_t brp, tseg1, tseg2, sjw; };
 
 // clang-format off
-// Fosc = 40 MHz (MCP_40MHZ)
 static const NbtEntry NBT_40MHZ[] = {
-  // CAN_5KBPS    BRP=99, TSEG1=31, TSEG2=8, SJW=8 → 5 kbps @ 40 MHz
-  {99, 31, 8, 8},
-  // CAN_10KBPS
-  {49, 31, 8, 8},
-  // CAN_20KBPS
-  {24, 31, 8, 8},
-  // CAN_31K25BPS
-  {15, 31, 8, 8},
-  // CAN_33KBPS
-  {14, 31, 8, 8},
-  // CAN_40KBPS
-  {12, 31, 6, 6},
-  // CAN_50KBPS
-  { 9, 31, 8, 8},
-  // CAN_80KBPS
-  { 6, 31, 8, 8},
-  // CAN_100KBPS
-  { 4, 31, 8, 8},
-  // CAN_125KBPS   BRP=1, TSEG1=126, TSEG2=33, SJW=33 → 125 kbps @ 40 MHz
-  { 1,126,33,33},
-  // CAN_200KBPS
-  { 1, 74,25,25},
-  // CAN_250KBPS   BRP=0, TSEG1=126, TSEG2=33, SJW=33 → 250 kbps
-  { 0,126,33,33},
-  // CAN_500KBPS   BRP=0, TSEG1=62, TSEG2=17, SJW=17
-  { 0, 62,17,17},
-  // CAN_1000KBPS  BRP=0, TSEG1=30, TSEG2=9, SJW=9
-  { 0, 30, 9, 9},
+  {99,31,8,8},{49,31,8,8},{24,31,8,8},{15,31,8,8},{14,31,8,8},
+  {12,31,6,6},{9,31,8,8},{6,31,8,8},{4,31,8,8},
+  {1,126,33,33},{1,74,25,25},{0,126,33,33},{0,62,17,17},{0,30,9,9},
 };
-
-// Fosc = 20 MHz
 static const NbtEntry NBT_20MHZ[] = {
-  {49, 31, 8, 8},  // 5K
-  {24, 31, 8, 8},  // 10K
-  {12, 31, 6, 6},  // 20K
-  { 7, 31, 8, 8},  // 31.25K
-  { 7, 29, 8, 8},  // 33K
-  { 6, 31, 6, 6},  // 40K
-  { 4, 31, 8, 8},  // 50K
-  { 3, 31, 6, 6},  // 80K
-  { 2, 31, 6, 6},  // 100K
-  { 0,126,33,33},  // 125K
-  { 0, 74,25,25},  // 200K
-  { 0, 62,17,17},  // 250K
-  { 0, 30, 9, 9},  // 500K
-  { 0, 14, 5, 5},  // 1M
+  {49,31,8,8},{24,31,8,8},{12,31,6,6},{7,31,8,8},{7,29,8,8},
+  {6,31,6,6},{4,31,8,8},{3,31,6,6},{2,31,6,6},
+  {0,126,33,33},{0,74,25,25},{0,62,17,17},{0,30,9,9},{0,14,5,5},
 };
-
-// Fosc = 10 MHz
 static const NbtEntry NBT_10MHZ[] = {
-  {24, 31, 8, 8},  // 5K
-  {12, 31, 6, 6},  // 10K
-  { 6, 31, 6, 6},  // 20K
-  { 3, 31, 8, 8},  // 31.25K
-  { 3, 29, 8, 8},  // 33K
-  { 3, 23, 7, 7},  // 40K
-  { 2, 31, 6, 6},  // 50K
-  { 1, 31, 6, 6},  // 80K
-  { 1, 23, 6, 6},  // 100K
-  { 0, 62,17,17},  // 125K
-  { 0, 36,13,13},  // 200K
-  { 0, 30, 9, 9},  // 250K
-  { 0, 14, 5, 5},  // 500K
-  { 0,  6, 3, 3},  // 1M
+  {24,31,8,8},{12,31,6,6},{6,31,6,6},{3,31,8,8},{3,29,8,8},
+  {3,23,7,7},{2,31,6,6},{1,31,6,6},{1,23,6,6},
+  {0,62,17,17},{0,36,13,13},{0,30,9,9},{0,14,5,5},{0,6,3,3},
+};
+static const NbtEntry NBT_4MHZ[] = {   // same Fosc=40 MHz via PLL
+  {99,31,8,8},{49,31,8,8},{24,31,8,8},{15,31,8,8},{14,31,8,8},
+  {12,31,6,6},{9,31,8,8},{6,31,8,8},{4,31,8,8},
+  {1,126,33,33},{1,74,25,25},{0,126,33,33},{0,62,17,17},{0,30,9,9},
 };
 
-// Fosc = 40 MHz via PLL (4 MHz × 10) — same as 40 MHz table
-static const NbtEntry NBT_4MHZ[] = {
-  {99, 31, 8, 8},  // 5K
-  {49, 31, 8, 8},  // 10K
-  {24, 31, 8, 8},  // 20K
-  {15, 31, 8, 8},  // 31.25K
-  {14, 31, 8, 8},  // 33K
-  {12, 31, 6, 6},  // 40K
-  { 9, 31, 8, 8},  // 50K
-  { 6, 31, 8, 8},  // 80K
-  { 4, 31, 8, 8},  // 100K
-  { 1,126,33,33},  // 125K
-  { 1, 74,25,25},  // 200K
-  { 0,126,33,33},  // 250K
-  { 0, 62,17,17},  // 500K
-  { 0, 30, 9, 9},  // 1M
+static const canbus::CanSpeed SPEED_ORDER[] = {
+  canbus::CAN_5KBPS, canbus::CAN_10KBPS, canbus::CAN_20KBPS,
+  canbus::CAN_31K25BPS, canbus::CAN_33KBPS, canbus::CAN_40KBPS,
+  canbus::CAN_50KBPS, canbus::CAN_80KBPS, canbus::CAN_100KBPS,
+  canbus::CAN_125KBPS, canbus::CAN_200KBPS, canbus::CAN_250KBPS,
+  canbus::CAN_500KBPS, canbus::CAN_1000KBPS,
 };
 // clang-format on
 
-// Speed enum to index map (same order as canbus::CanSpeed)
-static const int SPEED_IDX_COUNT = 14;
-static const canbus::CanSpeed SPEED_ORDER[SPEED_IDX_COUNT] = {
-    canbus::CAN_5KBPS,   canbus::CAN_10KBPS,  canbus::CAN_20KBPS,
-    canbus::CAN_31K25BPS,canbus::CAN_33KBPS,  canbus::CAN_40KBPS,
-    canbus::CAN_50KBPS,  canbus::CAN_80KBPS,  canbus::CAN_100KBPS,
-    canbus::CAN_125KBPS, canbus::CAN_200KBPS,  canbus::CAN_250KBPS,
-    canbus::CAN_500KBPS, canbus::CAN_1000KBPS,
-};
-
 static int speed_index_(canbus::CanSpeed s) {
-  for (int i = 0; i < SPEED_IDX_COUNT; i++) {
+  for (int i = 0; i < 14; i++)
     if (SPEED_ORDER[i] == s) return i;
-  }
   return -1;
 }
 
 bool MCP2518FD::calc_nbt_(canbus::CanSpeed speed, CanClock clk, uint32_t &nbtcfg) const {
   int idx = speed_index_(speed);
   if (idx < 0) return false;
-  const NbtEntry *tbl = nullptr;
-  switch (clk) {
-    case MCP_40MHZ: tbl = NBT_40MHZ; break;
-    case MCP_20MHZ: tbl = NBT_20MHZ; break;
-    case MCP_10MHZ: tbl = NBT_10MHZ; break;
-    case MCP_4MHZ:  tbl = NBT_4MHZ;  break;
-    default: return false;
-  }
-  const NbtEntry &e = tbl[idx];
-  nbtcfg = (static_cast<uint32_t>(e.brp)   << 24) |
-           (static_cast<uint32_t>(e.tseg1)  << 16) |
-           (static_cast<uint32_t>(e.tseg2)  <<  8) |
-            static_cast<uint32_t>(e.sjw);
+  const NbtEntry *t = (clk == MCP_40MHZ || clk == MCP_4MHZ) ? NBT_40MHZ :
+                      (clk == MCP_20MHZ) ? NBT_20MHZ : NBT_10MHZ;
+  nbtcfg = (uint32_t(t[idx].brp) << 24) | (uint32_t(t[idx].tseg1) << 16) |
+           (uint32_t(t[idx].tseg2) << 8) | t[idx].sjw;
   return true;
 }
 
 bool MCP2518FD::calc_dbt_(canbus::CanSpeed speed, CanClock clk,
                            uint32_t &dbtcfg, uint32_t &tdcval) const {
-  // Data bit time for CAN FD — simplified: use same pre-computed values
-  // as nominal but with smaller segment counts where feasible.
-  // For simplicity we re-use the same table scaled, capped at DBT limits.
   int idx = speed_index_(speed);
   if (idx < 0) return false;
-  const NbtEntry *tbl = nullptr;
-  switch (clk) {
-    case MCP_40MHZ: tbl = NBT_40MHZ; break;
-    case MCP_20MHZ: tbl = NBT_20MHZ; break;
-    case MCP_10MHZ: tbl = NBT_10MHZ; break;
-    case MCP_4MHZ:  tbl = NBT_4MHZ;  break;
-    default: return false;
-  }
-  const NbtEntry &e = tbl[idx];
-  // CiDBTCFG uses 4-bit SJW, 5-bit TSEG1, 4-bit TSEG2, 8-bit BRP
-  uint8_t dsjw   = e.sjw   < 15 ? e.sjw   : 15;
-  uint8_t dtseg2 = e.tseg2 < 15 ? e.tseg2 : 15;
-  uint8_t dtseg1 = e.tseg1 < 31 ? e.tseg1 : 31;
-  dbtcfg = (static_cast<uint32_t>(e.brp)  << 24) |
-           (static_cast<uint32_t>(dtseg1) << 16) |
-           (static_cast<uint32_t>(dtseg2) <<  8) |
-            static_cast<uint32_t>(dsjw);
-  // TDC: TDCV=0, TDCO = propagation delay ≈ TSEG1+1 (Auto mode)
-  tdcval = (0x02UL << 8) | static_cast<uint32_t>(dtseg1 + 1);  // TDCMOD=2 (auto), TDCO
+  const NbtEntry *t = (clk == MCP_40MHZ || clk == MCP_4MHZ) ? NBT_40MHZ :
+                      (clk == MCP_20MHZ) ? NBT_20MHZ : NBT_10MHZ;
+  // CiDBTCFG: BRP[7:0] TSEG1[4:0] TSEG2[3:0] SJW[3:0]
+  uint8_t dsjw   = t[idx].sjw   < 15 ? t[idx].sjw   : 15;
+  uint8_t dtseg2 = t[idx].tseg2 < 15 ? t[idx].tseg2 : 15;
+  uint8_t dtseg1 = t[idx].tseg1 < 31 ? t[idx].tseg1 : 31;
+  dbtcfg = (uint32_t(t[idx].brp) << 24) | (uint32_t(dtseg1) << 16) |
+           (uint32_t(dtseg2) << 8) | dsjw;
+  // TDC auto mode: TDCMOD=2, TDCO = TSEG1+1
+  tdcval = (0x02UL << 8) | uint32_t(dtseg1 + 1);
   return true;
 }
 
 canbus::Error MCP2518FD::configure_bit_timing_() {
   uint32_t nbtcfg = 0;
-  if (!calc_nbt_(this->bit_rate_, this->mcp_clock_, nbtcfg)) {
-    ESP_LOGE(TAG, "configure_bit_timing_: unsupported speed/clock combination");
+  if (!calc_nbt_(this->bit_rate_, this->can_clock_, nbtcfg)) {
+    ESP_LOGE(TAG, "Unsupported nominal bit rate / clock combination");
     return canbus::ERROR_FAIL;
   }
   write_sfr_(REG_CiNBTCFG, nbtcfg);
-  ESP_LOGV(TAG, "CiNBTCFG = 0x%08X", nbtcfg);
+  ESP_LOGV(TAG, "CiNBTCFG=0x%08X", nbtcfg);
 
   if (this->canfd_enabled_) {
     uint32_t dbtcfg = 0, tdcval = 0;
-    if (!calc_dbt_(this->data_rate_, this->mcp_clock_, dbtcfg, tdcval)) {
-      ESP_LOGE(TAG, "configure_bit_timing_: unsupported FD data speed");
+    if (!calc_dbt_(this->data_rate_, this->can_clock_, dbtcfg, tdcval)) {
+      ESP_LOGE(TAG, "Unsupported data bit rate / clock combination");
       return canbus::ERROR_FAIL;
     }
     write_sfr_(REG_CiDBTCFG, dbtcfg);
     write_sfr_(REG_CiTDC,    tdcval);
-    ESP_LOGV(TAG, "CiDBTCFG = 0x%08X  CiTDC = 0x%08X", dbtcfg, tdcval);
+    ESP_LOGV(TAG, "CiDBTCFG=0x%08X CiTDC=0x%08X", dbtcfg, tdcval);
   }
   return canbus::ERROR_OK;
 }
@@ -379,46 +247,74 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
 // ============================================================
 
 canbus::Error MCP2518FD::configure_fifos_() {
-  // --- TX Queue (CH0) --------------------------------------------------
-  // 4 messages deep, 8 payload bytes (or 64 for FD), priority 31
-  uint8_t  tx_plsize = this->canfd_enabled_ ? 7 : 0;  // 7=64 bytes, 0=8 bytes
-  uint32_t txqcon = 0;
-  txqcon |= (31UL <<  0);  // TxPriority = 31 (highest)
-  txqcon |= ( 0UL <<  5);  // TxAttempts = 0 (unlimited)
-  txqcon |= ( 3UL <<  8);  // FifoSize = 4 messages (= 3+1)
-  txqcon |= (static_cast<uint32_t>(tx_plsize) << 11);  // PayLoadSize
-  txqcon |= FIFOCON_TXEN;  // mark as TX
+  // TXQ (FIFO CH0): 4 messages deep, payload 8 or 64 bytes
+  uint8_t  plsize = this->canfd_enabled_ ? 7 : 0;
+  uint32_t txqcon = FIFOCON_TXEN
+                  | (3UL  <<  24)  // FSIZE = 4 messages
+                  | (uint32_t(plsize) << 29)  // PLSIZE
+                  | (31UL << 16);  // TXPRI = highest
   write_sfr_(REG_CiTXQCON, txqcon);
 
-  // --- RX FIFO CH1 -----------------------------------------------------
-  // 8 messages deep, 8 payload bytes (or 64 for FD)
-  uint8_t rx_plsize = this->canfd_enabled_ ? 7 : 0;
-  uint32_t rxcon = 0;
-  rxcon |= ( 7UL <<  8);  // FifoSize = 8 messages
-  rxcon |= (static_cast<uint32_t>(rx_plsize) << 11);  // PayLoadSize
-  // TXEN=0 → RX FIFO
-  uint16_t rxfifo_addr = REG_CiFIFOCON + CIFIFO_OFFSET * 1;  // CH1
-  write_sfr_(rxfifo_addr, rxcon);
+  // RX FIFO CH1: 8 messages deep, same payload
+  uint32_t rxcon = (7UL << 24) | (uint32_t(plsize) << 29);  // TXEN=0
+  write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 1, rxcon);
 
   return canbus::ERROR_OK;
 }
 
 // ============================================================
-// Filter configuration  — accept all frames
+// Filter: accept all frames → FIFO CH1
 // ============================================================
 
 canbus::Error MCP2518FD::configure_filters_() {
-  // Filter 0: accept all standard + extended frames
-  // CiFLTCON byte 0: enable filter 0, link to FIFO CH1
-  uint16_t fltcon_addr = REG_CiFLTCON;
-  uint8_t  fltcon_byte = (1 << 7) | 1;  // FLTEN0=1, F0BP=1 (point to FIFO CH1)
-  write_byte_(fltcon_addr, fltcon_byte);
+  // CiFLTCON0 byte 0: FLTEN0=1, F0BP=1 (→ FIFO CH1)
+  write_byte_(REG_CiFLTCON, (1 << 7) | 1);
+  write_sfr_(REG_CiFLTOBJ, 0x00000000UL);  // ID = 0
+  write_sfr_(REG_CiMASK,   0x00000000UL);  // mask = 0 → all pass
+  return canbus::ERROR_OK;
+}
 
-  // CiFLTOBJ0: ID=0, EXIDE=0 → matches both standard and extended (mask=0)
-  write_sfr_(REG_CiFLTOBJ, 0x00000000UL);
+// ============================================================
+// Interrupt configuration
+// ============================================================
 
-  // CiMASK0: all zeros → all frames pass through
-  write_sfr_(REG_CiMASK, 0x00000000UL);
+canbus::Error MCP2518FD::configure_interrupts_() {
+  uint32_t inten = 0;
+
+  if (this->int1_pin_ != nullptr) {
+    // INT1 wired → enable RX interrupt so INT1 asserts on new frame
+    inten |= INT_RXIF;
+    // Configure INT1 as RX interrupt output (PM1=0 in IOCON)
+    // IOCON.PM1 = 0 → INT1 pin acts as RX interrupt
+    uint32_t iocon = read_sfr_(REG_IOCON);
+    iocon &= ~(1UL << 25);  // PM1 = 0
+    write_sfr_(REG_IOCON, iocon);
+    ESP_LOGI(TAG, "INT1 (RX interrupt) configured on pin");
+  }
+
+  if (this->int0_pin_ != nullptr) {
+    // INT0 wired → enable TX interrupt so INT0 asserts when TX done
+    inten |= INT_TXIF;
+    // IOCON.PM0 = 0 → INT0 pin acts as TX interrupt
+    uint32_t iocon = read_sfr_(REG_IOCON);
+    iocon &= ~(1UL << 24);  // PM0 = 0
+    write_sfr_(REG_IOCON, iocon);
+    ESP_LOGI(TAG, "INT0 (TX interrupt) configured on pin");
+  }
+
+  if (this->int_pin_ != nullptr) {
+    // General INT wired → enable error and overflow interrupts
+    inten |= INT_CERRIF | INT_RXOVIF;
+    ESP_LOGI(TAG, "INT (general interrupt) configured on pin");
+  }
+
+  // Always enable RX overflow in the interrupt enable register
+  inten |= INT_RXOVIF | INT_CERRIF;
+
+  // Write upper 16 bits of CiINT (enable register)
+  uint32_t reg = read_sfr_(REG_CiINT);
+  reg = (reg & 0x0000FFFFUL) | (uint32_t(inten) << 16);
+  write_sfr_(REG_CiINT, reg);
 
   return canbus::ERROR_OK;
 }
@@ -430,104 +326,95 @@ canbus::Error MCP2518FD::configure_filters_() {
 bool MCP2518FD::setup_internal() {
   this->spi_setup();
 
+  // Configure interrupt input pins (INPUT, active-low)
+  if (this->int_pin_ != nullptr) {
+    this->int_pin_->setup();
+    ESP_LOGD(TAG, "INT  pin configured");
+  }
+  if (this->int0_pin_ != nullptr) {
+    this->int0_pin_->setup();
+    ESP_LOGD(TAG, "INT0 pin configured");
+  }
+  if (this->int1_pin_ != nullptr) {
+    this->int1_pin_->setup();
+    ESP_LOGD(TAG, "INT1 pin configured");
+  }
+
   if (reset_() != canbus::ERROR_OK) return false;
-
-  // Must be in Configuration mode to change bit timing / filters
   if (set_mode_(CAN_CONFIGURATION_MODE) != canbus::ERROR_OK) return false;
-
   if (configure_osc_() != canbus::ERROR_OK) return false;
-
   if (configure_bit_timing_() != canbus::ERROR_OK) return false;
-
   if (configure_fifos_() != canbus::ERROR_OK) return false;
-
   if (configure_filters_() != canbus::ERROR_OK) return false;
 
-  // CiCON: enable TXQ, ISO CRC, restrict re-tx in FD mode
+  // CiCON: enable TXQ, ISO CRC (FD), disable BRS (classic)
   uint32_t con = read_sfr_(REG_CiCON);
   con |= CiCON_TXQEN;
-  if (this->canfd_enabled_) {
-    con |= CiCON_ISOCRCEN;  // ISO 11898-1:2015 CRC
-  } else {
-    con |= CiCON_BRSDIS;    // disable BRS in classic mode
-  }
+  if (this->canfd_enabled_)
+    con |= CiCON_ISOCRCEN;
+  else
+    con |= CiCON_BRSDIS;
   write_sfr_(REG_CiCON, con);
 
-  // Enable RX and TX-attempt interrupts
-  uint32_t inten = INT_RXIF | INT_CERRIF | INT_RXOVIF;
-  write_byte_(REG_CiINTENABLE, static_cast<uint8_t>(inten));
+  if (configure_interrupts_() != canbus::ERROR_OK) return false;
 
   if (set_mode_(static_cast<CanOperationMode>(this->mcp_mode_)) != canbus::ERROR_OK)
     return false;
 
-  uint32_t err = read_sfr_(REG_CiBDIAG0);
-  ESP_LOGD(TAG, "mcp2518fd setup done, CiBDIAG0=0x%08X", err);
+  ESP_LOGD(TAG, "MCP2518FD ready — CiBDIAG0=0x%08X", read_sfr_(REG_CiBDIAG0));
   return true;
 }
 
 // ============================================================
-// TX helpers
+// TX
 // ============================================================
 
 uint16_t MCP2518FD::tx_fifo_addr_() {
-  // CiTXQUA holds the 16-bit user address of the next writable TX object
   return static_cast<uint16_t>(read_sfr_(REG_CiTXQUA));
 }
 
 canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   uint8_t dlc = frame->can_data_length_code;
-  if (!this->canfd_enabled_ && dlc > canbus::CAN_MAX_DATA_LENGTH) {
+  if (!this->canfd_enabled_ && dlc > canbus::CAN_MAX_DATA_LENGTH)
     return canbus::ERROR_FAILTX;
-  }
-  if (dlc > CAN_FD_MAX_DATA_LENGTH) {
+  if (dlc > CAN_FD_MAX_DATA_LENGTH)
     return canbus::ERROR_FAILTX;
-  }
 
-  // Check TX queue not full
-  uint32_t txqsta = read_sfr_(REG_CiTXQSTA);
-  if ((txqsta & TXQSTA_TXQNF) == 0) {
+  // Check TXQ not full
+  if ((read_sfr_(REG_CiTXQSTA) & TXQSTA_TXQNF) == 0)
     return canbus::ERROR_ALLTXBUSY;
-  }
 
-  // Get write address from UA register
-  uint16_t ua = tx_fifo_addr_();
-  uint16_t ram_addr = RAM_ADDR_START + ua;
+  uint16_t ram_addr = RAM_ADDR_START + tx_fifo_addr_();
 
-  // Build 8-byte message object header (no timestamp)
-  uint8_t obj[8 + CAN_FD_MAX_DATA_LENGTH];
-  memset(obj, 0, sizeof(obj));
-
-  // Word 0: ID
+  // Build transmit message object (T0 + T1 + data)
+  // T0: ID word
   uint32_t id_word = 0;
   if (frame->use_extended_id) {
     uint32_t eid = frame->can_id & 0x3FFFFUL;
     uint32_t sid = (frame->can_id >> 18) & 0x7FFU;
     id_word = eid | (sid << MSGOBJ_SID_SHIFT);
   } else {
-    id_word = (static_cast<uint32_t>(frame->can_id) & 0x7FFU) << MSGOBJ_SID_SHIFT;
+    id_word = (uint32_t(frame->can_id) & 0x7FFU) << MSGOBJ_SID_SHIFT;
   }
-  obj[0] = id_word;
-  obj[1] = id_word >> 8;
-  obj[2] = id_word >> 16;
-  obj[3] = id_word >> 24;
 
-  // Word 1: CTRL
+  // T1: control word
   uint32_t ctrl = dlc & MSGOBJ_DLC_MASK;
-  if (frame->use_extended_id)                  ctrl |= MSGOBJ_IDE;
-  if (frame->remote_transmission_request)      ctrl |= MSGOBJ_RTR;
-  if (this->canfd_enabled_ && dlc > 8)         ctrl |= MSGOBJ_FDF | MSGOBJ_BRS;
-  obj[4] = ctrl;
-  obj[5] = ctrl >> 8;
-  obj[6] = ctrl >> 16;
-  obj[7] = ctrl >> 24;
+  if (frame->use_extended_id)                 ctrl |= MSGOBJ_IDE;
+  if (frame->remote_transmission_request)     ctrl |= MSGOBJ_RTR;
+  if (this->canfd_enabled_ && dlc > 8)        ctrl |= MSGOBJ_FDF | MSGOBJ_BRS;
 
-  // Data
+  // Pad data to multiple of 4 bytes for word-aligned RAM writes
+  uint8_t pad_len = (dlc + 3) & ~3u;
+  uint8_t obj[8 + 64] = {};
+  obj[0] = id_word;       obj[1] = id_word >> 8;
+  obj[2] = id_word >> 16; obj[3] = id_word >> 24;
+  obj[4] = ctrl;          obj[5] = ctrl >> 8;
+  obj[6] = ctrl >> 16;    obj[7] = ctrl >> 24;
   memcpy(&obj[8], frame->data, dlc);
 
-  uint8_t total = 8 + dlc;
-  write_ram_(ram_addr, obj, total);
+  write_ram_(ram_addr, obj, 8 + pad_len);
 
-  // Set UINC + TXREQ to request transmission
+  // Set UINC + TXREQ
   uint32_t txqcon = read_sfr_(REG_CiTXQCON);
   txqcon |= TXQCON_UINC | TXQCON_TXREQ;
   write_sfr_(REG_CiTXQCON, txqcon);
@@ -540,58 +427,56 @@ canbus::Error MCP2518FD::send_message(struct canbus::CanFrame *frame) {
 }
 
 // ============================================================
-// RX helpers
+// RX
 // ============================================================
 
 uint16_t MCP2518FD::rx_fifo_addr_() {
-  uint16_t rxua_addr = REG_CiFIFOUA + CIFIFO_OFFSET * 1;  // CH1
-  return static_cast<uint16_t>(read_sfr_(rxua_addr));
+  return static_cast<uint16_t>(read_sfr_(REG_CiFIFOUA + CIFIFO_OFFSET * 1));
 }
 
-bool MCP2518FD::check_receive_() {
-  uint16_t rxsta_addr = REG_CiFIFOSTA + CIFIFO_OFFSET * 1;
-  uint32_t sta = read_sfr_(rxsta_addr);
+bool MCP2518FD::rx_available_() {
+  // Fast path: if INT1 is wired, check the pin (active-low → asserted = LOW)
+  if (this->int1_pin_ != nullptr)
+    return !this->int1_pin_->digital_read();  // LOW = interrupt asserted
+
+  // Fallback: read FIFO status register directly
+  uint32_t sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 1);
   return (sta & FIFOSTA_RXNOTEMPTY) != 0;
 }
 
 canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
-  uint16_t rxsta_addr = REG_CiFIFOSTA  + CIFIFO_OFFSET * 1;
-  uint16_t rxcon_addr = REG_CiFIFOCON  + CIFIFO_OFFSET * 1;
+  if (!rx_available_())
+    return canbus::ERROR_NOMSG;
+
+  uint16_t rxsta_addr = REG_CiFIFOSTA + CIFIFO_OFFSET * 1;
+  uint16_t rxcon_addr = REG_CiFIFOCON + CIFIFO_OFFSET * 1;
 
   uint32_t sta = read_sfr_(rxsta_addr);
-  if ((sta & FIFOSTA_RXNOTEMPTY) == 0) {
-    return canbus::ERROR_NOMSG;
-  }
 
-  // Check overflow
+  // Clear overflow flag if set
   if (sta & FIFOSTA_RXOVIF) {
-    ESP_LOGD(TAG, "RX FIFO overflow – clearing flag");
-    // Clear RXOVIF in CiRXOVIF (bit 1 for CH1)
+    ESP_LOGW(TAG, "RX FIFO overflow");
     uint32_t ovif = read_sfr_(REG_CiRXOVIF);
     write_sfr_(REG_CiRXOVIF, ovif & ~(1UL << 1));
   }
 
-  uint16_t ua = rx_fifo_addr_();
-  uint16_t ram_addr = RAM_ADDR_START + ua;
-
-  // Read header (8 bytes)
-  uint8_t hdr[8];
+  // Read header (8 bytes = T0 + T1, no timestamp)
+  uint16_t ram_addr = RAM_ADDR_START + rx_fifo_addr_();
+  uint8_t  hdr[8];
   read_ram_(ram_addr, hdr, 8);
 
-  uint32_t id_word = hdr[0] | (hdr[1] << 8) | (hdr[2] << 16) | (hdr[3] << 24);
-  uint32_t ctrl    = hdr[4] | (hdr[5] << 8) | (hdr[6] << 16) | (hdr[7] << 24);
+  uint32_t id_word = hdr[0] | (hdr[1]<<8) | (hdr[2]<<16) | (hdr[3]<<24);
+  uint32_t ctrl    = hdr[4] | (hdr[5]<<8) | (hdr[6]<<16) | (hdr[7]<<24);
 
-  bool extended = (ctrl & MSGOBJ_IDE) != 0;
-  bool rtr      = (ctrl & MSGOBJ_RTR) != 0;
-  uint8_t dlc   = static_cast<uint8_t>(ctrl & MSGOBJ_DLC_MASK);
-  uint8_t nbytes = dlc_to_bytes_(dlc);
+  bool    extended = (ctrl & MSGOBJ_IDE) != 0;
+  bool    rtr      = (ctrl & MSGOBJ_RTR) != 0;
+  uint8_t dlc      = static_cast<uint8_t>(ctrl & MSGOBJ_DLC_MASK);
+  uint8_t nbytes   = dlc_to_bytes_(dlc);
 
-  if (nbytes > CAN_FD_MAX_DATA_LENGTH) {
-    // Corrupt message, skip
+  if (nbytes > CAN_FD_MAX_DATA_LENGTH)
     goto uinc;
-  }
 
-  frame->use_extended_id            = extended;
+  frame->use_extended_id             = extended;
   frame->remote_transmission_request = rtr;
   frame->can_data_length_code        = nbytes;
 
@@ -604,17 +489,20 @@ canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
   }
 
   if (nbytes > 0) {
-    read_ram_(ram_addr + 8, frame->data, nbytes);
+    uint8_t pad_len = (nbytes + 3) & ~3u;  // read whole words
+    uint8_t buf[64] = {};
+    read_ram_(ram_addr + 8, buf, pad_len);
+    memcpy(frame->data, buf,
+           nbytes <= canbus::CAN_MAX_DATA_LENGTH ? nbytes : canbus::CAN_MAX_DATA_LENGTH);
   }
 
 uinc:
-  // Increment FIFO head (UINC)
+  // Increment FIFO tail (UINC)
   {
     uint32_t rxcon = read_sfr_(rxcon_addr);
     rxcon |= FIFOCON_UINC;
     write_sfr_(rxcon_addr, rxcon);
   }
-
   return canbus::ERROR_OK;
 }
 
@@ -627,20 +515,13 @@ canbus::Error MCP2518FD::read_message(struct canbus::CanFrame *frame) {
 // ============================================================
 
 uint8_t MCP2518FD::dlc_to_bytes_(uint8_t dlc) {
-  if (dlc < 16) return DLC_TO_BYTES[dlc];
-  return 0;
+  return dlc < 16 ? DLC_TO_BYTES[dlc] : 0;
 }
 
 uint8_t MCP2518FD::bytes_to_dlc_(uint8_t len) {
-  for (uint8_t d = 0; d < 16; d++) {
+  for (uint8_t d = 0; d < 16; d++)
     if (DLC_TO_BYTES[d] >= len) return d;
-  }
-  return 15;  // 64 bytes
-}
-
-bool MCP2518FD::check_error_() {
-  uint32_t trec = read_sfr_(REG_CiTREC);
-  return (trec & 0x00600000UL) != 0;  // TXBO or TXBP bits
+  return 15;
 }
 
 }  // namespace esphome::mcp2518fd
