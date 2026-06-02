@@ -838,7 +838,8 @@ select:
     options:
       - 'Charge mode'
       - 'Discharge mode'
-    on_value:
+    set_action:  
+    # on_value:
       - if:
           condition:
             lambda: |-
@@ -896,7 +897,8 @@ select:
     options:
       - 'Single-Phase'
       - 'Three-Phase'
-    on_value:
+    set_action:  
+    # on_value:
       - if:
           condition:
             lambda: |-
@@ -958,7 +960,8 @@ select:
     options:
       - '50 Hz'
       - '60 Hz'
-    on_value:
+    set_action:  
+    # on_value:
       - if:
           condition:
             lambda: |-
@@ -1022,7 +1025,8 @@ select:
     options:
       - '230V'
       - '240V'
-    on_value:
+    set_action:  
+    # on_value:
       - if:
           condition:
             lambda: |-
