@@ -2,6 +2,7 @@ substitutions:
   delay_interval: '50ms' #'120ms'
   delay_number: '50ms'
   delay_switch: '50ms'
+  delay_select: '50ms'
   
   
 esphome:
@@ -835,7 +836,7 @@ select:
             uint8_t mode = 0;
             if (x == "Discharge mode") mode = 1;
             return {${pcm_address}, 0x00, mode, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: 100ms
+      - delay: ${delay_select}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -843,7 +844,8 @@ select:
           can_id: 0x03${pcm_address}0A02
           use_extended_id: true
           data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_select}      
   
   # Frequency Setting
   - platform: template
@@ -869,7 +871,7 @@ select:
       - logger.log:
           format: "Frequency will take effect on next reboot"
           level: WARN
-      - delay: 100ms
+      - delay: ${delay_select}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -878,6 +880,7 @@ select:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_select}      
   
   # AC Voltage Setting
   - platform: template
@@ -903,7 +906,7 @@ select:
       - logger.log:
           format: 'AC Voltage will take effect on next reboot'
           level: WARN
-      - delay: 100ms
+      - delay: ${delay_select}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -911,7 +914,8 @@ select:
           can_id: 0x03${pcm_address}0A12
           use_extended_id: true
           data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_select}      
   
   # Phase Mode Setting
   - platform: template
@@ -937,7 +941,7 @@ select:
       - logger.log:
           format: 'Phase Mode will take effect on next reboot'
           level: WARN
-      - delay: 100ms
+      - delay: ${delay_select}
       # Query back the setting
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -946,6 +950,7 @@ select:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
+      - delay: ${delay_select}       
 
 output:
   - platform: template
