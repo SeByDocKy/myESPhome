@@ -48,7 +48,6 @@ canbus:
         use_extended_id: true
         then:
           - lambda: |-
-              // uint8_t grid_mode = x[2] | (x[1] << 8);
               uint8_t grid_mode = x[2];
               id(grid_mode_readback).publish_state(grid_mode);
               if (grid_mode == 0) {
