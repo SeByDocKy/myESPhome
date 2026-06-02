@@ -18,7 +18,7 @@ esphome:
             data: !lambda |-
               return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
            
-        - delay: 500ms
+        - delay: 50ms
 
         - canbus.send:
             canbus_id: ${pcm_canbus_id}
