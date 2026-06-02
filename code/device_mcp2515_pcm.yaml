@@ -956,6 +956,9 @@ select:
       - if:
           condition:
             lambda: |-
+              if (x == id(frequency_select).state) {
+                return false; 
+              }
               uint8_t requested_freq = (x == "60 Hz") ? 1 : 0;
               uint8_t current_real_freq_hz = id(frequency_setting_readback).state;
               uint8_t current_real_freq_raw = (current_real_freq_hz == 60) ? 1 : 0;
