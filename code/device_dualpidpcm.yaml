@@ -96,7 +96,7 @@ sensor:
 
   - platform: template
     name: ${name}_${dualpidpcm_name}_imported_power
-    id: ${dualpidpcm_name}_ilported_power
+    id: ${dualpidpcm_name}_imported_power
     unit_of_measurement: 'W'
     accuracy_decimals: 1
     update_interval: ${dualpidpcm_template_update}
