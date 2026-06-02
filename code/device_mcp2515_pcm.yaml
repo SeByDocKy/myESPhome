@@ -958,11 +958,7 @@ select:
             lambda: |-
               uint8_t requested_freq = (x == "60 Hz") ? 1 : 0;
               uint8_t current_real_freq_hz = id(frequency_setting_readback).state;
-              
-              // On convertit le readback (50 ou 60) en valeur brute (0 ou 1)
               uint8_t current_real_freq_raw = (current_real_freq_hz == 60) ? 1 : 0;
-              
-              // On n'exécute le bloc que si la valeur a changé
               return requested_freq != current_real_freq_raw;
           then:
             - canbus.send:
@@ -1018,28 +1014,52 @@ select:
       - '230V'
       - '240V'
     on_value:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A12
-          can_id: 0x02${pcm_address}0A12
-          use_extended_id: true
-          data: !lambda |-
-            uint8_t voltage = 0;
-            if (x == "240V") voltage = 2;
-            return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - logger.log:
-          format: 'AC Voltage will take effect on next reboot'
-          level: WARN
-      - delay: ${delay_select}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A12
-          can_id: 0x03${pcm_address}0A12
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_select}      
+      - if:
+          condition:
+            lambda: |-
+              uint8_t requested_voltage = (x == "240V") ? 2 : 0;
+              float current_real_voltage = id(ac_voltage_setting_readback).state;
+              uint8_t current_real_voltage_raw = (current_real_voltage >= 239.0) ? 2 : 0;
+              return requested_voltage != current_real_voltage_raw;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A12
+                use_extended_id: true
+                data: !lambda |-
+                  uint8_t voltage = (x == "240V") ? 2 : 0;
+                  return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+            # Query back the setting
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A12
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+      # - canbus.send:
+      #     canbus_id: ${pcm_canbus_id}
+      #     # can_id: 0x02000A12
+      #     can_id: 0x02${pcm_address}0A12
+      #     use_extended_id: true
+      #     data: !lambda |-
+      #       uint8_t voltage = 0;
+      #       if (x == "240V") voltage = 2;
+      #       return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
+      # - logger.log:
+      #     format: 'AC Voltage will take effect on next reboot'
+      #     level: WARN
+      # - delay: ${delay_select}
+      # # Query back the setting
+      # - canbus.send:
+      #     canbus_id: ${pcm_canbus_id}
+      #     # can_id: 0x03000A12
+      #     can_id: 0x03${pcm_address}0A12
+      #     use_extended_id: true
+      #     data: !lambda |-
+      #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      # - delay: ${delay_select}      
   
        
 
