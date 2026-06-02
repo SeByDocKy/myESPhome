@@ -62,7 +62,7 @@ sensor:
     unit_of_measurement: 'W'
     accuracy_decimals: 1
     update_interval: ${dualpidpcm_template_update}
-    icon: mdi:power
+    icon: mdi:counter
     lambda: |-
       if ((id(${dualpidpcm_name}_activation).state) && float(id(${dualpidpcm_name}_input_smoothed).state) < 0.0f){
         return ( id(${dualpidpcm_name}_input_smoothed).state );   
@@ -88,7 +88,7 @@ sensor:
     id: ${dualpidpcm_name}_exported_energy_yesterday
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
-    icon: mdi:power
+    icon: mdi:counter
     update_interval: ${dualpidpcm_template_update}
     lambda: |-
       return ( id(${dualpidpcm_name}_exported_energy_yesterday).state = id(${dualpidpcm_name}_exported_energy_yesterday_global) );
