@@ -65,7 +65,7 @@ sensor:
     icon: mdi:counter
     lambda: |-
       if ((id(${dualpidpcm_name}_activation).state) && float(id(${dualpidpcm_name}_input_smoothed).state) < 0.0f){
-        return ( id(${dualpidpcm_name}_input_smoothed).state );   
+        return ( - id(${dualpidpcm_name}_input_smoothed).state );   
       }
       else {
         return 0.0f;
