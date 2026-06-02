@@ -832,7 +832,7 @@ select:
     name: ${name}_${pcm_name}_grid_mode
     id: grid_mode_select
     icon: mdi:power-plug-battery
-    optimistic: true
+    optimistic: false #true
     restore_value: true
     initial_option: 'Charge mode'
     options:
@@ -842,6 +842,9 @@ select:
       - if:
           condition:
             lambda: |-
+              if (x == id(grid_mode_select).state) {
+                return false;
+              }
               uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
               uint8_t current_real_mode = id(grid_mode_readback).state;
               return requested_mode != current_real_mode;
@@ -887,7 +890,7 @@ select:
     name: ${name}_${pcm_name}_phase_mode_setting
     id: phase_mode_select
     icon: mdi:electric-switch
-    optimistic: true
+    optimistic: false #true
     restore_value: true
     initial_option: 'Single-Phase'
     options:
@@ -897,6 +900,9 @@ select:
       - if:
           condition:
             lambda: |-
+              if (x == id(phase_mode_select).state) {
+                return false;
+              }
               uint8_t requested_phase = (x == "Three-Phase") ? 1 : 0;
               uint8_t current_real_phase = id(phase_mode_readback).state;
               uint8_t current_real_phase_raw = (current_real_phase == 3) ? 1 : 0;
@@ -1010,7 +1016,7 @@ select:
     name: ${name}_${pcm_name}_ac_voltage_setting
     id: ac_voltage_select
     icon: mdi:sine-wave
-    optimistic: true
+    optimistic: false #true
     restore_value: true
     initial_option: '230V'
     options:
@@ -1020,6 +1026,9 @@ select:
       - if:
           condition:
             lambda: |-
+              if (x == id(ac_voltage_select).state) {
+                return false;
+              }
               uint8_t requested_voltage = (x == "240V") ? 2 : 0;
               float current_real_voltage = id(ac_voltage_setting_readback).state;
               uint8_t current_real_voltage_raw = (current_real_voltage >= 239.0) ? 2 : 0;
