@@ -55,6 +55,83 @@ sensor:
       - sliding_window_moving_average:
           window_size: ${dualpidpcm_windows_size}
           send_every: 1
+
+  - platform: template
+    name: ${name}_${dualpidpcm_name}_exported_power
+    id: ${dualpidpcm_name}_exported_power
+    unit_of_measurement: 'W'
+    accuracy_decimals: 1
+    update_interval: ${dualpidpcm_template_update}
+    icon: mdi:power
+    lambda: |-
+      if ((id(${dualpidpcm_name}_activation).state) && float(id(${dualpidpcm_name}_input_smoothed).state) < 0.0f){
+        return ( id(${dualpidpcm_name}_input_smoothed).state );   
+      }
+      else {
+        return 0.0f;
+      }
+
+  - platform: total_daily_energy
+    name: ${name}_${dualpidpcm_name}_exported_energy_today
+    id: ${dualpidpcm_name}_exported_energy_today
+    power_id: ${dualpidpcm_name}_exported_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: trapezoid
+    filters:
+       # Multiplication factor from W to kW is 0.001
+       - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${dualpidpcm_name}_exported_energy_yesterday
+    id: ${dualpidpcm_name}_battery_exported_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:power
+    update_interval: ${dualpidpcm_template_update}
+    lambda: |-
+      return ( id(${dualpidpcm_name}_exported_energy_yesterday).state = id(${bms_name}_exported_energy_yesterday_global) );
+
+
+  - platform: template
+    name: ${name}_${dualpidpcm_name}_imported_power
+    id: ${dualpidpcm_name}_ilported_power
+    unit_of_measurement: 'W'
+    accuracy_decimals: 1
+    update_interval: ${dualpidpcm_template_update}
+    icon: mdi:power
+    lambda: |-
+      if ((id(${dualpidpcm_name}_activation).state) && float(id(${dualpidpcm_name}_input_smoothed).state) > 0.0f){
+        return ( id(${dualpidpcm_name}_input_smoothed).state );   
+      }
+      else {
+        return 0.0f;
+      }
+
+  - platform: total_daily_energy
+    name: ${name}_${dualpidpcm_name}_imported_energy_today
+    id: ${dualpidpcm_name}_imported_energy_today
+    power_id: ${dualpidpcm_name}_imported_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: trapezoid
+    filters:
+       # Multiplication factor from W to kW is 0.001
+       - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${dualpidpcm_name}_imported_energy_yesterday
+    id: ${dualpidpcm_name}_battery_imported_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:power
+    update_interval: ${dualpidpcm_template_update}
+    lambda: |-
+      return ( id(${dualpidpcm_name}_imported_energy_yesterday).state = id(${bms_name}_imported_energy_yesterday_global) );     
+
+
           
   - platform: dualpidpcm
     dualpidpcm_id: ${dualpidpcm_id}
