@@ -85,7 +85,7 @@ sensor:
     
   - platform: template
     name: ${name}_${dualpidpcm_name}_exported_energy_yesterday
-    id: ${dualpidpcm_name}_battery_exported_energy_yesterday
+    id: ${dualpidpcm_name}_exported_energy_yesterday
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     icon: mdi:power
@@ -123,7 +123,7 @@ sensor:
     
   - platform: template
     name: ${name}_${dualpidpcm_name}_imported_energy_yesterday
-    id: ${dualpidpcm_name}_battery_imported_energy_yesterday
+    id: ${dualpidpcm_name}_imported_energy_yesterday
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     icon: mdi:power
