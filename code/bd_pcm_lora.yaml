@@ -213,7 +213,7 @@ packages:
           pcm_cs_pin: 'GPIO06'
           pcm_canbus_id: 'pcm_can'
           pcm_address: '01'
-          pcm_interval: '2200ms' #'1500ms'
+          pcm_interval: '2500ms' #'1500ms'
           pcm_interval_slow: '30s' #'1500ms'
           pcm_text_sensor_interval: '2200ms'
           pcm_min_charging: '1'
@@ -239,3 +239,4 @@ packages:
           dualpidpcm_current_min_charging: '1.0'
           dualpidpcm_current_min_discharging: '1.0'
           dualpidpcm_windows_size: '1'
+          dualpidpcm_template_update: '5s'
