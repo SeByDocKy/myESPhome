@@ -91,7 +91,7 @@ sensor:
     icon: mdi:power
     update_interval: ${dualpidpcm_template_update}
     lambda: |-
-      return ( id(${dualpidpcm_name}_exported_energy_yesterday).state = id(${bms_name}_exported_energy_yesterday_global) );
+      return ( id(${dualpidpcm_name}_exported_energy_yesterday).state = id(${dualpidpcm_name}_exported_energy_yesterday_global) );
 
 
   - platform: template
@@ -129,7 +129,7 @@ sensor:
     icon: mdi:power
     update_interval: ${dualpidpcm_template_update}
     lambda: |-
-      return ( id(${dualpidpcm_name}_imported_energy_yesterday).state = id(${bms_name}_imported_energy_yesterday_global) );     
+      return ( id(${dualpidpcm_name}_imported_energy_yesterday).state = id(${dualpidpcm_name}_imported_energy_yesterday_global) );     
 
 
           
