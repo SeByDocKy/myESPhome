@@ -839,32 +839,30 @@ select:
       - 'Charge mode'
       - 'Discharge mode'
     on_value:
-      - then:
-          - lambda: |-
-              uint8_t current_real_mode = id(grid_mode_readback).state;
+      - if:
+          condition:
+            lambda: |-
               uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
-              if (requested_mode != current_real_mode) {
-                ESP_LOGI("canbus_mod", "Changement manuel détecté ! Envoi du SET Grid Mode: %d", requested_mode);
-                
-                // On prépare et on envoie la trame SET
-                auto next_frame = id(${pcm_canbus_id}).get_empty_frame();
-                next_frame.can_id = 0x02${pcm_address}0A02;
-                next_frame.use_extended_id = true;
-                next_frame.data = {${pcm_address}, 0x00, requested_mode, 0x00, 0x00, 0x00, 0x00, 0x00};
-                id(${pcm_canbus_id}).send_frame(next_frame);
-                
-                // Optionnel : on demande une vérification (Query) après un court délai
-                delay(${delay_select}); 
-                
-                auto query_frame = id(${pcm_canbus_id}).get_empty_frame();
-                query_frame.can_id = 0x03${pcm_address}0A02;
-                query_frame.use_extended_id = true;
-                query_frame.data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                id(${pcm_canbus_id}).send_frame(query_frame);
-              } else {
-                // C'était une mise à jour issue du CANbus, on ignore pour casser la boucle
-                ESP_LOGD("canbus_mod", "Mise à jour issue du Feedback. Envoi SET ignoré.");
-              }
+              uint8_t current_real_mode = id(grid_mode_readback).state;
+              return requested_mode != current_real_mode;
+          then:
+            # Si c'est différent (changement manuel), on envoie les trames d'origine
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A02
+                use_extended_id: true
+                data: !lambda |-
+                  uint8_t mode = (x == "Discharge mode") ? 1 : 0;
+                  return {${pcm_address}, 0x00, mode, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A02
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+            
       # - canbus.send:
       #     canbus_id: ${pcm_canbus_id}
       #     # can_id: 0x02000A02
