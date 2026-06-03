@@ -180,9 +180,7 @@ canbus:
               id(discharging_current_readback).publish_state(discharge_current_value / 10.0);
               id(discharging_current_number).publish_state(discharge_current_value / 10.0);
               ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
-      
-
-      
+            
       # DC Voltage Protection Response - 0x010A0033
       - can_id: 0x010A${pcm_address}33 #0x010A0033
         use_extended_id: true
@@ -330,6 +328,16 @@ canbus:
               
               ESP_LOGD("canbus", "Status - Mode: %d, Freq: %dHz, Faults: 0x%02X 0x%02X 0x%02X", 
                        running_mode, inverter_freq == 0 ? 50 : 60, fault1, fault2, fault3);
+
+
+          # High Voltage Bus
+      - can_id: 0x010A${pcm_address}72 #0x10A0172x
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t bus_voltage = (x[3] << 8) | x[2];;
+              id(bus_voltage_sensor).publish_state(bus_voltage / 10.0);
+              ESP_LOGD("canbus", "Bus voltage: %d", bus_voltage);                       
               
               
 sensor:
@@ -351,6 +359,15 @@ sensor:
     state_class: measurement
     icon: mdi:sine-wave
     accuracy_decimals: 1
+
+  - platform: template
+    id: bus_voltage_sensor
+    name: ${name}_${pcm_name}_bus_voltage
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    icon: mdi:sine-wave
+    accuracy_decimals: 1    
     
   - platform: template
     id: inverting_current_sensor
