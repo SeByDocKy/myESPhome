@@ -52,13 +52,17 @@ hms_inverter:
       dc_channels:
         - power: # Power in W
             name: ${name}_${hms_inverter_name}_pv0_power
+            id: ${hms_inverter_name}_pv0_power
           current: # Current in A
             name: ${name}_${hms_inverter_name}_pv0_current
+            id: ${hms_inverter_name}_pv0_current
             icon: mdi:current-dc
           voltage: # Voltage in V
             name: ${name}_${hms_inverter_name}_pv0_voltage
+            id: ${hms_inverter_name}_pv0_voltage
           energy: 
             name: ${name}_${hms_inverter_name}_pv0_energy_today
+            id: ${hms_inverter_name}_pv0_energy_today
             device_class: energy
             icon: mdi:counter
             unit_of_measurement: 'kWh'
@@ -66,13 +70,17 @@ hms_inverter:
               - multiply: 0.001
         - power:
             name: ${name}_${hms_inverter_name}_pv1_power
+            id: ${hms_inverter_name}_pv1_power
           current: # Current in A
             name: ${name}_${hms_inverter_name}_pv1_current
+            id: ${hms_inverter_name}_pv1_current
             icon: mdi:current-dc
           voltage: # Voltage in V
             name: ${name}_${hms_inverter_name}_pv1_voltage
+            id: ${hms_inverter_name}_pv1_voltage
           energy: 
             name: ${name}_${hms_inverter_name}_pv1_energy_today
+            id: ${hms_inverter_name}_pv1_energy_today
             device_class: energy
             icon: mdi:counter
             unit_of_measurement: 'kWh'
@@ -81,8 +89,10 @@ hms_inverter:
       ac_channel:
         power:
           name: ${name}_${hms_inverter_name}_ac_power
+          id: ${hms_inverter_name}_ac_power
         energy: 
           name: ${name}_${hms_inverter_name}_ac_energy_today
+          id: ${hms_inverter_name}_ac_energy_today
           device_class: energy
           icon: mdi:counter
           unit_of_measurement: 'kWh'
@@ -96,6 +106,7 @@ hms_inverter:
           id: ${hms_inverter_name}_inverter_power
         energy: # Today's Energy in Wh
           name: ${name}_${hms_inverter_name}_inverter_energy_today
+          id: ${hms_inverter_name}_inverter_energy_today
           device_class: energy
           icon: mdi:counter
           unit_of_measurement: 'kWh'
