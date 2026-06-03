@@ -48,13 +48,17 @@ hm_inverter:
       dc_channels:
         - power: # Power in W
             name: ${name}_${hm_inverter_name}_pv0_power
+            id: ${hm_inverter_name}_pv0_power
           current: # Current in A
             name: ${name}_${hm_inverter_name}_pv0_current
+            id: ${hm_inverter_name}_pv0_current
             icon: mdi:current-dc
           voltage: # Voltage in V
             name: ${name}_${hm_inverter_name}_pv0_voltage
+            id: ${hm_inverter_name}_pv0_voltage
           energy: 
             name: ${name}_${hm_inverter_name}_pv0_energy_today
+            id: ${hm_inverter_name}_pv0_energy_today
             device_class: energy
             icon: mdi:counter
             unit_of_measurement: 'kWh'
@@ -62,13 +66,17 @@ hm_inverter:
               - multiply: 0.001
         - power:
             name: ${name}_${hm_inverter_name}_pv1_power
+            id: ${hm_inverter_name}_pv1_power
           current: # Current in A
             name: ${name}_${hm_inverter_name}_pv1_current
+            id: ${hm_inverter_name}_pv1_current
             icon: mdi:current-dc
           voltage: # Voltage in V
             name: ${name}_${hm_inverter_name}_pv1_voltage
+            id: ${hm_inverter_name}_pv1_voltage
           energy: 
             name: ${name}_${hm_inverter_name}_pv1_energy_today
+            id: ${hm_inverter_name}_pv1_energy_today
             device_class: energy
             icon: mdi:counter
             unit_of_measurement: 'kWh'
@@ -77,13 +85,17 @@ hm_inverter:
               
         - power:
             name: ${name}_${hm_inverter_name}_pv2_power
+            id: ${hm_inverter_name}_pv2_power
           current: # Current in A
             name: ${name}_${hm_inverter_name}_pv2_current
+            id: ${hm_inverter_name}_pv2_current
             icon: mdi:current-dc
           voltage: # Voltage in V
             name: ${name}_${hm_inverter_name}_pv2_voltage
+            id: ${hm_inverter_name}_pv2_voltage
           energy: 
             name: ${name}_${hm_inverter_name}_pv2_energy_today
+            id: ${hm_inverter_name}_pv2_energy_today
             device_class: energy
             icon: mdi:counter
             unit_of_measurement: 'kWh'
@@ -92,13 +104,17 @@ hm_inverter:
               
         - power:
             name: ${name}_${hm_inverter_name}_pv3_power
+            id: ${hm_inverter_name}_pv3_power
           current: # Current in A
             name: ${name}_${hm_inverter_name}_pv3_current
+            id: ${hm_inverter_name}_pv3_current
             icon: mdi:current-dc
           voltage: # Voltage in V
             name: ${name}_${hm_inverter_name}_pv3_voltage
+            id: ${hm_inverter_name}_pv3_voltage
           energy: 
             name: ${name}_${hm_inverter_name}_pv3_energy_today
+            id: ${hm_inverter_name}_pv3_energy_today
             device_class: energy
             icon: mdi:counter
             unit_of_measurement: 'kWh'
@@ -107,8 +123,10 @@ hm_inverter:
       ac_channel:
         power:
           name: ${name}_${hm_inverter_name}_ac_power
+          id: ${hm_inverter_name}_ac_power
         energy: 
           name: ${name}_${hm_inverter_name}_ac_energy_today
+          id: ${hm_inverter_name}_ac_energy_today
           device_class: energy
           icon: mdi:counter
           unit_of_measurement: 'kWh'
@@ -122,6 +140,7 @@ hm_inverter:
           id: ${hm_inverter_name}_inverter_power
         energy: # Today's Energy in Wh
           name: ${name}_${hm_inverter_name}_inverter_energy_today
+          id: ${hm_inverter_name}_inverter_energy_today
           device_class: energy
           icon: mdi:counter
           unit_of_measurement: 'kWh'
