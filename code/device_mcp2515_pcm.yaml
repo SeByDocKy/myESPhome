@@ -1,5 +1,5 @@
 substitutions:
-  delay_interval: '50ms' #'120ms'
+  delay_interval: '100ms' #'120ms'
   delay_number: '50ms'
   delay_switch: '130ms' #'120ms'
   delay_select: '130ms' #'120ms'
@@ -1900,7 +1900,7 @@ interval:
 
 
 # Query configuration parameters periodically (every 30s)
-  - interval: ${pcm_interval_slow}
+  - interval: ${pcm_interval}
     then:
       # Query Grid Mode
       - canbus.send:
