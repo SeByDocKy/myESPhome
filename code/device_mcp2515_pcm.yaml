@@ -1058,7 +1058,7 @@ number:
     max_value: 59.0
     step: 0.1
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     initial_value: 56.0
     restore_value: true
     set_action:
@@ -1095,27 +1095,30 @@ number:
     initial_value: 1.0
     step: 0.5
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A31
-          can_id: 0x02${pcm_address}0A36
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t voltage = (uint16_t)(id(charging_voltage).state * 10);
-            uint16_t current = (uint16_t)(x * 10);
-            return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A31
-          can_id: 0x03${pcm_address}0A36
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
+      - if:
+          condition:
+            lambda: |-
+              // On vérifie que la valeur demandée est différente du retour réel
+              return std::abs(x - id(charging_current_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A36  # <-- Nouveau registre Set 36
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t current = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+            - delay: ${delay_number}
+            # Query back the setting
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A36  # <-- Nouveau registre Query 36
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
   
   # Discharge Current (48V system)
   - platform: template
@@ -1128,26 +1131,30 @@ number:
     initial_value: 1.0
     step: 0.5
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A32
-          can_id: 0x02${pcm_address}0A37
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t current = (uint16_t)(x * 10);
-            return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A32
-          can_id: 0x03${pcm_address}0A37
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};       
+      - if:
+          condition:
+            lambda: |-
+              // On compare la consigne demandée au readback réel de décharge
+              return std::abs(x - id(discharging_current_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A37  # <-- Nouveau registre Set 37
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t current = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+            - delay: ${delay_number}
+            # Query back the setting
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A37  # <-- Nouveau registre Query 37
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};       
   
   # AC Overvoltage Protection
   - platform: template
@@ -1160,32 +1167,29 @@ number:
     initial_value: 250.0
     step: 0.5
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A13
-          can_id: 0x02${pcm_address}0A13
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(x * 10);
-            uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_protection).state * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A13
-          can_id: 0x03${pcm_address}0A13
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};     
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_overvoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_protection).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};     
   
   # AC Undervoltage Protection
   - platform: template
@@ -1198,32 +1202,29 @@ number:
     initial_value: 200.0
     step: 0.5
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A13
-          can_id: 0x02${pcm_address}0A13
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_protection).state * 10);
-            uint16_t undervoltage = (uint16_t)(x * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A13
-          can_id: 0x03${pcm_address}0A13
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_undervoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_protection).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       
 
   # AC Overvoltage Alarm
@@ -1237,32 +1238,29 @@ number:
     initial_value: 248.0
     step: 0.5
     mode: slider
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A14
-          can_id: 0x02${pcm_address}0A14
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(x * 10);
-            uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_alarm).state * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A14
-          can_id: 0x03${pcm_address}0A14
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_overvoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_alarm).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   
   # AC Undervoltage Alarm
   - platform: template
@@ -1275,32 +1273,29 @@ number:
     initial_value: 205.0
     step: 0.5
     mode: slider
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A14
-          can_id: 0x02${pcm_address}0A14
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_alarm).state * 10);
-            uint16_t undervoltage = (uint16_t)(x * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A14
-          can_id: 0x03${pcm_address}0A14
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_undervoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_alarm).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   
   # DC Overvoltage Protection (48V system)
@@ -1314,32 +1309,29 @@ number:
     initial_value: 58.0
     step: 0.1
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A33
-          can_id: 0x02${pcm_address}0A33
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(x * 10);
-            uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_protection).state * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A33
-          can_id: 0x03${pcm_address}0A33
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_overvoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_protection).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       
   
   # DC Undervoltage Protection (48V system)
@@ -1353,32 +1345,29 @@ number:
     initial_value: 49.0
     step: 0.1
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A33
-          can_id: 0x02${pcm_address}0A33
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_protection).state * 10);
-            uint16_t undervoltage = (uint16_t)(x * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A33
-          can_id: 0x03${pcm_address}0A33
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};          
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_undervoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_protection).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};          
 
 
 # DC Overvoltage Alarm (48V system)
@@ -1392,32 +1381,29 @@ number:
     initial_value: 56.6
     step: 0.1
     mode: slider
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A34
-          can_id: 0x02${pcm_address}0A34
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(x * 10);
-            uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_alarm).state * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A34
-          can_id: 0x03${pcm_address}0A34
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_overvoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_alarm).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 # DC Undervoltage Alarm (48V system)
   - platform: template
@@ -1430,32 +1416,29 @@ number:
     initial_value: 50.0
     step: 0.1
     mode: 'slider'
-    optimistic: true
+    optimistic: false
     restore_value: true
     set_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A34
-          can_id: 0x02${pcm_address}0A34
-          use_extended_id: true
-          data: !lambda |-
-            uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_alarm).state * 10);
-            uint16_t undervoltage = (uint16_t)(x * 10);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8),
-              (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8),
-              0x00, 0x00
-            };
-      - delay: ${delay_number}
-      # Query back the setting
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A34
-          can_id: 0x03${pcm_address}0A34
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_undervoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_alarm).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
 # Fan speed
