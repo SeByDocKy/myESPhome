@@ -1038,6 +1038,7 @@ output:
                 float alpha      = (${pcm_max_charging} - ${pcm_min_charging})/100.0f; 
                 float beta       = ${pcm_min_charging} - alpha*0;
                 float current    = (float)( ( alpha*raw_state + beta ));
+                current          = std::round(current * 200.0f) / 200.0f;
                 id(charging_current_readback).publish_state(current);
                 id(charging_current_number).publish_state(current);
                 ESP_LOGD("canbus", "Charge Current Readback: %.1fA", current);           
@@ -1063,6 +1064,7 @@ output:
                 float alpha      = (${pcm_max_discharging} - ${pcm_min_discharging}) /100.0f;
                 float beta       = ${pcm_min_discharging} - alpha*0;
                 float current    = (float)( ( alpha*raw_state + beta ));
+                current          = std::round(current * 200.0f) / 200.0f;
                 id(discharging_current_readback).publish_state(current);
                 id(discharging_current_number).publish_state(current);
                 ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", current);      
