@@ -1333,7 +1333,7 @@ number:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           # can_id: 0x02000A31
-          can_id: 0x02${pcm_address}0A31
+          can_id: 0x02${pcm_address}0A36
           use_extended_id: true
           data: !lambda |-
             uint16_t voltage = (uint16_t)(id(charging_voltage).state * 10);
@@ -1349,7 +1349,7 @@ number:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           # can_id: 0x03000A31
-          can_id: 0x03${pcm_address}0A31
+          can_id: 0x03${pcm_address}0A36
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
@@ -1371,7 +1371,7 @@ number:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           # can_id: 0x02000A32
-          can_id: 0x02${pcm_address}0A32
+          can_id: 0x02${pcm_address}0A37
           use_extended_id: true
           data: !lambda |-
             uint16_t current = (uint16_t)(x * 10);
@@ -1385,7 +1385,7 @@ number:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           # can_id: 0x03000A32
-          can_id: 0x03${pcm_address}0A32
+          can_id: 0x03${pcm_address}0A37
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};       
