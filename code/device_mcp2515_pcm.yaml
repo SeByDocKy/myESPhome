@@ -1568,9 +1568,10 @@ switch:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: ${delay_switch}
-      - select.set_index:
+      - select.set:
          id: grid_mode_select
-         index: 1
+         option: 'Charge mode'
+         
     turn_off_action: #discharge
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
@@ -1580,9 +1581,9 @@ switch:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: ${delay_switch}
-      - select.set_index:
+      - select.set:
          id: grid_mode_select
-         index: 0
+         option: 'Discharge mode'
 
 
   ####### fan control
