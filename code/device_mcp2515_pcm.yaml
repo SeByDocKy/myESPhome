@@ -1105,7 +1105,7 @@ output:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           # can_id: 0x02000A31
-          can_id: 0x02${pcm_address}0A31
+          can_id: 0x02${pcm_address}0A36
           use_extended_id: true
           data: !lambda |-
             float raw_state  = state*100.0f;
@@ -1129,7 +1129,7 @@ output:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
           # can_id: 0x02000A32
-          can_id: 0x02${pcm_address}0A32
+          can_id: 0x02${pcm_address}0A37
           use_extended_id: true
           data: !lambda |-
             float raw_state  = state*100.0f;
