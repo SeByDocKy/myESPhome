@@ -1114,12 +1114,13 @@ output:
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
             ESP_LOGVV("output charging", "Raw: %f, voltage: %d, Current: %d", raw_state, voltage, current);
-            return {
-              ${pcm_address}, 0x00,
-              (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
-              (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
-              0x00, 0x00
-            };
+            # return {
+            #   ${pcm_address}, 0x00,
+            #   (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
+            #   (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
+            #   0x00, 0x00
+            # };
+            return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
 
   - platform: template
     id: discharging_current_output
@@ -1137,12 +1138,12 @@ output:
             float beta       = ${pcm_min_discharging} - alpha*0;
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
             ESP_LOGVV("output discharging", "Raw: %f, Current: %d", raw_state, current);
-            return {
-              ${pcm_address}, 0x00, 0x00, 0x00,
-              (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
-              0x00, 0x00
-            };
-
+            # return {
+            #   ${pcm_address}, 0x00, 0x00, 0x00,
+            #   (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
+            #   0x00, 0x00
+            # };
+            return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
 
   # - platform: template
   #   id: general_output
