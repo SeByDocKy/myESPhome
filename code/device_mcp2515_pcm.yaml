@@ -1141,7 +1141,8 @@ number:
       - if:
           condition:
             lambda: |-
-              return std::abs(x - id(discharging_current_readback).state) > 0.01f;
+              // return std::abs(x - id(discharging_current_readback).state) > 0.01f;
+              return true;
           then:
             - canbus.send:
                 canbus_id: ${pcm_canbus_id}
