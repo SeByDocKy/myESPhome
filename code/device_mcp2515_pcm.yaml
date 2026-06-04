@@ -239,7 +239,7 @@ canbus:
               id(load_current_sensor).publish_state(load_current / 10.0f);
               
               // Calculate DC power
-              float dc_power = (dc_voltage / 10.0.0f) * (dc_current / 10.0f);
+              float dc_power = (dc_voltage / 10.0f) * (dc_current / 10.0f);
               id(dc_power_sensor).publish_state(dc_power);
               
               ESP_LOGD("canbus", "Feedback 2 - DC: %.1fV, %.1fA, Load: %.1fA, Power: %.1fW", dc_voltage/10.0, dc_current/10.0, load_current/10.0, dc_power);
