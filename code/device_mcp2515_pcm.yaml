@@ -40,7 +40,6 @@ canbus:
 
     on_frame:
 
-
       # Grid Mode Response - 0x010A0002
       - can_id: 0x010A${pcm_address}02 #0x010A0002
         use_extended_id: true
@@ -54,7 +53,6 @@ canbus:
                 id(grid_mode_select).publish_state("Discharge mode");
               }
               ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
-
 
       # SN Code Response - 0x010A0005
       - can_id: 0x010A${pcm_address}05 #0x010A0005
@@ -70,8 +68,7 @@ canbus:
               // snprintf(sn_str, sizeof(sn_str), "V%04X", sn_code);
               id(sn_code_text_sensor).publish_state(sn_str);
               ESP_LOGD("canbus", "SN Code: %s", sn_str);
-                       
-      
+                             
       # Version Response - 0x010A0007
       - can_id: 0x010A${pcm_address}07 #0x010A0007
         use_extended_id: true
@@ -104,7 +101,6 @@ canbus:
         use_extended_id: true
         then:
           - lambda: |-
-              // uint8_t freq = x[2] | (x[1] << 8);
               uint8_t freq = x[2];
               id(frequency_setting_readback).publish_state((freq== 0 ? 50 : 60));
               if (freq == 0) {
@@ -119,7 +115,6 @@ canbus:
         use_extended_id: true
         then:
           - lambda: |-
-              // uint8_t voltage = x[2] | (x[1] << 8);
               uint8_t voltage = x[2];
               id(ac_voltage_setting_readback).publish_state((voltage== 0 ? 230 : 240));
               if (voltage == 0) {
@@ -136,10 +131,10 @@ canbus:
           - lambda: |-
               uint16_t ac_overvoltage = (x[3] << 8) | x[2];
               uint16_t ac_undervoltage = (x[5] << 8) | x[4];
-              id(ac_overvoltage_protection_readback).publish_state(ac_overvoltage / 10.0);
-              id(ac_undervoltage_protection_readback).publish_state(ac_undervoltage / 10.0);
-              id(ac_overvoltage_protection).publish_state(ac_overvoltage / 10.0);
-              id(ac_undervoltage_protection).publish_state(ac_undervoltage / 10.0);
+              id(ac_overvoltage_protection_readback).publish_state(ac_overvoltage / 10.0f);
+              id(ac_undervoltage_protection_readback).publish_state(ac_undervoltage / 10.0f);
+              id(ac_overvoltage_protection).publish_state(ac_overvoltage / 10.0f);
+              id(ac_undervoltage_protection).publish_state(ac_undervoltage / 10.0f);
               ESP_LOGD("canbus", "AC Protection Readback: OV=%.1fV, UV=%.1fV", ac_overvoltage/10.0, ac_undervoltage/10.0);
       
       # AC Voltage Alarm Response - 0x010A0014
@@ -149,8 +144,8 @@ canbus:
           - lambda: |-
               uint16_t ac_overvoltage_alarm = (x[3] << 8) | x[2];
               uint16_t ac_undervoltage_alarm = (x[5] << 8) | x[4];
-              id(ac_overvoltage_alarm_readback).publish_state(ac_overvoltage_alarm / 10.0);
-              id(ac_undervoltage_alarm_readback).publish_state(ac_undervoltage_alarm / 10.0);
+              id(ac_overvoltage_alarm_readback).publish_state(ac_overvoltage_alarm / 10.0f);
+              id(ac_undervoltage_alarm_readback).publish_state(ac_undervoltage_alarm / 10.0f);
               ESP_LOGD("canbus", "AC Alarm Readback: OV=%.1fV, UV=%.1fV", ac_overvoltage_alarm/10.0, ac_undervoltage_alarm/10.0);
                     
       # Charging Parameters Response - 0x010A0031
@@ -160,10 +155,10 @@ canbus:
           - lambda: |-
               uint16_t charge_voltage = (x[3] << 8) | x[2];
               uint16_t charge_current = (x[5] << 8) | x[4];
-              id(charging_voltage_readback).publish_state(charge_voltage / 10.0);
-              id(charging_current_readback).publish_state(charge_current / 10.0);
-              id(charging_voltage).publish_state(charge_voltage / 10.0);
-              id(charging_current_number).publish_state(charge_current / 10.0);
+              id(charging_voltage_readback).publish_state(charge_voltage / 10.0f);
+              id(charging_current_readback).publish_state(charge_current / 10.0f);
+              id(charging_voltage).publish_state(charge_voltage / 10.0f);
+              id(charging_current_number).publish_state(charge_current / 10.0f);
               ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV, %.1fA", charge_voltage/10.0, charge_current/10.0);
       
       # Discharge Parameters Response - 0x010A0032
@@ -172,8 +167,8 @@ canbus:
         then:
           - lambda: |-
               uint16_t discharge_current_value = (x[5] << 8) | x[4];
-              id(discharging_current_readback).publish_state(discharge_current_value / 10.0);
-              id(discharging_current_number).publish_state(discharge_current_value / 10.0);
+              id(discharging_current_readback).publish_state(discharge_current_value / 10.0f);
+              id(discharging_current_number).publish_state(discharge_current_value / 10.0f);
               ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
             
       # DC Voltage Protection Response - 0x010A0033
@@ -183,10 +178,10 @@ canbus:
           - lambda: |-
               uint16_t dc_overvoltage = (x[3] << 8) | x[2];
               uint16_t dc_undervoltage = (x[5] << 8) | x[4];
-              id(dc_overvoltage_protection_readback).publish_state(dc_overvoltage / 10.0);
-              id(dc_undervoltage_protection_readback).publish_state(dc_undervoltage / 10.0);
-              id(dc_overvoltage_protection).publish_state(dc_overvoltage / 10.0);
-              id(dc_undervoltage_protection).publish_state(dc_undervoltage / 10.0);
+              id(dc_overvoltage_protection_readback).publish_state(dc_overvoltage / 10.0f);
+              id(dc_undervoltage_protection_readback).publish_state(dc_undervoltage / 10.0f);
+              id(dc_overvoltage_protection).publish_state(dc_overvoltage / 10.0f);
+              id(dc_undervoltage_protection).publish_state(dc_undervoltage / 10.0f);
               ESP_LOGD("canbus", "DC Protection Readback: OV=%.1fV, UV=%.1fV", dc_overvoltage/10.0, dc_undervoltage/10.0);
       
       # DC Voltage Alarm Response - 0x010A0034
@@ -196,8 +191,8 @@ canbus:
           - lambda: |-
               uint16_t dc_overvoltage_alarm = (x[3] << 8) | x[2];
               uint16_t dc_undervoltage_alarm = (x[5] << 8) | x[4];
-              id(dc_overvoltage_alarm_readback).publish_state(dc_overvoltage_alarm / 10.0);
-              id(dc_undervoltage_alarm_readback).publish_state(dc_undervoltage_alarm / 10.0);
+              id(dc_overvoltage_alarm_readback).publish_state(dc_overvoltage_alarm / 10.0f);
+              id(dc_undervoltage_alarm_readback).publish_state(dc_undervoltage_alarm / 10.0f);
               ESP_LOGD("canbus", "DC Alarm Readback: OV=%.1fV, UV=%.1fV", dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);
 
       # Fan speed Response - 0x010A0035
@@ -220,9 +215,9 @@ canbus:
               uint16_t inverter_voltage = (x[5] << 8) | x[4];
               uint16_t inverting_current = (x[7] << 8) | x[6];
               
-              id(grid_voltage_sensor).publish_state(grid_voltage / 10.0);
-              id(inverter_voltage_sensor).publish_state(inverter_voltage / 10.0);
-              id(inverting_current_sensor).publish_state(inverting_current / 10.0);
+              id(grid_voltage_sensor).publish_state(grid_voltage / 10.0f);
+              id(inverter_voltage_sensor).publish_state(inverter_voltage / 10.0f);
+              id(inverting_current_sensor).publish_state(inverting_current / 10.0f);
               id(running_mode_sensor).publish_state(running_mode);
               
               ESP_LOGD("canbus", "Feedback 1 - Module: %d, Mode: %d, Grid: %.1fV, Inv: %.1fV, Current: %.1fA", 
@@ -239,16 +234,15 @@ canbus:
               uint16_t dc_current = (x[5] << 8) | x[4];
               uint16_t load_current = (x[7] << 8) | x[6];
               
-              id(dc_voltage_sensor).publish_state(dc_voltage / 10.0);
-              id(dc_current_sensor).publish_state(dc_current / 10.0);
-              id(load_current_sensor).publish_state(load_current / 10.0);
+              id(dc_voltage_sensor).publish_state(dc_voltage / 10.0f);
+              id(dc_current_sensor).publish_state(dc_current / 10.0f);
+              id(load_current_sensor).publish_state(load_current / 10.0f);
               
               // Calculate DC power
-              float dc_power = (dc_voltage / 10.0) * (dc_current / 10.0);
+              float dc_power = (dc_voltage / 10.0.0f) * (dc_current / 10.0f);
               id(dc_power_sensor).publish_state(dc_power);
               
-              ESP_LOGD("canbus", "Feedback 2 - DC: %.1fV, %.1fA, Load: %.1fA, Power: %.1fW", 
-                       dc_voltage/10.0, dc_current/10.0, load_current/10.0, dc_power);
+              ESP_LOGD("canbus", "Feedback 2 - DC: %.1fV, %.1fA, Load: %.1fA, Power: %.1fW", dc_voltage/10.0, dc_current/10.0, load_current/10.0, dc_power);
       
       # Feedback Parameter 3 - 0x010A0053
       - can_id: 0x010A${pcm_address}53 #0x010A0053
