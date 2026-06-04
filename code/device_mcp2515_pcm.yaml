@@ -12,7 +12,6 @@ esphome:
         - delay: 2s
         - canbus.send:
             canbus_id: ${pcm_canbus_id}
-            # can_id: 0x03000A07
             can_id: 0x03${pcm_address}0A07
             use_extended_id: true
             data: !lambda |-
@@ -22,7 +21,6 @@ esphome:
 
         - canbus.send:
             canbus_id: ${pcm_canbus_id}
-            # can_id: 0x03000A05
             can_id: 0x03${pcm_address}0A05
             use_extended_id: true
             data: !lambda |-
@@ -98,11 +96,9 @@ canbus:
               } else if (phase_mode == 1) {
                 id(phase_mode_select).publish_state("Three-Phase");
                 id(phase_mode_readback).publish_state(phase_mode+2);
-              }
-              
+              }         
               ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
 
-      
       # Frequency Setting Response - 0x010A0011
       - can_id: 0x010A${pcm_address}11 #0x010A0011
         use_extended_id: true
@@ -156,8 +152,7 @@ canbus:
               id(ac_overvoltage_alarm_readback).publish_state(ac_overvoltage_alarm / 10.0);
               id(ac_undervoltage_alarm_readback).publish_state(ac_undervoltage_alarm / 10.0);
               ESP_LOGD("canbus", "AC Alarm Readback: OV=%.1fV, UV=%.1fV", ac_overvoltage_alarm/10.0, ac_undervoltage_alarm/10.0);
-              
-      
+                    
       # Charging Parameters Response - 0x010A0031
       - can_id: 0x010A${pcm_address}31 #0x010A0031
         use_extended_id: true
@@ -213,7 +208,6 @@ canbus:
               uint8_t fan_speed = x[3];
               id(fan_speed_readback).publish_state(fan_speed);
               ESP_LOGD("canbus", "Fan speed: %d", fan_speed); 
-
 
       # Feedback Parameter 1 - 0x010A0051
       - can_id: 0x010A${pcm_address}51    #0x010A0051
@@ -615,8 +609,8 @@ sensor:
     accuracy_decimals: 1
     icon: mdi:fan   
 
-binary_sensor:
 
+binary_sensor:
   - platform: template
     id: battery_undervoltage_alarm
     name: ${name}_${pcm_name}_battery_undervoltage_alarm
@@ -788,7 +782,6 @@ button:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
             
-
  # Stop
   - platform: template
     name: ${name}_${pcm_name}_stop
@@ -840,8 +833,7 @@ button:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
-    
-    
+       
 # Select Controls
 select:
   # Grid Mode
@@ -856,7 +848,6 @@ select:
       - 'Charge mode'
       - 'Discharge mode'
     set_action:  
-    # on_value:
       - if:
           condition:
             lambda: |-
@@ -884,25 +875,6 @@ select:
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             - delay: ${delay_select}
             
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     # can_id: 0x02000A02
-      #     can_id: 0x02${pcm_address}0A02
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       uint8_t mode = 0;
-      #       if (x == "Discharge mode") mode = 1;
-      #       return {${pcm_address}, 0x00, mode, 0x00, 0x00, 0x00, 0x00, 0x00};
-      # - delay: ${delay_select}
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     # can_id: 0x03000A02
-      #     can_id: 0x03${pcm_address}0A02
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      # - delay: ${delay_select}      
-
   # Phase Mode Setting
   - platform: template
     name: ${name}_${pcm_name}_phase_mode_setting
@@ -915,7 +887,6 @@ select:
       - 'Single-Phase'
       - 'Three-Phase'
     set_action:  
-    # on_value:
       - if:
           condition:
             lambda: |-
@@ -945,26 +916,6 @@ select:
                 data: !lambda |-
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
             - delay: ${delay_select}
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     can_id: 0x02${pcm_address}0A0A
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       uint8_t phase = 0;
-      #       if (x == "Three-Phase") phase = 1;
-      #       return {${pcm_address}, 0x00, phase, 0x00, 0x00, 0x00, 0x00, 0x00};
-      # - logger.log:
-      #     format: 'Phase Mode will take effect on next reboot'
-      #     level: WARN
-      # - delay: ${delay_select}
-      # # Query back the setting
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     can_id: 0x03${pcm_address}0A0A
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
-      # - delay: ${delay_select}
 
   # Frequency Setting
   - platform: template
@@ -1009,28 +960,7 @@ select:
                 data: !lambda |-
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             - delay: ${delay_select}
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     can_id: 0x02${pcm_address}0A11
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       uint8_t freq = 0;
-      #       if (x == "60 Hz") freq = 1;
-      #       return {${pcm_address}, 0x00, freq, 0x00, 0x00, 0x00, 0x00, 0x00};
-      # - logger.log:
-      #     format: "Frequency will take effect on next reboot"
-      #     level: WARN
-      # - delay: ${delay_select}
-      # # Query back the setting
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     # can_id: 0x03000A11
-      #     can_id: 0x03${pcm_address}0A11
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      # - delay: ${delay_select}      
-  
+     
   # AC Voltage Setting
   - platform: template
     name: ${name}_${pcm_name}_ac_voltage_setting
@@ -1043,7 +973,6 @@ select:
       - '230V'
       - '240V'
     set_action:  
-    # on_value:
       - if:
           condition:
             lambda: |-
@@ -1071,29 +1000,6 @@ select:
                 data: !lambda |-
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             - delay: ${delay_select}
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     # can_id: 0x02000A12
-      #     can_id: 0x02${pcm_address}0A12
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       uint8_t voltage = 0;
-      #       if (x == "240V") voltage = 2;
-      #       return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
-      # - logger.log:
-      #     format: 'AC Voltage will take effect on next reboot'
-      #     level: WARN
-      # - delay: ${delay_select}
-      # # Query back the setting
-      # - canbus.send:
-      #     canbus_id: ${pcm_canbus_id}
-      #     # can_id: 0x03000A12
-      #     can_id: 0x03${pcm_address}0A12
-      #     use_extended_id: true
-      #     data: !lambda |-
-      #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      # - delay: ${delay_select}      
-  
        
 
 output:
@@ -1104,8 +1010,7 @@ output:
     write_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A31
-          can_id: 0x02${pcm_address}0A36
+          can_id: 0x02${pcm_address}0A36  # volatile
           use_extended_id: true
           data: !lambda |-
             float raw_state  = state*100.0f;
@@ -1114,12 +1019,6 @@ output:
             uint16_t voltage = (uint16_t)(id(charging_voltage_readback).state * 10);
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta )  * 10 );
             ESP_LOGVV("output charging", "Raw: %f, voltage: %d, Current: %d", raw_state, voltage, current);
-            // return {
-            //  ${pcm_address}, 0x00,
-            //  (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
-            //  (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
-            //  0x00, 0x00
-            // };
             return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
 
   - platform: template
@@ -1129,8 +1028,7 @@ output:
     write_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A32
-          can_id: 0x02${pcm_address}0A37
+          can_id: 0x02${pcm_address}0A37 # volatile
           use_extended_id: true
           data: !lambda |-
             float raw_state  = state*100.0f;
@@ -1138,11 +1036,6 @@ output:
             float beta       = ${pcm_min_discharging} - alpha*0;
             uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
             ESP_LOGVV("output discharging", "Raw: %f, Current: %d", raw_state, current);
-            // return {
-            //   ${pcm_address}, 0x00, 0x00, 0x00,
-            //   (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
-            //   0x00, 0x00
-            // };
             return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
 
   # - platform: template
@@ -1218,64 +1111,12 @@ fan:
     name: ${name}_${pcm_name}_charging_current
     output: charging_current_output
     icon: mdi:battery-arrow-up
-    # on_turn_off:
-    #   then:
-    #     - number.set:
-    #         id: charging_current_number
-    #         value: !lambda |-
-    #           return id(charging_current_command).speed;
-              
-    #     - lambda: |-
-    #         esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-    #         std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    #         float beta = 5.0f;
-    #         uint16_t voltage, current;
-    #         voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
-    #         current    = (uint16_t)( beta  * 10);
-    #         data       = {${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-    #         canbus->send_data(0x02000A31, true, data);
-
-    #     - delay: 100ms
-
-    #     - lambda: |-
-    #         esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-    #         std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    #         float beta = 5.0f;
-    #         uint16_t voltage, current;
-    #         voltage    = (uint16_t)(id(charging_voltage_readback).state * 10);
-    #         current    = (uint16_t)( beta  * 10);
-    #         data       = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    #         canbus->send_data(0x03000A31, true, data);
-       
-    #     - delay: 100ms    
-
-
-    #     - delay: 200ms    
-            
-    #     - switch.turn_off:
-    #         id: power_switch    
 
   - platform: speed
     id: discharging_current_fan
     name: ${name}_${pcm_name}_discharging_current
     output: discharging_current_output
     icon: mdi:battery-arrow-down
-    # on_turn_off:
-    #   then:
-            
-    #     - lambda: |-
-    #         esphome::canbus::Canbus *canbus = id(${pcm_canbus_id});
-    #         std::vector<uint8_t> data = {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    #         float beta = 5.0f;
-    #         uint16_t current;
-    #         current    = (uint16_t)( beta  * 10);
-    #         data       = {${pcm_address}, 0x00, 0x00, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00};
-    #         canbus->send_data(0x02000A32, true, data);
-    #         delay(100);
-    #     - delay: 200ms
-    #     - switch.turn_off:
-    #         id: power_switch     
-
 
 # Number Controls for Parameters
 number:
@@ -1295,7 +1136,6 @@ number:
     set_action:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A31
           can_id: 0x02${pcm_address}0A31
           use_extended_id: true
           data: !lambda |-
@@ -1339,12 +1179,6 @@ number:
           data: !lambda |-
             uint16_t voltage = (uint16_t)(id(charging_voltage).state * 10);
             uint16_t current = (uint16_t)(x * 10);
-            // return {
-            //  ${pcm_address}, 0x00,
-            //  (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8),
-            //  (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
-            //  0x00, 0x00
-            // };
             return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
       - delay: ${delay_number}
       # Query back the setting
@@ -1377,11 +1211,6 @@ number:
           use_extended_id: true
           data: !lambda |-
             uint16_t current = (uint16_t)(x * 10);
-            // return {
-            //  ${pcm_address}, 0x00, 0x00, 0x00,
-            //  (uint8_t)(current & 0xFF), (uint8_t)(current >> 8),
-            //  0x00, 0x00
-            // };
             return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
       - delay: ${delay_number}
       # Query back the setting
