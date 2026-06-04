@@ -225,6 +225,9 @@ void DUALPIDPCMComponent::pid_update() {
             }
             ESP_LOGI(TAG, "activation is off -> Turn off onoff, turn on discharge_charge");
         }
+        
+        this->set_charging_level(0.0f);
+        this->set_discharging_level(0.0f);
 
         this->last_time_                   = now;
         this->previous_error_              = this->error_;
