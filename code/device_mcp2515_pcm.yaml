@@ -162,14 +162,24 @@ canbus:
               ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV, %.1fA", charge_voltage/10.0, charge_current/10.0);
       
       # Discharge Parameters Response - 0x010A0032
-      - can_id: 0x010A${pcm_address}32 #0x010A0032
+      # - can_id: 0x010A${pcm_address}32 #0x010A0032
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint16_t discharge_current_value = (x[5] << 8) | x[4];
+      #         id(discharging_current_readback).publish_state(discharge_current_value / 10.0f);
+      #         id(discharging_current_number).publish_state(discharge_current_value / 10.0f);
+      #         ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
+
+      - can_id: 0x010A${pcm_address}37
         use_extended_id: true
         then:
           - lambda: |-
-              uint16_t discharge_current_value = (x[5] << 8) | x[4];
+              uint16_t discharge_current_value = (x[3] << 8) | x[2];
               id(discharging_current_readback).publish_state(discharge_current_value / 10.0f);
               id(discharging_current_number).publish_state(discharge_current_value / 10.0f);
               ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
+
             
       # DC Voltage Protection Response - 0x010A0033
       - can_id: 0x010A${pcm_address}33 #0x010A0033
