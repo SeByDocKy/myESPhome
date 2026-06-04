@@ -1066,7 +1066,7 @@ number:
           condition:
             lambda: |-
               // Si la valeur demandée est déjà égale au retour réel, on ignore
-              return std::abs(x - id(charging_voltage_readback).state) > 0.05f;
+              return std::abs(x - id(charging_voltage_readback).state) > 0.01f;
           then:
             - canbus.send:
                 canbus_id: ${pcm_canbus_id}
