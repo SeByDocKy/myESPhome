@@ -865,12 +865,13 @@ select:
       - if:
           condition:
             lambda: |-
-              if (x == id(grid_mode_select).state) {
-                return false;
-              }
-              uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
-              uint8_t current_real_mode = id(grid_mode_readback).state;
-              return requested_mode != current_real_mode;
+              return true;
+              // if (x == id(grid_mode_select).state) {
+              //   return false;
+              // }
+              // uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
+              // uint8_t current_real_mode = id(grid_mode_readback).state;
+              // return requested_mode != current_real_mode;
           then:
             # Si c'est différent (changement manuel), on envoie les trames d'origine
             - canbus.send:
