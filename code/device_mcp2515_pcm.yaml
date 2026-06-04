@@ -154,12 +154,22 @@ canbus:
         then:
           - lambda: |-
               uint16_t charge_voltage = (x[3] << 8) | x[2];
-              uint16_t charge_current = (x[5] << 8) | x[4];
+              // uint16_t charge_current = (x[5] << 8) | x[4];
               id(charging_voltage_readback).publish_state(charge_voltage / 10.0f);
-              id(charging_current_readback).publish_state(charge_current / 10.0f);
+              // id(charging_current_readback).publish_state(charge_current / 10.0f);
               id(charging_voltage).publish_state(charge_voltage / 10.0f);
-              id(charging_current_number).publish_state(charge_current / 10.0f);
-              ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV, %.1fA", charge_voltage/10.0, charge_current/10.0);
+              // id(charging_current_number).publish_state(charge_current / 10.0f);
+              // ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV, %.1fA", charge_voltage/10.0, charge_current/10.0);
+              ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV", charge_voltage/10.0);
+
+      - can_id: 0x010A${pcm_address}36
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t charge_current_value = (x[3] << 8) | x[2];
+              id(charging_current_readback).publish_state(charge_current_value / 10.0f);
+              id(charging_current_number).publish_state(charge_current_value / 10.0f);
+              ESP_LOGD("canbus", "Charge Current Readback: %.1fA", charge_current_value/10.0);        
       
       # Discharge Parameters Response - 0x010A0032
       # - can_id: 0x010A${pcm_address}32 #0x010A0032
@@ -1106,7 +1116,8 @@ number:
       - if:
           condition:
             lambda: |-
-              return std::abs(x - id(charging_current_readback).state) > 0.01f;
+              // return std::abs(x - id(charging_current_readback).state) > 0.01f;
+              return true;
           then:
             - canbus.send:
                 canbus_id: ${pcm_canbus_id}
@@ -1115,14 +1126,20 @@ number:
                 data: !lambda |-
                   uint16_t current = (uint16_t)(x * 10);
                   return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
-            - delay: ${delay_number}
-            # Query back the setting
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A36  # <-- Volatile
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
+
+            - lambda: |-
+                // uint16_t charge_current_value = (x[3] << 8) | x[2];
+                id(charging_current_readback).publish_state(x);
+                id(charging_current_number).publish_state(x);
+                ESP_LOGD("canbus", "Charge Current Readback: %.1fA", x);      
+            # - delay: ${delay_number}
+            # # Query back the setting
+            # - canbus.send:
+            #     canbus_id: ${pcm_canbus_id}
+            #     can_id: 0x03${pcm_address}0A36  # <-- Volatile
+            #     use_extended_id: true
+            #     data: !lambda |-
+            #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
   
   # Discharge Current (48V system)
   - platform: template
