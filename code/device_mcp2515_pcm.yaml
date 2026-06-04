@@ -41,18 +41,18 @@ canbus:
     on_frame:
 
       # Grid Mode Response - 0x010A0002
-      - can_id: 0x010A${pcm_address}02 #0x010A0002
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t grid_mode = x[2];
-              id(grid_mode_readback).publish_state(grid_mode);
-              if (grid_mode == 0) {
-                id(grid_mode_select).publish_state("Charge mode");
-              } else if (grid_mode == 1) {
-                id(grid_mode_select).publish_state("Discharge mode");
-              }
-              ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
+      # - can_id: 0x010A${pcm_address}02 #0x010A0002
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint8_t grid_mode = x[2];
+      #         id(grid_mode_readback).publish_state(grid_mode);
+      #         if (grid_mode == 0) {
+      #           id(grid_mode_select).publish_state("Charge mode");
+      #         } else if (grid_mode == 1) {
+      #           id(grid_mode_select).publish_state("Discharge mode");
+      #         }
+      #         ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
 
       # SN Code Response - 0x010A0005
       - can_id: 0x010A${pcm_address}05 #0x010A0005
@@ -865,13 +865,13 @@ select:
       - if:
           condition:
             lambda: |-
-              return true;
-              // if (x == id(grid_mode_select).state) {
-              //   return false;
-              // }
-              // uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
-              // uint8_t current_real_mode = id(grid_mode_readback).state;
-              // return requested_mode != current_real_mode;
+              // return true;
+              if (x == id(grid_mode_select).state) {
+                return false;
+              }
+              uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
+              uint8_t current_real_mode = id(grid_mode_readback).state;
+              return requested_mode != current_real_mode;
           then:
             # Si c'est différent (changement manuel), on envoie les trames d'origine
             - canbus.send:
@@ -1569,9 +1569,11 @@ switch:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: ${delay_switch}
-      - select.set:
-         id: grid_mode_select
-         option: 'Charge mode'
+      - lambda: |-
+          id(grid_mode_select).publish_state("Charge mode");
+      # - select.set:
+      #    id: grid_mode_select
+      #    option: 'Charge mode'
          
     turn_off_action: #discharge
       - canbus.send:
@@ -1582,9 +1584,11 @@ switch:
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
       - delay: ${delay_switch}
-      - select.set:
-         id: grid_mode_select
-         option: 'Discharge mode'
+      - lambda: |-
+          id(grid_mode_select).publish_state("Discharge mode");
+      # - select.set:
+      #    id: grid_mode_select
+      #    option: 'Discharge mode'
 
 
   ####### fan control
