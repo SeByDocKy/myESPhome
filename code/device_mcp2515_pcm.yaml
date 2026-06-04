@@ -1034,9 +1034,13 @@ output:
             return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
 
       - lambda: |-
-                id(charging_current_readback).publish_state(state*100.0f);
-                id(charging_current_number).publish_state(state*100.0f);
-                ESP_LOGD("canbus", "Charge Current Readback: %.1fA", state*100.0f);           
+                float raw_state  = state*100.0f;
+                float alpha      = (${pcm_max_charging} - ${pcm_min_charging})/100.0f; 
+                float beta       = ${pcm_min_charging} - alpha*0;
+                uint16_t current = (uint16_t)( ( alpha*raw_state + beta ));
+                id(charging_current_readback).publish_state(current);
+                id(charging_current_number).publish_state(current);
+                ESP_LOGD("canbus", "Charge Current Readback: %.1fA", current);           
 
   - platform: template
     id: discharging_current_output
@@ -1055,9 +1059,13 @@ output:
             return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
             
       - lambda: |-
-                id(discharging_current_readback).publish_state(state*100.0f);
-                id(discharging_current_number).publish_state(state*100.0f);
-                ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", state*100.0f);      
+                float raw_state  = state*100.0f;
+                float alpha      = (${pcm_max_discharging} - ${pcm_min_discharging}) /100.0f;
+                float beta       = ${pcm_min_discharging} - alpha*0;
+                uint16_t current = (uint16_t)( ( alpha*raw_state + beta ));
+                id(discharging_current_readback).publish_state(current);
+                id(discharging_current_number).publish_state(current);
+                ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", current);      
 
 fan:
   - platform: speed
