@@ -112,15 +112,15 @@ void DUALPIDPCMComponent::setup() {
 
     // Initialization of volatile registers (36,37,38)
 
-    if (this->discharge_charge_switch_ != nullptr) {
-      this->discharge_charge_switch_->publish_state(true);
-      this->discharge_charge_switch_->turn_on();
-     delay(CHARGE_DISCHARGE_DELAY);
-    }
+    // if (this->discharge_charge_switch_ != nullptr) {
+    //   this->discharge_charge_switch_->publish_state(true);
+    //   this->discharge_charge_switch_->turn_on();
+    //  delay(CHARGE_DISCHARGE_DELAY);
+    // }
     
-    this->set_charging_level(0.0f);
-    delay(SET_OUTPUT_DELAY);
-    this->set_discharging_level(0.0f);
+    // this->set_charging_level(0.0f);
+    // delay(SET_OUTPUT_DELAY);
+    // this->set_discharging_level(0.0f);
     
 
     this->pid_computed_callback_.call();
