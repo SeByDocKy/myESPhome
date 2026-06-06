@@ -110,6 +110,8 @@ void DUALPIDPCMComponent::setup() {
     this->olb_ = this->oneutral_ - this->lb_;
     this->oub_ = this->oneutral_ + this->ub_;
 
+    // Initialization of volatile registers (36,37,38)
+
     if (this->discharge_charge_switch_ != nullptr) {
       this->discharge_charge_switch_->publish_state(true);
       this->discharge_charge_switch_->turn_on();
