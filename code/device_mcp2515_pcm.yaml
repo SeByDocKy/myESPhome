@@ -866,7 +866,7 @@ select:
           condition:
             lambda: |-
               //if (x == id(grid_mode_select).state){
-              if (x == current_option()){
+              if (x == id(grid_mode_select).current_option()){
                 return false;
               }
               uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
@@ -906,7 +906,7 @@ select:
           condition:
             lambda: |-
               // if (x == id(phase_mode_select).state) {
-              if (x == current_option()){
+              if (x == id(grid_mode_select).current_option()){
                 return false;
               }
               uint8_t requested_phase = (x == "Three-Phase") ? 1 : 0;
@@ -950,7 +950,7 @@ select:
           condition:
             lambda: |-
               // if (x == id(frequency_select).state) {
-              if (x == current_option()){
+              if (x == id(grid_mode_select).current_option()){
                 return false; 
               }
               uint8_t requested_freq = (x == "60 Hz") ? 1 : 0;
@@ -994,7 +994,7 @@ select:
           condition:
             lambda: |-
               // if (x == id(ac_voltage_select).state) {
-              if (x == current_option()){
+              if (x == id(grid_mode_select).current_option()){
                 return false;
               }
               uint8_t requested_voltage = (x == "240V") ? 2 : 0;
