@@ -110,6 +110,12 @@ void DUALPIDPCMComponent::setup() {
     this->olb_ = this->oneutral_ - this->lb_;
     this->oub_ = this->oneutral_ + this->ub_;
 
+    if (this->discharge_charge_switch_ != nullptr) {
+      this->discharge_charge_switch_->publish_state(true);
+      this->discharge_charge_switch_->turn_on();
+     delay(CHARGE_DISCHARGE_DELAY);
+    }
+
     this->pid_computed_callback_.call();
 
     ESP_LOGI(TAG, "setup: battery_voltage=%3.2f, pid_mode = %d",
