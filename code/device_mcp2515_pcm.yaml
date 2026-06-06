@@ -27,6 +27,8 @@ esphome:
               return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         - delay: 50ms
+
+        ### ------ Initialization of volatile register (36,37,38) -----------
         
         - switch.turn_on: discharge_charge_switch
 
@@ -42,7 +44,6 @@ esphome:
            id: discharging_current_number
            value: 0   
            
-            
 canbus:
   - platform: mcp2515
     id: ${pcm_canbus_id}
