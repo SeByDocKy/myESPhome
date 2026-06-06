@@ -25,6 +25,23 @@ esphome:
             use_extended_id: true
             data: !lambda |-
               return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+        - delay: 50ms
+        
+        - switch.turn_on: discharge_charge_switch
+
+        - delay: 50ms
+
+        - number.set:
+           id: charging_current_number
+           value: 0
+
+        - delay: 50ms
+
+        - number.set:
+           id: discharging_current_number
+           value: 0   
+           
             
 canbus:
   - platform: mcp2515
