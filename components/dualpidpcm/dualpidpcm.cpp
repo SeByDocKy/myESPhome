@@ -115,6 +115,11 @@ void DUALPIDPCMComponent::setup() {
       this->discharge_charge_switch_->turn_on();
      delay(CHARGE_DISCHARGE_DELAY);
     }
+    
+    this->set_charging_level(0.0f);
+    delay(SET_OUTPUT_DELAY);
+    this->set_discharging_level(0.0f);
+    
 
     this->pid_computed_callback_.call();
 
