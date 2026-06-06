@@ -33,13 +33,7 @@ wifi:
   ap:
     ssid: "battery_bidirectional"
     password: !secret ap_password
-    
-    
-# external_components:
-  # - source: github://creepystefan/esphome_tcp
-    # # components: [modbustcp, modbustcp_controller]
-    # refresh: 0s     
-    
+        
 time:
   - platform: sntp
     id: my_time    
@@ -66,7 +60,6 @@ uart:
 modbus:
   - id: modbus_rtu
     uart_id: uart_0
-    # type: RTU
     send_wait_time: 50ms    
 
 spi:
