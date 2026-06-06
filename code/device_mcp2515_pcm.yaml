@@ -58,7 +58,7 @@ canbus:
 
     on_frame:
 
-      # Grid Mode Response - 0x010A0002
+      # Grid Mode Response - 0x010A0002  # non-volatile register -> EEPROM  replaced with A038
       # - can_id: 0x010A${pcm_address}02 #0x010A0002
       #   use_extended_id: true
       #   then:
@@ -258,8 +258,7 @@ canbus:
               id(inverting_current_sensor).publish_state(inverting_current / 10.0f);
               id(running_mode_sensor).publish_state(running_mode);
               
-              ESP_LOGD("canbus", "Feedback 1 - Module: %d, Mode: %d, Grid: %.1fV, Inv: %.1fV, Current: %.1fA", 
-                       module_addr, running_mode, grid_voltage/10.0, inverter_voltage/10.0, inverting_current/10.0);
+              ESP_LOGD("canbus", "Feedback 1 - Module: %d, Mode: %d, Grid: %.1fV, Inv: %.1fV, Current: %.1fA", module_addr, running_mode, grid_voltage/10.0, inverter_voltage/10.0, inverting_current/10.0);
       
       # Feedback Parameter 2 - 0x010A0052
       - can_id: 0x010A${pcm_address}52 #0x010A0052
@@ -304,8 +303,7 @@ canbus:
               id(grid_undervoltage_alarm).publish_state(warning_flags & 0x04);
               id(grid_overvoltage_alarm).publish_state(warning_flags & 0x08);
               
-              ESP_LOGD("canbus", "Feedback 3 - Temp1: %d°C, Temp2: %d°C, Power: %.1fW, Warnings: 0x%02X", 
-                       temp1, temp2, power/10.0, warning_flags);
+              ESP_LOGD("canbus", "Feedback 3 - Temp1: %d°C, Temp2: %d°C, Power: %.1fW, Warnings: 0x%02X", temp1, temp2, power/10.0, warning_flags);
       
       # Running Status Feedback - 0x010A0054
       - can_id: 0x010A${pcm_address}54 #0x010A0054
@@ -352,8 +350,7 @@ canbus:
               bool has_fault = (fault1 != 0) || (fault2 != 0) || (fault3 != 0);
               id(fault_status).publish_state(has_fault);
               
-              ESP_LOGD("canbus", "Status - Mode: %d, Freq: %dHz, Faults: 0x%02X 0x%02X 0x%02X", 
-                       running_mode, inverter_freq == 0 ? 50 : 60, fault1, fault2, fault3);
+              ESP_LOGD("canbus", "Status - Mode: %d, Freq: %dHz, Faults: 0x%02X 0x%02X 0x%02X", running_mode, inverter_freq == 0 ? 50 : 60, fault1, fault2, fault3);
 
 
           # High Voltage Bus
@@ -565,7 +562,6 @@ sensor:
     accuracy_decimals: 1
     icon: mdi:flash-alert
     
-  
   - platform: template
     id: ac_undervoltage_protection_readback
     name: ${name}_${pcm_name}_ac_undervoltage_protection_readback
@@ -808,7 +804,6 @@ button:
     on_press:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A01
           can_id: 0x02${pcm_address}0A01
           use_extended_id: true
           data: !lambda |-
@@ -821,7 +816,6 @@ button:
     on_press:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A01
           can_id: 0x02${pcm_address}0A01
           use_extended_id: true
           data: !lambda |-
@@ -834,7 +828,6 @@ button:
     on_press:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A01
           can_id: 0x02${pcm_address}0A01
           use_extended_id: true
           data: !lambda |-
@@ -860,7 +853,6 @@ button:
     on_press:
       - canbus.send:
           canbus_id: ${pcm_canbus_id}
-          # can_id: 0x03000A05
           can_id: 0x03${pcm_address}0A05
           use_extended_id: true
           data: !lambda |-
@@ -883,7 +875,6 @@ select:
       - if:
           condition:
             lambda: |-
-              //if (x == id(grid_mode_select).state){
               if (x == id(grid_mode_select).current_option()){
                 return false;
               }
@@ -923,7 +914,6 @@ select:
       - if:
           condition:
             lambda: |-
-              // if (x == id(phase_mode_select).state) {
               if (x == id(grid_mode_select).current_option()){
                 return false;
               }
@@ -967,7 +957,6 @@ select:
       - if:
           condition:
             lambda: |-
-              // if (x == id(frequency_select).state) {
               if (x == id(grid_mode_select).current_option()){
                 return false; 
               }
@@ -1011,7 +1000,6 @@ select:
       - if:
           condition:
             lambda: |-
-              // if (x == id(ac_voltage_select).state) {
               if (x == id(grid_mode_select).current_option()){
                 return false;
               }
@@ -1158,8 +1146,8 @@ number:
       - if:
           condition:
             lambda: |-
-              // return std::abs(x - id(charging_current_readback).state) > 0.01f;
-              return true;
+              return std::abs(x - id(charging_current_readback).state) > 0.01f;
+              // return true;
           then:
             - canbus.send:
                 canbus_id: ${pcm_canbus_id}
@@ -1200,8 +1188,8 @@ number:
       - if:
           condition:
             lambda: |-
-              // return std::abs(x - id(discharging_current_readback).state) > 0.01f;
-              return true;
+              return std::abs(x - id(discharging_current_readback).state) > 0.01f;
+              // return true;
           then:
             - canbus.send:
                 canbus_id: ${pcm_canbus_id}
@@ -1366,7 +1354,6 @@ number:
                 use_extended_id: true
                 data: !lambda |-
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
   
   # DC Overvoltage Protection (48V system)
   - platform: template
@@ -1403,7 +1390,6 @@ number:
                 data: !lambda |-
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       
-  
   # DC Undervoltage Protection (48V system)
   - platform: template
     name: ${name}_${pcm_name}_dc_undervoltage_protection
@@ -1438,7 +1424,6 @@ number:
                 use_extended_id: true
                 data: !lambda |-
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};          
-
 
 # DC Overvoltage Alarm (48V system)
   - platform: template
@@ -1509,7 +1494,6 @@ number:
                 use_extended_id: true
                 data: !lambda |-
                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
 
 # Fan speed
   - platform: template
