@@ -134,7 +134,7 @@ async def to_code(config):
     cg.add(var.set_can_clock(CAN_CLOCK[config[CONF_CAN_CLOCK]]))
     cg.add(var.set_mcp_mode(CAN_MODE[config[CONF_MCP_MODE]]))
     cg.add(var.set_canfd_enabled(config[CONF_CANFD_ENABLED]))
-    cg.add(var.set_data_rate(CAN_SPEEDS[config[CONF_CAN_DATA_RATE]]))
+    cg.add(var.set_can_data_rate(CAN_SPEEDS[config[CONF_CAN_DATA_RATE]]))
 
     if CONF_INT_PIN in config:
         pin = await cg.gpio_pin_expression(config[CONF_INT_PIN])

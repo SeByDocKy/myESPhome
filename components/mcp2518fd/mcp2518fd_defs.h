@@ -148,14 +148,14 @@ static const uint8_t  TXQSTA_TXQNF      = 1 << 0;  // TX Queue Not Full
 // ---------------------------------------------------------------------------
 // OSC Register (0xE00)  — Oscillator Control
 // ---------------------------------------------------------------------------
-static const uint32_t OSC_PLLEN         = 1UL <<  0;  // PLL Enable
-static const uint32_t OSC_OSCDIS        = 1UL <<  2;  // Oscillator Disable
-static const uint32_t OSC_SCLKDIV       = 1UL <<  4;  // SCLK Divider (0=1, 1=2)
-static const uint32_t OSC_CLKODIV_MASK  = 0x00000300UL; // CLKO Divider bits 9:8
-static const uint8_t  OSC_CLKODIV_SHIFT = 8;
-static const uint32_t OSC_PLLRDY        = 1UL << 16;  // PLL Ready (status)
-static const uint32_t OSC_OSCRDY        = 1UL << 18;  // OSC Ready (status)
-static const uint32_t OSC_SCLKRDY       = 1UL << 20;  // SCLK Ready (status)
+static const uint32_t OSC_PLLEN         = 1UL << 0;  // PLL Enable
+static const uint32_t OSC_OSCDIS        = 1UL << 2;  // Oscillator Disable
+static const uint32_t OSC_SCLKDIV       = 1UL << 4;  // SCLK Divider (0=1, 1=2)
+static const uint32_t OSC_CLKODIV_MASK  = 0x00000060UL; // CLKO Divider bits 9:8
+static const uint8_t  OSC_CLKODIV_SHIFT = 5;
+static const uint32_t OSC_PLLRDY        = 1UL << 8;  // PLL Ready (status)
+static const uint32_t OSC_OSCRDY        = 1UL << 10;  // OSC Ready (status)
+static const uint32_t OSC_SCLKRDY       = 1UL << 12;  // SCLK Ready (status)
 
 // CLKO divider values
 enum OscClkoDivide : uint8_t {
@@ -187,9 +187,10 @@ static const uint32_t MSGOBJ_ESI       = 1UL <<  8;  // Error Status Indicator
 
 // ID word layout
 // EID[17:0] in bits 17:0, SID[10:0] in bits 28:18
-static const uint32_t MSGOBJ_SID_SHIFT = 18;
-static const uint32_t MSGOBJ_EID_MASK  = 0x0003FFFFUL;
-static const uint32_t MSGOBJ_SID_MASK  = 0x1FFC0000UL;
+static const uint32_t MSGOBJ_SID_SHIFT = 0;   // SID[10:0] at T0[10:0]
+static const uint32_t MSGOBJ_EID_SHIFT = 11;  // EID[17:0] at T0[28:11]
+static const uint32_t MSGOBJ_SID_MASK  = 0x000007FFUL;  // SID at bits [10:0]
+static const uint32_t MSGOBJ_EID_MASK  = 0x1FFFF800UL;  // EID at bits [28:11]
 
 // Filter object / Mask object  (CiFLTOBJ / CiMASK)
 static const uint32_t FLTOBJ_EXIDE     = 1UL << 30;  // match extended IDs

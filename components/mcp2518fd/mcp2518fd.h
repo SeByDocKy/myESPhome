@@ -29,7 +29,7 @@ class MCP2518FD : public canbus::Canbus,
                   public spi::SPIDevice<spi::BIT_ORDER_MSB_FIRST,
                                         spi::CLOCK_POLARITY_LOW,
                                         spi::CLOCK_PHASE_LEADING,
-                                        spi::DATA_RATE_8MHZ> {
+                                        spi::DATA_RATE_1MHZ> {
  public:
   MCP2518FD() = default;
 
@@ -37,7 +37,7 @@ class MCP2518FD : public canbus::Canbus,
   void set_can_clock(CanClock clock)       { this->can_clock_     = clock;   }
   void set_mcp_mode(CanMode mode)          { this->mcp_mode_      = mode;    }
   void set_canfd_enabled(bool enabled)     { this->canfd_enabled_ = enabled; }
-  void set_data_rate(canbus::CanSpeed rate){ this->data_rate_      = rate;    }
+  void set_can_data_rate(canbus::CanSpeed rate){ this->can_data_rate_  = rate;    }
 
   // Interrupt pins (all optional, active-low)
   // INT  : general interrupt — any enabled source in CiINT
@@ -46,6 +46,9 @@ class MCP2518FD : public canbus::Canbus,
   void set_int_pin(GPIOPin *pin)  { this->int_pin_  = pin; }
   void set_int0_pin(GPIOPin *pin) { this->int0_pin_ = pin; }
   void set_int1_pin(GPIOPin *pin) { this->int1_pin_ = pin; }
+
+  // Called by ESPHome framework — lets us report status after WiFi connects
+  void dump_config() override;
 
  protected:
   // ---- Component lifecycle -------------------------------------------------
@@ -60,7 +63,7 @@ class MCP2518FD : public canbus::Canbus,
   CanClock         can_clock_     {MCP_40MHZ};
   CanMode          mcp_mode_      {CAN_MODE_NORMAL};
   bool             canfd_enabled_ {false};
-  canbus::CanSpeed data_rate_     {canbus::CAN_500KBPS};
+  canbus::CanSpeed can_data_rate_     {canbus::CAN_500KBPS};
 
   // ---- Interrupt pins (nullptr = not configured, use polling) --------------
   GPIOPin *int_pin_  {nullptr};  ///< INT  — general (active-low)
@@ -101,6 +104,14 @@ class MCP2518FD : public canbus::Canbus,
     out[0] = static_cast<uint8_t>((instr << 4) | ((addr >> 8) & 0x0F));
     out[1] = static_cast<uint8_t>(addr & 0xFF);
   }
+
+  // ---- Init diagnostics ----------------------------------------------------
+  uint32_t init_devid_  {0};
+  uint32_t init_osc_    {0};
+  uint32_t init_cicon_  {0};
+  uint32_t init_iocon_  {0};
+  uint32_t init_citrec_ {0};
+  bool     init_done_   {false};
 
   // ---- Utility -------------------------------------------------------------
   static uint8_t dlc_to_bytes_(uint8_t dlc);

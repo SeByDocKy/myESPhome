@@ -95,11 +95,36 @@ void MCP2518FD::write_ram_(uint16_t addr, const uint8_t *data, uint8_t n) {
 // ============================================================
 
 canbus::Error MCP2518FD::reset_() {
+  // Per Linux kernel driver mcp251xfd-core.c:
+  // The chip must NOT be in Sleep mode before reset.
+  // Wake it first by writing to OSC register (clears OSCDIS).
+  // Then set Config mode, then send SPI RESET.
+
+  // Step 1: Wake the chip (write OSC = 0x60: CLKODIV=10, no PLL, no sleep)
+  // This is a no-op if already awake, but wakes it if sleeping.
+  write_sfr_(REG_OSC, 0x00000060UL);
+  delay(2);
+
+  // Step 2: Force Config mode via CiCON.REQOP
+  uint32_t con = read_sfr_(REG_CiCON);
+  con = (con & ~CiCON_REQOP_MASK) |
+        ((uint32_t(CAN_CONFIGURATION_MODE) << CiCON_REQOP_SHIFT) & CiCON_REQOP_MASK);
+  write_sfr_(REG_CiCON, con);
+  delay(2);
+
+  // Step 3: Send SPI RESET instruction (0x00 0x00)
   this->enable();
   this->transfer_byte(0x00);
   this->transfer_byte(0x00);
   this->disable();
-  delay(5);
+
+  // Step 4: Wait for oscillator to stabilize (Linux uses poll, we use fixed delay)
+  delay(10);
+
+  // Step 5: Verify OSC is ready — POR default is 0x00000060 (CLKODIV=10, OSCRDY=1)
+  uint32_t osc = read_sfr_(REG_OSC);
+  ESP_LOGD(TAG, "reset_() done — OSC=0x%08X (expect ~0x00000460 after POR)", osc);
+
   return canbus::ERROR_OK;
 }
 
@@ -129,24 +154,35 @@ canbus::Error MCP2518FD::set_mode_(CanOperationMode mode) {
 // ============================================================
 
 canbus::Error MCP2518FD::configure_osc_() {
-  uint32_t osc_val = 0;
-  if (this->can_clock_ == MCP_4MHZ)
-    osc_val = OSC_PLLEN;   // 4 MHz × 10 PLL → 40 MHz SYSCLK
+  // Build OSC value — CLKODIV=10 (bits 6:5 = 0b11 = 0x60) is the POR default
+  // and is what the Linux kernel driver uses as reference after reset.
+  // OSCRDY (bit 10) and PLLRDY (bit 8) are read-only status bits.
+  uint32_t osc_val = 0x00000060UL;  // CLKODIV=10 (÷10), no PLL, no sleep
+
+  if (this->can_clock_ == MCP_4MHZ) {
+    osc_val |= OSC_PLLEN;  // Enable 10× PLL: 4 MHz → 40 MHz
+  }
 
   write_sfr_(REG_OSC, osc_val);
 
+  // Wait for OSCRDY (bit 10) — and PLLRDY (bit 8) if PLL enabled
   uint32_t t0 = millis();
-  while ((millis() - t0) < 10) {
-    uint32_t status  = read_sfr_(REG_OSC);
-    bool pll_needed  = (osc_val & OSC_PLLEN) != 0;
-    bool osc_rdy     = (status & OSC_OSCRDY) != 0;
-    bool pll_rdy     = !pll_needed || ((status & OSC_PLLRDY) != 0);
+  while ((millis() - t0) < 20) {
+    uint32_t status = read_sfr_(REG_OSC);
+    bool pll_needed = (osc_val & OSC_PLLEN) != 0;
+    bool osc_rdy    = (status & OSC_OSCRDY) != 0;
+    bool pll_rdy    = !pll_needed || ((status & OSC_PLLRDY) != 0);
     if (osc_rdy && pll_rdy) {
-      ESP_LOGV(TAG, "OSC ready, OSC=0x%08X", status);
+      ESP_LOGD(TAG, "OSC ready — OSC=0x%08X", status);
+      this->init_osc_ = status;
       return canbus::ERROR_OK;
     }
   }
-  ESP_LOGE(TAG, "OSC/PLL not ready");
+  uint32_t final_osc = read_sfr_(REG_OSC);
+  ESP_LOGE(TAG, "OSC/PLL not ready — OSC=0x%08X (OSCRDY bit10=%d PLLRDY bit8=%d)",
+           final_osc,
+           (final_osc >> 10) & 1,
+           (final_osc >>  8) & 1);
   return canbus::ERROR_FAIL;
 }
 
@@ -231,7 +267,7 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
 
   if (this->canfd_enabled_) {
     uint32_t dbtcfg = 0, tdcval = 0;
-    if (!calc_dbt_(this->data_rate_, this->can_clock_, dbtcfg, tdcval)) {
+    if (!calc_dbt_(this->can_data_rate_, this->can_clock_, dbtcfg, tdcval)) {
       ESP_LOGE(TAG, "Unsupported data bit rate / clock combination");
       return canbus::ERROR_FAIL;
     }
@@ -325,30 +361,65 @@ canbus::Error MCP2518FD::configure_interrupts_() {
 
 bool MCP2518FD::setup_internal() {
   this->spi_setup();
+  ESP_LOGD(TAG, "SPI setup done");
 
-  // Configure interrupt input pins (INPUT, active-low)
-  if (this->int_pin_ != nullptr) {
-    this->int_pin_->setup();
-    ESP_LOGD(TAG, "INT  pin configured");
+  // Configure interrupt input pins
+  if (this->int_pin_ != nullptr)  { this->int_pin_->setup();  ESP_LOGD(TAG, "INT  pin configured"); }
+  if (this->int0_pin_ != nullptr) { this->int0_pin_->setup(); ESP_LOGD(TAG, "INT0 pin configured"); }
+  if (this->int1_pin_ != nullptr) { this->int1_pin_->setup(); ESP_LOGD(TAG, "INT1 pin configured"); }
+
+  // Read DEVID to verify SPI communication before doing anything else
+  delay(10);  // let VDD stabilise
+  // Read multiple registers to diagnose SPI — some clones have DEVID=0 but still work
+  uint32_t devid    = read_sfr_(REG_DEVID);   // 0xE14 — should be 0x28 for MCP2518FD
+  uint32_t osc_pre  = read_sfr_(REG_OSC);     // 0xE00 — POR value = 0x00000060
+  uint32_t cicon    = read_sfr_(REG_CiCON);   // 0x000 — POR value = 0x04980760
+  uint32_t iocon    = read_sfr_(REG_IOCON);   // 0xE04 — POR value = 0x03000000
+  this->init_devid_ = devid;
+  this->init_cicon_  = cicon;
+  this->init_iocon_  = iocon;
+
+  ESP_LOGD(TAG, "SPI register scan:");
+  ESP_LOGD(TAG, "  DEVID  (0xE14) = 0x%08X  (MCP2518FD expect 0x00000028)", devid);
+  ESP_LOGD(TAG, "  OSC    (0xE00) = 0x%08X  (POR expect    0x00000060)", osc_pre);
+  ESP_LOGD(TAG, "  CiCON  (0x000) = 0x%08X  (POR expect    0x04980760)", cicon);
+  ESP_LOGD(TAG, "  IOCON  (0xE04) = 0x%08X  (POR expect    0x03000000)", iocon);
+
+  bool spi_ok = (osc_pre  != 0x00000000 && osc_pre  != 0xFFFFFFFF) ||
+                (cicon     != 0x00000000 && cicon     != 0xFFFFFFFF) ||
+                (iocon     != 0x00000000 && iocon     != 0xFFFFFFFF) ||
+                (devid     != 0x00000000 && devid     != 0xFFFFFFFF);
+
+  if (!spi_ok) {
+    ESP_LOGE(TAG, "All registers read 0x00 or 0xFF — SPI bus not responding");
+    ESP_LOGE(TAG, "Check: VCC=5V, MOSI/MISO not swapped, CS active-low, SCK polarity");
+    return false;
   }
-  if (this->int0_pin_ != nullptr) {
-    this->int0_pin_->setup();
-    ESP_LOGD(TAG, "INT0 pin configured");
-  }
-  if (this->int1_pin_ != nullptr) {
-    this->int1_pin_->setup();
-    ESP_LOGD(TAG, "INT1 pin configured");
+  if (devid == 0x00000000) {
+    ESP_LOGW(TAG, "DEVID=0 but other registers respond — possible clone chip, continuing");
   }
 
-  if (reset_() != canbus::ERROR_OK) return false;
-  if (set_mode_(CAN_CONFIGURATION_MODE) != canbus::ERROR_OK) return false;
-  if (configure_osc_() != canbus::ERROR_OK) return false;
-  if (configure_bit_timing_() != canbus::ERROR_OK) return false;
-  if (configure_fifos_() != canbus::ERROR_OK) return false;
-  if (configure_filters_() != canbus::ERROR_OK) return false;
+  ESP_LOGD(TAG, "Sending RESET...");
+  if (reset_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "reset_ failed"); return false; }
+
+  ESP_LOGD(TAG, "Entering Configuration mode...");
+  if (set_mode_(CAN_CONFIGURATION_MODE) != canbus::ERROR_OK) { ESP_LOGE(TAG, "set_mode_(CONFIG) failed"); return false; }
+
+  ESP_LOGD(TAG, "Configuring oscillator...");
+  if (configure_osc_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_osc_ failed"); return false; }
+
+  ESP_LOGD(TAG, "Configuring bit timing...");
+  if (configure_bit_timing_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_bit_timing_ failed"); return false; }
+
+  ESP_LOGD(TAG, "Configuring FIFOs...");
+  if (configure_fifos_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_fifos_ failed"); return false; }
+
+  ESP_LOGD(TAG, "Configuring filters...");
+  if (configure_filters_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_filters_ failed"); return false; }
 
   // CiCON: enable TXQ, ISO CRC (FD), disable BRS (classic)
   uint32_t con = read_sfr_(REG_CiCON);
+  ESP_LOGD(TAG, "CiCON before=0x%08X", con);
   con |= CiCON_TXQEN;
   if (this->canfd_enabled_)
     con |= CiCON_ISOCRCEN;
@@ -356,13 +427,45 @@ bool MCP2518FD::setup_internal() {
     con |= CiCON_BRSDIS;
   write_sfr_(REG_CiCON, con);
 
-  if (configure_interrupts_() != canbus::ERROR_OK) return false;
+  ESP_LOGD(TAG, "Configuring interrupts...");
+  if (configure_interrupts_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_interrupts_ failed"); return false; }
 
-  if (set_mode_(static_cast<CanOperationMode>(this->mcp_mode_)) != canbus::ERROR_OK)
+  ESP_LOGD(TAG, "Entering operational mode %d...", this->mcp_mode_);
+  if (set_mode_(static_cast<CanOperationMode>(this->mcp_mode_)) != canbus::ERROR_OK) {
+    ESP_LOGE(TAG, "set_mode_(operational) failed");
     return false;
+  }
 
-  ESP_LOGD(TAG, "MCP2518FD ready — CiBDIAG0=0x%08X", read_sfr_(REG_CiBDIAG0));
+  this->init_citrec_ = read_sfr_(REG_CiTREC);
+  this->init_done_ = true;
+  ESP_LOGD(TAG, "MCP2518FD ready — CiBDIAG0=0x%08X CiTREC=0x%08X",
+           read_sfr_(REG_CiBDIAG0), this->init_citrec_);
   return true;
+}
+
+
+
+// ============================================================
+// dump_config — called after setup, visible via WiFi/API logs
+// ============================================================
+
+void MCP2518FD::dump_config() {
+  ESP_LOGCONFIG(TAG, "MCP2518FD:");
+  ESP_LOGCONFIG(TAG, "  Init success : %s", this->init_done_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "  DEVID  (0xE14): 0x%08X (MCP2518FD=0x28)", this->init_devid_);
+  ESP_LOGCONFIG(TAG, "  OSC    (0xE00): 0x%08X (POR=0x60)",        this->init_osc_);
+  ESP_LOGCONFIG(TAG, "  CiCON  (0x000): 0x%08X (POR=0x04980760)", this->init_cicon_);
+  ESP_LOGCONFIG(TAG, "  IOCON  (0xE04): 0x%08X (POR=0x03000000)", this->init_iocon_);
+  ESP_LOGCONFIG(TAG, "  CiTREC (0x034): 0x%08X",                   this->init_citrec_);
+  LOG_PIN("  CS Pin : ", this->cs_);
+  if (!this->init_done_) {
+    if (this->init_devid_ == 0x00000000 || this->init_devid_ == 0xFFFFFFFF)
+      ESP_LOGE(TAG, "  => SPI communication failed (DEVID=0x%08X)", this->init_devid_);
+    else if ((this->init_osc_ & OSC_OSCRDY) == 0)
+      ESP_LOGE(TAG, "  => Oscillator not ready (OSC=0x%08X, OSCRDY bit 10 not set)", this->init_osc_);
+    else
+      ESP_LOGE(TAG, "  => Init failed at unknown step");
+  }
 }
 
 // ============================================================
@@ -387,14 +490,16 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   uint16_t ram_addr = RAM_ADDR_START + tx_fifo_addr_();
 
   // Build transmit message object (T0 + T1 + data)
-  // T0: ID word
+  // T0: ID word — layout per datasheet Table 3-5 (page 66):
+  //   Standard: SID[10:0] at T0[10:0]
+  //   Extended: SID[10:0] at T0[10:0], EID[17:0] at T0[28:11]
   uint32_t id_word = 0;
   if (frame->use_extended_id) {
-    uint32_t eid = frame->can_id & 0x3FFFFUL;
-    uint32_t sid = (frame->can_id >> 18) & 0x7FFU;
-    id_word = eid | (sid << MSGOBJ_SID_SHIFT);
+    uint32_t sid = (frame->can_id >> 18) & 0x7FFU;   // bits 28:18 of 29-bit ID
+    uint32_t eid =  frame->can_id & 0x3FFFFUL;        // bits 17:0  of 29-bit ID
+    id_word = sid | (eid << MSGOBJ_EID_SHIFT);
   } else {
-    id_word = (uint32_t(frame->can_id) & 0x7FFU) << MSGOBJ_SID_SHIFT;
+    id_word = frame->can_id & 0x7FFU;                 // SID[10:0] at T0[10:0]
   }
 
   // T1: control word
@@ -481,11 +586,11 @@ canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
   frame->can_data_length_code        = nbytes;
 
   if (extended) {
-    uint32_t sid = (id_word & MSGOBJ_SID_MASK) >> MSGOBJ_SID_SHIFT;
-    uint32_t eid =  id_word & MSGOBJ_EID_MASK;
+    uint32_t sid = id_word & MSGOBJ_SID_MASK;                       // T0[10:0]
+    uint32_t eid = (id_word & MSGOBJ_EID_MASK) >> MSGOBJ_EID_SHIFT; // T0[28:11]
     frame->can_id = (sid << 18) | eid;
   } else {
-    frame->can_id = (id_word >> MSGOBJ_SID_SHIFT) & 0x7FFU;
+    frame->can_id = id_word & MSGOBJ_SID_MASK;                      // T0[10:0]
   }
 
   if (nbytes > 0) {
