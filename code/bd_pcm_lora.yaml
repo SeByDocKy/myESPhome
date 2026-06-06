@@ -34,6 +34,12 @@ wifi:
     ssid: "battery_bidirectional"
     password: !secret ap_password
     
+    
+# external_components:
+  # - source: github://creepystefan/esphome_tcp
+    # # components: [modbustcp, modbustcp_controller]
+    # refresh: 0s     
+    
 time:
   - platform: sntp
     id: my_time    
@@ -46,7 +52,7 @@ ota:
   
 logger:
   # hardware_uart: USB_SERIAL_JTAG
-   level: very_verbose
+   level: verbose
     
 uart: 
   - id: uart_0
@@ -56,6 +62,12 @@ uart:
     parity: none
     data_bits: 8
     stop_bits: 1
+    
+modbus:
+  - id: modbus_rtu
+    uart_id: uart_0
+    # type: RTU
+    send_wait_time: 50ms    
 
 spi:
 
@@ -64,7 +76,6 @@ spi:
     mosi_pin: GPIO09
     miso_pin: GPIO08
     clk_pin: GPIO07
-    # interface: software
     interface: spi3   #### spi2 is for CMT2300A
 
 sx126x:
@@ -141,7 +152,6 @@ binary_sensor:
   - platform: status
     name: ${name}_esp_status
      
-    
 button:
   - platform: restart
     name: ${name}_restart
@@ -171,18 +181,7 @@ text_sensor:
     
               
 packages: 
-          
-  modbus:
-    url: https://github.com/SeByDocKy/pvbrain2/
-    ref: main
-    refresh: 0s
-    files: 
-      - path: 'pvbrain2/base/device_modbus.yaml'
-        vars:
-          modbus_id: 'modbus_id'
-          modbus_uart_id: uart_0
-          modbus_send_wait_time: '50ms'          
-          
+                    
   bms: 
     url: https://github.com/SeByDocKy/pvbrain2/
     ref: main
@@ -191,7 +190,7 @@ packages:
       - path: 'pvbrain2/bms/jikong/device_jkpbbms.yaml'
         vars:
           bms_name: 'jkpbbms'
-          bms_modbus_id: 'modbus_id'
+          bms_modbus_id: 'modbus_rtu'
           bms_modbus_address: '1'
           bms_update_interval: '1500ms'
           bms_template_update: '3s'
@@ -210,7 +209,7 @@ packages:
           pcm_cs_pin: 'GPIO06'
           pcm_canbus_id: 'pcm_can'
           pcm_address: '01'
-          pcm_interval: '4s' #'2500ms' #'1500ms'
+          pcm_interval: '4s' #'2500ms' #'1500ms'  ### pooling interval for non-feedback registers 
           pcm_text_sensor_interval: '2500ms'
           pcm_min_charging: '1'
           pcm_max_charging: '70'
