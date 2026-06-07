@@ -1,0 +1,1833 @@
+substitutions:
+  delay_interval: '100ms' #'120ms'
+  delay_number: '50ms'
+  delay_switch: '130ms' #'120ms'
+  delay_select: '130ms' #'120ms'
+  
+  
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [mcp2518fd]
+    refresh: 0s  
+  
+esphome:
+  on_boot: #!extend
+    - priority: -100
+      then:
+        - delay: 2s
+        - canbus.send:
+            canbus_id: ${pcm_canbus_id}
+            can_id: 0x03${pcm_address}0A07
+            use_extended_id: true
+            data: !lambda |-
+              return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+           
+        - delay: 50ms
+
+        - canbus.send:
+            canbus_id: ${pcm_canbus_id}
+            can_id: 0x03${pcm_address}0A05
+            use_extended_id: true
+            data: !lambda |-
+              return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+        - delay: 50ms
+
+        ### ------ Initialization of volatile register (36,37,38) -----------
+        
+        - switch.turn_on: discharge_charge_switch
+
+        - delay: 50ms
+
+        - number.set:
+           id: charging_current_number
+           value: 0
+
+        - delay: 50ms
+
+        - number.set:
+           id: discharging_current_number
+           value: 0   
+           
+canbus:
+  - platform: mcp2518fd
+    id: ${pcm_canbus_id}
+    spi_id: ${pcm_spid_id}
+    use_extended_id: true
+    cs_pin: ${pcm_cs_pin}
+    can_id: 0x0A
+    bit_rate: 250kbps
+    mcp_mode: NORMAL
+    data_rate: '10MHz'
+    can_clock: '40MHz'
+    # data_rate: '5MHz'
+
+    on_frame:
+
+      # Grid Mode Response - 0x010A0002  # non-volatile register -> EEPROM  replaced with A038
+      # - can_id: 0x010A${pcm_address}02 #0x010A0002
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint8_t grid_mode = x[2];
+      #         id(grid_mode_readback).publish_state(grid_mode);
+      #         if (grid_mode == 0) {
+      #           id(grid_mode_select).publish_state("Charge mode");
+      #         } else if (grid_mode == 1) {
+      #           id(grid_mode_select).publish_state("Discharge mode");
+      #         }
+      #         ESP_LOGD("canbus", "Grid Mode Readback: %d", grid_mode);
+
+      # SN Code Response - 0x010A0005
+      - can_id: 0x010A${pcm_address}05 #0x010A0005
+        use_extended_id: true
+        then:
+          - lambda: |-
+              // uint32_t sn_code = (x[4] << 24) | (x[3] << 16) | (x[2] << 8) | x[1];
+              // uint16_t sn_code = (x[3] << 8) | x[2];
+              uint8_t sn_low = x[2];
+              uint8_t sn_high = x[3];
+              char sn_str[10];
+              snprintf(sn_str, sizeof(sn_str), "V%d.%02d", sn_high, sn_low);
+              // snprintf(sn_str, sizeof(sn_str), "V%04X", sn_code);
+              id(sn_code_text_sensor).publish_state(sn_str);
+              ESP_LOGD("canbus", "SN Code: %s", sn_str);
+                             
+      # Version Response - 0x010A0007
+      - can_id: 0x010A${pcm_address}07 #0x010A0007
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t version_low = x[2];
+              uint8_t version_high = x[3];
+              char version_str[10];
+              snprintf(version_str, sizeof(version_str), "V%d.%02d", version_high, version_low);
+              id(program_version).publish_state(version_str);
+              ESP_LOGD("canbus", "Program Version: %s", version_str);
+      
+      # Phase Mode Response - 0x010A000A
+      - can_id: 0x010A${pcm_address}0A #0x010A000A
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t phase_mode = x[2];
+              if (phase_mode == 0) {
+                id(phase_mode_select).publish_state("Single-Phase");
+                id(phase_mode_readback).publish_state(phase_mode+1);
+              } else if (phase_mode == 1) {
+                id(phase_mode_select).publish_state("Three-Phase");
+                id(phase_mode_readback).publish_state(phase_mode+2);
+              }         
+              ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
+
+      # Frequency Setting Response - 0x010A0011
+      - can_id: 0x010A${pcm_address}11 #0x010A0011
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t freq = x[2];
+              id(frequency_setting_readback).publish_state((freq== 0 ? 50 : 60));
+              if (freq == 0) {
+                id(frequency_select).publish_state("50 Hz");
+              } else if (freq == 1) {
+                id(frequency_select).publish_state("60 Hz");
+              }
+              ESP_LOGD("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
+      
+      # AC Voltage Setting Response - 0x010A0012
+      - can_id: 0x010A${pcm_address}12 #0x010A0012
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t voltage = x[2];
+              id(ac_voltage_setting_readback).publish_state((voltage== 0 ? 230 : 240));
+              if (voltage == 0) {
+                id(ac_voltage_select).publish_state("230V");
+              } else if (voltage == 2) {
+                id(ac_voltage_select).publish_state("240V");
+              }
+              ESP_LOGD("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
+
+      # AC Voltage Protection Response - 0x010A0013
+      - can_id: 0x010A${pcm_address}13 #0x010A0013
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t ac_overvoltage = (x[3] << 8) | x[2];
+              uint16_t ac_undervoltage = (x[5] << 8) | x[4];
+              id(ac_overvoltage_protection_readback).publish_state(ac_overvoltage / 10.0f);
+              id(ac_undervoltage_protection_readback).publish_state(ac_undervoltage / 10.0f);
+              id(ac_overvoltage_protection).publish_state(ac_overvoltage / 10.0f);
+              id(ac_undervoltage_protection).publish_state(ac_undervoltage / 10.0f);
+              ESP_LOGD("canbus", "AC Protection Readback: OV=%.1fV, UV=%.1fV", ac_overvoltage/10.0, ac_undervoltage/10.0);
+      
+      # AC Voltage Alarm Response - 0x010A0014
+      - can_id: 0x010A${pcm_address}14 #0x010A0014
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t ac_overvoltage_alarm = (x[3] << 8) | x[2];
+              uint16_t ac_undervoltage_alarm = (x[5] << 8) | x[4];
+              id(ac_overvoltage_alarm_readback).publish_state(ac_overvoltage_alarm / 10.0f);
+              id(ac_undervoltage_alarm_readback).publish_state(ac_undervoltage_alarm / 10.0f);
+              ESP_LOGD("canbus", "AC Alarm Readback: OV=%.1fV, UV=%.1fV", ac_overvoltage_alarm/10.0, ac_undervoltage_alarm/10.0);
+                    
+      # Charging Parameters Response - 0x010A0031
+      - can_id: 0x010A${pcm_address}31 #0x010A0031
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t charge_voltage = (x[3] << 8) | x[2];
+              // uint16_t charge_current = (x[5] << 8) | x[4];
+              id(charging_voltage_readback).publish_state(charge_voltage / 10.0f);
+              // id(charging_current_readback).publish_state(charge_current / 10.0f);
+              id(charging_voltage).publish_state(charge_voltage / 10.0f);
+              // id(charging_current_number).publish_state(charge_current / 10.0f);
+              // ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV, %.1fA", charge_voltage/10.0, charge_current/10.0);
+              ESP_LOGD("canbus", "Charging Parameters Readback: %.1fV", charge_voltage/10.0);
+
+      - can_id: 0x010A${pcm_address}36
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t charge_current_value = (x[3] << 8) | x[2];
+              id(charging_current_readback).publish_state(charge_current_value / 10.0f);
+              id(charging_current_number).publish_state(charge_current_value / 10.0f);
+              ESP_LOGD("canbus", "Charge Current Readback: %.1fA", charge_current_value/10.0);        
+      
+      # Discharge Parameters Response - 0x010A0032
+      # - can_id: 0x010A${pcm_address}32 #0x010A0032
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint16_t discharge_current_value = (x[5] << 8) | x[4];
+      #         id(discharging_current_readback).publish_state(discharge_current_value / 10.0f);
+      #         id(discharging_current_number).publish_state(discharge_current_value / 10.0f);
+      #         ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
+
+      - can_id: 0x010A${pcm_address}37
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t discharge_current_value = (x[3] << 8) | x[2];
+              id(discharging_current_readback).publish_state(discharge_current_value / 10.0f);
+              id(discharging_current_number).publish_state(discharge_current_value / 10.0f);
+              ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", discharge_current_value/10.0);
+
+            
+      # DC Voltage Protection Response - 0x010A0033
+      - can_id: 0x010A${pcm_address}33 #0x010A0033
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t dc_overvoltage = (x[3] << 8) | x[2];
+              uint16_t dc_undervoltage = (x[5] << 8) | x[4];
+              id(dc_overvoltage_protection_readback).publish_state(dc_overvoltage / 10.0f);
+              id(dc_undervoltage_protection_readback).publish_state(dc_undervoltage / 10.0f);
+              id(dc_overvoltage_protection).publish_state(dc_overvoltage / 10.0f);
+              id(dc_undervoltage_protection).publish_state(dc_undervoltage / 10.0f);
+              ESP_LOGD("canbus", "DC Protection Readback: OV=%.1fV, UV=%.1fV", dc_overvoltage/10.0, dc_undervoltage/10.0);
+      
+      # DC Voltage Alarm Response - 0x010A0034
+      - can_id: 0x010A${pcm_address}34 #0x010A0034
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t dc_overvoltage_alarm = (x[3] << 8) | x[2];
+              uint16_t dc_undervoltage_alarm = (x[5] << 8) | x[4];
+              id(dc_overvoltage_alarm_readback).publish_state(dc_overvoltage_alarm / 10.0f);
+              id(dc_undervoltage_alarm_readback).publish_state(dc_undervoltage_alarm / 10.0f);
+              ESP_LOGD("canbus", "DC Alarm Readback: OV=%.1fV, UV=%.1fV", dc_overvoltage_alarm/10.0, dc_undervoltage_alarm/10.0);
+
+      # Fan speed Response - 0x010A0035
+      - can_id: 0x010A${pcm_address}35 #0x010A0035
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t fan_speed = x[3];
+              id(fan_speed_readback).publish_state(fan_speed);
+              ESP_LOGD("canbus", "Fan speed: %d", fan_speed); 
+
+      # Feedback Parameter 1 - 0x010A0051
+      - can_id: 0x010A${pcm_address}51    #0x010A0051
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t module_addr = x[0];
+              uint8_t running_mode = x[1];
+              uint16_t grid_voltage = (x[3] << 8) | x[2];
+              uint16_t inverter_voltage = (x[5] << 8) | x[4];
+              uint16_t inverting_current = (x[7] << 8) | x[6];
+              
+              id(grid_voltage_sensor).publish_state(grid_voltage / 10.0f);
+              id(inverter_voltage_sensor).publish_state(inverter_voltage / 10.0f);
+              id(inverting_current_sensor).publish_state(inverting_current / 10.0f);
+              id(running_mode_sensor).publish_state(running_mode);
+              
+              ESP_LOGD("canbus", "Feedback 1 - Module: %d, Mode: %d, Grid: %.1fV, Inv: %.1fV, Current: %.1fA", module_addr, running_mode, grid_voltage/10.0, inverter_voltage/10.0, inverting_current/10.0);
+      
+      # Feedback Parameter 2 - 0x010A0052
+      - can_id: 0x010A${pcm_address}52 #0x010A0052
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t module_addr = x[0];
+              uint8_t running_mode = x[1];
+              uint16_t dc_voltage = (x[3] << 8) | x[2];
+              uint16_t dc_current = (x[5] << 8) | x[4];
+              uint16_t load_current = (x[7] << 8) | x[6];
+              
+              id(dc_voltage_sensor).publish_state(dc_voltage / 10.0f);
+              id(dc_current_sensor).publish_state(dc_current / 10.0f);
+              id(load_current_sensor).publish_state(load_current / 10.0f);
+              
+              // Calculate DC power
+              float dc_power = (dc_voltage / 10.0f) * (dc_current / 10.0f);
+              id(dc_power_sensor).publish_state(dc_power);
+              
+              ESP_LOGD("canbus", "Feedback 2 - DC: %.1fV, %.1fA, Load: %.1fA, Power: %.1fW", dc_voltage/10.0, dc_current/10.0, load_current/10.0, dc_power);
+      
+      # Feedback Parameter 3 - 0x010A0053
+      - can_id: 0x010A${pcm_address}53 #0x010A0053
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t module_addr = x[0];
+              uint8_t running_mode = x[1];
+              uint8_t temp1 = x[2];
+              uint8_t temp2 = x[3];
+              uint16_t power = (x[5] << 8) | x[4];
+              uint8_t warning_flags = x[6];
+              
+              id(temperature1_sensor).publish_state(temp1);
+              id(temperature2_sensor).publish_state(temp2);
+              id(ac_power_sensor).publish_state(power);  // / 10.0
+              
+              // Parse warning flags
+              id(battery_undervoltage_alarm).publish_state(warning_flags & 0x01);
+              id(battery_overvoltage_alarm).publish_state(warning_flags & 0x02);
+              id(grid_undervoltage_alarm).publish_state(warning_flags & 0x04);
+              id(grid_overvoltage_alarm).publish_state(warning_flags & 0x08);
+              
+              ESP_LOGD("canbus", "Feedback 3 - Temp1: %d°C, Temp2: %d°C, Power: %.1fW, Warnings: 0x%02X", temp1, temp2, power/10.0, warning_flags);
+      
+      # Running Status Feedback - 0x010A0054
+      - can_id: 0x010A${pcm_address}54 #0x010A0054
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint8_t module_addr = x[0];
+              uint8_t running_mode = x[1];
+              uint8_t inverter_freq = x[2];
+              uint8_t fault1 = x[4];
+              uint8_t fault2 = x[5];
+              uint8_t fault3 = x[6];
+              
+              id(offgrid_frequency_sensor).publish_state(inverter_freq );
+                          
+              // Parse Fault 1
+              id(fault_soft_start_timeout).publish_state(fault1 & 0x01);
+              id(fault_bus_overvoltage).publish_state(fault1 & 0x02);
+              id(fault_bus_undervoltage).publish_state(fault1 & 0x04);
+              id(fault_inverter_overvoltage).publish_state(fault1 & 0x08);
+              id(fault_inverter_undervoltage).publish_state(fault1 & 0x10);
+              id(fault_inverter_rms_overcurrent).publish_state(fault1 & 0x80);
+              
+              // Parse Fault 2
+              id(fault_inverter_fast_overcurrent).publish_state(fault2 & 0x01);
+              id(fault_dc_overvoltage).publish_state(fault2 & 0x02);
+              id(fault_dc_undervoltage).publish_state(fault2 & 0x04);
+              id(fault_dc_fast_overcurrent).publish_state(fault2 & 0x08);
+              id(fault_dc_rms_overcurrent).publish_state(fault2 & 0x10);
+              id(fault_load_overcurrent).publish_state(fault2 & 0x20);
+              id(fault_soft_start_short_circuit).publish_state(fault2 & 0x40);
+              id(fault_output_overload).publish_state(fault2 & 0x80);
+              
+              // Parse Fault 3
+              id(fault_over_temperature).publish_state(fault3 & 0x01);
+              id(fault_fan_fault).publish_state(fault3 & 0x02);
+              id(fault_sync_signal_loss).publish_state(fault3 & 0x04);
+              id(fault_locked).publish_state(fault3 & 0x08);
+              id(fault_address_fault).publish_state(fault3 & 0x10);
+              id(fault_sn_repetition).publish_state(fault3 & 0x20);
+              id(fault_load_rms_overcurrent).publish_state(fault3 & 0x40);
+              id(fault_overload).publish_state(fault3 & 0x80);
+              
+              bool has_fault = (fault1 != 0) || (fault2 != 0) || (fault3 != 0);
+              id(fault_status).publish_state(has_fault);
+              
+              ESP_LOGD("canbus", "Status - Mode: %d, Freq: %dHz, Faults: 0x%02X 0x%02X 0x%02X", running_mode, inverter_freq == 0 ? 50 : 60, fault1, fault2, fault3);
+
+
+          # High Voltage Bus
+      - can_id: 0x010A${pcm_address}72 #0x10A0172x
+        use_extended_id: true
+        then:
+          - lambda: |-
+              uint16_t bus_voltage = (x[3] << 8) | x[2];;
+              id(bus_voltage_sensor).publish_state(bus_voltage / 10.0);
+              ESP_LOGD("canbus", "Bus voltage: %d", bus_voltage);                       
+              
+              
+sensor:
+
+  - platform: template
+    id: grid_voltage_sensor
+    name: ${name}_${pcm_name}_grid_voltage
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    icon: mdi:sine-wave
+    accuracy_decimals: 1
+    
+  - platform: template
+    id: inverter_voltage_sensor
+    name: ${name}_${pcm_name}_inverter_voltage
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    icon: mdi:sine-wave
+    accuracy_decimals: 1
+
+  - platform: template
+    id: bus_voltage_sensor
+    name: ${name}_${pcm_name}_bus_voltage
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    icon: mdi:sine-wave
+    accuracy_decimals: 1    
+    
+  - platform: template
+    id: inverting_current_sensor
+    name: ${name}_${pcm_name}_inverting_current
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    icon: mdi:current-ac
+    accuracy_decimals: 1
+  
+  # DC Side
+  - platform: template
+    id: dc_voltage_sensor
+    name: ${name}_${pcm_name}_dc_voltage
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    icon: mdi:sine-wave
+    accuracy_decimals: 1
+    
+  - platform: template
+    id: dc_current_sensor
+    name: ${name}_${pcm_name}_dc_current
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    icon: mdi:current-dc
+    accuracy_decimals: 1
+    
+  - platform: template
+    id: load_current_sensor
+    name: ${name}_${pcm_name}_load_current
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    icon: mdi:current-ac
+    accuracy_decimals: 1
+  
+  # Power
+  - platform: template
+    id: ac_power_sensor
+    name: ${name}_${pcm_name}_ac_power
+    unit_of_measurement: 'W'
+    device_class: power
+    state_class: measurement
+    icon: mdi:power
+    accuracy_decimals: 1
+    
+  - platform: template
+    id: dc_power_sensor
+    name: ${name}_${pcm_name}_dc_power
+    unit_of_measurement: 'W'
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+  
+  # Temperature
+  - platform: template
+    id: temperature1_sensor
+    name: ${name}_${pcm_name}_temperature_PFC
+    unit_of_measurement: '°C'
+    device_class: temperature
+    state_class: measurement
+    icon: mdi:thermometer
+    accuracy_decimals: 0
+    
+  - platform: template
+    id: temperature2_sensor
+    name: ${name}_${pcm_name}_temperature_LLC
+    unit_of_measurement: '°C'
+    device_class: temperature
+    state_class: measurement
+    icon: mdi:thermometer
+    accuracy_decimals: 0
+  
+  # Running Mode as Number
+  - platform: template
+    id: running_mode_sensor
+    name: ${name}_${pcm_name}_running_mode_value
+    accuracy_decimals: 0
+    state_class: measurement
+    icon: mdi:numeric
+    # internal: true
+  
+  # Inverter Frequency
+  - platform: template
+    id: offgrid_frequency_sensor
+    name: ${name}_${pcm_name}_offgrid_frequency
+    accuracy_decimals: 0
+    icon: mdi:metronome
+    unit_of_measurement: 'Hz'
+    internal: false
+    device_class: frequency
+    state_class: measurement
+
+
+  # Configuration Readback Sensors
+  - platform: template
+    id: grid_mode_readback
+    name: ${name}_${pcm_name}_grid_mode_readback
+    icon: mdi:transmission-tower
+    accuracy_decimals: 0
+    internal: true
+  
+  - platform: template
+    id: frequency_setting_readback
+    name: ${name}_${pcm_name}_frequency_setting_readback
+    accuracy_decimals: 0
+    icon: mdi:metronome
+    unit_of_measurement: 'Hz'
+    device_class: frequency
+    state_class: measurement
+    # internal: true
+  
+  - platform: template
+    id: ac_voltage_setting_readback
+    name: ${name}_${pcm_name}_ac_voltage_setting_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:sine-wave
+    # internal: false
+  
+  - platform: template
+    id: phase_mode_readback
+    name: ${name}_${pcm_name}_phase_mode_readback
+    accuracy_decimals: 0
+    state_class: measurement
+    icon: mdi:numeric
+    # internal: false
+  
+  # Charging Parameters Readback
+  - platform: template
+    id: charging_voltage_readback
+    name: ${name}_${pcm_name}_charging_voltage_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:battery-charging-high
+  
+  - platform: template
+    id: charging_current_readback
+    name: ${name}_${pcm_name}_charging_current_readback
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:battery-arrow-up
+  
+  # Discharge Parameters Readback
+  - platform: template
+    id: discharging_current_readback
+    name: ${name}_${pcm_name}_discharging_current_readback
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:battery-arrow-down
+  
+  # AC Protection Readback
+  - platform: template
+    id: ac_overvoltage_protection_readback
+    name: ${name}_${pcm_name}_ac_overvoltage_protection_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:flash-alert
+    
+  - platform: template
+    id: ac_undervoltage_protection_readback
+    name: ${name}_${pcm_name}_ac_undervoltage_protection_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:flash-alert-outline
+  
+  # AC Alarm Readback
+  - platform: template
+    id: ac_overvoltage_alarm_readback
+    name: ${name}_${pcm_name}_ac_overvoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:flash-alert
+  
+  - platform: template
+    id: ac_undervoltage_alarm_readback
+    name: ${name}_${pcm_name}_ac_undervoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:flash-alert-outline
+  
+  # DC Protection Readback
+  - platform: template
+    id: dc_overvoltage_protection_readback
+    name: ${name}_${pcm_name}_dc_overvoltage_protection_Readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:battery-alert
+      
+  - platform: template
+    id: dc_undervoltage_protection_readback
+    name: ${name}_${pcm_name}_dc_undervoltage_protection_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:battery-alert-variant-outline
+  
+  # DC Alarm Readback
+  - platform: template
+    id: dc_overvoltage_alarm_readback
+    name: ${name}_${pcm_name}_dc_overvoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:battery-alert
+  
+  - platform: template
+    id: dc_undervoltage_alarm_readback
+    name: ${name}_${pcm_name}_dc_undervoltage_alarm_readback
+    unit_of_measurement: 'V'
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:battery-alert-variant-outline
+
+  - platform: template
+    id: fan_speed_readback
+    name: ${name}_${pcm_name}_fan_speed_readback
+    unit_of_measurement: '%'
+    device_class: wind_speed
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:fan   
+
+
+binary_sensor:
+  - platform: template
+    id: battery_undervoltage_alarm
+    name: ${name}_${pcm_name}_battery_undervoltage_alarm
+    device_class: problem
+    icon: mdi:battery-alert-variant-outline
+    
+  - platform: template
+    id: battery_overvoltage_alarm
+    name: ${name}_${pcm_name}_battery_overvoltage_alarm
+    device_class: problem
+    icon: mdi:battery-alert
+    
+  - platform: template
+    id: grid_undervoltage_alarm
+    name: ${name}_${pcm_name}_grid_undervoltage_alarm
+    device_class: problem
+    icon: mdi:flash-alert-outline
+    
+  - platform: template
+    id: grid_overvoltage_alarm
+    name: ${name}_${pcm_name}_grid_overvoltage_alarm
+    device_class: problem
+    icon: mdi:flash-alert
+  
+  # Fault Status
+  - platform: template
+    id: fault_status
+    name: ${name}_${pcm_name}_fault_status
+    device_class: problem
+  
+  # Fault 1
+  - platform: template
+    id: fault_soft_start_timeout
+    name: ${name}_${pcm_name}_fault_soft_start_timeout
+    device_class: problem
+    icon: mdi:clock-alert
+    
+  - platform: template
+    id: fault_bus_overvoltage
+    name: ${name}_${pcm_name}_fault bus_overvoltage
+    device_class: problem
+    icon: mdi:flash-alert
+    
+  - platform: template
+    id: fault_bus_undervoltage
+    name: ${name}_${pcm_name}_fault_bus_undervoltage
+    device_class: problem
+    icon: mdi:flash-alert-outline
+    
+  - platform: template
+    id: fault_inverter_overvoltage
+    name: ${name}_${pcm_name}_fault_inverter_overvoltage
+    device_class: problem
+    icon: mdi:flash-alert
+    
+  - platform: template
+    id: fault_inverter_undervoltage
+    name: ${name}_${pcm_name}_fault_inverter_undervoltage
+    device_class: problem
+    icon: mdi:flash-alert
+    
+  - platform: template
+    id: fault_inverter_rms_overcurrent
+    name: ${name}_${pcm_name}_fault_inverter_rms_overcurrent
+    device_class: problem
+    icon: mdi:flash-alert
+  
+  # Fault 2
+  - platform: template
+    id: fault_inverter_fast_overcurrent
+    name: ${name}_${pcm_name}_fault_inverter_fast_overcurrent
+    device_class: problem
+    icon: mdi:flash-alert
+    
+  - platform: template
+    id: fault_dc_overvoltage
+    name: ${name}_${pcm_name}_fault_dc_overvoltage
+    device_class: problem
+    icon: mdi:battery-alert
+    
+  - platform: template
+    id: fault_dc_undervoltage
+    name: ${name}_${pcm_name}_fault_dc_undervoltage
+    device_class: problem
+    icon: mdi:battery-alert-variant-outline
+    
+  - platform: template
+    id: fault_dc_fast_overcurrent
+    name: ${name}_${pcm_name}_fault_dc_fast_overcurrent
+    device_class: problem
+    icon: mdi:battery-alert
+    
+  - platform: template
+    id: fault_dc_rms_overcurrent
+    name: ${name}_${pcm_name}_fault_dc_rms_overcurrent
+    device_class: problem
+    icon: mdi:battery-alert
+    
+  - platform: template
+    id: fault_load_overcurrent
+    name: ${name}_${pcm_name}_fault_load_overcurrent
+    device_class: problem
+    
+  - platform: template
+    id: fault_soft_start_short_circuit
+    name: ${name}_${pcm_name}_fault_soft_start_short_circuit
+    device_class: problem
+    
+  - platform: template
+    id: fault_output_overload
+    name: ${name}_${pcm_name}_fault_output_overload
+    device_class: problem
+  
+  # Fault 3
+  - platform: template
+    id: fault_over_temperature
+    name: ${name}_${pcm_name}_fault_over_temperature
+    device_class: problem
+    icon: mdi:car-brake-temperature
+    
+  - platform: template
+    id: fault_fan_fault
+    name: ${name}_${pcm_name}_fault_fan
+    device_class: problem
+    icon: mdi:fan-alert
+    
+  - platform: template
+    id: fault_sync_signal_loss
+    name: ${name}_${pcm_name}_fault_sync_signal_loss
+    device_class: problem
+    
+  - platform: template
+    id: fault_locked
+    name: ${name}_${pcm_name}_fault_locked
+    device_class: problem
+    
+  - platform: template
+    id: fault_address_fault
+    name: ${name}_${pcm_name}_fault_address
+    device_class: problem
+    
+  - platform: template
+    id: fault_sn_repetition
+    name: ${name}_${pcm_name}_fault_sn_repetition
+    device_class: problem
+    
+  - platform: template
+    id: fault_load_rms_overcurrent
+    name: ${name}_${pcm_name}_fault_load_rms_overcurrent
+    device_class: problem
+    
+  - platform: template
+    id: fault_overload
+    name: ${name}_${pcm_name}_fault_overload
+    device_class: problem
+
+button:
+
+  # Reset
+  - platform: template
+    name: ${name}_${pcm_name}_reset
+    icon: mdi:restart
+    on_press:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02${pcm_address}0A01
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
+            
+ # Stop
+  - platform: template
+    name: ${name}_${pcm_name}_stop
+    icon: mdi:stop
+    on_press:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02${pcm_address}0A01
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+  # Start
+  - platform: template
+    name: ${name}_${pcm_name}_start
+    icon: mdi:play
+    on_press:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02${pcm_address}0A01
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};           
+  
+  # Query Version
+  - platform: template
+    name: ${name}_${pcm_name}_query_version
+    icon: mdi:information
+    on_press:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A07
+          can_id: 0x03${pcm_address}0A07
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  
+  # Query SN Code
+  - platform: template
+    name: ${name}_${pcm_name}_query_sn
+    icon: mdi:barcode-scan
+    on_press:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x03${pcm_address}0A05
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
+       
+# Select Controls
+select:
+  # Grid Mode
+  - platform: template
+    name: ${name}_${pcm_name}_grid_mode
+    id: grid_mode_select
+    icon: mdi:power-plug-battery
+    optimistic: false #true
+    restore_value: true
+    initial_option: 'Charge mode'
+    options:
+      - 'Charge mode'
+      - 'Discharge mode'
+    set_action:  
+      - if:
+          condition:
+            lambda: |-
+              if (x == id(grid_mode_select).current_option()){
+                return false;
+              }
+              uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
+              uint8_t current_real_mode = id(grid_mode_readback).state;
+              return requested_mode != current_real_mode;
+          then:
+            # Si c'est différent (changement manuel), on envoie les trames d'origine
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A38
+                use_extended_id: true
+                data: !lambda |-
+                  uint8_t mode = (x == "Discharge mode") ? 1 : 0;
+                  return {${pcm_address}, 0x00, mode, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A38
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+            
+  # Phase Mode Setting
+  - platform: template
+    name: ${name}_${pcm_name}_phase_mode_setting
+    id: phase_mode_select
+    icon: mdi:electric-switch
+    optimistic: false #true
+    restore_value: true
+    initial_option: 'Single-Phase'
+    options:
+      - 'Single-Phase'
+      - 'Three-Phase'
+    set_action:  
+      - if:
+          condition:
+            lambda: |-
+              if (x == id(grid_mode_select).current_option()){
+                return false;
+              }
+              uint8_t requested_phase = (x == "Three-Phase") ? 1 : 0;
+              uint8_t current_real_phase = id(phase_mode_readback).state;
+              uint8_t current_real_phase_raw = (current_real_phase == 3) ? 1 : 0;
+              return requested_phase != current_real_phase_raw;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A0A
+                use_extended_id: true
+                data: !lambda |-
+                  uint8_t phase = (x == "Three-Phase") ? 1 : 0;
+                  return {${pcm_address}, 0x00, phase, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - logger.log:
+                format: 'Phase Mode will take effect on next reboot'
+                level: WARN
+            - delay: ${delay_select}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A0A
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
+            - delay: ${delay_select}
+
+  # Frequency Setting
+  - platform: template
+    name: ${name}_${pcm_name}_frequency_setting
+    id: frequency_select
+    icon: mdi:metronome
+    optimistic: false #true
+    restore_value: true
+    initial_option: '50 Hz'
+    options:
+      - '50 Hz'
+      - '60 Hz'
+    set_action:  
+    # on_value:
+      - if:
+          condition:
+            lambda: |-
+              if (x == id(grid_mode_select).current_option()){
+                return false; 
+              }
+              uint8_t requested_freq = (x == "60 Hz") ? 1 : 0;
+              uint8_t current_real_freq_hz = id(frequency_setting_readback).state;
+              uint8_t current_real_freq_raw = (current_real_freq_hz == 60) ? 1 : 0;
+              return requested_freq != current_real_freq_raw;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A11
+                use_extended_id: true
+                data: !lambda |-
+                  uint8_t freq = (x == "60 Hz") ? 1 : 0;
+                  return {${pcm_address}, 0x00, freq, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - logger.log:
+                format: "Frequency will take effect on next reboot"
+                level: WARN
+            - delay: ${delay_select}
+            # Query back the setting
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A11
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+     
+  # AC Voltage Setting
+  - platform: template
+    name: ${name}_${pcm_name}_ac_voltage_setting
+    id: ac_voltage_select
+    icon: mdi:sine-wave
+    optimistic: false #true
+    restore_value: true
+    initial_option: '230V'
+    options:
+      - '230V'
+      - '240V'
+    set_action:  
+      - if:
+          condition:
+            lambda: |-
+              if (x == id(grid_mode_select).current_option()){
+                return false;
+              }
+              uint8_t requested_voltage = (x == "240V") ? 2 : 0;
+              float current_real_voltage = id(ac_voltage_setting_readback).state;
+              uint8_t current_real_voltage_raw = (current_real_voltage >= 239.0) ? 2 : 0;
+              return requested_voltage != current_real_voltage_raw;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A12
+                use_extended_id: true
+                data: !lambda |-
+                  uint8_t voltage = (x == "240V") ? 2 : 0;
+                  return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+            # Query back the setting
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A12
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            - delay: ${delay_select}
+       
+
+output:
+  - platform: template
+    id: charging_current_output
+    type: float
+    write_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02${pcm_address}0A36  # volatile
+          use_extended_id: true
+          data: !lambda |-
+            float raw_state  = state*100.0f;
+            float alpha      = (${pcm_max_charging} - ${pcm_min_charging})/100.0f; 
+            float beta       = ${pcm_min_charging} - alpha*0;
+            uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10 );
+            ESP_LOGVV("output charging", "Raw: %f, Current: %d", raw_state, current);
+            return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+
+      - lambda: |-
+          float raw_state  = state*100.0f;
+          float alpha      = (${pcm_max_charging} - ${pcm_min_charging})/100.0f; 
+          float beta       = ${pcm_min_charging} - alpha*0;
+          float current    = (float)( ( alpha*raw_state + beta ));
+          current          = std::round(current * 10.0f) / 10.0f;
+          id(charging_current_readback).publish_state(current);
+          id(charging_current_number).publish_state(current);
+          ESP_LOGD("canbus", "Charge Current Readback: %.1fA", current);           
+
+  - platform: template
+    id: discharging_current_output
+    type: float
+    write_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02${pcm_address}0A37 # volatile
+          use_extended_id: true
+          data: !lambda |-
+            float raw_state  = state*100.0f;
+            float alpha      = (${pcm_max_discharging} - ${pcm_min_discharging}) /100.0f;
+            float beta       = ${pcm_min_discharging} - alpha*0;
+            uint16_t current = (uint16_t)( ( alpha*raw_state + beta ) * 10);
+            ESP_LOGVV("output discharging", "Raw: %f, Current: %d", raw_state, current);
+            return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+            
+      - lambda: |-
+          float raw_state  = state*100.0f;
+          float alpha      = (${pcm_max_discharging} - ${pcm_min_discharging}) /100.0f;
+          float beta       = ${pcm_min_discharging} - alpha*0;
+          float current    = (float)( ( alpha*raw_state + beta ));
+          current          = std::round(current * 10.0f) / 10.0f;
+          id(discharging_current_readback).publish_state(current);
+          id(discharging_current_number).publish_state(current);
+          ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", current);      
+
+fan:
+  - platform: speed
+    id: charging_current_fan
+    name: ${name}_${pcm_name}_charging_current
+    output: charging_current_output
+    icon: mdi:battery-arrow-up
+
+  - platform: speed
+    id: discharging_current_fan
+    name: ${name}_${pcm_name}_discharging_current
+    output: discharging_current_output
+    icon: mdi:battery-arrow-down
+
+# Number Controls for Parameters
+number:
+  # Charging Voltage (48V system example)
+  - platform: template
+    name: ${name}_${pcm_name}_charging_voltage
+    id: charging_voltage
+    icon: mdi:battery-charging-high
+    unit_of_measurement: 'V'
+    min_value: 40.0
+    max_value: 59.0
+    step: 0.1
+    mode: 'slider'
+    optimistic: false
+    initial_value: 56.0
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(charging_voltage_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A31
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t voltage = (uint16_t)(x * 10);
+                  uint16_t current = (uint16_t)(id(charging_current_number).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A31
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
+  
+  # Charging Current Limit (48V system)
+  - platform: template
+    name: ${name}_${pcm_name}_charging_current
+    id: charging_current_number
+    icon: mdi:battery-arrow-up
+    unit_of_measurement: 'A'
+    min_value: 1.0
+    max_value: 70.0
+    initial_value: 1.0
+    step: 0.5
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(charging_current_readback).state) > 0.01f;
+              // return true;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A36  # <-- Volatile
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t current = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+
+            - lambda: |-
+                // uint16_t charge_current_value = (x[3] << 8) | x[2];
+                id(charging_current_readback).publish_state(x);
+                id(charging_current_number).publish_state(x);
+                ESP_LOGD("canbus", "Charge Current Readback: %.1fA", x);      
+            # - delay: ${delay_number}
+            # # Query back the setting
+            # - canbus.send:
+            #     canbus_id: ${pcm_canbus_id}
+            #     can_id: 0x03${pcm_address}0A36  # <-- Volatile
+            #     use_extended_id: true
+            #     data: !lambda |-
+            #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
+  
+  # Discharge Current (48V system)
+  - platform: template
+    name: ${name}_${pcm_name}_discharging_current
+    id: discharging_current_number
+    icon: mdi:battery-arrow-down
+    unit_of_measurement: 'A'
+    min_value: 1.0
+    max_value: 75.0
+    initial_value: 1.0
+    step: 0.5
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(discharging_current_readback).state) > 0.01f;
+              // return true;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A37  # <-- Volatile
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t current = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+
+            - lambda: |-
+                // uint16_t discharge_current_value = (x[3] << 8) | x[2];
+                id(discharging_current_readback).publish_state(x);
+                id(discharging_current_number).publish_state(x);
+                ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", x);
+              
+            # - delay: ${delay_number}
+            # # Query back the setting
+            # - canbus.send:
+            #     canbus_id: ${pcm_canbus_id}
+            #     can_id: 0x03${pcm_address}0A37  # <-- Volatile
+            #     use_extended_id: true
+            #     data: !lambda |-
+            #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};       
+  
+  # AC Overvoltage Protection
+  - platform: template
+    name: ${name}_${pcm_name}_ac_overvoltage_protection
+    id: ac_overvoltage_protection
+    icon: mdi:flash-alert
+    unit_of_measurement: 'V'
+    min_value: 220.0
+    max_value: 258.0
+    initial_value: 250.0
+    step: 0.5
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_overvoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_protection).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};     
+  
+  # AC Undervoltage Protection
+  - platform: template
+    name: ${name}_${pcm_name}_ac_undervoltage_protection
+    id: ac_undervoltage_protection
+    icon: mdi:flash-alert-outline
+    unit_of_measurement: 'V'
+    min_value: 182.0
+    max_value: 220.0
+    initial_value: 200.0
+    step: 0.5
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_undervoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_protection).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A13
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      
+
+  # AC Overvoltage Alarm
+  - platform: template
+    name: ${name}_${pcm_name}_ac_overvoltage_alarm
+    id: ac_overvoltage_alarm
+    icon: mdi:flash-alert
+    unit_of_measurement: 'V'
+    min_value: 220.0
+    max_value: 258.0
+    initial_value: 248.0
+    step: 0.5
+    mode: slider
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_overvoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_alarm).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  
+  # AC Undervoltage Alarm
+  - platform: template
+    name: ${name}_${pcm_name}_ac_undervoltage_alarm
+    id: ac_undervoltage_alarm
+    icon: mdi:flash-alert-outline
+    unit_of_measurement: 'V'
+    min_value: 182.0
+    max_value: 220.0
+    initial_value: 205.0
+    step: 0.5
+    mode: slider
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(ac_undervoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_alarm).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A14
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  
+  # DC Overvoltage Protection (48V system)
+  - platform: template
+    name: ${name}_${pcm_name}_dc_overvoltage_protection
+    id: dc_overvoltage_protection
+    icon: mdi:battery-alert
+    unit_of_measurement: 'V'
+    min_value: 40.0
+    max_value: 59.5
+    initial_value: 58.0
+    step: 0.1
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_overvoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_protection).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      
+  # DC Undervoltage Protection (48V system)
+  - platform: template
+    name: ${name}_${pcm_name}_dc_undervoltage_protection
+    id: dc_undervoltage_protection
+    icon: mdi:battery-alert-variant-outline
+    unit_of_measurement: 'V'
+    min_value: 39.5
+    max_value: 59.0
+    initial_value: 49.0
+    step: 0.1
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_undervoltage_protection_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_protection).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A33
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};          
+
+# DC Overvoltage Alarm (48V system)
+  - platform: template
+    name: ${name}_${pcm_name}_dc_overvoltage_alarm
+    id: dc_overvoltage_alarm
+    icon: mdi:battery-alert
+    unit_of_measurement: 'V'
+    min_value: 40.0
+    max_value: 57.5
+    initial_value: 56.6
+    step: 0.1
+    mode: slider
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_overvoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(x * 10);
+                  uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_alarm).state * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+# DC Undervoltage Alarm (48V system)
+  - platform: template
+    name: ${name}_${pcm_name}_dc_undervoltage_alarm
+    id: dc_undervoltage_alarm
+    icon: mdi:battery-alert-variant-outline
+    unit_of_measurement: 'V'
+    min_value: 40.0
+    max_value: 59.0
+    initial_value: 50.0
+    step: 0.1
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return std::abs(x - id(dc_undervoltage_alarm_readback).state) > 0.01f;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_alarm).state * 10);
+                  uint16_t undervoltage = (uint16_t)(x * 10);
+                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A34
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+# Fan speed
+  - platform: template
+    name: ${name}_${pcm_name}_fan_speed
+    id: fan_speed
+    icon: mdi:fan
+    unit_of_measurement: '%'
+    min_value: 0
+    max_value: 100
+    initial_value: 0
+    step: 1
+    mode: 'slider'
+    optimistic: false
+    restore_value: true
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              return (int)x != (int)id(fan_speed_readback).state;
+          then:
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A35
+                use_extended_id: true
+                data: !lambda |-
+                  uint8_t activation = uint8_t(x > 0);
+                  return { ${pcm_address}, 0x00, activation, (uint8_t)(x), 0x00, 0x00, 0x00, 0x00 };
+            - delay: ${delay_number}
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x03${pcm_address}0A35
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};           
+            
+# Switches and Controls
+switch:
+
+  # Power ON/OFF
+  - platform: template
+    name: ${name}_${pcm_name}_power
+    id: power_switch
+    icon: mdi:power
+    optimistic: true
+    # restore_mode: true
+    turn_on_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x02000A01
+          can_id: 0x02${pcm_address}0A01
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_switch}
+    turn_off_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x02000A01
+          can_id: 0x02${pcm_address}0A01
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_switch}
+
+# charge/discharge mode
+  - platform: template
+    name: ${name}_${pcm_name}_discharge_charge
+    id: discharge_charge_switch
+    icon: mdi:transmission-tower
+    optimistic: true
+    restore_mode: ALWAYS_ON
+    # restore_mode: true
+    turn_on_action: #charge
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          can_id: 0x02${pcm_address}0A38  #38 is not stored in EEProm
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_switch}
+      - lambda: |-
+          id(grid_mode_select).publish_state("Charge mode");
+      # - select.set:
+      #    id: grid_mode_select
+      #    option: 'Charge mode'
+         
+    turn_off_action: #discharge
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x02000A02
+          can_id: 0x02${pcm_address}0A02
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_switch}
+      - lambda: |-
+          id(grid_mode_select).publish_state("Discharge mode");
+      # - select.set:
+      #    id: grid_mode_select
+      #    option: 'Discharge mode'
+
+
+  ####### fan control
+  - platform: template
+    name: ${name}_${pcm_name}_manual_fan_control
+    id: manual_fan_control
+    icon: mdi:fan
+    optimistic: true
+    # restore_mode: true
+    turn_on_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x02000A01
+          can_id: 0x02${pcm_address}0A35
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_switch}
+    turn_off_action:
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x02000A01
+          can_id: 0x02${pcm_address}0A35
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_switch}
+      
+# Text Sensors
+text_sensor:
+  - platform: template
+    id: running_mode_text
+    name: ${name}_${pcm_name}_running_mode
+    icon: mdi:state-machine
+    update_interval: ${pcm_text_sensor_interval}
+    lambda: |-
+      int mode = id(running_mode_sensor).state;
+      switch(mode) {
+        case 0: return {"Initialize"};
+        case 1: return {"Standby"};
+        case 2: return {"Grid-connected Charging"};
+        case 3: return {"Grid-connected Discharge"};
+        case 4: return {"Off-grid Inverter"};
+        case 5: return {"Fault"};
+        default: return {"Unknown"};
+      }
+  
+  - platform: template
+    id: inverter_frequency_text
+    name: ${name}_${pcm_name}_inverter_frequency
+    icon: mdi:metronome
+    update_interval: ${pcm_text_sensor_interval}
+    lambda: |-
+      int freq = id(offgrid_frequency_sensor).state;
+      if (freq == 50) return {"50 Hz"};
+      else if (freq == 60) return {"60 Hz"};
+      else return {"Unknown"};
+
+  # - platform: template
+  #   id: ac_voltage_setting_text
+  #   name: ${pcm_name}_ac_voltage_setting_text
+  #   icon: mdi:sine-wave
+  #   update_interval: 1s
+  #   lambda: |-
+  #     int volt = id(ac_voltage_setting_readback).state;
+  #     if (volt == 2) return {"230V"};
+  #     else if (volt == 0) return {"220 Hz"};
+  #     else return {"Unknown"};    
+  
+  - platform: template
+    id: program_version
+    name: ${name}_${pcm_name}_program_version
+    icon: mdi:information
+  
+  - platform: template
+    id: sn_code_text_sensor
+    name: ${name}_${pcm_name}_sn
+    icon: mdi:barcode
+
+# Interval updates to request status
+interval:
+
+  # - interval: ${pcm_interval}
+  #   then:
+  # #     # Request all status updates periodically
+  #     - canbus.send:
+  #         canbus_id: ${pcm_canbus_id}
+  #         # can_id: 0x03000A51   
+  #         can_id: 0x03${pcm_address}0A51
+  #         use_extended_id: true
+  #         # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+  #         data: !lambda |-
+  #           return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  #     - delay: ${delay_interval}
+      
+  #     - canbus.send:
+  #         canbus_id: ${pcm_canbus_id}
+  #         # can_id: 0x03000A52
+  #         can_id: 0x03${pcm_address}0A52
+  #         use_extended_id: true
+  #         # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+  #         data: !lambda |-
+  #           return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  #     - delay: ${delay_interval}
+      
+  #     - canbus.send:
+  #         canbus_id: ${pcm_canbus_id}
+  #         can_id: 0x03000A53
+  #         use_extended_id: true
+  #         # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+  #         data: !lambda |-
+  #           return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  #     - delay: ${delay_interval}
+      
+  #     - canbus.send:
+  #         canbus_id: ${pcm_canbus_id}
+  #         can_id: 0x03000A54
+  #         use_extended_id: true
+  #         # data: [${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+  #         data: !lambda |-
+  #           return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  #     - delay: ${delay_interval}      
+
+
+# Query configuration parameters periodically (every 30s)
+  - interval: ${pcm_interval}
+    then:
+      # Query Grid Mode
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A02
+          can_id: 0x03${pcm_address}0A02
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+
+      # Query Phase Mode
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A0A
+          can_id: 0x03${pcm_address}0A0A
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: 100ms
+      
+      # Query Frequency Setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A11
+          can_id: 0x03${pcm_address}0A11
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+      # Query AC Voltage Setting
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          #can_id: 0x03000A12
+          can_id: 0x03${pcm_address}0A12
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+      
+      # Query AC Voltage Protection
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A13
+          can_id: 0x03${pcm_address}0A13
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+      # Query AC Voltage Alarm
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A14
+          can_id: 0x03${pcm_address}0A14
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+      
+      # Query Charging Parameters
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A31
+          can_id: 0x03${pcm_address}0A31
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+      # Query Discharge Parameters
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A32
+          can_id: 0x03${pcm_address}0A32
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+      # Query DC Voltage Protection
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A33
+          can_id: 0x03${pcm_address}0A33
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}
+      # Query DC Voltage Alarm
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A34
+          can_id: 0x03${pcm_address}0A34
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}   
+      # # Query Fan speed
+      - canbus.send:
+          canbus_id: ${pcm_canbus_id}
+          # can_id: 0x03000A35
+          can_id: 0x03${pcm_address}0A35
+          use_extended_id: true
+          data: !lambda |-
+            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - delay: ${delay_interval}      
+          
