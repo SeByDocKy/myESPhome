@@ -57,7 +57,7 @@ canbus:
     cs_pin: ${pcm_cs_pin}
     can_id: 0x0A
     bit_rate: 250kbps
-    mcp_mode: NORMAL
+    mode: NORMAL
     data_rate: '10MHz'
     can_clock: '40MHz'
     # data_rate: '5MHz'
