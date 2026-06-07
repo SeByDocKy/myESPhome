@@ -1,0 +1,10 @@
+## idf_component.yml
+## Declares the Espressif UVC host component as a managed dependency.
+## ESPHome/PlatformIO will fetch it automatically via the IDF Component Manager.
+
+dependencies:
+  idf: ">=5.0.0"
+  espressif/usb_host_uvc:
+    version: "^1.0.0"
+    rules:
+      - if: "idf_version >= 5.0"
