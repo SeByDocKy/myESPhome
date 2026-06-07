@@ -60,7 +60,8 @@ canbus:
     mode: NORMAL
     data_rate: '10MHz'
     can_clock: '40MHz'
-    # data_rate: '5MHz'
+    canfd_enabled: false  # set true to enable CAN FD frames (payload up to 64 bytes)
+    can_data_rate: 250kbps    # data-phase bit rate (only applies when canfd_enabled: true)
 
     on_frame:
 
