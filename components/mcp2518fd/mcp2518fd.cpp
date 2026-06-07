@@ -487,7 +487,8 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   if ((read_sfr_(REG_CiTXQSTA) & TXQSTA_TXQNF) == 0)
     return canbus::ERROR_ALLTXBUSY;
 
-  uint16_t ram_addr = RAM_ADDR_START + tx_fifo_addr_();
+  // CiTXQUA already contains the full SPI address (includes RAM base 0x400)
+  uint16_t ram_addr = tx_fifo_addr_();
 
   // Build transmit message object (T0 + T1 + data)
   // T0: ID word — layout per datasheet Table 3-5 (page 66):
@@ -566,7 +567,8 @@ canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
   }
 
   // Read header (8 bytes = T0 + T1, no timestamp)
-  uint16_t ram_addr = RAM_ADDR_START + rx_fifo_addr_();
+  // CiFIFOUA already contains the full SPI address (includes RAM base 0x400)
+  uint16_t ram_addr = rx_fifo_addr_();
   uint8_t  hdr[8];
   read_ram_(ram_addr, hdr, 8);
 
