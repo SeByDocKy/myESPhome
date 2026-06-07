@@ -15,7 +15,7 @@ CODEOWNERS = ["@sebyd"]
 DEPENDENCIES = ["spi"]
 
 CONF_CAN_CLOCK      = "can_clock"
-CONF_MCP_MODE       = "mcp_mode"
+CONF_MCP_MODE       = "mode"
 CONF_CANFD_ENABLED  = "canfd_enabled"
 CONF_CAN_DATA_RATE  = "can_data_rate"
 CONF_INT_PIN        = "int_pin"
