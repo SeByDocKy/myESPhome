@@ -532,9 +532,16 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   uint32_t txqsta = read_sfr_(REG_CiTXQSTA);
   ESP_LOGD(TAG, "TX diag: TREC=0x%08X BDIAG1=0x%08X TXQSTA=0x%08X", trec, bdiag1, txqsta);
   if (bdiag1 & (1UL << 18))
-    ESP_LOGW(TAG, "  NACKERR: no ACK received — check bus wiring and termination");
-  if (trec & (1UL << 21))
-    ESP_LOGW(TAG, "  TXBO: bus-off! TEC > 255");
+    ESP_LOGW(TAG, "  NACKERR: no ACK received — check bus wiring and termination (120ohm?)");
+  if (trec & (1UL << 21)) {
+    ESP_LOGW(TAG, "  TXBO: bus-off — auto-recovering (check CANH/CANL not swapped)");
+    // Auto bus-off recovery: transition back to Config then Normal mode
+    set_mode_(CAN_CONFIGURATION_MODE);
+    delay(5);
+    set_mode_(static_cast<CanOperationMode>(this->mcp_mode_));
+    // Clear BDIAG1 error flags
+    write_sfr_(REG_CiBDIAG1, 0x00000000UL);
+  }
   if (trec & (1UL << 20))
     ESP_LOGW(TAG, "  TXBP: error-passive (TEC > 127)");
 
