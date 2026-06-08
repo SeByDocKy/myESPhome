@@ -525,6 +525,19 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   txqcon |= TXQCON_UINC | TXQCON_TXREQ;
   write_sfr_(REG_CiTXQCON, txqcon);
 
+  // Brief wait then check TX result diagnostics
+  delay(10);
+  uint32_t trec   = read_sfr_(REG_CiTREC);
+  uint32_t bdiag1 = read_sfr_(REG_CiBDIAG1);
+  uint32_t txqsta = read_sfr_(REG_CiTXQSTA);
+  ESP_LOGD(TAG, "TX diag: TREC=0x%08X BDIAG1=0x%08X TXQSTA=0x%08X", trec, bdiag1, txqsta);
+  if (bdiag1 & (1UL << 18))
+    ESP_LOGW(TAG, "  NACKERR: no ACK received — check bus wiring and termination");
+  if (trec & (1UL << 21))
+    ESP_LOGW(TAG, "  TXBO: bus-off! TEC > 255");
+  if (trec & (1UL << 20))
+    ESP_LOGW(TAG, "  TXBP: error-passive (TEC > 127)");
+
   return canbus::ERROR_OK;
 }
 
