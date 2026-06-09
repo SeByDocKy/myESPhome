@@ -483,6 +483,18 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   if (dlc > CAN_FD_MAX_DATA_LENGTH)
     return canbus::ERROR_FAILTX;
 
+  // Check for bus-off BEFORE trying to send — recover if needed
+  uint32_t trec_pre = read_sfr_(REG_CiTREC);
+  if (trec_pre & (1UL << 21)) {  // TXBO bit
+    ESP_LOGD(TAG, "Bus-off detected before TX — recovering");
+    set_mode_(CAN_CONFIGURATION_MODE);
+    delay(2);
+    write_sfr_(REG_CiBDIAG0, 0x00000000UL);
+    write_sfr_(REG_CiBDIAG1, 0x00000000UL);
+    set_mode_(static_cast<CanOperationMode>(this->mcp_mode_));
+    delay(2);
+  }
+
   // Check TXQ not full
   if ((read_sfr_(REG_CiTXQSTA) & TXQSTA_TXQNF) == 0)
     return canbus::ERROR_ALLTXBUSY;
@@ -525,25 +537,7 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   txqcon |= TXQCON_UINC | TXQCON_TXREQ;
   write_sfr_(REG_CiTXQCON, txqcon);
 
-  // Brief wait then check TX result diagnostics
-  delay(10);
-  uint32_t trec   = read_sfr_(REG_CiTREC);
-  uint32_t bdiag1 = read_sfr_(REG_CiBDIAG1);
-  uint32_t txqsta = read_sfr_(REG_CiTXQSTA);
-  ESP_LOGD(TAG, "TX diag: TREC=0x%08X BDIAG1=0x%08X TXQSTA=0x%08X", trec, bdiag1, txqsta);
-  if (bdiag1 & (1UL << 18))
-    ESP_LOGW(TAG, "  NACKERR: no ACK received — check bus wiring and termination (120ohm?)");
-  if (trec & (1UL << 21)) {
-    ESP_LOGW(TAG, "  TXBO: bus-off — auto-recovering (check CANH/CANL not swapped)");
-    // Auto bus-off recovery: transition back to Config then Normal mode
-    set_mode_(CAN_CONFIGURATION_MODE);
-    delay(5);
-    set_mode_(static_cast<CanOperationMode>(this->mcp_mode_));
-    // Clear BDIAG1 error flags
-    write_sfr_(REG_CiBDIAG1, 0x00000000UL);
-  }
-  if (trec & (1UL << 20))
-    ESP_LOGW(TAG, "  TXBP: error-passive (TEC > 127)");
+  // No delay — just check NACKERR for debug (bus-off handled before TX)
 
   return canbus::ERROR_OK;
 }
