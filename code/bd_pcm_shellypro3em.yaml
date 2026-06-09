@@ -9,7 +9,7 @@ substitutions:
   shelly_ip_address: '192.168.1.45'
   shelly_ip_port: '512'
   shelly_modbus_address: '1'
-  jkbms_modbus_address: '1'
+  bms_modbus_address: '1'
   
   
 esphome:
@@ -21,9 +21,7 @@ esphome:
     board_build.arduino.memory_type: qio_opi
     board_build.f_flash: 80000000L
     board_build.flash_mode: qio
-    # lib_compat_mode: "off"
-    # build_flags: -DUSE_ARDUINO
-   
+
    
 esp32:
   board: seeed_xiao_esp32s3
@@ -43,7 +41,6 @@ wifi:
    
 external_components:
   - source: github://creepystefan/esphome_tcp
-    # components: [modbustcp, modbustcp_controller]
     refresh: 0s  
   
 
@@ -62,13 +59,13 @@ modbus:
 modbus_controller:
   - id: modbus_device_tcp
     modbus_id: modbus_tcp
-    address: ${shelly_modbus_address}         # Unit-ID
+    address: ${shelly_modbus_address}
     update_interval: 2s   #default 60sec
     
-  - id: modbus_device_rtu
-    modbus_id: modbus_rtu
-    address: ${jkbms_modbus_address}         # Unit-ID
-    update_interval: 2s   #default 60sec  
+  # - id: jkpbbms_modbus_controller
+    # modbus_id: modbus_rtu
+    # address: ${bms_modbus_address}
+    # update_interval: 2s   #default 60sec  
     
 time:
   - platform: sntp
@@ -100,7 +97,7 @@ spi:
     mosi_pin: GPIO09
     miso_pin: GPIO08
     clk_pin: GPIO07
-    interface: spi3   #### spi2 is for CMT2300A
+    interface: spi3
 
 debug:
   update_interval: 5s
@@ -109,8 +106,9 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: modbus_device_tcp
-    name: ${name}_total_active_power
-    address: 1014  #31013
+    name: ${name}_p1_active_power
+    id: p1_active_power
+    address: 1025  #1045=p2, 1065=p3
     value_type: FP32  
     register_type: read
     accuracy_decimals: 1
@@ -125,7 +123,6 @@ sensor:
     
   - platform: uptime
     id: uptime_sec
-    
      
   - platform: debug
     free:
@@ -176,11 +173,23 @@ packages:
         vars:
           bms_name: 'jkpbbms'
           bms_modbus_id: 'modbus_rtu'
-          bms_modbus_address: '1'
+          bms_modbus_address: ${bms_modbus_address}
           bms_update_interval: '1500ms'
           bms_template_update: '3s'
           bms_text_update: '60s'
-          bms_modbus_throttle: '50ms'          
+          bms_modbus_throttle: '50ms'
+
+  # bms: !include
+    # file: 'device_jkpb0116.yaml'
+    # vars:
+      # bms_name: 'jkpbbms'
+      # bms_modbus_id: 'modbus_rtu'
+      # bms_modbus_address: ${bms_modbus_address}
+      # bms_update_interval: '1500ms'
+      # bms_template_update: '3s'
+      # bms_text_update: '60s'
+      # bms_modbus_throttle: '50ms'          
+
 
   pcm: 
     url: https://github.com/SeByDocKy/myESPhome/
@@ -202,21 +211,22 @@ packages:
           pcm_min_discharging: '1'
           pcm_max_discharging: '75'
    
-  # dualpidpcm:
-    # url: https://github.com/SeByDocKy/myESPhome/
-    # ref: main
-    # refresh: 0s
-    # files:
-      # - path: 'code/device_dualpidpcm.yaml'
-        # vars:
-          # dualpidpcm_id: 'pid_id'
-          # dualpidpcm_name: 'pid'
-          # dualpidpcm_input_id: 'total_active_power'
-          # dualpidpcm_battery_voltage_id: 'jkpbbms_battery_voltage' #'battery_voltage_from_ha'
-          # dualpidpcm_charging_output_id: 'charging_current_output'
-          # dualpidpcm_discharging_output_id: 'discharging_current_output'
-          # dualpidpcm_discharge_charge_switch_id: 'discharge_charge_switch'
-          # dualpidpcm_onoff_switch_id: 'power_switch'
-          # dualpidpcm_current_min_charging: '1.0'
-          # dualpidpcm_current_min_discharging: '1.0'
-          # dualpidpcm_windows_size: '1'
+  dualpidpcm:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_dualpidpcm.yaml'
+        vars:
+          dualpidpcm_id: 'pid_id'
+          dualpidpcm_name: 'pid'
+          dualpidpcm_input_id: 'p1_active_power'
+          dualpidpcm_battery_voltage_id: 'jkpbbms_battery_voltage' #'battery_voltage_from_ha'
+          dualpidpcm_charging_output_id: 'charging_current_output'
+          dualpidpcm_discharging_output_id: 'discharging_current_output'
+          dualpidpcm_discharge_charge_switch_id: 'discharge_charge_switch'
+          dualpidpcm_onoff_switch_id: 'power_switch'
+          dualpidpcm_current_min_charging: '1.0'
+          dualpidpcm_current_min_discharging: '1.0'
+          dualpidpcm_windows_size: '1'
+          dualpidpcm_template_update: '5s'
