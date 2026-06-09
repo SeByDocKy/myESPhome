@@ -10,8 +10,7 @@ substitutions:
   shelly_ip_port: '512'
   shelly_modbus_address: '1'
   bms_modbus_address: '1'
-  
-  
+
 esphome:
   name: ${name}
   comment: ${device_description}
@@ -22,7 +21,6 @@ esphome:
     board_build.f_flash: 80000000L
     board_build.flash_mode: qio
 
-   
 esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
@@ -43,7 +41,6 @@ external_components:
   - source: github://creepystefan/esphome_tcp
     refresh: 0s  
   
-
 modbus:
   - id: modbus_tcp
     host: ${shelly_ip_address}
@@ -178,18 +175,6 @@ packages:
           bms_template_update: '3s'
           bms_text_update: '60s'
           bms_modbus_throttle: '50ms'
-
-  # bms: !include
-    # file: 'device_jkpb0116.yaml'
-    # vars:
-      # bms_name: 'jkpbbms'
-      # bms_modbus_id: 'modbus_rtu'
-      # bms_modbus_address: ${bms_modbus_address}
-      # bms_update_interval: '1500ms'
-      # bms_template_update: '3s'
-      # bms_text_update: '60s'
-      # bms_modbus_throttle: '50ms'          
-
 
   pcm: 
     url: https://github.com/SeByDocKy/myESPhome/
