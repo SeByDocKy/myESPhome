@@ -322,35 +322,12 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
 // ============================================================
 
 canbus::Error MCP2518FD::configure_fifos_() {
-  // Verify TXQEN is set in CiCON (required before CiTXQCON is writable)
-  uint32_t cicon = read_sfr_(REG_CiCON);
-  ESP_LOGD(TAG, "configure_fifos_: CiCON=0x%08X TXQEN=%d", cicon, (cicon>>20)&1);
+  uint8_t plsize = this->canfd_enabled_ ? 7 : 0;
 
-  uint8_t  plsize = this->canfd_enabled_ ? 7 : 0;
-
-  // CiTXQCON: configure TXQ (no TXEN bit - TXQ is always TX)
-  uint32_t txqcon = (3UL  <<  24)   // FSIZE[3:0] = 3 → 4 messages
-                  | (uint32_t(plsize) << 29)  // PLSIZE
-                  | (31UL << 16)    // TXPRI[4:0] = 31 (highest)
-                  | (1UL  << 10);   // FRESET
-  write_sfr_(REG_CiTXQCON, txqcon);
-  for (int i = 0; i < 10; i++) {
-    if (!(read_sfr_(REG_CiTXQCON) & (1UL << 10))) break;
-    delay(1);
-  }
-  txqcon &= ~(1UL << 10);
-  write_sfr_(REG_CiTXQCON, txqcon);
-
-  uint32_t readback = read_sfr_(REG_CiTXQCON);
-  uint32_t txqsta   = read_sfr_(REG_CiTXQSTA);
-  ESP_LOGD(TAG, "  CiTXQCON readback=0x%08X txqsta=0x%08X (TXQNIF=%d TXQEIF=%d)",
-           readback, txqsta, txqsta&1, (txqsta>>2)&1);
-
-  // RX FIFO CH1: 8 messages deep
-  // TXEN=0 (bit7) makes this an RX FIFO, FRESET (bit10)
-  uint32_t rxcon = (7UL << 24)                    // FSIZE = 8 messages
-                 | (uint32_t(plsize) << 29)        // PLSIZE
-                 | (1UL << 10);                    // FRESET
+  // CH1 = RX FIFO: TXEN=0, 8 messages deep, FRESET
+  uint32_t rxcon = (7UL << 24)               // FSIZE = 8 messages
+                 | (uint32_t(plsize) << 29)  // PLSIZE
+                 | (1UL << 10);              // FRESET
   write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 1, rxcon);
   for (int i = 0; i < 10; i++) {
     if (!(read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET*1) & (1UL<<10))) break;
@@ -358,6 +335,23 @@ canbus::Error MCP2518FD::configure_fifos_() {
   }
   rxcon &= ~(1UL << 10);
   write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 1, rxcon);
+
+  // CH2 = TX FIFO: TXEN=1 (bit7), 4 messages deep, highest priority, FRESET
+  uint32_t txcon = FIFOCON_TXEN              // bit7: TX FIFO
+                 | (3UL << 24)              // FSIZE = 4 messages
+                 | (uint32_t(plsize) << 29) // PLSIZE
+                 | (31UL << 16)             // TXPRI = highest
+                 | (1UL << 10);             // FRESET
+  write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
+  for (int i = 0; i < 10; i++) {
+    if (!(read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET*2) & (1UL<<10))) break;
+    delay(1);
+  }
+  txcon &= ~(1UL << 10);
+  write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
+
+  uint32_t txsta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
+  ESP_LOGD(TAG, "TX FIFO CH2 STA=0x%08X (TXNIF=%d)", txsta, txsta&1);
 
   return canbus::ERROR_OK;
 }
@@ -479,7 +473,7 @@ bool MCP2518FD::setup_internal() {
   // (CiTXQCON is only writable when CiCON.TXQEN=1)
   uint32_t con = read_sfr_(REG_CiCON);
   ESP_LOGD(TAG, "CiCON before=0x%08X", con);
-  con |= CiCON_TXQEN;                   // MUST enable TXQ before configure_fifos_!
+  // Note: CiCON_TXQEN not needed since we use CH2 TX FIFO instead of TXQ
   con &= ~(1UL << 19);                   // STEF=0: disable TEF (save RAM)
   if (this->canfd_enabled_) {
     con |= CiCON_ISOCRCEN;               // FD: use ISO CRC
@@ -544,7 +538,7 @@ void MCP2518FD::dump_config() {
 // ============================================================
 
 uint16_t MCP2518FD::tx_fifo_addr_() {
-  return static_cast<uint16_t>(read_sfr_(REG_CiTXQUA));
+  return static_cast<uint16_t>(read_sfr_(REG_CiFIFOUA + CIFIFO_OFFSET * 2));
 }
 
 canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
@@ -566,42 +560,29 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
     delay(2);
   }
 
-  // Check TXQ not full — with detailed logging and auto-reset if stuck
-  uint32_t txqsta = read_sfr_(REG_CiTXQSTA);
-  ESP_LOGV(TAG, "TXQSTA=0x%08X TXQNIF=%d TXQEIF=%d TXERR=%d TXABT=%d",
-           txqsta,
-           (txqsta >> 0) & 1,  // TXQNIF: not full
-           (txqsta >> 2) & 1,  // TXQEIF: empty
-           (txqsta >> 5) & 1,  // TXERR
-           (txqsta >> 7) & 1); // TXABT
+  // Check TX FIFO CH2 not full (bit 0 = TXNIF = not full)
+  uint32_t txsta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
+  ESP_LOGV(TAG, "TXSTA(CH2)=0x%08X TXNIF=%d TXERR=%d", txsta, txsta&1, (txsta>>5)&1);
 
-  if ((txqsta & TXQSTA_TXQNF) == 0) {
-    // TXQ is full — check if there's a stuck transmission
-    if (txqsta & (1UL << 7)) {  // TXABT: message was aborted
-      ESP_LOGW(TAG, "TXQ stuck (TXABT) — resetting TXQ");
-    } else if (txqsta & (1UL << 5)) {  // TXERR: bus error
+  if ((txsta & 1) == 0) {
+    // FIFO full
+    if (txsta & (1UL << 5)) {  // TXERR
       uint32_t b1 = read_sfr_(REG_CiBDIAG1);
       uint32_t tr = read_sfr_(REG_CiTREC);
-      ESP_LOGW(TAG, "TXQ stuck (TXERR) BDIAG1=0x%08X TREC=0x%08X", b1, tr);
-      // Decode BDIAG1
+      ESP_LOGW(TAG, "TX FIFO stuck (TXERR) BDIAG1=0x%08X TREC=0x%08X", b1, tr);
       if (b1 & (1UL<<18)) ESP_LOGW(TAG, "  NACKERR: no ACK — bus disconnected?");
-      if (b1 & (1UL<<17)) ESP_LOGW(TAG, "  NBIT1ERR: wanted recessive, saw dominant");
-      if (b1 & (1UL<<16)) ESP_LOGW(TAG, "  NBIT0ERR: wanted dominant, saw recessive");
-      if (b1 & (1UL<<19)) ESP_LOGW(TAG, "  NFORMERR: frame format error");
+      if (b1 & (1UL<<17)) ESP_LOGW(TAG, "  NBIT1ERR: recessive when dominant expected");
+      if (b1 & (1UL<<16)) ESP_LOGW(TAG, "  NBIT0ERR: dominant when recessive expected");
       if (b1 & (1UL<<21)) ESP_LOGW(TAG, "  NCRCERR: CRC mismatch");
       if (b1 & (1UL<<23)) ESP_LOGW(TAG, "  TXBOERR: went bus-off");
-    } else {
-      ESP_LOGW(TAG, "TXQ full — waiting for transmission");
-      return canbus::ERROR_ALLTXBUSY;
+      // Reset via FRESET
+      uint32_t txcon = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2);
+      txcon |= (1UL << 10);
+      write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
+      delay(2);
+      txsta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
     }
-    // Force reset TXQ via FRESET
-    uint32_t txqcon = read_sfr_(REG_CiTXQCON);
-    txqcon |= (1UL << 10);  // FRESET bit
-    write_sfr_(REG_CiTXQCON, txqcon);
-    delay(2);
-    // Re-check
-    txqsta = read_sfr_(REG_CiTXQSTA);
-    if ((txqsta & TXQSTA_TXQNF) == 0)
+    if ((txsta & 1) == 0)
       return canbus::ERROR_ALLTXBUSY;
   }
 
@@ -642,10 +623,10 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
 
   write_ram_(ram_addr, obj, 8 + pad_len);
 
-  // Set UINC + TXREQ
-  uint32_t txqcon = read_sfr_(REG_CiTXQCON);
-  txqcon |= TXQCON_UINC | TXQCON_TXREQ;
-  write_sfr_(REG_CiTXQCON, txqcon);
+  // Set UINC + TXREQ on TX FIFO CH2
+  uint32_t txfifocon = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2);
+  txfifocon |= FIFOCON_UINC | FIFOCON_TXREQ;
+  write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txfifocon);
 
   // No delay — just check NACKERR for debug (bus-off handled before TX)
 
