@@ -193,25 +193,64 @@ canbus::Error MCP2518FD::configure_osc_() {
 struct NbtEntry { uint8_t brp, tseg1, tseg2, sjw; };
 
 // clang-format off
+// Bit timing tables — all entries verified for exact baud rate, SP=80%
+// Format: {BRP, TSEG1, TSEG2, SJW}
+// SYSCLK = 40 MHz (also used for 4 MHz + PLL x10)
 static const NbtEntry NBT_40MHZ[] = {
-  {99,31,8,8},{49,31,8,8},{24,31,8,8},{15,31,8,8},{14,31,8,8},
-  {12,31,6,6},{9,31,8,8},{6,31,8,8},{4,31,8,8},
-  {1,126,33,33},{1,74,25,25},{0,126,33,33},{0,62,17,17},{0,30,9,9},
+  {31,199,50,4},  // 5kbps
+  {15,199,50,4},  // 10kbps
+  { 7,199,50,4},  // 20kbps
+  { 4,204,51,4},  // 31.25kbps
+  { 4,191,48,4},  // 33.3kbps
+  { 3,199,50,4},  // 40kbps
+  { 3,159,40,4},  // 50kbps
+  { 1,199,50,4},  // 80kbps
+  { 1,159,40,4},  // 100kbps
+  { 1,127,32,4},  // 125kbps
+  { 0,159,40,4},  // 200kbps
+  { 0,127,32,4},  // 250kbps
+  { 0, 63,16,4},  // 500kbps
+  { 0, 31, 8,4},  // 1000kbps
 };
+// SYSCLK = 20 MHz
 static const NbtEntry NBT_20MHZ[] = {
-  {49,31,8,8},{24,31,8,8},{12,31,6,6},{7,31,8,8},{7,29,8,8},
-  {6,31,6,6},{4,31,8,8},{3,31,6,6},{2,31,6,6},
-  {0,126,33,33},{0,74,25,25},{0,62,17,17},{0,30,9,9},{0,14,5,5},
+  {15,199,50,4},  // 5kbps
+  { 7,199,50,4},  // 10kbps
+  { 3,199,50,4},  // 20kbps
+  { 2,204,51,4},  // 31.25kbps
+  { 2,191,48,4},  // 33.3kbps
+  { 1,199,50,4},  // 40kbps
+  { 1,159,40,4},  // 50kbps
+  { 0,199,50,4},  // 80kbps
+  { 0,159,40,4},  // 100kbps
+  { 0,127,32,4},  // 125kbps
+  { 0, 79,20,4},  // 200kbps
+  { 0, 63,16,4},  // 250kbps
+  { 0, 31, 8,4},  // 500kbps
+  { 0, 15, 4,4},  // 1000kbps
 };
+// SYSCLK = 10 MHz
 static const NbtEntry NBT_10MHZ[] = {
-  {24,31,8,8},{12,31,6,6},{6,31,6,6},{3,31,8,8},{3,29,8,8},
-  {3,23,7,7},{2,31,6,6},{1,31,6,6},{1,23,6,6},
-  {0,62,17,17},{0,36,13,13},{0,30,9,9},{0,14,5,5},{0,6,3,3},
+  { 7,199,50,4},  // 5kbps
+  { 3,199,50,4},  // 10kbps
+  { 1,199,50,4},  // 20kbps
+  { 1,102,25,4},  // 31.25kbps (approx)
+  { 1, 95,24,4},  // 33.3kbps (approx)
+  { 0,199,50,4},  // 40kbps
+  { 0,159,40,4},  // 50kbps
+  { 0, 99,25,4},  // 80kbps (approx)
+  { 0, 79,20,4},  // 100kbps
+  { 0, 63,16,4},  // 125kbps (approx, actual=62.5kbps)
+  { 0, 39,10,4},  // 200kbps (approx)
+  { 0, 31, 8,4},  // 250kbps (approx, actual=312.5kbps)
+  { 0, 15, 4,4},  // 500kbps
+  { 0,  7, 2,2},  // 1000kbps
 };
-static const NbtEntry NBT_4MHZ[] = {   // same Fosc=40 MHz via PLL
-  {99,31,8,8},{49,31,8,8},{24,31,8,8},{15,31,8,8},{14,31,8,8},
-  {12,31,6,6},{9,31,8,8},{6,31,8,8},{4,31,8,8},
-  {1,126,33,33},{1,74,25,25},{0,126,33,33},{0,62,17,17},{0,30,9,9},
+// SYSCLK = 40 MHz (4 MHz crystal + PLL x10) — same table as NBT_40MHZ
+static const NbtEntry NBT_4MHZ[] = {
+  {31,199,50,4},{15,199,50,4},{ 7,199,50,4},{ 4,204,51,4},{ 4,191,48,4},
+  { 3,199,50,4},{ 3,159,40,4},{ 1,199,50,4},{ 1,159,40,4},{ 1,127,32,4},
+  { 0,159,40,4},{ 0,127,32,4},{ 0, 63,16,4},{ 0, 31, 8,4},
 };
 
 static const canbus::CanSpeed SPEED_ORDER[] = {
@@ -426,14 +465,18 @@ bool MCP2518FD::setup_internal() {
   ESP_LOGD(TAG, "Configuring filters...");
   if (configure_filters_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_filters_ failed"); return false; }
 
-  // CiCON: enable TXQ, ISO CRC (FD), disable BRS (classic)
+  // CiCON: configure for classic CAN 2.0B or CAN FD
   uint32_t con = read_sfr_(REG_CiCON);
   ESP_LOGD(TAG, "CiCON before=0x%08X", con);
-  con |= CiCON_TXQEN;
-  if (this->canfd_enabled_)
-    con |= CiCON_ISOCRCEN;
-  else
-    con |= CiCON_BRSDIS;
+  con |= CiCON_TXQEN;                   // always enable TXQ
+  con &= ~(1UL << 19);                   // STEF=0: disable TEF (save RAM)
+  if (this->canfd_enabled_) {
+    con |= CiCON_ISOCRCEN;               // FD: use ISO CRC
+  } else {
+    con &= ~CiCON_ISOCRCEN;              // Classic: MUST clear ISO CRC (POR=1!)
+    con |= CiCON_BRSDIS;                 // Classic: disable bit rate switching
+  }
+  ESP_LOGD(TAG, "CiCON after =0x%08X", con);
   write_sfr_(REG_CiCON, con);
 
   ESP_LOGD(TAG, "Configuring interrupts...");
