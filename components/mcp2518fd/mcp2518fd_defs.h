@@ -186,11 +186,14 @@ static const uint32_t MSGOBJ_FDF       = 1UL <<  7;  // FD Frame
 static const uint32_t MSGOBJ_ESI       = 1UL <<  8;  // Error Status Indicator
 
 // ID word layout
-// EID[17:0] in bits 17:0, SID[10:0] in bits 28:18
-static const uint32_t MSGOBJ_SID_SHIFT = 0;   // SID[10:0] at T0[10:0]
-static const uint32_t MSGOBJ_EID_SHIFT = 11;  // EID[17:0] at T0[28:11]
-static const uint32_t MSGOBJ_SID_MASK  = 0x000007FFUL;  // SID at bits [10:0]
-static const uint32_t MSGOBJ_EID_MASK  = 0x1FFFF800UL;  // EID at bits [28:11]
+// Transmit/Receive Message Object T0 layout (datasheet Table 3-5, page 66):
+//   bits 28:18 = SID[10:0]
+//   bits 17:0  = EID[17:0]
+//   T0 = (SID << 18) | EID
+static const uint32_t MSGOBJ_SID_SHIFT = 18;  // SID[10:0] at T0[28:18]
+static const uint32_t MSGOBJ_EID_SHIFT = 0;   // EID[17:0] at T0[17:0]
+static const uint32_t MSGOBJ_SID_MASK  = 0x1FFC0000UL;  // SID at bits [28:18]
+static const uint32_t MSGOBJ_EID_MASK  = 0x0003FFFFUL;  // EID at bits [17:0]
 
 // Filter object / Mask object  (CiFLTOBJ / CiMASK)
 static const uint32_t FLTOBJ_EXIDE     = 1UL << 30;  // match extended IDs

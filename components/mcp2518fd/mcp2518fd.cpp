@@ -595,13 +595,17 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   // T0: ID word — layout per datasheet Table 3-5 (page 66):
   //   Standard: SID[10:0] at T0[10:0]
   //   Extended: SID[10:0] at T0[10:0], EID[17:0] at T0[28:11]
+  // T0 layout (datasheet Table 3-5):
+  //   bits 28:18 = SID[10:0]
+  //   bits 17:0  = EID[17:0]
   uint32_t id_word = 0;
   if (frame->use_extended_id) {
-    uint32_t sid = (frame->can_id >> 18) & 0x7FFU;   // bits 28:18 of 29-bit ID
-    uint32_t eid =  frame->can_id & 0x3FFFFUL;        // bits 17:0  of 29-bit ID
-    id_word = sid | (eid << MSGOBJ_EID_SHIFT);
+    uint32_t sid = (frame->can_id >> 18) & 0x7FFUL;   // SID = bits 28:18 of 29-bit ID
+    uint32_t eid =  frame->can_id        & 0x3FFFFUL;  // EID = bits 17:0 of 29-bit ID
+    id_word = (sid << MSGOBJ_SID_SHIFT) | (eid << MSGOBJ_EID_SHIFT);
+    // = (sid << 18) | eid
   } else {
-    id_word = frame->can_id & 0x7FFU;                 // SID[10:0] at T0[10:0]
+    id_word = (frame->can_id & 0x7FFUL) << MSGOBJ_SID_SHIFT;  // SID at bits[28:18]
   }
 
   // T1: control word
@@ -691,11 +695,12 @@ canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
   frame->can_data_length_code        = nbytes;
 
   if (extended) {
-    uint32_t sid = id_word & MSGOBJ_SID_MASK;                       // T0[10:0]
-    uint32_t eid = (id_word & MSGOBJ_EID_MASK) >> MSGOBJ_EID_SHIFT; // T0[28:11]
+    // T0[28:18]=SID, T0[17:0]=EID -> 29-bit CAN ID = (SID<<18)|EID
+    uint32_t sid = (id_word & MSGOBJ_SID_MASK) >> MSGOBJ_SID_SHIFT; // T0[28:18]
+    uint32_t eid =  id_word & MSGOBJ_EID_MASK;                       // T0[17:0]
     frame->can_id = (sid << 18) | eid;
   } else {
-    frame->can_id = id_word & MSGOBJ_SID_MASK;                      // T0[10:0]
+    frame->can_id = (id_word & MSGOBJ_SID_MASK) >> MSGOBJ_SID_SHIFT; // T0[28:18]->SIDT0[10:0]
   }
 
   if (nbytes > 0) {
