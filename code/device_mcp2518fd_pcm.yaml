@@ -60,7 +60,7 @@ canbus:
     mode: 'CLASSIC' # CLASSIC <=> Only non FD trames, NORMAL <=> both FD & non-FD accepted
     data_rate: '10MHz'
     can_clock: '20MHz'
-    mcp_clock: '20MHz' 
+    # mcp_clock: '20MHz' 
     canfd_enabled: false  # set true to enable CAN FD frames (payload up to 64 bytes)
     can_data_rate: 250kbps    # data-phase bit rate (only applies when canfd_enabled: true)
 
