@@ -288,7 +288,16 @@ canbus::Error MCP2518FD::configure_fifos_() {
   uint32_t txqcon = FIFOCON_TXEN
                   | (3UL  <<  24)  // FSIZE = 4 messages
                   | (uint32_t(plsize) << 29)  // PLSIZE
-                  | (31UL << 16);  // TXPRI = highest
+                  | (31UL << 16)   // TXPRI = highest
+                  | (1UL  << 10);  // FRESET: flush any stale TX data
+  write_sfr_(REG_CiTXQCON, txqcon);
+  // Wait for FRESET to clear (hardware clears it when reset is done)
+  for (int i = 0; i < 10; i++) {
+    if (!(read_sfr_(REG_CiTXQCON) & (1UL << 10))) break;
+    delay(1);
+  }
+  // Re-write without FRESET
+  txqcon &= ~(1UL << 10);
   write_sfr_(REG_CiTXQCON, txqcon);
 
   // RX FIFO CH1: 8 messages deep, same payload
@@ -495,9 +504,35 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
     delay(2);
   }
 
-  // Check TXQ not full
-  if ((read_sfr_(REG_CiTXQSTA) & TXQSTA_TXQNF) == 0)
-    return canbus::ERROR_ALLTXBUSY;
+  // Check TXQ not full — with detailed logging and auto-reset if stuck
+  uint32_t txqsta = read_sfr_(REG_CiTXQSTA);
+  ESP_LOGV(TAG, "TXQSTA=0x%08X TXQNIF=%d TXQEIF=%d TXERR=%d TXABT=%d",
+           txqsta,
+           (txqsta >> 0) & 1,  // TXQNIF: not full
+           (txqsta >> 2) & 1,  // TXQEIF: empty
+           (txqsta >> 5) & 1,  // TXERR
+           (txqsta >> 7) & 1); // TXABT
+
+  if ((txqsta & TXQSTA_TXQNF) == 0) {
+    // TXQ is full — check if there's a stuck transmission
+    if (txqsta & (1UL << 7)) {  // TXABT: message was aborted
+      ESP_LOGW(TAG, "TXQ stuck (TXABT) — resetting TXQ");
+    } else if (txqsta & (1UL << 5)) {  // TXERR: bus error
+      ESP_LOGW(TAG, "TXQ stuck (TXERR) — resetting TXQ");
+    } else {
+      ESP_LOGW(TAG, "TXQ full — waiting for transmission");
+      return canbus::ERROR_ALLTXBUSY;
+    }
+    // Force reset TXQ via FRESET
+    uint32_t txqcon = read_sfr_(REG_CiTXQCON);
+    txqcon |= (1UL << 10);  // FRESET bit
+    write_sfr_(REG_CiTXQCON, txqcon);
+    delay(2);
+    // Re-check
+    txqsta = read_sfr_(REG_CiTXQSTA);
+    if ((txqsta & TXQSTA_TXQNF) == 0)
+      return canbus::ERROR_ALLTXBUSY;
+  }
 
   // CiTXQUA already contains the full SPI address (includes RAM base 0x400)
   uint16_t ram_addr = tx_fifo_addr_();

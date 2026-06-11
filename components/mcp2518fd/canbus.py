@@ -14,7 +14,7 @@ from esphome.const import CONF_ID, CONF_NUMBER, CONF_INVERTED
 CODEOWNERS = ["@sebyd"]
 DEPENDENCIES = ["spi"]
 
-CONF_CAN_CLOCK      = "can_clock"
+CONF_CAN_CLOCK      = "clock"
 CONF_MCP_MODE       = "mode"
 CONF_CANFD_ENABLED  = "canfd_enabled"
 CONF_CAN_DATA_RATE  = "can_data_rate"
