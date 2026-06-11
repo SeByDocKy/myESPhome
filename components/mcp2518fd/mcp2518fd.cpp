@@ -324,8 +324,8 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
 canbus::Error MCP2518FD::configure_fifos_() {
   // TXQ (FIFO CH0): 4 messages deep, payload 8 or 64 bytes
   uint8_t  plsize = this->canfd_enabled_ ? 7 : 0;
-  uint32_t txqcon = FIFOCON_TXEN
-                  | (3UL  <<  24)  // FSIZE = 4 messages
+  // CiTXQCON: TXQ is always TX, no TXEN bit needed (unlike regular FIFOs)
+  uint32_t txqcon = (3UL  <<  24)  // FSIZE = 4 messages (3+1=4)
                   | (uint32_t(plsize) << 29)  // PLSIZE
                   | (31UL << 16)   // TXPRI = highest
                   | (1UL  << 10);  // FRESET: flush any stale TX data
@@ -459,16 +459,11 @@ bool MCP2518FD::setup_internal() {
   ESP_LOGD(TAG, "Configuring bit timing...");
   if (configure_bit_timing_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_bit_timing_ failed"); return false; }
 
-  ESP_LOGD(TAG, "Configuring FIFOs...");
-  if (configure_fifos_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_fifos_ failed"); return false; }
-
-  ESP_LOGD(TAG, "Configuring filters...");
-  if (configure_filters_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_filters_ failed"); return false; }
-
-  // CiCON: configure for classic CAN 2.0B or CAN FD
+  // CiCON: set TXQEN + ISO CRC config BEFORE configure_fifos_
+  // (CiTXQCON is only writable when CiCON.TXQEN=1)
   uint32_t con = read_sfr_(REG_CiCON);
   ESP_LOGD(TAG, "CiCON before=0x%08X", con);
-  con |= CiCON_TXQEN;                   // always enable TXQ
+  con |= CiCON_TXQEN;                   // MUST enable TXQ before configure_fifos_!
   con &= ~(1UL << 19);                   // STEF=0: disable TEF (save RAM)
   if (this->canfd_enabled_) {
     con |= CiCON_ISOCRCEN;               // FD: use ISO CRC
@@ -478,7 +473,13 @@ bool MCP2518FD::setup_internal() {
   }
   ESP_LOGD(TAG, "CiCON after =0x%08X (ISOCRCEN=%d)", con, (con>>5)&1);
   write_sfr_(REG_CiCON, con);
-  this->init_cicon_ = con;  // store the value we actually wrote
+  this->init_cicon_ = con;
+
+  ESP_LOGD(TAG, "Configuring FIFOs...");
+  if (configure_fifos_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_fifos_ failed"); return false; }
+
+  ESP_LOGD(TAG, "Configuring filters...");
+  if (configure_filters_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_filters_ failed"); return false; }
 
   ESP_LOGD(TAG, "Configuring interrupts...");
   if (configure_interrupts_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_interrupts_ failed"); return false; }
