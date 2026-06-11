@@ -322,25 +322,41 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
 // ============================================================
 
 canbus::Error MCP2518FD::configure_fifos_() {
-  // TXQ (FIFO CH0): 4 messages deep, payload 8 or 64 bytes
+  // Verify TXQEN is set in CiCON (required before CiTXQCON is writable)
+  uint32_t cicon = read_sfr_(REG_CiCON);
+  ESP_LOGD(TAG, "configure_fifos_: CiCON=0x%08X TXQEN=%d", cicon, (cicon>>20)&1);
+
   uint8_t  plsize = this->canfd_enabled_ ? 7 : 0;
-  // CiTXQCON: TXQ is always TX, no TXEN bit needed (unlike regular FIFOs)
-  uint32_t txqcon = (3UL  <<  24)  // FSIZE = 4 messages (3+1=4)
+
+  // CiTXQCON: configure TXQ (no TXEN bit - TXQ is always TX)
+  uint32_t txqcon = (3UL  <<  24)   // FSIZE[3:0] = 3 → 4 messages
                   | (uint32_t(plsize) << 29)  // PLSIZE
-                  | (31UL << 16)   // TXPRI = highest
-                  | (1UL  << 10);  // FRESET: flush any stale TX data
+                  | (31UL << 16)    // TXPRI[4:0] = 31 (highest)
+                  | (1UL  << 10);   // FRESET
   write_sfr_(REG_CiTXQCON, txqcon);
-  // Wait for FRESET to clear (hardware clears it when reset is done)
   for (int i = 0; i < 10; i++) {
     if (!(read_sfr_(REG_CiTXQCON) & (1UL << 10))) break;
     delay(1);
   }
-  // Re-write without FRESET
   txqcon &= ~(1UL << 10);
   write_sfr_(REG_CiTXQCON, txqcon);
 
-  // RX FIFO CH1: 8 messages deep, same payload
-  uint32_t rxcon = (7UL << 24) | (uint32_t(plsize) << 29);  // TXEN=0
+  uint32_t readback = read_sfr_(REG_CiTXQCON);
+  uint32_t txqsta   = read_sfr_(REG_CiTXQSTA);
+  ESP_LOGD(TAG, "  CiTXQCON readback=0x%08X txqsta=0x%08X (TXQNIF=%d TXQEIF=%d)",
+           readback, txqsta, txqsta&1, (txqsta>>2)&1);
+
+  // RX FIFO CH1: 8 messages deep
+  // TXEN=0 (bit7) makes this an RX FIFO, FRESET (bit10)
+  uint32_t rxcon = (7UL << 24)                    // FSIZE = 8 messages
+                 | (uint32_t(plsize) << 29)        // PLSIZE
+                 | (1UL << 10);                    // FRESET
+  write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 1, rxcon);
+  for (int i = 0; i < 10; i++) {
+    if (!(read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET*1) & (1UL<<10))) break;
+    delay(1);
+  }
+  rxcon &= ~(1UL << 10);
   write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 1, rxcon);
 
   return canbus::ERROR_OK;
