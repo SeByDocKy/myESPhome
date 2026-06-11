@@ -56,7 +56,7 @@ canbus:
     use_extended_id: true
     cs_pin: ${pcm_cs_pin}
     can_id: 0x0A
-    bit_rate: 250kbps
+    bit_rate: 125kbps #250kbps
     mode: 'CLASSIC' # CLASSIC <=> Only non FD trames, NORMAL <=> both FD & non-FD accepted
     data_rate: '10MHz'
     can_clock: '20MHz'
