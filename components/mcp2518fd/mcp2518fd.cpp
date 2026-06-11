@@ -476,8 +476,9 @@ bool MCP2518FD::setup_internal() {
     con &= ~CiCON_ISOCRCEN;              // Classic: MUST clear ISO CRC (POR=1!)
     con |= CiCON_BRSDIS;                 // Classic: disable bit rate switching
   }
-  ESP_LOGD(TAG, "CiCON after =0x%08X", con);
+  ESP_LOGD(TAG, "CiCON after =0x%08X (ISOCRCEN=%d)", con, (con>>5)&1);
   write_sfr_(REG_CiCON, con);
+  this->init_cicon_ = con;  // store the value we actually wrote
 
   ESP_LOGD(TAG, "Configuring interrupts...");
   if (configure_interrupts_() != canbus::ERROR_OK) { ESP_LOGE(TAG, "configure_interrupts_ failed"); return false; }
@@ -506,7 +507,8 @@ void MCP2518FD::dump_config() {
   ESP_LOGCONFIG(TAG, "  Init success : %s", this->init_done_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "  DEVID  (0xE14): 0x%08X (MCP2518FD=0x28)", this->init_devid_);
   ESP_LOGCONFIG(TAG, "  OSC    (0xE00): 0x%08X (POR=0x60)",        this->init_osc_);
-  ESP_LOGCONFIG(TAG, "  CiCON  (0x000): 0x%08X (POR=0x04980760)", this->init_cicon_);
+  ESP_LOGCONFIG(TAG, "  CiCON  (0x000): 0x%08X (POR=0x04980760) ISOCRCEN=%d",
+               this->init_cicon_, (this->init_cicon_ >> 5) & 1);
   ESP_LOGCONFIG(TAG, "  IOCON  (0xE04): 0x%08X (POR=0x03000000)", this->init_iocon_);
   ESP_LOGCONFIG(TAG, "  CiTREC (0x034): 0x%08X",                   this->init_citrec_);
   LOG_PIN("  CS Pin : ", this->cs_);
@@ -561,7 +563,16 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
     if (txqsta & (1UL << 7)) {  // TXABT: message was aborted
       ESP_LOGW(TAG, "TXQ stuck (TXABT) — resetting TXQ");
     } else if (txqsta & (1UL << 5)) {  // TXERR: bus error
-      ESP_LOGW(TAG, "TXQ stuck (TXERR) — resetting TXQ");
+      uint32_t b1 = read_sfr_(REG_CiBDIAG1);
+      uint32_t tr = read_sfr_(REG_CiTREC);
+      ESP_LOGW(TAG, "TXQ stuck (TXERR) BDIAG1=0x%08X TREC=0x%08X", b1, tr);
+      // Decode BDIAG1
+      if (b1 & (1UL<<18)) ESP_LOGW(TAG, "  NACKERR: no ACK — bus disconnected?");
+      if (b1 & (1UL<<17)) ESP_LOGW(TAG, "  NBIT1ERR: wanted recessive, saw dominant");
+      if (b1 & (1UL<<16)) ESP_LOGW(TAG, "  NBIT0ERR: wanted dominant, saw recessive");
+      if (b1 & (1UL<<19)) ESP_LOGW(TAG, "  NFORMERR: frame format error");
+      if (b1 & (1UL<<21)) ESP_LOGW(TAG, "  NCRCERR: CRC mismatch");
+      if (b1 & (1UL<<23)) ESP_LOGW(TAG, "  TXBOERR: went bus-off");
     } else {
       ESP_LOGW(TAG, "TXQ full — waiting for transmission");
       return canbus::ERROR_ALLTXBUSY;
