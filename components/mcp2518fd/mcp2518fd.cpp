@@ -499,6 +499,25 @@ bool MCP2518FD::setup_internal() {
     ESP_LOGE(TAG, "set_mode_(operational) failed");
     return false;
   }
+  // Read CH2 STA after entering operational mode (STA is invalid in Config mode per datasheet)
+  {
+    uint32_t ch2sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
+    uint32_t ch2con = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2);
+    uint32_t cicon  = read_sfr_(REG_CiCON);
+    ESP_LOGD(TAG, "Post-operational: CiCON=0x%08X OPMOD=%d", cicon, (cicon>>21)&7);
+    ESP_LOGD(TAG, "  CH2 CON=0x%08X STA=0x%08X TXNIF=%d", ch2con, ch2sta, ch2sta&1);
+    if ((ch2sta & 1) == 0) {
+      // TXNIF=0 means full — do a FRESET to clear
+      ESP_LOGW(TAG, "  CH2 TXNIF=0 after mode change — applying FRESET");
+      uint32_t txcon = ch2con | (1UL << 10);
+      write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
+      delay(2);
+      txcon &= ~(1UL << 10);
+      write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
+      ch2sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
+      ESP_LOGD(TAG, "  CH2 STA after FRESET=0x%08X TXNIF=%d", ch2sta, ch2sta&1);
+    }
+  }
 
   this->init_citrec_ = read_sfr_(REG_CiTREC);
   this->init_done_ = true;
