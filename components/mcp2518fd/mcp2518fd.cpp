@@ -522,6 +522,14 @@ void MCP2518FD::dump_config() {
                this->init_cicon_, (this->init_cicon_ >> 5) & 1);
   ESP_LOGCONFIG(TAG, "  IOCON  (0xE04): 0x%08X (POR=0x03000000)", this->init_iocon_);
   ESP_LOGCONFIG(TAG, "  CiTREC (0x034): 0x%08X",                   this->init_citrec_);
+  // Live FIFO status — read at dump time (after init)
+  uint32_t ch2con = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2);
+  uint32_t ch2sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
+  uint32_t ch1con = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 1);
+  uint32_t ch1sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 1);
+  ESP_LOGCONFIG(TAG, "  CH1(RX) CON=0x%08X STA=0x%08X", ch1con, ch1sta);
+  ESP_LOGCONFIG(TAG, "  CH2(TX) CON=0x%08X STA=0x%08X TXNIF=%d TXEN=%d",
+                ch2con, ch2sta, ch2sta&1, (ch2con>>7)&1);
   LOG_PIN("  CS Pin : ", this->cs_);
   if (!this->init_done_) {
     if (this->init_devid_ == 0x00000000 || this->init_devid_ == 0xFFFFFFFF)
