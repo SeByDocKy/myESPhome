@@ -593,31 +593,29 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
     delay(2);
   }
 
-  // Check TX FIFO CH2 not full (bit 0 = TXNIF = not full)
+  // NOTE: On clone chips (DEVID=0x00), CiFIFOSTA always returns 0x00000000
+  // so we cannot rely on TXNIF bit. Instead check CiBDIAG1 for actual bus errors.
   uint32_t txsta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
   ESP_LOGV(TAG, "TXSTA(CH2)=0x%08X TXNIF=%d TXERR=%d", txsta, txsta&1, (txsta>>5)&1);
 
-  if ((txsta & 1) == 0) {
-    // FIFO full
-    if (txsta & (1UL << 5)) {  // TXERR
-      uint32_t b1 = read_sfr_(REG_CiBDIAG1);
-      uint32_t tr = read_sfr_(REG_CiTREC);
-      ESP_LOGW(TAG, "TX FIFO stuck (TXERR) BDIAG1=0x%08X TREC=0x%08X", b1, tr);
-      if (b1 & (1UL<<18)) ESP_LOGW(TAG, "  NACKERR: no ACK — bus disconnected?");
-      if (b1 & (1UL<<17)) ESP_LOGW(TAG, "  NBIT1ERR: recessive when dominant expected");
-      if (b1 & (1UL<<16)) ESP_LOGW(TAG, "  NBIT0ERR: dominant when recessive expected");
-      if (b1 & (1UL<<21)) ESP_LOGW(TAG, "  NCRCERR: CRC mismatch");
-      if (b1 & (1UL<<23)) ESP_LOGW(TAG, "  TXBOERR: went bus-off");
-      // Reset via FRESET
-      uint32_t txcon = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2);
-      txcon |= (1UL << 10);
-      write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
-      delay(2);
-      txsta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
-    }
-    if ((txsta & 1) == 0)
-      return canbus::ERROR_ALLTXBUSY;
+  // Only block on actual bus error, not on TXNIF=0 (unreliable on clone chips)
+  if (txsta & (1UL << 5)) {  // TXERR
+    uint32_t b1 = read_sfr_(REG_CiBDIAG1);
+    uint32_t tr = read_sfr_(REG_CiTREC);
+    ESP_LOGW(TAG, "TX FIFO TXERR BDIAG1=0x%08X TREC=0x%08X", b1, tr);
+    if (b1 & (1UL<<18)) ESP_LOGW(TAG, "  NACKERR: no ACK");
+    if (b1 & (1UL<<17)) ESP_LOGW(TAG, "  NBIT1ERR");
+    if (b1 & (1UL<<16)) ESP_LOGW(TAG, "  NBIT0ERR");
+    if (b1 & (1UL<<21)) ESP_LOGW(TAG, "  NCRCERR");
+    if (b1 & (1UL<<23)) ESP_LOGW(TAG, "  TXBOERR: bus-off");
+    // FRESET to recover
+    uint32_t txcon = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2);
+    write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon | (1UL << 10));
+    delay(2);
+    write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon & ~(1UL << 10));
+    return canbus::ERROR_ALLTXBUSY;
   }
+  // Proceed to send (ignore TXNIF on clone chips)
 
   // CiTXQUA already contains the full SPI address (includes RAM base 0x400)
   uint16_t ram_addr = tx_fifo_addr_();
