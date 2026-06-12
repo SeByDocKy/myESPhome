@@ -10,7 +10,8 @@ substitutions:
   shelly_ip_port: '512'
   shelly_modbus_address: '1'
   bms_modbus_address: '1'
-
+  
+  
 esphome:
   name: ${name}
   comment: ${device_description}
@@ -21,6 +22,7 @@ esphome:
     board_build.f_flash: 80000000L
     board_build.flash_mode: qio
 
+   
 esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
@@ -39,31 +41,29 @@ wifi:
    
 external_components:
   - source: github://creepystefan/esphome_tcp
+    # components: [modbustcp, modbustcp_controller]
     refresh: 0s  
   
-modbus:
+  
+modbustcp:
   - id: modbus_tcp
     host: ${shelly_ip_address}
     port: ${shelly_ip_port}
-    type: TCP
-    send_wait_time: 100ms
+    send_wait_time: 100ms  
+  
+modbustcp_controller:
+  - id: modbus_device_tcp
+    modbustcp_id: modbus_tcp
+    address: ${shelly_modbus_address}
+    update_interval: 2s   #default 60sec
+
+
+modbus:
     
   - id: modbus_rtu
     uart_id: uart_0
-    type: RTU
     send_wait_time: 50ms    
-   
-modbus_controller:
-  - id: modbus_device_tcp
-    modbus_id: modbus_tcp
-    address: ${shelly_modbus_address}
-    update_interval: 2s   #default 60sec
-    
-  # - id: jkpbbms_modbus_controller
-    # modbus_id: modbus_rtu
-    # address: ${bms_modbus_address}
-    # update_interval: 2s   #default 60sec  
-    
+       
 time:
   - platform: sntp
     id: my_time    
@@ -101,8 +101,8 @@ debug:
 
 sensor:
 
-  - platform: modbus_controller
-    modbus_controller_id: modbus_device_tcp
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device_tcp
     name: ${name}_p1_active_power
     id: p1_active_power
     address: 1025  #1045=p2, 1065=p3
@@ -175,6 +175,18 @@ packages:
           bms_template_update: '3s'
           bms_text_update: '60s'
           bms_modbus_throttle: '50ms'
+
+  # bms: !include
+    # file: 'device_jkpb0116.yaml'
+    # vars:
+      # bms_name: 'jkpbbms'
+      # bms_modbus_id: 'modbus_rtu'
+      # bms_modbus_address: ${bms_modbus_address}
+      # bms_update_interval: '1500ms'
+      # bms_template_update: '3s'
+      # bms_text_update: '60s'
+      # bms_modbus_throttle: '50ms'          
+
 
   pcm: 
     url: https://github.com/SeByDocKy/myESPhome/
