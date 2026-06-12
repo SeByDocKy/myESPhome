@@ -537,8 +537,14 @@ void MCP2518FD::dump_config() {
   ESP_LOGCONFIG(TAG, "  Init success : %s", this->init_done_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "  DEVID  (0xE14): 0x%08X (MCP2518FD=0x28)", this->init_devid_);
   ESP_LOGCONFIG(TAG, "  OSC    (0xE00): 0x%08X (POR=0x60)",        this->init_osc_);
-  ESP_LOGCONFIG(TAG, "  CiCON  (0x000): 0x%08X (POR=0x04980760) ISOCRCEN=%d",
-               this->init_cicon_, (this->init_cicon_ >> 5) & 1);
+  {
+    uint32_t live_con = read_sfr_(REG_CiCON);
+    uint32_t live_sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
+    ESP_LOGCONFIG(TAG, "  CiCON  (live): 0x%08X OPMOD=%d REQOP=%d ISOCRCEN=%d",
+                  live_con, (live_con>>21)&7, (live_con>>24)&7, (live_con>>5)&1);
+    ESP_LOGCONFIG(TAG, "  CiCON  (init): 0x%08X", this->init_cicon_);
+    ESP_LOGCONFIG(TAG, "  CH2STA (live): 0x%08X TXNIF=%d", live_sta, live_sta&1);
+  }
   ESP_LOGCONFIG(TAG, "  IOCON  (0xE04): 0x%08X (POR=0x03000000)", this->init_iocon_);
   ESP_LOGCONFIG(TAG, "  CiTREC (0x034): 0x%08X",                   this->init_citrec_);
   // Live FIFO status — read at dump time (after init)
