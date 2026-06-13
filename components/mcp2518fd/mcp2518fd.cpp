@@ -673,7 +673,14 @@ canbus::Error MCP2518FD::send_message(struct canbus::CanFrame *frame) {
 // ============================================================
 
 uint16_t MCP2518FD::rx_fifo_addr_() {
-  return static_cast<uint16_t>(read_sfr_(REG_CiFIFOUA + CIFIFO_OFFSET * 1));
+  uint32_t ua = read_sfr_(REG_CiFIFOUA + CIFIFO_OFFSET * 1);
+  // On clone chips, CiFIFOUA may return 0 or garbage.
+  // FIFO1 RX starts at RAM base 0x400 (no TXQ, no TEF in our config).
+  if (ua == 0 || ua > 0xBFF) {
+    ESP_LOGV(TAG, "rx_fifo_addr_: UA=0x%04X invalid, using fixed 0x400", (uint16_t)ua);
+    return 0x400;
+  }
+  return static_cast<uint16_t>(ua);
 }
 
 bool MCP2518FD::rx_available_() {
@@ -681,15 +688,10 @@ bool MCP2518FD::rx_available_() {
   if (this->int1_pin_ != nullptr)
     return !this->int1_pin_->digital_read();
 
-  // NOTE: On clone chips (DEVID=0x00), CiFIFOSTA always returns 0
-  // Use CiRXIF interrupt flag: bit 1 = FIFO1 has message
-  uint32_t rxif = read_sfr_(REG_CiRXIF);
-  uint32_t sta  = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 1);
-  ESP_LOGV(TAG, "rx_available_: CiRXIF=0x%08X CH1STA=0x%08X", rxif, sta);
-
-  if (rxif & (1UL << 1))
-    return true;
-  return (sta & FIFOSTA_RXNOTEMPTY) != 0;
+  // NOTE: On clone chips (DEVID=0x00), CiFIFOSTA and CiRXIF always return 0.
+  // Use blind polling: always return true and let read_message_fifo_ check
+  // the actual message object in RAM for validity.
+  return true;
 }
 
 canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
@@ -717,10 +719,19 @@ canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
   uint32_t id_word = hdr[0] | (hdr[1]<<8) | (hdr[2]<<16) | (hdr[3]<<24);
   uint32_t ctrl    = hdr[4] | (hdr[5]<<8) | (hdr[6]<<16) | (hdr[7]<<24);
 
+  // On clone chips with blind polling: check if message object looks valid.
+  // A valid CAN frame must have IDE=1 (extended) or SID!=0, and DLC<=8.
+  // If id_word and ctrl are both 0, this slot is empty.
+  if (id_word == 0 && (ctrl & 0xFF) == 0) {
+    return canbus::ERROR_NOMSG;
+  }
+
   bool    extended = (ctrl & MSGOBJ_IDE) != 0;
   bool    rtr      = (ctrl & MSGOBJ_RTR) != 0;
   uint8_t dlc      = static_cast<uint8_t>(ctrl & MSGOBJ_DLC_MASK);
   uint8_t nbytes   = dlc_to_bytes_(dlc);
+
+  ESP_LOGV(TAG, "RX slot: id=0x%08X ctrl=0x%08X dlc=%d ext=%d", id_word, ctrl, dlc, extended);
 
   if (nbytes > CAN_FD_MAX_DATA_LENGTH)
     goto uinc;
