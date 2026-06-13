@@ -13,11 +13,60 @@ namespace usbuvc {
 
 static const char *const TAG = "usbuvc";
 
-// Tailles de stack / priorités — ajustées pour ESP32-S3
-static constexpr uint32_t    USB_LIB_TASK_STACK    = 4096;
-static constexpr uint32_t    UVC_CONNECT_TASK_STACK = 4096;
-static constexpr UBaseType_t USB_LIB_TASK_PRIO      = 15;
-static constexpr UBaseType_t UVC_TASK_PRIO           = 14;
+// ===========================================================================
+// Constantes dépendantes de la cible
+//
+// ESP32-S3 — USB Full-Speed (12 Mbps)
+//   • RAM limitée (~512 KB DRAM, PSRAM externe via SPI)
+//   • Micro-frame USB = 1 ms  → latence callback modérée
+//   • Stacks modestes, priorités standard
+//
+// ESP32-P4 — USB High-Speed (480 Mbps)
+//   • 32 MB PSRAM interne hautes performances
+//   • Micro-frame USB = 125 µs → la tâche USB lib doit répondre très vite
+//   • CPU RISC-V dual-core 400 MHz : on peut monter les priorités sans risque
+//   • Stacks plus larges car le driver HS empile plus de contexte d'interruption
+// ===========================================================================
+
+#if CONFIG_IDF_TARGET_ESP32P4
+
+// --- ESP32-P4 (USB High-Speed) -------------------------------------------
+// Stacks : 6 KB pour la lib, 8 KB pour la tâche connect/UVC
+// (le driver HS charge plus de contexte en isochronous haute bande passante)
+static constexpr uint32_t    USB_LIB_TASK_STACK     = 6144;
+static constexpr uint32_t    UVC_CONNECT_TASK_STACK  = 8192;
+// Priorités hautes pour respecter les micro-frames à 125 µs
+// (configMAX_PRIORITIES = 25 sur IDF ; on reste sous 20 pour laisser
+//  de la marge au watchdog IDF qui tourne à priorité 22)
+static constexpr UBaseType_t USB_LIB_TASK_PRIO       = 18;
+static constexpr UBaseType_t UVC_TASK_PRIO            = 17;
+// Affinité : Core 1 (Core 0 = main loop ESPHome + WiFi via esp32_hosted)
+static constexpr BaseType_t  USB_LIB_CORE             = 1;
+static constexpr BaseType_t  UVC_CONNECT_CORE         = 1;
+
+#elif CONFIG_IDF_TARGET_ESP32S3
+
+// --- ESP32-S3 (USB Full-Speed) --------------------------------------------
+// Stacks : 4 KB suffit largement en FS
+// Priorités : 15/14 — en-dessous des tâches WiFi IDF (~19) mais
+//             au-dessus du main loop ESPHome (~5)
+static constexpr uint32_t    USB_LIB_TASK_STACK     = 4096;
+static constexpr uint32_t    UVC_CONNECT_TASK_STACK  = 4096;
+static constexpr UBaseType_t USB_LIB_TASK_PRIO       = 15;
+static constexpr UBaseType_t UVC_TASK_PRIO            = 14;
+// tskNO_AFFINITY : le scheduler choisit le cœur disponible
+static constexpr BaseType_t  USB_LIB_CORE             = tskNO_AFFINITY;
+static constexpr BaseType_t  UVC_CONNECT_CORE         = tskNO_AFFINITY;
+
+#else
+// --- Autre cible ESP32 (S2, C3, …) : valeurs conservatives --------------
+static constexpr uint32_t    USB_LIB_TASK_STACK     = 4096;
+static constexpr uint32_t    UVC_CONNECT_TASK_STACK  = 4096;
+static constexpr UBaseType_t USB_LIB_TASK_PRIO       = 15;
+static constexpr UBaseType_t UVC_TASK_PRIO            = 14;
+static constexpr BaseType_t  USB_LIB_CORE             = tskNO_AFFINITY;
+static constexpr BaseType_t  UVC_CONNECT_CORE         = tskNO_AFFINITY;
+#endif
 
 // Profondeur de la queue inter-tâches (frames en attente de dispatch)
 static constexpr uint8_t FRAME_QUEUE_DEPTH = 4;
@@ -102,19 +151,13 @@ UsbUvcImageTrigger::UsbUvcImageTrigger(UsbUvcCamera *parent) {
 // ===========================================================================
 
 void UsbUvcCamera::setup() {
-  // -----------------------------------------------------------------------
-  // CRITIQUE : enregistre cette instance comme la caméra globale.
-  // L'API server appelle camera::Camera::instance() pour obtenir ce pointeur,
-  // puis appelle request_image() / start_stream() / create_image_reader().
-  // Sans cette ligne, HA ne voit pas de caméra.
-  // -----------------------------------------------------------------------
+  // Enregistre cette instance comme la caméra globale.
+  // L'API server appelle camera::Camera::instance() pour obtenir ce pointeur.
   camera::Camera::global_camera = this;
 
   this->last_update_       = millis();
   this->last_idle_request_ = millis();
 
-  // File RTOS : la tâche UVC y dépose des PendingFrame,
-  // le main loop ESPHome les consomme dans loop().
   this->frame_queue_  = xQueueCreate(FRAME_QUEUE_DEPTH, sizeof(PendingFrame));
   this->stream_mutex_ = xSemaphoreCreateMutex();
 
@@ -124,11 +167,21 @@ void UsbUvcCamera::setup() {
     return;
   }
 
-  // --- Installation du driver USB host (une seule fois par firmware) ------
-  const usb_host_config_t host_cfg = {
-      .skip_phy_setup = false,
-      .intr_flags     = ESP_INTR_FLAG_LOWMED,
-  };
+  // --- Configuration du driver USB host ------------------------------------
+  usb_host_config_t host_cfg = {};
+  host_cfg.skip_phy_setup = false;
+  host_cfg.intr_flags     = ESP_INTR_FLAG_LOWMED;
+
+#if CONFIG_IDF_TARGET_ESP32P4
+  // Sur P4 : sélectionne le PHY High-Speed (GPIO49/50).
+  // Sans ce flag, le P4 utilise le PHY Full-Speed par défaut (GPIO26/27)
+  // et on perd tout le bénéfice du USB 2.0 HS.
+  host_cfg.peripheral_map = USB_HOST_PERIPHERAL_MAP_HS_OTG;
+  ESP_LOGI(TAG, "ESP32-P4 : PHY USB High-Speed sélectionné (GPIO49/50)");
+#else
+  ESP_LOGI(TAG, "ESP32-S3 : PHY USB Full-Speed (GPIO19/20)");
+#endif
+
   esp_err_t err = usb_host_install(&host_cfg);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "usb_host_install: %s", esp_err_to_name(err));
@@ -141,7 +194,7 @@ void UsbUvcCamera::setup() {
           UsbUvcCamera::usb_lib_task_, "usbuvc_lib",
           USB_LIB_TASK_STACK, nullptr,
           USB_LIB_TASK_PRIO, &this->usb_lib_task_handle_,
-          tskNO_AFFINITY) != pdTRUE) {
+          USB_LIB_CORE) != pdTRUE) {
     ESP_LOGE(TAG, "Impossible de créer la tâche USB lib");
     this->mark_failed();
     return;
@@ -149,9 +202,9 @@ void UsbUvcCamera::setup() {
 
   // --- Installation du driver UVC host ------------------------------------
   const uvc_host_driver_config_t uvc_drv_cfg = {
-      .driver_task_stack_size = 4096,
+      .driver_task_stack_size = UVC_CONNECT_TASK_STACK,
       .driver_task_priority   = USB_LIB_TASK_PRIO + 1,
-      .xCoreID                = tskNO_AFFINITY,
+      .xCoreID                = USB_LIB_CORE,
       .create_background_task = true,
   };
   err = uvc_host_install(&uvc_drv_cfg);
@@ -166,71 +219,82 @@ void UsbUvcCamera::setup() {
           UsbUvcCamera::uvc_connect_task_, "usbuvc_conn",
           UVC_CONNECT_TASK_STACK, this,
           UVC_TASK_PRIO, &this->uvc_task_handle_,
-          tskNO_AFFINITY) != pdTRUE) {
+          UVC_CONNECT_CORE) != pdTRUE) {
     ESP_LOGE(TAG, "Impossible de créer la tâche UVC connect");
     this->mark_failed();
     return;
   }
 
-  ESP_LOGI(TAG, "USB UVC camera setup OK");
+  ESP_LOGI(TAG, "USB UVC camera setup OK "
+#if CONFIG_IDF_TARGET_ESP32P4
+      "(ESP32-P4, USB HS, prio=%d/%d, stack=%d/%d)",
+#else
+      "(ESP32-S3, USB FS, prio=%d/%d, stack=%d/%d)",
+#endif
+      (int)USB_LIB_TASK_PRIO, (int)UVC_TASK_PRIO,
+      (int)USB_LIB_TASK_STACK, (int)UVC_CONNECT_TASK_STACK);
 }
 
 // ---------------------------------------------------------------------------
 void UsbUvcCamera::dump_config() {
   ESP_LOGCONFIG(TAG,
       "USB UVC Camera:\n"
+      "  Cible           : %s\n"
       "  Name            : %s\n"
       "  USB VID:PID     : 0x%04X:0x%04X  stream_idx=%u\n"
       "  Resolution      : %ux%u @ %u fps\n"
       "  Max interval    : %u ms\n"
       "  Idle interval   : %u ms\n"
-      "  Frame buffers   : %u   URBs: %u x %u B",
+      "  Frame buffers   : %u   URBs: %u x %u B\n"
+      "  Task USB lib    : prio=%u  stack=%u B\n"
+      "  Task UVC conn   : prio=%u  stack=%u B",
+#if CONFIG_IDF_TARGET_ESP32P4
+      "ESP32-P4 (USB HS)",
+#elif CONFIG_IDF_TARGET_ESP32S3
+      "ESP32-S3 (USB FS)",
+#else
+      "ESP32 (USB FS)",
+#endif
       this->get_name().c_str(),
       this->vid_, this->pid_, this->uvc_stream_index_,
       this->width_, this->height_, this->fps_,
       this->max_update_interval_,
       this->idle_update_interval_,
       this->frame_buffer_count_,
-      this->urb_count_, this->urb_size_);
+      this->urb_count_, this->urb_size_,
+      (unsigned)USB_LIB_TASK_PRIO,  (unsigned)USB_LIB_TASK_STACK,
+      (unsigned)UVC_TASK_PRIO,       (unsigned)UVC_CONNECT_TASK_STACK);
 
   if (this->is_failed())
     ESP_LOGE(TAG, "  Setup FAILED");
 }
 
 // ---------------------------------------------------------------------------
-// loop() — exécuté dans le contexte du main loop ESPHome (core 0 ou 1)
-// ---------------------------------------------------------------------------
 void UsbUvcCamera::loop() {
   const uint32_t now = App.get_loop_component_start_time();
 
-  // -- Libère l'image courante si tous les readers ont terminé -------------
   if (this->can_release_image_())
     this->current_image_.reset();
 
-  // -- Heartbeat idle : maintient la miniature HA à jour ------------------
   if (!this->has_requested_image_()) {
     if (this->idle_update_interval_ > 0 &&
         now - this->last_idle_request_ >= this->idle_update_interval_) {
       this->last_idle_request_ = now;
-      // Demande un snapshot pour le mode idle (miniature HA)
       this->single_requesters_ |= (1U << static_cast<uint8_t>(camera::IDLE));
     } else {
       return;
     }
   }
 
-  // -- Rate limiting -------------------------------------------------------
   if (now - this->last_update_ < this->max_update_interval_)
     return;
 
-  // -- Si une image est encore en cours de lecture, on attend --------------
   if (!this->can_release_image_())
     return;
 
-  // -- Tente de dépiler un frame depuis la tâche UVC ----------------------
   PendingFrame pf{};
   if (xQueueReceive(this->frame_queue_, &pf, 0) != pdTRUE)
-    return;  // rien de prêt
+    return;
 
   if (pf.data == nullptr || pf.len == 0) {
     free(pf.data);  // NOLINT
@@ -245,14 +309,12 @@ void UsbUvcCamera::loop() {
 // ===========================================================================
 
 void UsbUvcCamera::request_image(camera::CameraRequester requester) {
-  // Positionne le bit correspondant : le prochain frame disponible sera livré.
   this->single_requesters_ |= (1U << static_cast<uint8_t>(requester));
 }
 
 void UsbUvcCamera::start_stream(camera::CameraRequester requester) {
   this->stream_requesters_ |= (1U << static_cast<uint8_t>(requester));
   this->fire_stream_start_triggers_();
-  // Notifie les listeners (API server → on_stream_start côté HA)
   for (auto *l : this->listeners_)
     l->on_stream_start();
 }
@@ -265,9 +327,6 @@ void UsbUvcCamera::stop_stream(camera::CameraRequester requester) {
 }
 
 camera::CameraImageReader *UsbUvcCamera::create_image_reader() {
-  // L'API server appelle ceci pour chaque connexion client HA.
-  // Chaque reader retient un shared_ptr sur current_image_ ; tant qu'un
-  // reader existe, l'image n'est pas libérée.
   return new UsbUvcImageReader();  // NOLINT(cppcoreguidelines-owning-memory)
 }
 
@@ -276,13 +335,9 @@ camera::CameraImageReader *UsbUvcCamera::create_image_reader() {
 // ===========================================================================
 
 bool UsbUvcCamera::on_frame_(const uvc_host_frame_t *frame) {
-  // Retourner 'true' = on rend le buffer au driver immédiatement.
-  // On copie le payload AVANT de retourner pour ne pas bloquer le driver.
-
   if (frame->data_len == 0)
     return true;
 
-  // Ne copie que si quelqu'un attend un frame
   if (!this->has_requested_image_())
     return true;
 
@@ -299,7 +354,6 @@ bool UsbUvcCamera::on_frame_(const uvc_host_frame_t *frame) {
     free(copy);  // NOLINT
   }
 
-  // Réveille le main loop pour qu'il traite le frame sans attendre
   App.wake_loop_threadsafe();
   return true;
 }
@@ -319,7 +373,6 @@ void UsbUvcCamera::on_stream_event_(const uvc_host_stream_event_data_t *event) {
         this->uvc_stream_ = nullptr;
       }
       xSemaphoreGive(this->stream_mutex_);
-      // Notifie HA que le flux s'est arrêté
       this->fire_stream_stop_triggers_();
       for (auto *l : this->listeners_)
         l->on_stream_stop();
@@ -334,7 +387,7 @@ void UsbUvcCamera::on_stream_event_(const uvc_host_stream_event_data_t *event) {
       break;
 
     default:
-      ESP_LOGV(TAG, "Événement UVC inattendu: %d", (int)event->type);
+      ESP_LOGV(TAG, "Événement UVC: %d", (int)event->type);
       break;
   }
 }
@@ -344,21 +397,14 @@ void UsbUvcCamera::on_stream_event_(const uvc_host_stream_event_data_t *event) {
 // ===========================================================================
 
 void UsbUvcCamera::dispatch_new_image_(PendingFrame &pf) {
-  // Construit un UsbUvcImage qui prend ownership du malloc (libéré dans ~UsbUvcImage)
   const uint8_t req_mask = this->single_requesters_ | this->stream_requesters_;
   this->current_image_ = std::make_shared<UsbUvcImage>(pf.data, pf.len, req_mask);
 
   ESP_LOGV(TAG, "Nouveau frame : %u octets", (unsigned)pf.len);
 
-  // -----------------------------------------------------------------------
-  // Notifie tous les listeners — l'API server est ici.
-  // Il reçoit on_camera_image(), récupère le shared_ptr, et appelle
-  // create_image_reader() → set_image() pour streamer vers HA via WebSocket.
-  // -----------------------------------------------------------------------
   for (auto *listener : this->listeners_)
     listener->on_camera_image(this->current_image_);
 
-  // Fire on_image trigger (automations YAML)
   UsbUvcCameraImageData img_data;
   img_data.data   = pf.data;
   img_data.length = pf.len;
@@ -366,7 +412,6 @@ void UsbUvcCamera::dispatch_new_image_(PendingFrame &pf) {
     t->trigger(img_data);
 
   this->last_update_       = millis();
-  // Acquitte les demandes one-shot ; les flux continus (stream_requesters_) restent actifs
   this->single_requesters_ = 0;
 }
 
@@ -374,6 +419,7 @@ void UsbUvcCamera::fire_stream_start_triggers_() {
   for (auto *t : this->stream_start_triggers_)
     t->trigger();
 }
+
 void UsbUvcCamera::fire_stream_stop_triggers_() {
   for (auto *t : this->stream_stop_triggers_)
     t->trigger();
@@ -383,7 +429,6 @@ void UsbUvcCamera::fire_stream_stop_triggers_() {
 // Tâches RTOS
 // ===========================================================================
 
-// Tâche événements bas-niveau USB host (doit tourner en permanence)
 void UsbUvcCamera::usb_lib_task_(void * /*pv*/) {
   while (true) {
     uint32_t flags = 0;
@@ -393,12 +438,10 @@ void UsbUvcCamera::usb_lib_task_(void * /*pv*/) {
   }
 }
 
-// Tâche connexion UVC : ouvre le stream et reconnecte automatiquement
 void UsbUvcCamera::uvc_connect_task_(void *pv) {
   auto *self = static_cast<UsbUvcCamera *>(pv);
 
   uvc_host_stream_config_t cfg = {};
-  // Passe 'self' en user_ctx pour éviter le singleton global
   cfg.event_cb  = uvc_stream_callback;
   cfg.frame_cb  = uvc_frame_callback;
   cfg.user_ctx  = self;
@@ -441,7 +484,6 @@ void UsbUvcCamera::uvc_connect_task_(void *pv) {
     ESP_LOGI(TAG, "Caméra UVC ouverte — démarrage du stream");
     uvc_host_stream_start(hdl);
 
-    // Attend la déconnexion (on_stream_event_ met dev_connected_ à false)
     while (self->dev_connected_)
       vTaskDelay(pdMS_TO_TICKS(500));
 
