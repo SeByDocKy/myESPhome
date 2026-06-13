@@ -679,9 +679,16 @@ uint16_t MCP2518FD::rx_fifo_addr_() {
 bool MCP2518FD::rx_available_() {
   // Fast path: if INT1 is wired, check the pin (active-low → asserted = LOW)
   if (this->int1_pin_ != nullptr)
-    return !this->int1_pin_->digital_read();  // LOW = interrupt asserted
+    return !this->int1_pin_->digital_read();
 
-  // Fallback: read FIFO status register directly
+  // NOTE: On clone chips (DEVID=0x00), CiFIFOSTA always returns 0
+  // so RXNOTEMPTY is unreliable. Use CiRXIF interrupt flag instead.
+  // CiRXIF bit 1 = FIFO1 received a message
+  uint32_t rxif = read_sfr_(REG_CiRXIF);
+  if (rxif & (1UL << 1))
+    return true;
+
+  // Fallback: try reading STA directly (works on genuine chips)
   uint32_t sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 1);
   return (sta & FIFOSTA_RXNOTEMPTY) != 0;
 }
