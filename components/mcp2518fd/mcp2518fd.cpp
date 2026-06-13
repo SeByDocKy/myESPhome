@@ -682,14 +682,13 @@ bool MCP2518FD::rx_available_() {
     return !this->int1_pin_->digital_read();
 
   // NOTE: On clone chips (DEVID=0x00), CiFIFOSTA always returns 0
-  // so RXNOTEMPTY is unreliable. Use CiRXIF interrupt flag instead.
-  // CiRXIF bit 1 = FIFO1 received a message
+  // Use CiRXIF interrupt flag: bit 1 = FIFO1 has message
   uint32_t rxif = read_sfr_(REG_CiRXIF);
+  uint32_t sta  = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 1);
+  ESP_LOGV(TAG, "rx_available_: CiRXIF=0x%08X CH1STA=0x%08X", rxif, sta);
+
   if (rxif & (1UL << 1))
     return true;
-
-  // Fallback: try reading STA directly (works on genuine chips)
-  uint32_t sta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 1);
   return (sta & FIFOSTA_RXNOTEMPTY) != 0;
 }
 
