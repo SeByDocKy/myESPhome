@@ -12,6 +12,12 @@ substitutions:
   bms_modbus_address: '1'
   
   
+globals:
+  - id: phase_choice
+    type: int
+    restore_value: yes
+    initial_value: '1'  
+  
 esphome:
   name: ${name}
   comment: ${device_description}
@@ -59,7 +65,6 @@ modbustcp_controller:
 
 
 modbus:
-    
   - id: modbus_rtu
     uart_id: uart_0
     send_wait_time: 50ms    
@@ -98,8 +103,37 @@ spi:
 
 debug:
   update_interval: 5s
+  
+  
+select:
+  - platform: template
+    name: ${name}_phase_select
+    id: phase_select
+    icon: mdi:power
+    optimistic: false #true
+    restore_value: true
+    initial_option: 'p1'
+    options:
+      - 'p1'
+      - 'p2'
+      - 'p3'
+    set_action:
+      then:
+        - globals.set:
+           id: phase_choice
+           value: !lambda |- 
+             auto index = id(phase_select).active_index();
+             return (index.value()+1);
 
 sensor:
+
+  - platform: template
+    id: active_power
+    name: ${name}_active_power
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
 
   - platform: modbustcp_controller
     modbustcp_controller_id: modbus_device_tcp
@@ -112,7 +146,50 @@ sensor:
     device_class: power
     icon: mdi:flash
     unit_of_measurement: 'W'
+    on_value:
+      then:
+       - lambda: |-
+           if (id(phase_choice) == 1){
+             id(active_power).publish_state(id(p1_active_power).state);
+           }
+    
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device_tcp
+    name: ${name}_p2_active_power
+    id: p2_active_power
+    address: 1045  #1045=p2, 1065=p3
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
+    on_value:
+      then:
+       - lambda: |-
+           if (id(phase_choice) == 2){
+             id(active_power).publish_state(id(p2_active_power).state);
+           }
 
+    
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device_tcp
+    name: ${name}_p3_active_power
+    id: p3_active_power
+    address: 1065  #1045=p2, 1065=p3
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
+    on_value:
+      then:
+       - lambda: |-
+           if (id(phase_choice) == 3){
+            id(active_power).publish_state(id(p3_active_power).state);
+           }  
+            
   - platform: wifi_signal
     name: ${name}_wifi_power
     id: wifi_power
@@ -217,7 +294,7 @@ packages:
         vars:
           dualpidpcm_id: 'pid_id'
           dualpidpcm_name: 'pid'
-          dualpidpcm_input_id: 'p1_active_power'
+          dualpidpcm_input_id: 'active_power'
           dualpidpcm_battery_voltage_id: 'jkpbbms_battery_voltage' #'battery_voltage_from_ha'
           dualpidpcm_charging_output_id: 'charging_current_output'
           dualpidpcm_discharging_output_id: 'discharging_current_output'
