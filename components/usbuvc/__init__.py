@@ -8,7 +8,7 @@ a USB Video Class device instead of a parallel-bus sensor.
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components.esp32 import add_idf_component
+from esphome.components.esp32 import add_idf_component, add_idf_sdkconfig_option
 from esphome.const import (
     CONF_ID,
     CONF_TRIGGER_ID,
@@ -21,7 +21,6 @@ AUTO_LOAD = ["camera"]
 # ------------------------------------------------------------------ namespace
 usbuvc_ns = cg.esphome_ns.namespace("usbuvc")
 
-# camera::Camera lives in the 'camera' C++ namespace – reference by namespace
 camera_ns = cg.esphome_ns.namespace("camera")
 CameraBase = camera_ns.class_("Camera", cg.EntityBase, cg.Component)
 
@@ -39,20 +38,29 @@ UsbUvcImageTrigger = usbuvc_ns.class_(
     "UsbUvcImageTrigger", automation.Trigger.template(UsbUvcCameraImageData)
 )
 
+# Action types
+UsbUvcStartStreamAction = usbuvc_ns.class_(
+    "UsbUvcStartStreamAction", automation.Action
+)
+UsbUvcStopStreamAction = usbuvc_ns.class_(
+    "UsbUvcStopStreamAction", automation.Action
+)
+
 # ---------------------------------------------------------------- config keys
-CONF_VID                = "vid"
-CONF_PID                = "pid"
-CONF_UVC_STREAM_INDEX   = "uvc_stream_index"
-CONF_FPS                = "fps"
-CONF_MAX_FRAMERATE      = "max_framerate"
-CONF_IDLE_FRAMERATE     = "idle_framerate"
-CONF_FRAME_BUFFER_COUNT = "frame_buffer_count"
-CONF_URB_COUNT          = "urb_count"
-CONF_URB_SIZE           = "urb_size"
-CONF_FRAME_SIZE_MAX     = "frame_size_max"
-CONF_ON_STREAM_START    = "on_stream_start"
-CONF_ON_STREAM_STOP     = "on_stream_stop"
-CONF_ON_IMAGE           = "on_image"
+CONF_VID                    = "vid"
+CONF_PID                    = "pid"
+CONF_UVC_STREAM_INDEX       = "uvc_stream_index"
+CONF_FPS                    = "fps"
+CONF_MAX_FRAMERATE          = "max_framerate"
+CONF_IDLE_FRAMERATE         = "idle_framerate"
+CONF_FRAME_BUFFER_COUNT     = "frame_buffer_count"
+CONF_URB_COUNT              = "urb_count"
+CONF_URB_SIZE               = "urb_size"
+CONF_FRAME_SIZE_MAX         = "frame_size_max"
+CONF_TRANSFER_MAX_SIZE      = "transfer_max_size"
+CONF_ON_STREAM_START        = "on_stream_start"
+CONF_ON_STREAM_STOP         = "on_stream_stop"
+CONF_ON_IMAGE               = "on_image"
 
 # ---------------------------------------------------------------- resolution
 RESOLUTIONS = {
@@ -88,6 +96,11 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_URB_COUNT, default=3): cv.int_range(min=1, max=8),
             cv.Optional(CONF_URB_SIZE, default=10240): cv.int_range(min=512, max=65536),
             cv.Optional(CONF_FRAME_SIZE_MAX, default=0): cv.positive_int,
+            # transfer_max_size : taille max du buffer de control transfer USB.
+            # Remplace CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE dans sdkconfig.
+            # Valeur recommandée : 2048 pour les caméras avec de gros descripteurs
+            # (ex. wTotalLength > 256 bytes).  0 = utiliser la valeur IDF par défaut.
+            cv.Optional(CONF_TRANSFER_MAX_SIZE, default=2048): cv.int_range(min=0, max=8192),
             cv.Optional(CONF_ON_STREAM_START): automation.validate_automation(
                 {cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(UsbUvcStreamStartTrigger)}
             ),
@@ -101,6 +114,36 @@ CONFIG_SCHEMA = cv.All(
     ).extend(cv.COMPONENT_SCHEMA),
     cv.only_on_esp32,
 )
+
+# ---------------------------------------------------------------- action schemas
+USBUVC_START_STREAM_ACTION_SCHEMA = automation.maybe_simple_id(
+    {cv.GenerateID(): cv.use_id(UsbUvcCamera)}
+)
+USBUVC_STOP_STREAM_ACTION_SCHEMA = automation.maybe_simple_id(
+    {cv.GenerateID(): cv.use_id(UsbUvcCamera)}
+)
+
+@automation.register_action(
+    "usbuvc.start_stream",
+    UsbUvcStartStreamAction,
+    USBUVC_START_STREAM_ACTION_SCHEMA,
+    synchronous=True,
+)
+async def usbuvc_start_stream_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    return var
+
+@automation.register_action(
+    "usbuvc.stop_stream",
+    UsbUvcStopStreamAction,
+    USBUVC_STOP_STREAM_ACTION_SCHEMA,
+    synchronous=True,
+)
+async def usbuvc_stop_stream_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    return var
 
 
 async def to_code(config):
@@ -127,24 +170,19 @@ async def to_code(config):
     cg.add(var.set_urb_count(config[CONF_URB_COUNT]))
     cg.add(var.set_urb_size(config[CONF_URB_SIZE]))
     cg.add(var.set_frame_size_max(config[CONF_FRAME_SIZE_MAX]))
+    # transfer_max_size -> injecté dans sdkconfig via add_idf_sdkconfig_option
+    # Evite de devoir mettre CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE manuellement
+    if config[CONF_TRANSFER_MAX_SIZE] > 0:
+        add_idf_sdkconfig_option(
+            "CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE",
+            config[CONF_TRANSFER_MAX_SIZE],
+        )
 
-    # Declare the IDF managed component dependency.
-    # This writes to src/idf_component.yml and triggers the IDF Component Manager
-    # to download espressif__usb_host_uvc into managed_components/ on first build.
-    # The include path managed_components/espressif__usb_host_uvc/include is added
-    # automatically by CMake after the first download.
-    #
-    # NOTE: If the first build fails with "usb/uvc_host.h: No such file",
-    # simply run 'esphome compile' a second time — the managed_components will
-    # have been downloaded and CMake will pick them up on the next run.
     add_idf_component(
         name="espressif/usb_host_uvc",
         ref=">=2.2.0",
     )
 
-    # Also add a build flag pointing to the expected managed_components include path
-    # so the header is found even on the first build pass (PlatformIO quirk).
-    # The path uses a glob-style double-star that PlatformIO expands at build time.
     cg.add_platformio_option(
         "build_flags",
         ["-I${PROJECT_DIR}/managed_components/espressif__usb_host_uvc/include"],

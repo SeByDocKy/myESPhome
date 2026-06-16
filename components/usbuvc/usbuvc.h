@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <vector>
+#include "esphome/core/helpers.h"
 
 namespace esphome {
 namespace usbuvc {
@@ -132,6 +133,10 @@ class UsbUvcCamera : public camera::Camera {
   void set_urb_size(uint32_t sz)              { this->urb_size_ = sz; }
   void set_frame_size_max(uint32_t sz)        { this->frame_size_max_ = sz; }
 
+  // ----- Actions YAML (appelées depuis UsbUvcStartStreamAction / UsbUvcStopStreamAction)
+  void action_start_stream();
+  void action_stop_stream();
+
   // ----- Enregistrement des triggers YAML ----------------------------------
   void add_stream_start_trigger(UsbUvcStreamStartTrigger *t) { this->stream_start_triggers_.push_back(t); }
   void add_stream_stop_trigger (UsbUvcStreamStopTrigger  *t) { this->stream_stop_triggers_.push_back(t); }
@@ -207,6 +212,26 @@ class UsbUvcCamera : public camera::Camera {
   std::vector<UsbUvcStreamStartTrigger *> stream_start_triggers_;
   std::vector<UsbUvcStreamStopTrigger  *> stream_stop_triggers_;
   std::vector<UsbUvcImageTrigger       *> image_triggers_;
+};
+
+
+// ---------------------------------------------------------------------------
+// Actions YAML : usbuvc.start_stream / usbuvc.stop_stream
+// ---------------------------------------------------------------------------
+template<typename... Ts>
+class UsbUvcStartStreamAction : public Action<Ts...>, public Parented<UsbUvcCamera> {
+ public:
+  void play(Ts... x) override {
+    this->parent_->action_start_stream();
+  }
+};
+
+template<typename... Ts>
+class UsbUvcStopStreamAction : public Action<Ts...>, public Parented<UsbUvcCamera> {
+ public:
+  void play(Ts... x) override {
+    this->parent_->action_stop_stream();
+  }
 };
 
 }  // namespace usbuvc

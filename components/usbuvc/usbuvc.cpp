@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include <malloc.h>
+#include "esp_heap_caps.h"
 
 namespace esphome {
 namespace usbuvc {
@@ -172,12 +173,14 @@ void UsbUvcCamera::setup() {
   host_cfg.skip_phy_setup = false;
   host_cfg.intr_flags     = ESP_INTR_FLAG_LOWMED;
 
+
 #if CONFIG_IDF_TARGET_ESP32P4
-  // Sur P4 : sélectionne le PHY High-Speed (GPIO49/50).
-  // Sans ce flag, le P4 utilise le PHY Full-Speed par défaut (GPIO26/27)
-  // et on perd tout le bénéfice du USB 2.0 HS.
-  host_cfg.peripheral_map = USB_HOST_PERIPHERAL_MAP_HS_OTG;
-  ESP_LOGI(TAG, "ESP32-P4 : PHY USB High-Speed sélectionné (GPIO49/50)");
+  // Sur P4 : la sélection du PHY HS vs FS se fait via sdkconfig
+  // (CONFIG_USB_HOST_HW_INTERFACE_SELECT_HS) plutôt que par code.
+  // Le champ 'port' ou 'peripheral_map' de usb_host_config_t n'existe
+  // pas de manière stable avant IDF 5.5 — on laisse le driver utiliser
+  // le PHY configuré par Kconfig (HS par défaut avec notre sdkconfig_options).
+  ESP_LOGI(TAG, "ESP32-P4 : USB host (PHY sélectionné via sdkconfig)");
 #else
   ESP_LOGI(TAG, "ESP32-S3 : PHY USB Full-Speed (GPIO19/20)");
 #endif
@@ -313,17 +316,24 @@ void UsbUvcCamera::request_image(camera::CameraRequester requester) {
 }
 
 void UsbUvcCamera::start_stream(camera::CameraRequester requester) {
+  const bool was_streaming = this->stream_requesters_ != 0;
   this->stream_requesters_ |= (1U << static_cast<uint8_t>(requester));
-  this->fire_stream_start_triggers_();
-  for (auto *l : this->listeners_)
-    l->on_stream_start();
+  // Ne fire les triggers qu'au premier start (transition 0 -> non-0)
+  if (!was_streaming) {
+    this->fire_stream_start_triggers_();
+    for (auto *l : this->listeners_)
+      l->on_stream_start();
+  }
 }
 
 void UsbUvcCamera::stop_stream(camera::CameraRequester requester) {
   this->stream_requesters_ &= ~(1U << static_cast<uint8_t>(requester));
-  this->fire_stream_stop_triggers_();
-  for (auto *l : this->listeners_)
-    l->on_stream_stop();
+  // Ne fire les triggers que quand le dernier requester se retire (transition non-0 -> 0)
+  if (this->stream_requesters_ == 0) {
+    this->fire_stream_stop_triggers_();
+    for (auto *l : this->listeners_)
+      l->on_stream_stop();
+  }
 }
 
 camera::CameraImageReader *UsbUvcCamera::create_image_reader() {
@@ -341,7 +351,8 @@ bool UsbUvcCamera::on_frame_(const uvc_host_frame_t *frame) {
   if (!this->has_requested_image_())
     return true;
 
-  uint8_t *copy = static_cast<uint8_t *>(malloc(frame->data_len));  // NOLINT
+  uint8_t *copy = static_cast<uint8_t *>(
+      heap_caps_malloc(frame->data_len, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));  // NOLINT
   if (copy == nullptr) {
     ESP_LOGW(TAG, "OOM — frame de %u octets ignoré", (unsigned)frame->data_len);
     return true;
@@ -423,6 +434,32 @@ void UsbUvcCamera::fire_stream_start_triggers_() {
 void UsbUvcCamera::fire_stream_stop_triggers_() {
   for (auto *t : this->stream_stop_triggers_)
     t->trigger();
+}
+
+// ===========================================================================
+// Actions YAML
+// ===========================================================================
+
+void UsbUvcCamera::action_start_stream() {
+  ESP_LOGI(TAG, "action: start_stream");
+  xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
+  if (this->uvc_stream_ != nullptr) {
+    uvc_host_stream_start(this->uvc_stream_);
+  } else {
+    ESP_LOGW(TAG, "action_start_stream: pas de stream ouvert");
+  }
+  xSemaphoreGive(this->stream_mutex_);
+}
+
+void UsbUvcCamera::action_stop_stream() {
+  ESP_LOGI(TAG, "action: stop_stream");
+  xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
+  if (this->uvc_stream_ != nullptr) {
+    uvc_host_stream_stop(this->uvc_stream_);
+  } else {
+    ESP_LOGW(TAG, "action_stop_stream: pas de stream ouvert");
+  }
+  xSemaphoreGive(this->stream_mutex_);
 }
 
 // ===========================================================================
