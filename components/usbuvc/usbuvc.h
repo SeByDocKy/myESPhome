@@ -6,7 +6,9 @@
 #include "esphome/core/entity_base.h"
 #include "esphome/core/log.h"
 #include "esphome/core/application.h"
+#include "esphome/core/helpers.h"
 #include "esphome/components/camera/camera.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -18,7 +20,6 @@
 
 #include <memory>
 #include <vector>
-#include "esphome/core/helpers.h"
 
 namespace esphome {
 namespace usbuvc {
@@ -29,6 +30,20 @@ namespace usbuvc {
 struct UsbUvcCameraImageData {
   uint8_t *data{nullptr};
   size_t   length{0};
+};
+
+// ---------------------------------------------------------------------------
+// Forward declarations
+// ---------------------------------------------------------------------------
+class UsbUvcCamera;
+
+// ---------------------------------------------------------------------------
+// TextSensor listant les formats MJPEG disponibles
+// Déclaré AVANT UsbUvcCamera pour pouvoir être utilisé dans set_format_list_sensor()
+// ---------------------------------------------------------------------------
+class UvcFormatListSensor : public text_sensor::TextSensor, public Component {
+ public:
+  void setup() override {}
 };
 
 // ---------------------------------------------------------------------------
@@ -66,11 +81,6 @@ class UsbUvcImageReader : public camera::CameraImageReader {
 };
 
 // ---------------------------------------------------------------------------
-// Forward declaration
-// ---------------------------------------------------------------------------
-class UsbUvcCamera;
-
-// ---------------------------------------------------------------------------
 // Triggers YAML
 // ---------------------------------------------------------------------------
 class UsbUvcStreamStartTrigger : public Trigger<> {
@@ -88,12 +98,6 @@ class UsbUvcImageTrigger : public Trigger<UsbUvcCameraImageData> {
 
 // ---------------------------------------------------------------------------
 // Composant principal
-//
-// camera::Camera hérite déjà de EntityBase et Component.
-// L'API server ESPHome découvre ce composant via camera::Camera::instance()
-// (qui retourne global_camera), puis appelle directement :
-//   request_image(), start_stream(), stop_stream(), create_image_reader()
-// Il n'y a PAS de push push par listener — c'est un modèle pull/reader.
 // ---------------------------------------------------------------------------
 class UsbUvcCamera : public camera::Camera {
  public:
@@ -103,24 +107,16 @@ class UsbUvcCamera : public camera::Camera {
   void  dump_config() override;
   float get_setup_priority() const override { return setup_priority::LATE; }
 
-  // ----- Interface camera::Camera (pure virtuals à implémenter) -----------
-
-  // L'API server s'abonne ici pour recevoir on_camera_image() à chaque frame.
+  // ----- Interface camera::Camera -----------------------------------------
   void add_listener(camera::CameraListener *listener) override {
     this->listeners_.push_back(listener);
   }
-
-  // L'API server crée un reader par connexion client HA.
   camera::CameraImageReader *create_image_reader() override;
-
-  // Demande un unique snapshot (ex. miniature HA).
   void request_image(camera::CameraRequester requester) override;
-
-  // Démarre/arrête le flux continu (ex. vue live dans HA).
   void start_stream(camera::CameraRequester requester) override;
   void stop_stream(camera::CameraRequester requester)  override;
 
-  // ----- Setters générés par Python codegen --------------------------------
+  // ----- Setters codegen --------------------------------------------------
   void set_vid(uint16_t vid)                  { this->vid_ = vid; }
   void set_pid(uint16_t pid)                  { this->pid_ = pid; }
   void set_uvc_stream_index(uint8_t idx)      { this->uvc_stream_index_ = idx; }
@@ -132,19 +128,22 @@ class UsbUvcCamera : public camera::Camera {
   void set_urb_count(uint8_t n)               { this->urb_count_ = n; }
   void set_urb_size(uint32_t sz)              { this->urb_size_ = sz; }
   void set_frame_size_max(uint32_t sz)        { this->frame_size_max_ = sz; }
+  void set_format_list_sensor(UvcFormatListSensor *s) { this->format_list_sensor_ = s; }
 
-  // ----- Actions YAML (appelées depuis UsbUvcStartStreamAction / UsbUvcStopStreamAction)
+  // ----- Actions YAML -----------------------------------------------------
   void action_start_stream();
   void action_stop_stream();
+  void action_change_format(const std::string &format);
 
-  // ----- Enregistrement des triggers YAML ----------------------------------
+  // ----- Enregistrement triggers ------------------------------------------
   void add_stream_start_trigger(UsbUvcStreamStartTrigger *t) { this->stream_start_triggers_.push_back(t); }
   void add_stream_stop_trigger (UsbUvcStreamStopTrigger  *t) { this->stream_stop_triggers_.push_back(t); }
   void add_image_trigger       (UsbUvcImageTrigger       *t) { this->image_triggers_.push_back(t); }
 
-  // ----- Callbacks appelés depuis le contexte de la tâche UVC -------------
+  // ----- Callbacks RTOS ---------------------------------------------------
   bool on_frame_(const uvc_host_frame_t *frame);
   void on_stream_event_(const uvc_host_stream_event_data_t *event);
+  void on_driver_event_(const uvc_host_driver_event_data_t *event);
 
  protected:
   // --- Configuration -------------------------------------------------------
@@ -154,28 +153,27 @@ class UsbUvcCamera : public camera::Camera {
   uint16_t width_{640};
   uint16_t height_{480};
   uint8_t  fps_{15};
-  uint32_t max_update_interval_{66};    // ms  (~15 fps)
-  uint32_t idle_update_interval_{10000}; // ms (~0.1 fps)
+  uint32_t max_update_interval_{66};
+  uint32_t idle_update_interval_{10000};
   uint8_t  frame_buffer_count_{3};
   uint8_t  urb_count_{3};
   uint32_t urb_size_{10240};
-  uint32_t frame_size_max_{0};          // 0 = négocié par le driver
+  uint32_t frame_size_max_{0};
 
-  // --- État runtime --------------------------------------------------------
+  // --- Runtime -------------------------------------------------------------
   uvc_host_stream_hdl_t uvc_stream_{nullptr};
   bool dev_connected_{false};
+  uint8_t dev_addr_{0};
+  uint8_t connected_stream_index_{0};
 
-  // Masques de bits : un bit par CameraRequester
-  uint8_t single_requesters_{0};   // demandes snapshot one-shot
-  uint8_t stream_requesters_{0};   // demandes flux continu
+  uint8_t single_requesters_{0};
+  uint8_t stream_requesters_{0};
 
   uint32_t last_update_{0};
   uint32_t last_idle_request_{0};
 
-  // Image courante partagée entre tous les readers actifs
   std::shared_ptr<UsbUvcImage> current_image_;
 
-  // File de frames venant de la tâche UVC (copie malloc'd)
   struct PendingFrame {
     uint8_t *data;
     size_t   len;
@@ -183,11 +181,11 @@ class UsbUvcCamera : public camera::Camera {
   QueueHandle_t     frame_queue_{nullptr};
   SemaphoreHandle_t stream_mutex_{nullptr};
 
-  // Listeners (API server, composants tiers…)
-  // Rempli via add_listener() — appelé par l'API server au démarrage.
+  // --- Entités liées -------------------------------------------------------
+  UvcFormatListSensor *format_list_sensor_{nullptr};
   std::vector<camera::CameraListener *> listeners_;
 
-  // --- Handles de tâches RTOS ----------------------------------------------
+  // --- Tâches RTOS ---------------------------------------------------------
   TaskHandle_t usb_lib_task_handle_{nullptr};
   TaskHandle_t uvc_task_handle_{nullptr};
 
@@ -195,43 +193,49 @@ class UsbUvcCamera : public camera::Camera {
   bool has_requested_image_() const {
     return this->single_requesters_ != 0 || this->stream_requesters_ != 0;
   }
-  // Vrai si plus aucun reader externe ne retient l'image
   bool can_release_image_() const {
     return !this->current_image_ || this->current_image_.use_count() == 1;
   }
 
   void dispatch_new_image_(PendingFrame &pf);
+  void publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_index, size_t frame_info_num);
   void fire_stream_start_triggers_();
   void fire_stream_stop_triggers_();
 
-  // --- Points d'entrée des tâches RTOS (static) ----------------------------
   static void usb_lib_task_(void *pv);
   static void uvc_connect_task_(void *pv);
 
-  // --- Listes de triggers YAML ---------------------------------------------
+  // --- Listes triggers -----------------------------------------------------
   std::vector<UsbUvcStreamStartTrigger *> stream_start_triggers_;
   std::vector<UsbUvcStreamStopTrigger  *> stream_stop_triggers_;
   std::vector<UsbUvcImageTrigger       *> image_triggers_;
 };
 
+// ---------------------------------------------------------------------------
+// Action usbuvc.change_format
+// ---------------------------------------------------------------------------
+template<typename... Ts>
+class UsbUvcChangeFormatAction : public Action<Ts...>, public Parented<UsbUvcCamera> {
+ public:
+  TEMPLATABLE_VALUE(std::string, format)
+  void play(const Ts &...x) override {
+    this->parent_->action_change_format(this->format_.value(x...));
+  }
+};
 
 // ---------------------------------------------------------------------------
-// Actions YAML : usbuvc.start_stream / usbuvc.stop_stream
+// Actions usbuvc.start_stream / usbuvc.stop_stream
 // ---------------------------------------------------------------------------
 template<typename... Ts>
 class UsbUvcStartStreamAction : public Action<Ts...>, public Parented<UsbUvcCamera> {
  public:
-  void play(Ts... x) override {
-    this->parent_->action_start_stream();
-  }
+  void play(const Ts &...x) override { this->parent_->action_start_stream(); }
 };
 
 template<typename... Ts>
 class UsbUvcStopStreamAction : public Action<Ts...>, public Parented<UsbUvcCamera> {
  public:
-  void play(Ts... x) override {
-    this->parent_->action_stop_stream();
-  }
+  void play(const Ts &...x) override { this->parent_->action_stop_stream(); }
 };
 
 }  // namespace usbuvc

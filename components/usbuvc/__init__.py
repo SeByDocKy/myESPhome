@@ -45,6 +45,9 @@ UsbUvcStartStreamAction = usbuvc_ns.class_(
 UsbUvcStopStreamAction = usbuvc_ns.class_(
     "UsbUvcStopStreamAction", automation.Action
 )
+UsbUvcChangeFormatAction = usbuvc_ns.class_(
+    "UsbUvcChangeFormatAction", automation.Action
+)
 
 # ---------------------------------------------------------------- config keys
 CONF_VID                    = "vid"
@@ -132,6 +135,27 @@ USBUVC_STOP_STREAM_ACTION_SCHEMA = automation.maybe_simple_id(
 async def usbuvc_start_stream_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
+    return var
+
+
+USBUVC_CHANGE_FORMAT_ACTION_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.use_id(UsbUvcCamera),
+        cv.Required("format"): cv.templatable(cv.string),
+    }
+)
+
+@automation.register_action(
+    "usbuvc.change_format",
+    UsbUvcChangeFormatAction,
+    USBUVC_CHANGE_FORMAT_ACTION_SCHEMA,
+    synchronous=True,
+)
+async def usbuvc_change_format_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    templ = await cg.templatable(config["format"], args, cg.std_string)
+    cg.add(var.set_format(templ))
     return var
 
 @automation.register_action(

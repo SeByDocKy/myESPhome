@@ -76,6 +76,13 @@ static constexpr uint8_t FRAME_QUEUE_DEPTH = 4;
 // Callbacks statiques UVC  (contexte : tâche driver UVC, pas le main loop)
 // ===========================================================================
 
+static void uvc_driver_event_callback(const uvc_host_driver_event_data_t *event, void *user_ctx) {
+  auto *self = static_cast<UsbUvcCamera *>(user_ctx);
+  if (self == nullptr || event == nullptr)
+    return;
+  self->on_driver_event_(event);
+}
+
 static bool uvc_frame_callback(const uvc_host_frame_t *frame, void *user_ctx) {
   auto *self = static_cast<UsbUvcCamera *>(user_ctx);
   if (self == nullptr || frame == nullptr)
@@ -209,6 +216,8 @@ void UsbUvcCamera::setup() {
       .driver_task_priority   = USB_LIB_TASK_PRIO + 1,
       .xCoreID                = USB_LIB_CORE,
       .create_background_task = true,
+      .event_cb               = uvc_driver_event_callback,
+      .user_ctx               = this,
   };
   err = uvc_host_install(&uvc_drv_cfg);
   if (err != ESP_OK) {
@@ -440,6 +449,125 @@ void UsbUvcCamera::fire_stream_stop_triggers_() {
 // Actions YAML
 // ===========================================================================
 
+
+void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_index, size_t frame_info_num) {
+  if (this->format_list_sensor_ == nullptr)
+    return;
+
+  if (frame_info_num == 0) {
+    this->format_list_sensor_->publish_state("no_format");
+    return;
+  }
+
+  // Alloue le tableau de frame_info
+  auto *frame_list = new uvc_host_frame_info_t[frame_info_num];
+  if (frame_list == nullptr) {
+    ESP_LOGE(TAG, "publish_format_list_: OOM pour %d entrées", (int)frame_info_num);
+    this->format_list_sensor_->publish_state("oom");
+    return;
+  }
+
+  size_t actual = frame_info_num;
+  esp_err_t err = uvc_host_get_frame_list(dev_addr, uvc_stream_index,
+                                          (uvc_host_frame_info_t (*)[])frame_list,
+                                          &actual);
+  if (err != ESP_OK) {
+    ESP_LOGE(TAG, "uvc_host_get_frame_list: %s", esp_err_to_name(err));
+    delete[] frame_list;
+    this->format_list_sensor_->publish_state("error");
+    return;
+  }
+
+  // Construit "WxH@Ffps|WxH@Ffps|..." (MJPEG uniquement)
+  // Les intervalles sont en unités 100ns → fps = 10 000 000 / interval
+  std::string result;
+  char buf[48];
+  for (size_t i = 0; i < actual; i++) {
+    const uvc_host_frame_info_t &fi = frame_list[i];
+    if (fi.format != UVC_VS_FORMAT_MJPEG)
+      continue;
+
+    if (fi.interval_type == 0) {
+      // Continu : on publie default uniquement
+      uint32_t fps = (fi.default_interval > 0) ? (10000000u / fi.default_interval) : 0;
+      if (!result.empty()) result += "|";
+      snprintf(buf, sizeof(buf), "%ux%u@%ufps", fi.h_res, fi.v_res, fps);
+      result += buf;
+      ESP_LOGI(TAG, "  MJPEG: %s (continu)", buf);
+    } else {
+      // Discret : un entry par intervalle
+      for (uint8_t k = 0; k < fi.interval_type; k++) {
+        uint32_t fps = (fi.interval[k] > 0) ? (10000000u / fi.interval[k]) : 0;
+        if (!result.empty()) result += "|";
+        snprintf(buf, sizeof(buf), "%ux%u@%ufps", fi.h_res, fi.v_res, fps);
+        result += buf;
+        ESP_LOGI(TAG, "  MJPEG: %s", buf);
+      }
+    }
+  }
+
+  delete[] frame_list;
+
+  if (result.empty())
+    result = "no_mjpeg_format";
+
+  ESP_LOGI(TAG, "Formats MJPEG: %s", result.c_str());
+  this->format_list_sensor_->publish_state(result);
+}
+
+void UsbUvcCamera::on_driver_event_(const uvc_host_driver_event_data_t *event) {
+  if (event->type == UVC_HOST_DRIVER_EVENT_DEVICE_CONNECTED) {
+    ESP_LOGI(TAG, "Driver: caméra connectée addr=%u stream_idx=%u (%d formats)",
+             event->device_connected.dev_addr,
+             event->device_connected.uvc_stream_index,
+             (int)event->device_connected.frame_info_num);
+    // Stocke dev_addr pour la reconnexion
+    this->dev_addr_            = event->device_connected.dev_addr;
+    this->connected_stream_index_ = event->device_connected.uvc_stream_index;
+    // Publie la liste des formats dans le text_sensor
+    this->publish_format_list_(
+        event->device_connected.dev_addr,
+        event->device_connected.uvc_stream_index,
+        event->device_connected.frame_info_num);
+  }
+}
+
+void UsbUvcCamera::action_change_format(const std::string &format) {
+  // Parse "640x480@30fps"
+  uint16_t w = 0, h = 0;
+  unsigned int fps_uint = 0;
+  if (sscanf(format.c_str(), "%hux%hu@%ufps", &w, &h, &fps_uint) != 3) {
+    ESP_LOGE(TAG, "change_format: format invalide '%s' (attendu: WxH@Ffps)", format.c_str());
+    return;
+  }
+  const uint8_t fps = static_cast<uint8_t>(fps_uint);
+
+  xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
+  if (this->uvc_stream_ == nullptr) {
+    ESP_LOGW(TAG, "change_format: pas de stream ouvert");
+    xSemaphoreGive(this->stream_mutex_);
+    return;
+  }
+
+  uvc_host_stream_format_t new_fmt = {};
+  new_fmt.h_res  = w;
+  new_fmt.v_res  = h;
+  new_fmt.fps    = static_cast<float>(fps);
+  new_fmt.format = UVC_VS_FORMAT_MJPEG;
+
+  ESP_LOGI(TAG, "change_format → %ux%u@%ufps", w, h, fps);
+  esp_err_t err = uvc_host_stream_format_select(this->uvc_stream_, &new_fmt);
+  if (err == ESP_OK) {
+    this->width_  = w;
+    this->height_ = h;
+    this->fps_    = fps;
+    ESP_LOGI(TAG, "change_format OK");
+  } else {
+    ESP_LOGE(TAG, "uvc_host_stream_format_select: %s", esp_err_to_name(err));
+  }
+  xSemaphoreGive(this->stream_mutex_);
+}
+
 void UsbUvcCamera::action_start_stream() {
   ESP_LOGI(TAG, "action: start_stream");
   xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
@@ -520,6 +648,7 @@ void UsbUvcCamera::uvc_connect_task_(void *pv) {
 
     ESP_LOGI(TAG, "Caméra UVC ouverte — démarrage du stream");
     uvc_host_stream_start(hdl);
+
 
     while (self->dev_connected_)
       vTaskDelay(pdMS_TO_TICKS(500));
