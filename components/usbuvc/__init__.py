@@ -5,6 +5,8 @@ mirroring the behaviour of esp32_camera but sourcing frames from
 a USB Video Class device instead of a parallel-bus sensor.
 """
 
+CODEOWNERS = ["@SeByDocKy", "@Claude"]
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
