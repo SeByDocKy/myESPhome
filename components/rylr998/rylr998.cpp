@@ -127,9 +127,19 @@ void RYLR998Component::loop() {
         }
         this->rx_buffer_.clear();
       }
-    } else {
-      this->rx_buffer_ += (char) c;
-    }
+    } 
+    // else {
+    //   this->rx_buffer_ += (char) c;
+    // }
+    else {
+      if (this->rx_buffer_.size() < 600) {
+        this->rx_buffer_ += (char) c;
+      } 
+      else {
+        ESP_LOGW(TAG, "RX buffer overflow, discarding line");
+        this->rx_buffer_.clear();
+      }
+   }
   }
 }
 
