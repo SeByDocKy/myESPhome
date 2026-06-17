@@ -281,14 +281,14 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
   uint16_t address = (uint16_t) std::stoi(trim_(payload.substr(0, addr_comma)));
   // length field present but we use actual data size
   std::string data_str = trim_(payload.substr(len_comma + 1, rssi_comma - len_comma - 1));
-  int rssi = std::stoi(trim_(payload.substr(rssi_comma + 1, snr_comma - rssi_comma - 1)));
-  int snr  = std::stoi(trim_(payload.substr(snr_comma + 1)));
+  int rssi = std::atoi(trim_(payload.substr(rssi_comma + 1, snr_comma - rssi_comma - 1)));
+  int snr  = std::atoi(trim_(payload.substr(snr_comma + 1)));
 
   // Data arrives as hex-ASCII (e.g. "48454C4C4F") - decode to bytes
   std::vector<uint8_t> data;
   if (data_str.size() % 2 == 0) {
     for (size_t i = 0; i < data_str.size(); i += 2) {
-      uint8_t byte = (uint8_t)std::stoi(data_str.substr(i, 2), nullptr, 16);
+      uint8_t byte = (uint8_t)std::atoi(data_str.substr(i, 2), nullptr, 16);
       data.push_back(byte);
     }
   } else {
