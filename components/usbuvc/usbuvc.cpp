@@ -155,11 +155,26 @@ void UvcDownsamplingNumber::control(float value) {
 // UsbUvcImage
 // ===========================================================================
 
+UsbUvcImage::UsbUvcImage(const uvc_host_frame_t *frame, uint8_t requesters,
+                          uvc_host_stream_hdl_t stream_hdl)
+    : data_(const_cast<uint8_t *>(frame->data)),
+      len_(frame->data_len),
+      requesters_(requesters),
+      driver_frame_(frame),
+      stream_hdl_(stream_hdl) {}
+
 UsbUvcImage::UsbUvcImage(uint8_t *data, size_t len, uint8_t requesters)
-    : data_(data), len_(len), requesters_(requesters) {}
+    : data_(data), len_(len), requesters_(requesters),
+      driver_frame_(nullptr), stream_hdl_(nullptr) {}
 
 UsbUvcImage::~UsbUvcImage() {
-  free(this->data_);  // NOLINT(cppcoreguidelines-no-malloc)
+  if (this->driver_frame_ != nullptr && this->stream_hdl_ != nullptr) {
+    // Zero-copy: return buffer to UVC driver
+    uvc_host_frame_return(this->stream_hdl_,
+        const_cast<uvc_host_frame_t *>(this->driver_frame_));
+  } else if (this->data_ != nullptr) {
+    free(this->data_);  // NOLINT - malloc fallback
+  }
   this->data_ = nullptr;
 }
 
@@ -228,6 +243,7 @@ void UsbUvcCamera::setup() {
     this->mark_failed();
     return;
   }
+
 
   // --- Configuration du driver USB host ------------------------------------
   usb_host_config_t host_cfg = {};
@@ -341,35 +357,53 @@ void UsbUvcCamera::dump_config() {
 void UsbUvcCamera::loop() {
   const uint32_t now = App.get_loop_component_start_time();
 
+  // --- Libere l'image courante si tous les readers sont termines -----------
   if (this->can_release_image_())
     this->current_image_.reset();
 
+  // --- Idle heartbeat -------------------------------------------------------
   if (!this->has_requested_image_()) {
     if (this->idle_update_interval_ > 0 &&
         now - this->last_idle_request_ >= this->idle_update_interval_) {
       this->last_idle_request_ = now;
       this->single_requesters_ |= (1U << static_cast<uint8_t>(camera::IDLE));
-    } else {
-      return;
     }
   }
 
-  if (now - this->last_update_ < this->max_update_interval_)
-    return;
+  // --- Vide la queue des frames entrantes ----------------------------------
+  // IMPORTANT : on depile TOUJOURS la queue pour rendre les buffers driver
+  // le plus vite possible et eviter les UVC_HOST_FRAME_BUFFER_OVERFLOW.
+  PendingFrame pf{nullptr};
+  while (xQueueReceive(this->frame_queue_, &pf, 0) == pdTRUE) {
+    if (pf.frame == nullptr || pf.frame->data_len == 0) {
+      if (pf.frame) uvc_host_frame_return(this->uvc_stream_, const_cast<uvc_host_frame_t *>(pf.frame));
+      continue;
+    }
 
-  if (!this->can_release_image_())
-    return;
+    // Rate limiting
+    if (now - this->last_update_ < this->max_update_interval_) {
+      // Trop tot : relachez le buffer et passez a la prochaine frame
+      if (pf.frame != nullptr) uvc_host_frame_return(this->uvc_stream_, const_cast<uvc_host_frame_t *>(pf.frame));
+      continue;
+    }
 
-  PendingFrame pf{};
-  if (xQueueReceive(this->frame_queue_, &pf, 0) != pdTRUE)
-    return;
+    // Si pas de demande active : relache et continue
+    if (!this->has_requested_image_()) {
+      if (pf.frame != nullptr) uvc_host_frame_return(this->uvc_stream_, const_cast<uvc_host_frame_t *>(pf.frame));
+      continue;
+    }
 
-  if (pf.data == nullptr || pf.len == 0) {
-    free(pf.data);  // NOLINT
-    return;
+    // Image courante encore en lecture : relache et sort
+    // (on repassera au prochain cycle de loop)
+    if (!this->can_release_image_()) {
+      if (pf.frame != nullptr) uvc_host_frame_return(this->uvc_stream_, const_cast<uvc_host_frame_t *>(pf.frame));
+      break;
+    }
+
+    // Dispatch
+    this->dispatch_new_image_(pf);
+    break;  // une seule image par cycle de loop
   }
-
-  this->dispatch_new_image_(pf);
 }
 
 // ===========================================================================
@@ -411,27 +445,23 @@ camera::CameraImageReader *UsbUvcCamera::create_image_reader() {
 
 bool UsbUvcCamera::on_frame_(const uvc_host_frame_t *frame) {
   if (frame->data_len == 0)
-    return true;
+    return true;  // return immediately, nothing to do
 
-  if (!this->has_requested_image_())
-    return true;
-
-  uint8_t *copy = static_cast<uint8_t *>(
-      heap_caps_malloc(frame->data_len, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));  // NOLINT
-  if (copy == nullptr) {
-    ESP_LOGW(TAG, "OOM — frame de %u octets ignoré", (unsigned)frame->data_len);
-    return true;
+  if (!this->has_requested_image_()) {
+    return true;  // nobody wants a frame, return to driver
   }
-  memcpy(copy, frame->data, frame->data_len);
 
-  PendingFrame pf{copy, frame->data_len};
+  // Zero-copy: enqueue the driver frame pointer directly
+  // We return FALSE to keep ownership of the buffer
+  // loop() will call uvc_host_frame_return() after dispatch
+  PendingFrame pf{frame};
   if (xQueueSendToBack(this->frame_queue_, &pf, 0) != pdPASS) {
-    ESP_LOGV(TAG, "Queue pleine — frame ignoré");
-    free(copy);  // NOLINT
+    // Queue full: return buffer to driver immediately
+    return true;
   }
 
   App.wake_loop_threadsafe();
-  return true;
+  return false;  // we keep the buffer until loop() returns it
 }
 
 void UsbUvcCamera::on_stream_event_(const uvc_host_stream_event_data_t *event) {
@@ -478,23 +508,25 @@ void UsbUvcCamera::dispatch_new_image_(PendingFrame &pf) {
   if (this->stream_requesters_ != 0 && this->downsampling_factor_ > 1) {
     this->downsampling_counter_++;
     if (this->downsampling_counter_ < this->downsampling_factor_) {
-      free(pf.data);  // NOLINT - frame ignoree
+      if (pf.frame) uvc_host_frame_return(this->uvc_stream_, const_cast<uvc_host_frame_t *>(pf.frame));
       return;
     }
     this->downsampling_counter_ = 0;
   }
 
   const uint8_t req_mask = this->single_requesters_ | this->stream_requesters_;
-  this->current_image_ = std::make_shared<UsbUvcImage>(pf.data, pf.len, req_mask);
+  // Zero-copy: UsbUvcImage holds driver frame, returns it on destruction
+  this->current_image_ = std::make_shared<UsbUvcImage>(
+      pf.frame, req_mask, this->uvc_stream_);
 
-  ESP_LOGV(TAG, "Nouveau frame : %u octets", (unsigned)pf.len);
+  ESP_LOGV(TAG, "Nouveau frame : %u octets", (unsigned)pf.frame->data_len);
 
   for (auto *listener : this->listeners_)
     listener->on_camera_image(this->current_image_);
 
   UsbUvcCameraImageData img_data;
-  img_data.data   = pf.data;
-  img_data.length = pf.len;
+  img_data.data   = const_cast<uint8_t *>(pf.frame->data);
+  img_data.length = pf.frame->data_len;
   for (auto *t : this->image_triggers_)
     t->trigger(img_data);
 

@@ -105,6 +105,10 @@ class UvcDownsamplingNumber : public number::Number, public Component {
 // ---------------------------------------------------------------------------
 class UsbUvcImage : public camera::CameraImage {
  public:
+  // Zero-copy: wraps driver frame buffer directly
+  UsbUvcImage(const uvc_host_frame_t *frame, uint8_t requesters,
+              uvc_host_stream_hdl_t stream_hdl);
+  // Fallback: owns a malloc'd copy
   UsbUvcImage(uint8_t *data, size_t len, uint8_t requesters);
   ~UsbUvcImage() override;
 
@@ -116,6 +120,8 @@ class UsbUvcImage : public camera::CameraImage {
   uint8_t *data_{nullptr};
   size_t   len_{0};
   uint8_t  requesters_{0};
+  const uvc_host_frame_t   *driver_frame_{nullptr};  // non-null = zero-copy mode
+  uvc_host_stream_hdl_t     stream_hdl_{nullptr};
 };
 
 // ---------------------------------------------------------------------------
@@ -246,12 +252,25 @@ class UsbUvcCamera : public camera::Camera {
 
   std::shared_ptr<UsbUvcImage> current_image_;
 
+  // Zero-copy: holds the driver frame pointer directly
+  // on_frame_() returns false to keep ownership
+  // loop() calls uvc_host_frame_return() after dispatch
   struct PendingFrame {
-    uint8_t *data;
-    size_t   len;
+    const uvc_host_frame_t *frame;  // driver-owned buffer
   };
   QueueHandle_t     frame_queue_{nullptr};
   SemaphoreHandle_t stream_mutex_{nullptr};
+
+  // --- Buffer pool (zero malloc/free en runtime, zero mutex) ---------------
+  uint8_t   pool_size_{6};
+  std::vector<uint8_t *> pool_buffers_;
+  std::vector<bool>      pool_free_;
+  // Release queue: UsbUvcImage::~UsbUvcImage() y poste pool_idx
+  // xQueue est thread-safe sans mutex -> zero deadlock possible
+  QueueHandle_t pool_release_queue_{nullptr};
+  uint8_t pool_take_();           // drain release_queue puis cherche un slot libre
+  void    drain_release_queue_(); // recycle les buffers retournes
+  bool    pool_ready_{false};
 
   // --- Entités liées -------------------------------------------------------
 #ifdef USE_TEXT_SENSOR
