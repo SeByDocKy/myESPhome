@@ -91,7 +91,6 @@ void RYLR998Component::setup() {
   // Lora air time ajusted according to parameter 
   // Symbol duration
     float Tsym = powf(2.0f, this->spreading_factor_) / bw_code;
-
     float Tpreamble = (this->preamble_length_ + 4.25f) * Tsym;
     float temp =
         (8.0f * 248.0 // (240 + 8)
@@ -128,16 +127,10 @@ void RYLR998Component::loop() {
         }
         this->rx_buffer_.clear();
       }
-    } 
-    else {
-      if (this->rx_buffer_.size() < 600) {
-        this->rx_buffer_ += (char) c;
-      } 
-      else {
-        ESP_LOGW(TAG, "RX buffer overflow, discarding line");
-        this->rx_buffer_.clear();
-      }
-   }
+    } else {
+      this->rx_buffer_ += (char) c;
+    }
+  }
 }
 
 void RYLR998Component::dump_config() {
@@ -278,8 +271,8 @@ void RYLR998Component::process_rx_line_(const std::string &line) {
   uint16_t address = (uint16_t) std::stoi(trim_(payload.substr(0, addr_comma)));
   // length field present but we use actual data size
   std::string data_str = trim_(payload.substr(len_comma + 1, rssi_comma - len_comma - 1));
-  int rssi = std::atoi(trim_(payload.substr(rssi_comma + 1, snr_comma - rssi_comma - 1)));
-  int snr  = std::atoi(trim_(payload.substr(snr_comma + 1)));
+  int rssi = std::stoi(trim_(payload.substr(rssi_comma + 1, snr_comma - rssi_comma - 1)));
+  int snr  = std::stoi(trim_(payload.substr(snr_comma + 1)));
 
   // Data arrives as hex-ASCII (e.g. "48454C4C4F") - decode to bytes
   std::vector<uint8_t> data;
