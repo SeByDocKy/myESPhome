@@ -61,6 +61,8 @@ CONF_URB_COUNT              = "urb_count"
 CONF_URB_SIZE               = "urb_size"
 CONF_FRAME_SIZE_MAX         = "frame_size_max"
 CONF_TRANSFER_MAX_SIZE      = "transfer_max_size"
+CONF_START_STREAMING        = "start_streaming_at_init"
+CONF_DOWNSAMPLING_FACTOR    = "downsampling_factor"
 CONF_ON_STREAM_START        = "on_stream_start"
 CONF_ON_STREAM_STOP         = "on_stream_stop"
 CONF_ON_IMAGE               = "on_image"
@@ -99,6 +101,8 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_URB_COUNT, default=3): cv.int_range(min=1, max=8),
             cv.Optional(CONF_URB_SIZE, default=10240): cv.int_range(min=512, max=65536),
             cv.Optional(CONF_FRAME_SIZE_MAX, default=0): cv.positive_int,
+            cv.Optional(CONF_START_STREAMING, default=True): cv.boolean,
+            cv.Optional(CONF_DOWNSAMPLING_FACTOR, default=1): cv.int_range(min=1, max=60),
             # transfer_max_size : taille max du buffer de control transfer USB.
             # Remplace CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE dans sdkconfig.
             # Valeur recommandée : 2048 pour les caméras avec de gros descripteurs
@@ -194,6 +198,8 @@ async def to_code(config):
     cg.add(var.set_urb_count(config[CONF_URB_COUNT]))
     cg.add(var.set_urb_size(config[CONF_URB_SIZE]))
     cg.add(var.set_frame_size_max(config[CONF_FRAME_SIZE_MAX]))
+    cg.add(var.set_start_streaming_at_init(config[CONF_START_STREAMING]))
+    cg.add(var.set_downsampling_factor(config[CONF_DOWNSAMPLING_FACTOR]))
     # transfer_max_size -> injecté dans sdkconfig via add_idf_sdkconfig_option
     # Evite de devoir mettre CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE manuellement
     if config[CONF_TRANSFER_MAX_SIZE] > 0:

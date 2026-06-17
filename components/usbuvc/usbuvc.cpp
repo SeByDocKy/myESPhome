@@ -7,6 +7,8 @@
 
 #include <cstring>
 #include <malloc.h>
+#include <sstream>
+#include <algorithm>
 #include "esp_heap_caps.h"
 
 namespace esphome {
@@ -96,6 +98,58 @@ static void uvc_stream_callback(const uvc_host_stream_event_data_t *event, void 
     return;
   self->on_stream_event_(event);
 }
+
+// ===========================================================================
+// UvcResolutionSelect
+// ===========================================================================
+
+#ifdef USE_SELECT
+void UvcResolutionSelect::update_options(const std::vector<std::string> &options) {
+  this->option_strings_ = options;  // copie pour garantir la durée de vie des c_str()
+
+  // Reconstruit le FixedVector<const char *> à partir des strings stockées
+  FixedVector<const char *> fv;
+  fv.init(this->option_strings_.size());
+  for (const auto &s : this->option_strings_)
+    fv.push_back(s.c_str());
+
+  this->traits.set_options(fv);
+
+  // Sélectionne la première option par défaut si aucune n'est active
+  if (!this->option_strings_.empty())
+    this->publish_state(this->option_strings_[0]);
+}
+
+void UvcResolutionSelect::control(const std::string &value) {
+  if (this->parent_ != nullptr)
+    this->parent_->action_change_format(value);
+  this->publish_state(value);
+}
+#endif  // USE_SELECT
+
+#ifdef USE_NUMBER
+// ===========================================================================
+// UvcDownsamplingNumber
+// ===========================================================================
+
+void UvcDownsamplingNumber::setup() {
+  // Publie la valeur initiale depuis le facteur configure dans usbuvc:
+  if (this->parent_ != nullptr)
+    this->publish_state(static_cast<float>(this->parent_->get_downsampling_factor()));
+  else
+    this->publish_state(1.0f);
+}
+
+void UvcDownsamplingNumber::control(float value) {
+  uint8_t factor = static_cast<uint8_t>(value);
+  if (factor < 1) factor = 1;
+  if (this->parent_ != nullptr) {
+    this->parent_->set_downsampling_factor(factor);
+    ESP_LOGI("usbuvc", "downsampling_factor -> %u", (unsigned)factor);
+  }
+  this->publish_state(static_cast<float>(factor));
+}
+#endif  // USE_NUMBER
 
 // ===========================================================================
 // UsbUvcImage
@@ -259,7 +313,8 @@ void UsbUvcCamera::dump_config() {
       "  Idle interval   : %u ms\n"
       "  Frame buffers   : %u   URBs: %u x %u B\n"
       "  Task USB lib    : prio=%u  stack=%u B\n"
-      "  Task UVC conn   : prio=%u  stack=%u B",
+      "  Task UVC conn   : prio=%u  stack=%u B\n"
+      "  Downsampling    : 1 frame / %u",
 #if CONFIG_IDF_TARGET_ESP32P4
       "ESP32-P4 (USB HS)",
 #elif CONFIG_IDF_TARGET_ESP32S3
@@ -275,7 +330,8 @@ void UsbUvcCamera::dump_config() {
       this->frame_buffer_count_,
       this->urb_count_, this->urb_size_,
       (unsigned)USB_LIB_TASK_PRIO,  (unsigned)USB_LIB_TASK_STACK,
-      (unsigned)UVC_TASK_PRIO,       (unsigned)UVC_CONNECT_TASK_STACK);
+      (unsigned)UVC_TASK_PRIO,       (unsigned)UVC_CONNECT_TASK_STACK,
+      (unsigned)this->downsampling_factor_);
 
   if (this->is_failed())
     ESP_LOGE(TAG, "  Setup FAILED");
@@ -417,6 +473,17 @@ void UsbUvcCamera::on_stream_event_(const uvc_host_stream_event_data_t *event) {
 // ===========================================================================
 
 void UsbUvcCamera::dispatch_new_image_(PendingFrame &pf) {
+  // Downsampling : ne transmet qu'une frame sur downsampling_factor_
+  // Les single_requesters (snapshot, idle) passent toujours sans downsampling.
+  if (this->stream_requesters_ != 0 && this->downsampling_factor_ > 1) {
+    this->downsampling_counter_++;
+    if (this->downsampling_counter_ < this->downsampling_factor_) {
+      free(pf.data);  // NOLINT - frame ignoree
+      return;
+    }
+    this->downsampling_counter_ = 0;
+  }
+
   const uint8_t req_mask = this->single_requesters_ | this->stream_requesters_;
   this->current_image_ = std::make_shared<UsbUvcImage>(pf.data, pf.len, req_mask);
 
@@ -451,11 +518,19 @@ void UsbUvcCamera::fire_stream_stop_triggers_() {
 
 
 void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_index, size_t frame_info_num) {
-  if (this->format_list_sensor_ == nullptr)
-    return;
+  if (true
+#ifdef USE_TEXT_SENSOR
+      && this->format_list_sensor_ == nullptr
+#endif
+#ifdef USE_SELECT
+      && this->resolution_select_ == nullptr
+#endif
+  ) return;
 
   if (frame_info_num == 0) {
-    this->format_list_sensor_->publish_state("no_format");
+#ifdef USE_TEXT_SENSOR
+    if (this->format_list_sensor_) this->format_list_sensor_->publish_state("no_format");
+#endif
     return;
   }
 
@@ -463,7 +538,9 @@ void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_ind
   auto *frame_list = new uvc_host_frame_info_t[frame_info_num];
   if (frame_list == nullptr) {
     ESP_LOGE(TAG, "publish_format_list_: OOM pour %d entrées", (int)frame_info_num);
-    this->format_list_sensor_->publish_state("oom");
+#ifdef USE_TEXT_SENSOR
+    if (this->format_list_sensor_) this->format_list_sensor_->publish_state("oom");
+#endif
     return;
   }
 
@@ -474,45 +551,90 @@ void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_ind
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "uvc_host_get_frame_list: %s", esp_err_to_name(err));
     delete[] frame_list;
-    this->format_list_sensor_->publish_state("error");
+#ifdef USE_TEXT_SENSOR
+    if (this->format_list_sensor_) this->format_list_sensor_->publish_state("error");
+#endif
     return;
   }
 
-  // Construit "WxH@Ffps|WxH@Ffps|..." (MJPEG uniquement)
-  // Les intervalles sont en unités 100ns → fps = 10 000 000 / interval
-  std::string result;
-  char buf[48];
+  // ---- Collecte des entrées MJPEG valides --------------------------------
+  // Intervalle en unités 100ns → fps = 10 000 000 / interval
+  // On filtre les fps aberrants (< 1 ou > 120)
+  struct FmtEntry { uint16_t w; uint16_t h; uint32_t fps; };
+  std::vector<FmtEntry> entries;
+
   for (size_t i = 0; i < actual; i++) {
     const uvc_host_frame_info_t &fi = frame_list[i];
     if (fi.format != UVC_VS_FORMAT_MJPEG)
       continue;
 
+    auto add = [&](uint32_t interval) {
+      if (interval == 0) return;
+      uint32_t fps = 10000000u / interval;
+      if (fps < 1 || fps > 120) return;  // filtre valeurs aberrantes
+      entries.push_back({(uint16_t)fi.h_res, (uint16_t)fi.v_res, fps});
+    };
+
     if (fi.interval_type == 0) {
-      // Continu : on publie default uniquement
-      uint32_t fps = (fi.default_interval > 0) ? (10000000u / fi.default_interval) : 0;
-      if (!result.empty()) result += "|";
-      snprintf(buf, sizeof(buf), "%ux%u@%ufps", fi.h_res, fi.v_res, fps);
-      result += buf;
-      ESP_LOGI(TAG, "  MJPEG: %s (continu)", buf);
+      // Intervalle continu : utilise uniquement default_interval
+      add(fi.default_interval);
     } else {
-      // Discret : un entry par intervalle
-      for (uint8_t k = 0; k < fi.interval_type; k++) {
-        uint32_t fps = (fi.interval[k] > 0) ? (10000000u / fi.interval[k]) : 0;
-        if (!result.empty()) result += "|";
-        snprintf(buf, sizeof(buf), "%ux%u@%ufps", fi.h_res, fi.v_res, fps);
-        result += buf;
-        ESP_LOGI(TAG, "  MJPEG: %s", buf);
-      }
+      // Intervalles discrets
+      for (uint8_t k = 0; k < fi.interval_type; k++)
+        add(fi.interval[k]);
     }
   }
 
   delete[] frame_list;
 
-  if (result.empty())
-    result = "no_mjpeg_format";
+  // ---- Déduplique --------------------------------------------------------
+  std::sort(entries.begin(), entries.end(), [](const FmtEntry &a, const FmtEntry &b) {
+    uint32_t pa = (uint32_t)a.w * a.h;
+    uint32_t pb = (uint32_t)b.w * b.h;
+    if (pa != pb) return pa < pb;   // tri par résolution croissante
+    return a.fps < b.fps;           // puis par fps croissant
+  });
+  entries.erase(
+    std::unique(entries.begin(), entries.end(), [](const FmtEntry &a, const FmtEntry &b) {
+      return a.w == b.w && a.h == b.h && a.fps == b.fps;
+    }),
+    entries.end()
+  );
 
-  ESP_LOGI(TAG, "Formats MJPEG: %s", result.c_str());
-  this->format_list_sensor_->publish_state(result);
+  // ---- Construit les strings ---------------------------------------------
+  std::vector<std::string> opts;
+  char buf[32];
+  for (const auto &e : entries) {
+    snprintf(buf, sizeof(buf), "%ux%u@%ufps", e.w, e.h, e.fps);
+    opts.push_back(buf);
+    ESP_LOGI(TAG, "  MJPEG: %s", buf);
+  }
+
+  if (opts.empty()) {
+#ifdef USE_TEXT_SENSOR
+    if (this->format_list_sensor_) this->format_list_sensor_->publish_state("no_mjpeg_format");
+#endif
+    return;
+  }
+
+#ifdef USE_TEXT_SENSOR
+  // ---- Publie dans le text_sensor (separateur \n pour lisibilite dans HA) -
+  if (this->format_list_sensor_ != nullptr) {
+    std::string result;
+    for (const auto &s : opts) {
+      if (!result.empty()) result += "\n";
+      result += s;
+    }
+    ESP_LOGI(TAG, "Formats MJPEG publies (%d): %s", (int)opts.size(), result.c_str());
+    this->format_list_sensor_->publish_state(result);
+  }
+#endif  // USE_TEXT_SENSOR
+
+  // ---- Peuple le select --------------------------------------------------
+#ifdef USE_SELECT
+  if (this->resolution_select_ != nullptr)
+    this->resolution_select_->update_options(opts);
+#endif
 }
 
 void UsbUvcCamera::on_driver_event_(const uvc_host_driver_event_data_t *event) {
@@ -646,8 +768,12 @@ void UsbUvcCamera::uvc_connect_task_(void *pv) {
     self->dev_connected_ = true;
     xSemaphoreGive(self->stream_mutex_);
 
-    ESP_LOGI(TAG, "Caméra UVC ouverte — démarrage du stream");
-    uvc_host_stream_start(hdl);
+    if (self->start_streaming_at_init_) {
+      ESP_LOGI(TAG, "Caméra UVC ouverte — démarrage du stream (auto)");
+      uvc_host_stream_start(hdl);
+    } else {
+      ESP_LOGI(TAG, "Caméra UVC ouverte — stream en attente (start_streaming_at_init=false)");
+    }
 
 
     while (self->dev_connected_)

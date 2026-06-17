@@ -8,7 +8,15 @@
 #include "esphome/core/application.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/camera/camera.h"
+#ifdef USE_TEXT_SENSOR
 #include "esphome/components/text_sensor/text_sensor.h"
+#endif
+#ifdef USE_NUMBER
+#include "esphome/components/number/number.h"
+#endif
+#ifdef USE_SELECT
+#include "esphome/components/select/select.h"
+#endif
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -37,6 +45,7 @@ struct UsbUvcCameraImageData {
 // ---------------------------------------------------------------------------
 class UsbUvcCamera;
 
+#ifdef USE_TEXT_SENSOR
 // ---------------------------------------------------------------------------
 // TextSensor listant les formats MJPEG disponibles
 // Déclaré AVANT UsbUvcCamera pour pouvoir être utilisé dans set_format_list_sensor()
@@ -45,6 +54,51 @@ class UvcFormatListSensor : public text_sensor::TextSensor, public Component {
  public:
   void setup() override {}
 };
+#endif  // USE_TEXT_SENSOR
+
+#ifdef USE_SELECT
+// ---------------------------------------------------------------------------
+// Select ESPHome qui liste les résolutions MJPEG disponibles.
+// Peuplé automatiquement lors de la connexion UVC.
+// Appelle action_change_format() à chaque changement de valeur.
+// ---------------------------------------------------------------------------
+class UsbUvcCamera;  // forward pour UvcResolutionSelect
+
+class UvcResolutionSelect : public select::Select, public Component {
+ public:
+  void setup() override {}
+  void set_parent(UsbUvcCamera *parent) { this->parent_ = parent; }
+
+ protected:
+  void control(const std::string &value) override;
+  UsbUvcCamera *parent_{nullptr};
+
+  // Stockage des labels (FixedVector stocke const char* → durée de vie garantie ici)
+  std::vector<std::string> option_strings_;
+
+ public:
+  // Appelé par publish_format_list_ pour reconstruire les options dynamiquement
+  void update_options(const std::vector<std::string> &options);
+};
+#endif  // USE_SELECT
+
+#ifdef USE_NUMBER
+// ---------------------------------------------------------------------------
+// Number (slider) pour controler le downsampling_factor a la volee.
+// Declare AVANT UsbUvcCamera pour etre utilise dans set_downsampling_number()
+// ---------------------------------------------------------------------------
+class UsbUvcCamera;  // forward pour UvcDownsamplingNumber
+
+class UvcDownsamplingNumber : public number::Number, public Component {
+ public:
+  void set_parent(UsbUvcCamera *parent) { this->parent_ = parent; }
+  void setup() override;
+
+ protected:
+  void control(float value) override;
+  UsbUvcCamera *parent_{nullptr};
+};
+#endif  // USE_NUMBER
 
 // ---------------------------------------------------------------------------
 // UsbUvcImage : encapsule un frame UVC (copie malloc'd, owned)
@@ -128,7 +182,19 @@ class UsbUvcCamera : public camera::Camera {
   void set_urb_count(uint8_t n)               { this->urb_count_ = n; }
   void set_urb_size(uint32_t sz)              { this->urb_size_ = sz; }
   void set_frame_size_max(uint32_t sz)        { this->frame_size_max_ = sz; }
+  void set_start_streaming_at_init(bool v)    { this->start_streaming_at_init_ = v; }
+  void set_downsampling_factor(uint8_t f)     { this->downsampling_factor_ = (f < 1) ? 1 : f; }
+  uint8_t get_downsampling_factor() const     { return this->downsampling_factor_; }
+#ifdef USE_NUMBER
+  void set_downsampling_number(UvcDownsamplingNumber *n) { this->downsampling_number_ = n; if (n) n->set_parent(this); }
+#endif
+
+#ifdef USE_TEXT_SENSOR
   void set_format_list_sensor(UvcFormatListSensor *s) { this->format_list_sensor_ = s; }
+#endif
+#ifdef USE_SELECT
+  void set_resolution_select(UvcResolutionSelect *s)  { this->resolution_select_ = s; if (s) s->set_parent(this); }
+#endif
 
   // ----- Actions YAML -----------------------------------------------------
   void action_start_stream();
@@ -159,6 +225,12 @@ class UsbUvcCamera : public camera::Camera {
   uint8_t  urb_count_{3};
   uint32_t urb_size_{10240};
   uint32_t frame_size_max_{0};
+  bool start_streaming_at_init_{true};
+  uint8_t downsampling_factor_{1};
+  uint8_t downsampling_counter_{0};
+#ifdef USE_NUMBER
+  UvcDownsamplingNumber *downsampling_number_{nullptr};
+#endif
 
   // --- Runtime -------------------------------------------------------------
   uvc_host_stream_hdl_t uvc_stream_{nullptr};
@@ -182,7 +254,12 @@ class UsbUvcCamera : public camera::Camera {
   SemaphoreHandle_t stream_mutex_{nullptr};
 
   // --- Entités liées -------------------------------------------------------
+#ifdef USE_TEXT_SENSOR
   UvcFormatListSensor *format_list_sensor_{nullptr};
+#endif
+#ifdef USE_SELECT
+  UvcResolutionSelect *resolution_select_{nullptr};
+#endif
   std::vector<camera::CameraListener *> listeners_;
 
   // --- Tâches RTOS ---------------------------------------------------------
