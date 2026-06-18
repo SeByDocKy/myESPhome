@@ -19,9 +19,9 @@
 #define COMMAND_DELAY_MS   100
 #define TIMEOUT_MS        1000
 #define MAX_PAYLOAD        240
-#define HEX_BUF_SIZE       496   // (240+8)*2 + 1
-#define SEND_CMD_SIZE      520
-#define RX_BUF_MAX_LEN     512   // 600 [C1] garde anti-OOM : limite la taille de rx_buffer_
+#define HEX_BUF_SIZE       241   // 481   // (240)*2 + 1
+#define SEND_CMD_SIZE      260   // 520   // HEX_BUF_SIZE + 19 + 1
+#define RX_BUF_MAX_LEN     271   // 512   // 600 [C1] garde anti-OOM : limite la taille de rx_buffer_
 #define ADDRESS_CMD        20    // 32
 #define FREQ_CMD           20    // 32
 #define PARAM_CMD          26    // 64
