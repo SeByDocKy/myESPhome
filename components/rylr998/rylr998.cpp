@@ -21,7 +21,12 @@
 #define MAX_PAYLOAD        240
 #define HEX_BUF_SIZE       496   // (240+8)*2 + 1
 #define SEND_CMD_SIZE      520
-#define RX_BUF_MAX_LEN     600   // [C1] garde anti-OOM : limite la taille de rx_buffer_
+#define RX_BUF_MAX_LEN     512   // 600 [C1] garde anti-OOM : limite la taille de rx_buffer_
+#define ADDRESS_CMD        20    // 32
+#define FREQ_CMD           20    // 32
+#define PARAM_CMD          26    // 64
+#define NETWORK_CMD        20    // 32
+#define POWER_CMD          14    // 32
 
 namespace esphome {
 namespace rylr998 {
@@ -84,7 +89,7 @@ void RYLR998Component::setup() {
 
   ESP_LOGD(TAG, "Configuring module...");
 
-  char address_cmd[32];
+  char address_cmd[ADDRESS_CMD];
   snprintf(address_cmd, sizeof(address_cmd), "AT+ADDRESS=%d", this->address_);
   if (!this->send_command_(address_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set address");
@@ -92,7 +97,7 @@ void RYLR998Component::setup() {
   delay(COMMAND_DELAY_MS);
   App.feed_wdt();   // [C2]
 
-  char freq_cmd[32];
+  char freq_cmd[FREQ_CMD];
   snprintf(freq_cmd, sizeof(freq_cmd), "AT+BAND=%lu", this->frequency_);
   if (!this->send_command_(freq_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set frequency");
@@ -101,7 +106,7 @@ void RYLR998Component::setup() {
   App.feed_wdt();   // [C2]
 
   uint8_t bw_code = this->bandwidth_to_code_(this->bandwidth_);
-  char param_cmd[64];
+  char param_cmd[PARAM_CMD];
   snprintf(param_cmd, sizeof(param_cmd), "AT+PARAMETER=%d,%d,%d,%d",
            this->spreading_factor_, bw_code, this->coding_rate_, this->preamble_length_);
   if (!this->send_command_(param_cmd, TIMEOUT_MS)) {
@@ -110,7 +115,7 @@ void RYLR998Component::setup() {
   delay(COMMAND_DELAY_MS);
   App.feed_wdt();   // [C2]
 
-  char network_cmd[32];
+  char network_cmd[NETWORK_CMD];
   snprintf(network_cmd, sizeof(network_cmd), "AT+NETWORKID=%d", this->network_id_);
   if (!this->send_command_(network_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set network ID");
@@ -118,7 +123,7 @@ void RYLR998Component::setup() {
   delay(COMMAND_DELAY_MS);
   App.feed_wdt();   // [C2]
 
-  char power_cmd[32];
+  char power_cmd[POWER_CMD];
   snprintf(power_cmd, sizeof(power_cmd), "AT+CRFOP=%d", this->tx_power_);
   if (!this->send_command_(power_cmd, TIMEOUT_MS)) {
     ESP_LOGW(TAG, "Failed to set TX power");
