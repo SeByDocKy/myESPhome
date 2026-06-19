@@ -1,26 +1,6 @@
-# ============================================================
-# Example ESPHome configuration – USB UVC camera on ESP32-S3
-# ============================================================
-#
-# Hardware requirements:
-#   • ESP32-S3 board with PSRAM (e.g. ESP32-S3-DevKitC-1 N16R8)
-#   • USB-A or USB-C female connector wired to the ESP32-S3
-#     native USB port (D+ = GPIO20, D- = GPIO19).
-#   • External 5 V power supply for the USB camera – the
-#     ESP32-S3 DevKitC cannot source enough current from its
-#     on-board regulator for most USB cameras.
-#   • A USB Full-Speed (FS) UVC camera that supports MJPEG.
-#     High-Speed (HS) cameras may work but are not guaranteed.
-#
-# Tested boards / cameras:
-#   • Logitech C270 HD @ 320x240 30fps on ESP32-S3-DevKitC-1
-#   • Generic "USB2.0 PC Camera" @ 640x480 15fps
-# ============================================================
-
 substitutions:
   name: "usb-camera-p4"
-
-
+  
 esphome:
   name: ${name}
 
@@ -211,4 +191,3 @@ text_sensor:
       }  
     icon: mdi:clock-start
     update_interval: 113s
-
