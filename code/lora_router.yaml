@@ -7,6 +7,12 @@ substitutions:
   my_second: '59'
   baud_rate_0: 115200
   baud_rate_1: 9600
+  
+  
+globals:
+  - id: energy_yesterday_global
+    type: float
+    restore_value: yes  
  
 esphome:
   name: ${name}
@@ -18,7 +24,7 @@ esp32:
   cpu_frequency: 240Mhz
   framework:
     type: esp-idf
-    version: 'latest'
+    version: 'dev'
 
 wifi:
   ssid: !secret wifi_ssid
@@ -26,10 +32,18 @@ wifi:
   ap:
     ssid: "battery_bidirectional"
     password: !secret ap_password
-    
+        
 time:
   - platform: sntp
-    id: my_time    
+    id: my_time
+    on_time:
+      - seconds: 59
+        minutes: 59
+        hours: 23
+        then:  
+          - globals.set:
+              id: energy_yesterday_global
+              value: !lambda return ( id(energy_yesterday_global) =  float( id(energy_today).state) );    
 
 api:
   batch_delay: 50ms
@@ -46,6 +60,14 @@ external_components:
   - source: "github://SeByDocKy/myESPhome/"
     components: [rylr998]
     refresh: 10s
+    
+  # - source:
+      # type: local
+      # path: components 
+    # components: [rylr998]  
+    
+debug:
+  update_interval: 5s    
     
 uart:
   - id: uart_0
@@ -99,6 +121,7 @@ rylr998:
   preamble_length: 12
   network_id: 10
   tx_power: 20
+  air_time: false
 
 button:
   - platform: restart
@@ -107,7 +130,7 @@ button:
 packet_transport:
   platform: rylr998
   rylr998_id: lora
-  update_interval: '2500ms'
+  update_interval: '1500ms' #'2500ms' for battery v1 with HMS
   encryption: !secret encryption_key
   sensors:
     - power
@@ -139,7 +162,13 @@ sensor:
     update_interval: 5s
     
   - platform: uptime
-    id: uptime_sec      
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time    
 
   - platform: rylr998
     rssi:
@@ -164,3 +193,49 @@ sensor:
             id: gp8413_output
             level: !lambda |-
                return x;
+               
+               
+  - platform: total_daily_energy
+    name: ${name}_energy_today
+    id: energy_today
+    power_id: power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: right
+    restore: true
+    filters:
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_energy_yesterday
+    id: energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    update_interval: '2s'
+    lambda: |-
+      return (id(energy_yesterday).state = id(energy_yesterday_global));               
+                        
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s               
