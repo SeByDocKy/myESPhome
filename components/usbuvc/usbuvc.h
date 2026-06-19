@@ -28,7 +28,6 @@
 
 #include <memory>
 #include <vector>
-#include <atomic>
 
 namespace esphome {
 namespace usbuvc {
@@ -245,8 +244,8 @@ class UsbUvcCamera : public camera::Camera {
   uint8_t dev_addr_{0};
   uint8_t connected_stream_index_{0};
 
-  std::atomic<uint8_t> single_requesters_{0};
-  std::atomic<uint8_t> stream_requesters_{0};
+  uint8_t single_requesters_{0};
+  uint8_t stream_requesters_{0};
 
   uint32_t last_update_{0};
   uint32_t last_idle_request_{0};
@@ -262,6 +261,16 @@ class UsbUvcCamera : public camera::Camera {
   QueueHandle_t     frame_queue_{nullptr};
   SemaphoreHandle_t stream_mutex_{nullptr};
 
+  // --- Buffer pool (zero malloc/free en runtime, zero mutex) ---------------
+  uint8_t   pool_size_{6};
+  std::vector<uint8_t *> pool_buffers_;
+  std::vector<bool>      pool_free_;
+  // Release queue: UsbUvcImage::~UsbUvcImage() y poste pool_idx
+  // xQueue est thread-safe sans mutex -> zero deadlock possible
+  QueueHandle_t pool_release_queue_{nullptr};
+  uint8_t pool_take_();           // drain release_queue puis cherche un slot libre
+  void    drain_release_queue_(); // recycle les buffers retournes
+  bool    pool_ready_{false};
 
   // --- Entités liées -------------------------------------------------------
 #ifdef USE_TEXT_SENSOR

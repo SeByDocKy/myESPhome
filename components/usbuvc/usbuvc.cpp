@@ -6,6 +6,7 @@
 #include "esphome/core/application.h"
 
 #include <cstring>
+#include <malloc.h>
 #include <sstream>
 #include <algorithm>
 #include "esp_heap_caps.h"
@@ -414,14 +415,10 @@ void UsbUvcCamera::request_image(camera::CameraRequester requester) {
 }
 
 void UsbUvcCamera::start_stream(camera::CameraRequester requester) {
-  const uint8_t prev = this->stream_requesters_.fetch_or(
-      static_cast<uint8_t>(1U << static_cast<uint8_t>(requester)));
-  if (prev == 0) {
-    // First requester: start hardware stream
-    xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
-    if (this->uvc_stream_ != nullptr)
-      uvc_host_stream_start(this->uvc_stream_);
-    xSemaphoreGive(this->stream_mutex_);
+  const bool was_streaming = this->stream_requesters_ != 0;
+  this->stream_requesters_ |= (1U << static_cast<uint8_t>(requester));
+  // Ne fire les triggers qu'au premier start (transition 0 -> non-0)
+  if (!was_streaming) {
     this->fire_stream_start_triggers_();
     for (auto *l : this->listeners_)
       l->on_stream_start();
@@ -429,15 +426,9 @@ void UsbUvcCamera::start_stream(camera::CameraRequester requester) {
 }
 
 void UsbUvcCamera::stop_stream(camera::CameraRequester requester) {
-  const uint8_t prev = this->stream_requesters_.fetch_and(
-      static_cast<uint8_t>(~(1U << static_cast<uint8_t>(requester))));
-  const uint8_t mask = static_cast<uint8_t>(1U << static_cast<uint8_t>(requester));
-  if ((prev & ~mask) == 0) {
-    // Last requester: stop hardware stream
-    xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
-    if (this->uvc_stream_ != nullptr)
-      uvc_host_stream_stop(this->uvc_stream_);
-    xSemaphoreGive(this->stream_mutex_);
+  this->stream_requesters_ &= ~(1U << static_cast<uint8_t>(requester));
+  // Ne fire les triggers que quand le dernier requester se retire (transition non-0 -> 0)
+  if (this->stream_requesters_ == 0) {
     this->fire_stream_stop_triggers_();
     for (auto *l : this->listeners_)
       l->on_stream_stop();
@@ -480,20 +471,10 @@ void UsbUvcCamera::on_stream_event_(const uvc_host_stream_event_data_t *event) {
       break;
 
     case UVC_HOST_DEVICE_DISCONNECTED:
-      ESP_LOGI(TAG, "Camera USB deconnectee");
+      ESP_LOGI(TAG, "Caméra USB déconnectée");
       this->dev_connected_ = false;
       xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
       if (this->uvc_stream_ != nullptr) {
-        // Drain frame_queue_ BEFORE close to avoid use-after-free:
-        // pending frames point to driver buffers that close() will free.
-        // We discard them without calling frame_return (driver handles cleanup).
-        {
-          PendingFrame stale;
-          while (xQueueReceive(this->frame_queue_, &stale, 0) == pdTRUE) {}
-        }
-        // Also release current_image_ so its destructor does not call
-        // uvc_host_frame_return() on an already-closed stream.
-        this->current_image_.reset();
         uvc_host_stream_close(event->device_disconnected.stream_hdl);
         this->uvc_stream_ = nullptr;
       }

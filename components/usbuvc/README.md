@@ -127,7 +127,7 @@ usbuvc:
 
 ### Supported Resolutions
 
-`160X120` · `320X240` · `640X480` · `800X600` · `1024X768` · `1280X720` · `1280X960` · `1920X1080` · `2560X1440`
+`160X120` · `320X240` · `640X480` · `800X600` · `1024X768` · `1280X720` · `1280X960` · `1920X1080`
 
 The camera must advertise the requested resolution + fps combination as a MJPEG format.
 Use the `text_sensor` platform to discover what your camera actually supports.
@@ -395,6 +395,7 @@ This eliminates the bottleneck that caused `UVC_HOST_FRAME_BUFFER_OVERFLOW` at h
 | `Configuration descriptor larger than control transfer max length` | `transfer_max_size` too small | Set `transfer_max_size: 2048` |
 | `Could not find frame format WxH@Ffps` | fps not supported at that resolution | Check `text_sensor` format list, adjust `fps` |
 | `UVC frame buffer overflow` | Too few driver buffers or URBs too small | Increase `frame_buffer_count` to 6-8, `urb_size` to 16384 for HS |
+| `Pool epuise` | Old version with malloc-based pool | Update to v2 zero-copy |
 | Low fps received in HA | `max_framerate` cap or `downsampling_factor` | Adjust `max_framerate` and `downsampling_factor` |
 | First compile fails with missing header | IDF Component Manager first-run delay | Run `esphome compile` a second time |
 
@@ -412,4 +413,4 @@ This eliminates the bottleneck that caused `UVC_HOST_FRAME_BUFFER_OVERFLOW` at h
 
 - Espressif `esp-idf` UVC host driver and `usb_host_uvc` managed component
 - ESPHome `esp32_camera` component (streaming architecture reference)
-- Developed by [@SeByDocKy](https://github.com/SeByDocKy) with AI assistance
+- Developed with [SeByDocKy/myESPhome](https://github.com/SeByDocKy/myESPhome)

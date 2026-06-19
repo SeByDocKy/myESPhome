@@ -1,11 +1,11 @@
-"""ESPHome native component for USB UVC cameras (ESP32-S3/P4).
+"""ESPHome native component for USB UVC cameras (ESP32-S2/S3).
 
 Streams MJPEG video to Home Assistant via the native camera API,
 mirroring the behaviour of esp32_camera but sourcing frames from
 a USB Video Class device instead of a parallel-bus sensor.
 """
 
-CODEOWNERS = ["@SeByDocKy"]
+CODEOWNERS = ["@SeByDocKy", "@Claude"]
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
@@ -79,7 +79,6 @@ RESOLUTIONS = {
     "1280X720":  (1280, 720),
     "1280X960":  (1280, 960),
     "1920X1080": (1920, 1080),
-    "2560X1440": (2560, 1440),
 }
 
 # ---------------------------------------------------------------- main schema
