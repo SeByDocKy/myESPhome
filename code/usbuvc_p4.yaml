@@ -1,0 +1,215 @@
+substitutions:
+  name: "usb-camera-p4"
+
+esphome:
+  name: ${name}
+
+
+esp32:
+  board: esp32-p4
+  variant: ESP32P4
+  flash_size: 16MB
+  cpu_frequency: 360MHz
+  framework:
+    type: esp-idf
+    version: 'dev'
+    # log_level: INFO
+    advanced:
+      enable_idf_experimental_features: yes
+      
+    sdkconfig_options:
+      CONFIG_ESP_CONSOLE_USB_CDC: "n"
+      CONFIG_ESP_CONSOLE_UART_DEFAULT: "y"
+      CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE: "2048"
+      CONFIG_USB_HOST_HW_INTERFACE_SELECT_HS: "y"
+      
+      ### for debugging USB extender ##
+      
+      # CONFIG_USB_OTG_HS_PHY_DRVVBUS_FORCE: "y"
+      # CONFIG_USB_HOST_ENABLE_ENUM_FILTER_CALLBACK: "y"
+      # CONFIG_USB_HOST_DEBOUNCE_DELAY_MS: "2000" #défaut 250ms
+      # CONFIG_USB_HOST_RESET_HOLD_MS: "100"  # défaut 30ms  
+      # CONFIG_USB_HOST_RESET_RECOVERY_MS: "1000" # défaut 30ms
+      # CONFIG_USB_HOST_SET_ADDR_RECOVERY_MS: "500"  # défaut 10ms
+      # CONFIG_USB_HOST_SETUP_GUARD_PERIOD_MS: "5000"
+
+psram:
+  speed: 200MHz  # PSRAM interne haute vitesse du P4
+
+esp32_hosted:
+  variant: ESP32C6
+  type: sdio
+  active_high: true
+  slot: 1
+  reset_pin: GPIO54
+  cmd_pin: GPIO19
+  clk_pin: GPIO18
+  d0_pin: GPIO14
+  d1_pin: GPIO15
+  d2_pin: GPIO16
+  d3_pin: GPIO17
+  sdio_frequency: 10MHz
+
+logger:
+  hardware_uart: UART0
+  level: VERBOSE
+  logs:
+    usb_host: VERBOSE
+    ENUM: VERBOSE
+    HUB: VERBOSE
+    usbuvc: VERBOSE
+    USB_PHY: VERBOSE
+    USB_DWC: VERBOSE
+    USB_DWC_HAL: VERBOSE
+    USB_DWC_LL: VERBOSE
+ 
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "usb-camera Fallback"
+    password: "changeme"
+
+api:
+  # encryption:
+    # key: !secret api_key
+
+ota:
+  - platform: esphome
+    # password: !secret ota_password
+
+external_components:
+  - source:
+      type: local
+      path: components   # adjust to wherever you placed the usbuvc folder
+    components: [usbuvc]
+    
+  # - source: "github://SeByDocKy/myESPhome/"
+    # components: [usbuvc]
+    # refresh: 0s   
+    
+
+debug:
+  update_interval: 5s
+  
+http_request:
+  
+  
+update:
+
+  - platform: esp32_hosted
+    id: c6_firmware_update
+    name: ${name}_esp32_c6_update
+    type: http
+    source: https://esphome.github.io/esp-hosted-firmware/manifest/esp32c6.json
+    update_interval: 6h
+            
+# ----------------------------------------------------------------
+# USB UVC camera component
+# ----------------------------------------------------------------
+
+usbuvc:
+  name: ${name}_webcam 
+  id: my_webcam
+  vid: 0x1BCF
+  pid: 0x0951
+  resolution: 640X480
+  fps: 30
+  frame_buffer_count: 8 #3
+  urb_count: 6 #3
+  urb_size: 32768 #16384 #512
+  transfer_max_size: 2048   # défaut = 2048
+  downsampling_factor: 1
+  start_streaming_at_init: false   # ne démarre pas automatiquement
+  connect_timeout: '20s'
+
+  # Automations
+  on_stream_start:
+    - logger.log: "UVC stream started"
+
+  on_stream_stop:
+    - logger.log: "UVC stream stopped"
+
+  # on_image:   # fires for every captured frame
+    # then:
+      # - logger.log:
+          # format: "Got frame, len=%d"
+          # args: [image.length]
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+    
+  - platform: uptime
+    id: uptime_sec
+     
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+       
+binary_sensor:
+  - platform: status
+    name: ${name}_esp_status
+     
+button:
+  - platform: restart
+    name: ${name}_restart
+    
+  - platform: template
+    name: ${name}_start_usbcamera_stream
+    on_press:
+      - usbuvc.start_stream: my_webcam
+
+  - platform: template
+    name: ${name}_stop_usbcamera_stream
+    on_press:
+      - usbuvc.stop_stream: my_webcam    
+    
+select:
+  - platform: usbuvc
+    name: ${name}_camera_formats
+    usbuvc_id: my_webcam
+            
+    
+number:
+  - platform: usbuvc
+    name: ${name}_downsampling_factor
+    usbuvc_id: my_webcam
+    min_value: 1
+    max_value: 10
+    step: 1    
+    
+text_sensor:
+
+  - platform: usbuvc
+    name: ${name}_formats_available
+    id: formats_available
+    usbuvc_id: my_webcam
+
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s
+
