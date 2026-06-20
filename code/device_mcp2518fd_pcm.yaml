@@ -57,7 +57,7 @@ canbus:
     cs_pin: ${pcm_cs_pin}
     can_id: 0x0A
     bit_rate: 250kbps
-    mode: 'LOOPBACK_INT' #'CLASSIC' # CLASSIC <=> Only non FD trames, NORMAL <=> both FD & non-FD accepted
+    mode: 'CLASSIC' #'LOOPBACK_INT' #'CLASSIC' # CLASSIC <=> Only non FD trames, NORMAL <=> both FD & non-FD accepted
     data_rate: '10MHz'
     clock: '40MHz'
     # mcp_clock: '20MHz' 
