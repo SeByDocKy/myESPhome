@@ -1,11 +1,11 @@
-"""ESPHome native component for USB UVC cameras (ESP32-S2/S3).
+"""ESPHome native component for USB UVC cameras (ESP32-S3/P4).
 
 Streams MJPEG video to Home Assistant via the native camera API,
 mirroring the behaviour of esp32_camera but sourcing frames from
 a USB Video Class device instead of a parallel-bus sensor.
 """
 
-CODEOWNERS = ["@SeByDocKy", "@Claude"]
+CODEOWNERS = ["@SeByDocKy"]
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
@@ -65,6 +65,7 @@ CONF_FRAME_SIZE_MAX         = "frame_size_max"
 CONF_TRANSFER_MAX_SIZE      = "transfer_max_size"
 CONF_START_STREAMING        = "start_streaming_at_init"
 CONF_DOWNSAMPLING_FACTOR    = "downsampling_factor"
+CONF_CONNECT_TIMEOUT        = "connect_timeout"
 CONF_ON_STREAM_START        = "on_stream_start"
 CONF_ON_STREAM_STOP         = "on_stream_stop"
 CONF_ON_IMAGE               = "on_image"
@@ -79,6 +80,7 @@ RESOLUTIONS = {
     "1280X720":  (1280, 720),
     "1280X960":  (1280, 960),
     "1920X1080": (1920, 1080),
+    "2560X1440": (2560, 1440),
 }
 
 # ---------------------------------------------------------------- main schema
@@ -105,6 +107,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_FRAME_SIZE_MAX, default=0): cv.positive_int,
             cv.Optional(CONF_START_STREAMING, default=True): cv.boolean,
             cv.Optional(CONF_DOWNSAMPLING_FACTOR, default=1): cv.int_range(min=1, max=60),
+            cv.Optional(CONF_CONNECT_TIMEOUT, default="5s"): cv.positive_time_period_milliseconds,
             # transfer_max_size : taille max du buffer de control transfer USB.
             # Remplace CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE dans sdkconfig.
             # Valeur recommandée : 2048 pour les caméras avec de gros descripteurs
@@ -202,6 +205,7 @@ async def to_code(config):
     cg.add(var.set_frame_size_max(config[CONF_FRAME_SIZE_MAX]))
     cg.add(var.set_start_streaming_at_init(config[CONF_START_STREAMING]))
     cg.add(var.set_downsampling_factor(config[CONF_DOWNSAMPLING_FACTOR]))
+    cg.add(var.set_connect_timeout(config[CONF_CONNECT_TIMEOUT].total_milliseconds))
     # transfer_max_size -> injecté dans sdkconfig via add_idf_sdkconfig_option
     # Evite de devoir mettre CONFIG_USB_HOST_CONTROL_TRANSFER_MAX_SIZE manuellement
     if config[CONF_TRANSFER_MAX_SIZE] > 0:

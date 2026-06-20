@@ -6,7 +6,6 @@
 #include "esphome/core/application.h"
 
 #include <cstring>
-#include <malloc.h>
 #include <sstream>
 #include <algorithm>
 #include "esp_heap_caps.h"
@@ -77,6 +76,20 @@ static constexpr uint8_t FRAME_QUEUE_DEPTH = 4;
 // ===========================================================================
 // Callbacks statiques UVC  (contexte : tâche driver UVC, pas le main loop)
 // ===========================================================================
+
+#ifdef CONFIG_USB_HOST_ENABLE_ENUM_FILTER_CALLBACK
+static bool uvc_enum_filter_callback(const usb_device_desc_t *dev_desc,
+                                     uint8_t *bConfigurationValue) {
+  ESP_LOGI("usbuvc_enum", "Device enumerated:");
+  ESP_LOGI("usbuvc_enum", "  VID=0x%04X PID=0x%04X", dev_desc->idVendor, dev_desc->idProduct);
+  ESP_LOGI("usbuvc_enum", "  bDeviceClass=0x%02X bDeviceSubClass=0x%02X",
+           dev_desc->bDeviceClass, dev_desc->bDeviceSubClass);
+  ESP_LOGI("usbuvc_enum", "  bcdUSB=0x%04X bMaxPacketSize0=%u",
+           dev_desc->bcdUSB, dev_desc->bMaxPacketSize0);
+  *bConfigurationValue = 1;  // use first configuration
+  return true;  // enumerate this device
+}
+#endif
 
 static void uvc_driver_event_callback(const uvc_host_driver_event_data_t *event, void *user_ctx) {
   auto *self = static_cast<UsbUvcCamera *>(user_ctx);
@@ -235,8 +248,9 @@ void UsbUvcCamera::setup() {
   this->last_update_       = millis();
   this->last_idle_request_ = millis();
 
-  this->frame_queue_  = xQueueCreate(FRAME_QUEUE_DEPTH, sizeof(PendingFrame));
-  this->stream_mutex_ = xSemaphoreCreateMutex();
+  this->frame_queue_   = xQueueCreate(FRAME_QUEUE_DEPTH, sizeof(PendingFrame));
+  this->stream_mutex_  = xSemaphoreCreateMutex();
+  this->connect_event_ = xEventGroupCreate();
 
   if (this->frame_queue_ == nullptr || this->stream_mutex_ == nullptr) {
     ESP_LOGE(TAG, "Impossible d'allouer les primitives RTOS");
@@ -415,10 +429,14 @@ void UsbUvcCamera::request_image(camera::CameraRequester requester) {
 }
 
 void UsbUvcCamera::start_stream(camera::CameraRequester requester) {
-  const bool was_streaming = this->stream_requesters_ != 0;
-  this->stream_requesters_ |= (1U << static_cast<uint8_t>(requester));
-  // Ne fire les triggers qu'au premier start (transition 0 -> non-0)
-  if (!was_streaming) {
+  const uint8_t prev = this->stream_requesters_.fetch_or(
+      static_cast<uint8_t>(1U << static_cast<uint8_t>(requester)));
+  if (prev == 0) {
+    // First requester: start hardware stream
+    xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
+    if (this->uvc_stream_ != nullptr)
+      uvc_host_stream_start(this->uvc_stream_);
+    xSemaphoreGive(this->stream_mutex_);
     this->fire_stream_start_triggers_();
     for (auto *l : this->listeners_)
       l->on_stream_start();
@@ -426,9 +444,15 @@ void UsbUvcCamera::start_stream(camera::CameraRequester requester) {
 }
 
 void UsbUvcCamera::stop_stream(camera::CameraRequester requester) {
-  this->stream_requesters_ &= ~(1U << static_cast<uint8_t>(requester));
-  // Ne fire les triggers que quand le dernier requester se retire (transition non-0 -> 0)
-  if (this->stream_requesters_ == 0) {
+  const uint8_t prev = this->stream_requesters_.fetch_and(
+      static_cast<uint8_t>(~(1U << static_cast<uint8_t>(requester))));
+  const uint8_t mask = static_cast<uint8_t>(1U << static_cast<uint8_t>(requester));
+  if ((prev & ~mask) == 0) {
+    // Last requester: stop hardware stream
+    xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
+    if (this->uvc_stream_ != nullptr)
+      uvc_host_stream_stop(this->uvc_stream_);
+    xSemaphoreGive(this->stream_mutex_);
     this->fire_stream_stop_triggers_();
     for (auto *l : this->listeners_)
       l->on_stream_stop();
@@ -471,10 +495,20 @@ void UsbUvcCamera::on_stream_event_(const uvc_host_stream_event_data_t *event) {
       break;
 
     case UVC_HOST_DEVICE_DISCONNECTED:
-      ESP_LOGI(TAG, "Caméra USB déconnectée");
+      ESP_LOGI(TAG, "Camera USB deconnectee");
       this->dev_connected_ = false;
       xSemaphoreTake(this->stream_mutex_, portMAX_DELAY);
       if (this->uvc_stream_ != nullptr) {
+        // Drain frame_queue_ BEFORE close to avoid use-after-free:
+        // pending frames point to driver buffers that close() will free.
+        // We discard them without calling frame_return (driver handles cleanup).
+        {
+          PendingFrame stale;
+          while (xQueueReceive(this->frame_queue_, &stale, 0) == pdTRUE) {}
+        }
+        // Also release current_image_ so its destructor does not call
+        // uvc_host_frame_return() on an already-closed stream.
+        this->current_image_.reset();
         uvc_host_stream_close(event->device_disconnected.stream_hdl);
         this->uvc_stream_ = nullptr;
       }
@@ -549,7 +583,7 @@ void UsbUvcCamera::fire_stream_stop_triggers_() {
 // ===========================================================================
 
 
-void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_index, size_t frame_info_num) {
+void UsbUvcCamera::publish_format_list_from_cache_() {
   if (true
 #ifdef USE_TEXT_SENSOR
       && this->format_list_sensor_ == nullptr
@@ -559,72 +593,43 @@ void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_ind
 #endif
   ) return;
 
-  if (frame_info_num == 0) {
+  if (this->pending_formats_.empty()) {
 #ifdef USE_TEXT_SENSOR
     if (this->format_list_sensor_) this->format_list_sensor_->publish_state("no_format");
 #endif
     return;
   }
 
-  // Alloue le tableau de frame_info
-  auto *frame_list = new uvc_host_frame_info_t[frame_info_num];
-  if (frame_list == nullptr) {
-    ESP_LOGE(TAG, "publish_format_list_: OOM pour %d entrées", (int)frame_info_num);
-#ifdef USE_TEXT_SENSOR
-    if (this->format_list_sensor_) this->format_list_sensor_->publish_state("oom");
-#endif
-    return;
-  }
-
-  size_t actual = frame_info_num;
-  esp_err_t err = uvc_host_get_frame_list(dev_addr, uvc_stream_index,
-                                          (uvc_host_frame_info_t (*)[])frame_list,
-                                          &actual);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "uvc_host_get_frame_list: %s", esp_err_to_name(err));
-    delete[] frame_list;
-#ifdef USE_TEXT_SENSOR
-    if (this->format_list_sensor_) this->format_list_sensor_->publish_state("error");
-#endif
-    return;
-  }
-
-  // ---- Collecte des entrées MJPEG valides --------------------------------
-  // Intervalle en unités 100ns → fps = 10 000 000 / interval
-  // On filtre les fps aberrants (< 1 ou > 120)
+  // Collect valid MJPEG entries from cached format list
+  // Intervals in 100ns units -> fps = 10 000 000 / interval
   struct FmtEntry { uint16_t w; uint16_t h; uint32_t fps; };
   std::vector<FmtEntry> entries;
 
-  for (size_t i = 0; i < actual; i++) {
-    const uvc_host_frame_info_t &fi = frame_list[i];
+  for (const auto &fi : this->pending_formats_) {
     if (fi.format != UVC_VS_FORMAT_MJPEG)
       continue;
 
     auto add = [&](uint32_t interval) {
       if (interval == 0) return;
       uint32_t fps = 10000000u / interval;
-      if (fps < 1 || fps > 120) return;  // filtre valeurs aberrantes
+      if (fps < 1 || fps > 120) return;
       entries.push_back({(uint16_t)fi.h_res, (uint16_t)fi.v_res, fps});
     };
 
     if (fi.interval_type == 0) {
-      // Intervalle continu : utilise uniquement default_interval
       add(fi.default_interval);
     } else {
-      // Intervalles discrets
       for (uint8_t k = 0; k < fi.interval_type; k++)
         add(fi.interval[k]);
     }
   }
 
-  delete[] frame_list;
-
-  // ---- Déduplique --------------------------------------------------------
+  // Sort and deduplicate
   std::sort(entries.begin(), entries.end(), [](const FmtEntry &a, const FmtEntry &b) {
     uint32_t pa = (uint32_t)a.w * a.h;
     uint32_t pb = (uint32_t)b.w * b.h;
-    if (pa != pb) return pa < pb;   // tri par résolution croissante
-    return a.fps < b.fps;           // puis par fps croissant
+    if (pa != pb) return pa < pb;
+    return a.fps < b.fps;
   });
   entries.erase(
     std::unique(entries.begin(), entries.end(), [](const FmtEntry &a, const FmtEntry &b) {
@@ -633,7 +638,7 @@ void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_ind
     entries.end()
   );
 
-  // ---- Construit les strings ---------------------------------------------
+  // Build option strings
   std::vector<std::string> opts;
   char buf[32];
   for (const auto &e : entries) {
@@ -650,19 +655,17 @@ void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_ind
   }
 
 #ifdef USE_TEXT_SENSOR
-  // ---- Publie dans le text_sensor (separateur \n pour lisibilite dans HA) -
   if (this->format_list_sensor_ != nullptr) {
     std::string result;
     for (const auto &s : opts) {
       if (!result.empty()) result += "\n";
       result += s;
     }
-    ESP_LOGI(TAG, "Formats MJPEG publies (%d): %s", (int)opts.size(), result.c_str());
+    ESP_LOGI(TAG, "Formats MJPEG (%d): %s", (int)opts.size(), result.c_str());
     this->format_list_sensor_->publish_state(result);
   }
-#endif  // USE_TEXT_SENSOR
+#endif
 
-  // ---- Peuple le select --------------------------------------------------
 #ifdef USE_SELECT
   if (this->resolution_select_ != nullptr)
     this->resolution_select_->update_options(opts);
@@ -671,18 +674,38 @@ void UsbUvcCamera::publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_ind
 
 void UsbUvcCamera::on_driver_event_(const uvc_host_driver_event_data_t *event) {
   if (event->type == UVC_HOST_DRIVER_EVENT_DEVICE_CONNECTED) {
-    ESP_LOGI(TAG, "Driver: caméra connectée addr=%u stream_idx=%u (%d formats)",
-             event->device_connected.dev_addr,
-             event->device_connected.uvc_stream_index,
-             (int)event->device_connected.frame_info_num);
-    // Stocke dev_addr pour la reconnexion
-    this->dev_addr_            = event->device_connected.dev_addr;
-    this->connected_stream_index_ = event->device_connected.uvc_stream_index;
-    // Publie la liste des formats dans le text_sensor
-    this->publish_format_list_(
-        event->device_connected.dev_addr,
-        event->device_connected.uvc_stream_index,
-        event->device_connected.frame_info_num);
+    const uint8_t dev_addr  = event->device_connected.dev_addr;
+    const uint8_t stream_idx = event->device_connected.uvc_stream_index;
+    const size_t  fmt_count  = event->device_connected.frame_info_num;
+    ESP_LOGI(TAG, "Driver: camera connected addr=%u stream_idx=%u (%d formats)",
+             dev_addr, stream_idx, (int)fmt_count);
+
+    // Retrieve format list NOW, before stream_open.
+    // After stream_open the config descriptor may no longer be accessible.
+    this->pending_formats_.clear();
+    if (fmt_count > 0) {
+      auto *fl = new uvc_host_frame_info_t[fmt_count];
+      if (fl != nullptr) {
+        size_t actual = fmt_count;
+        typedef uvc_host_frame_info_t fi_arr_t[];
+        esp_err_t e = uvc_host_get_frame_list(
+            dev_addr, stream_idx,
+            reinterpret_cast<fi_arr_t *>(fl), &actual);
+        if (e == ESP_OK) {
+          for (size_t i = 0; i < actual; i++)
+            this->pending_formats_.push_back(fl[i]);
+          ESP_LOGI(TAG, "Format list cached: %d entries", (int)actual);
+        } else {
+          ESP_LOGW(TAG, "uvc_host_get_frame_list: %s", esp_err_to_name(e));
+        }
+        delete[] fl;
+      }
+    }
+
+    this->pending_dev_addr_     = dev_addr;
+    this->pending_stream_index_ = stream_idx;
+    if (this->connect_event_ != nullptr)
+      xEventGroupSetBits(this->connect_event_, EVT_DEVICE_CONNECTED);
   }
 }
 
@@ -781,17 +804,39 @@ void UsbUvcCamera::uvc_connect_task_(void *pv) {
   cfg.advanced.frame_heap_caps         = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;
 
   while (true) {
-    ESP_LOGI(TAG, "Tentative d'ouverture UVC 0x%04X:0x%04X %ux%u@%.0ffps …",
-             cfg.usb.vid, cfg.usb.pid,
+    // Event-driven: wait for driver to confirm a compatible device is present
+    // on_driver_event_() sets EVT_DEVICE_CONNECTED when UVC_HOST_DRIVER_EVENT_DEVICE_CONNECTED fires
+    ESP_LOGI(TAG, "En attente d'un device UVC (VID=0x%04X PID=0x%04X)...",
+             self->vid_, self->pid_);
+    // Wait for driver event, with 10s timeout fallback in case the device
+    // was already connected before this task started (missed event).
+    EventBits_t bits = xEventGroupWaitBits(self->connect_event_,
+                        EVT_DEVICE_CONNECTED,
+                        pdTRUE,        // clear bit on exit
+                        pdFALSE,
+                        pdMS_TO_TICKS(60000));  // 60s fallback
+    if ((bits & EVT_DEVICE_CONNECTED) == 0) {
+      // Timeout after 60s: try with wildcard addr as last resort
+      ESP_LOGW(TAG, "60s timeout: aucun event UVC recu -- tentative wildcard addr=0");
+      self->pending_dev_addr_ = 0;
+    }
+
+    // Target the exact device addr reported by the driver
+    cfg.usb.dev_addr = self->pending_dev_addr_;
+    ESP_LOGI(TAG, "Device UVC detecte addr=%u -- ouverture %ux%u@%.0ffps",
+             self->pending_dev_addr_,
              cfg.vs_format.h_res, cfg.vs_format.v_res, cfg.vs_format.fps);
 
     uvc_host_stream_hdl_t hdl = nullptr;
-    esp_err_t err = uvc_host_stream_open(&cfg, pdMS_TO_TICKS(5000), &hdl);
+    esp_err_t err = uvc_host_stream_open(
+        &cfg, pdMS_TO_TICKS(self->connect_timeout_ms_), &hdl);
 
     if (err != ESP_OK) {
-      ESP_LOGW(TAG, "uvc_host_stream_open: %s — nouvelle tentative dans 5 s",
+      ESP_LOGW(TAG, "uvc_host_stream_open: %s -- re-essai",
                esp_err_to_name(err));
-      vTaskDelay(pdMS_TO_TICKS(5000));
+      // Re-arm immediately for a quick retry
+      xEventGroupSetBits(self->connect_event_, EVT_DEVICE_CONNECTED);
+      vTaskDelay(pdMS_TO_TICKS(500));
       continue;
     }
 
@@ -800,19 +845,21 @@ void UsbUvcCamera::uvc_connect_task_(void *pv) {
     self->dev_connected_ = true;
     xSemaphoreGive(self->stream_mutex_);
 
+    // Publish format list using the cache built in on_driver_event_
+    self->publish_format_list_from_cache_();
+
     if (self->start_streaming_at_init_) {
-      ESP_LOGI(TAG, "Caméra UVC ouverte — démarrage du stream (auto)");
+      ESP_LOGI(TAG, "Camera UVC ouverte -- demarrage du stream (auto)");
       uvc_host_stream_start(hdl);
     } else {
-      ESP_LOGI(TAG, "Caméra UVC ouverte — stream en attente (start_streaming_at_init=false)");
+      ESP_LOGI(TAG, "Camera UVC ouverte -- stream en attente (start_streaming_at_init=false)");
     }
-
 
     while (self->dev_connected_)
       vTaskDelay(pdMS_TO_TICKS(500));
 
-    ESP_LOGI(TAG, "Appareil retiré — pause 3 s avant reconnexion");
-    vTaskDelay(pdMS_TO_TICKS(3000));
+    ESP_LOGI(TAG, "Device deconnecte -- en attente du prochain event");
+    // No vTaskDelay: the next loop iteration blocks on xEventGroupWaitBits
   }
 }
 

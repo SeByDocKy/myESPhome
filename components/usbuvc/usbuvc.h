@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <vector>
+#include <atomic>
 
 namespace esphome {
 namespace usbuvc {
@@ -190,6 +191,7 @@ class UsbUvcCamera : public camera::Camera {
   void set_frame_size_max(uint32_t sz)        { this->frame_size_max_ = sz; }
   void set_start_streaming_at_init(bool v)    { this->start_streaming_at_init_ = v; }
   void set_downsampling_factor(uint8_t f)     { this->downsampling_factor_ = (f < 1) ? 1 : f; }
+  void set_connect_timeout(uint32_t ms)        { this->connect_timeout_ms_ = (ms < 100) ? 100 : ms; }
   uint8_t get_downsampling_factor() const     { return this->downsampling_factor_; }
 #ifdef USE_NUMBER
   void set_downsampling_number(UvcDownsamplingNumber *n) { this->downsampling_number_ = n; if (n) n->set_parent(this); }
@@ -233,6 +235,7 @@ class UsbUvcCamera : public camera::Camera {
   uint32_t frame_size_max_{0};
   bool start_streaming_at_init_{true};
   uint8_t downsampling_factor_{1};
+  uint32_t connect_timeout_ms_{5000};  // timeout uvc_host_stream_open en ms
   uint8_t downsampling_counter_{0};
 #ifdef USE_NUMBER
   UvcDownsamplingNumber *downsampling_number_{nullptr};
@@ -241,11 +244,19 @@ class UsbUvcCamera : public camera::Camera {
   // --- Runtime -------------------------------------------------------------
   uvc_host_stream_hdl_t uvc_stream_{nullptr};
   bool dev_connected_{false};
+  // Event-driven connection: on_driver_event_ signals this group
+  // instead of polling in uvc_connect_task_
+  EventGroupHandle_t connect_event_{nullptr};
+  uint8_t  pending_dev_addr_{0};
+  uint8_t  pending_stream_index_{0};
+  std::vector<uvc_host_frame_info_t> pending_formats_;
+  static constexpr EventBits_t EVT_DEVICE_CONNECTED = BIT0;
+  static constexpr EventBits_t EVT_DEVICE_LOST      = BIT1;
   uint8_t dev_addr_{0};
   uint8_t connected_stream_index_{0};
 
-  uint8_t single_requesters_{0};
-  uint8_t stream_requesters_{0};
+  std::atomic<uint8_t> single_requesters_{0};
+  std::atomic<uint8_t> stream_requesters_{0};
 
   uint32_t last_update_{0};
   uint32_t last_idle_request_{0};
@@ -261,16 +272,6 @@ class UsbUvcCamera : public camera::Camera {
   QueueHandle_t     frame_queue_{nullptr};
   SemaphoreHandle_t stream_mutex_{nullptr};
 
-  // --- Buffer pool (zero malloc/free en runtime, zero mutex) ---------------
-  uint8_t   pool_size_{6};
-  std::vector<uint8_t *> pool_buffers_;
-  std::vector<bool>      pool_free_;
-  // Release queue: UsbUvcImage::~UsbUvcImage() y poste pool_idx
-  // xQueue est thread-safe sans mutex -> zero deadlock possible
-  QueueHandle_t pool_release_queue_{nullptr};
-  uint8_t pool_take_();           // drain release_queue puis cherche un slot libre
-  void    drain_release_queue_(); // recycle les buffers retournes
-  bool    pool_ready_{false};
 
   // --- Entités liées -------------------------------------------------------
 #ifdef USE_TEXT_SENSOR
@@ -294,7 +295,7 @@ class UsbUvcCamera : public camera::Camera {
   }
 
   void dispatch_new_image_(PendingFrame &pf);
-  void publish_format_list_(uint8_t dev_addr, uint8_t uvc_stream_index, size_t frame_info_num);
+  void publish_format_list_from_cache_();
   void fire_stream_start_triggers_();
   void fire_stream_stop_triggers_();
 
