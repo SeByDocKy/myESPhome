@@ -5,7 +5,7 @@
     {
       "chipFamily": "ESP32-S3",
       "ota": {
-        "md5": "3a4b573118e630b1c7373411e91c6cf7",
+        "md5": "52fb3f5a5b2fceb7d05786a511c4a6ef",
         "path": "https://sebydocky.github.io/myESPhome/firmwares/lora_meter/firmware.ota.bin",
         "summary": "First release"
       }
