@@ -1,9 +1,14 @@
 {
-  "versions": [
+  "name": "Lora Meter project",
+  "version": "2026.5.0",
+  "builds": [
     {
-      "version": "1.0.0",
-      "url": "https://sebydocky.github.io/myESPhome/firmwares/lora_meter/firmware.bin",
-      "sha256": "9d8cec9dcca632e9ded31de555a5b49c70316d30b87ae06bd933fd35a5a11513"
+      "chipFamily": "ESP32-S3",
+      "ota": {
+        "md5": "3a4b573118e630b1c7373411e91c6cf7",
+        "path": "https://sebydocky.github.io/myESPhome/firmwares/lora_meter/firmware.ota.bin",
+        "summary": "First release"
+      }
     }
   ]
 }
