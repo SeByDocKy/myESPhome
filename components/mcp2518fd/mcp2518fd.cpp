@@ -366,7 +366,9 @@ canbus::Error MCP2518FD::configure_fifos_() {
     if (!(read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET*2) & (1UL<<10))) break;
     delay(1);
   }
-  txcon &= ~(1UL << 10);
+  // Clear FRESET and explicitly clear TXREQ (bit9) to prevent stale TX across reboots
+  txcon &= ~(1UL << 10);  // FRESET=0
+  txcon &= ~(1UL << 9);   // TXREQ=0  ← force clear
   write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
 
   uint32_t txsta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
