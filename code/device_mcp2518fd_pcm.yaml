@@ -1646,9 +1646,7 @@ text_sensor:
     icon: mdi:barcode
 
 # Interval updates to request status
-interval:
-
- 
+# interval:
 # # Query configuration parameters periodically (every 30s)
 #   - interval: ${pcm_interval}
 #     then:
