@@ -65,75 +65,75 @@ canbus:
 
     on_frame:
 
-      # SN Code Response - 0x010A0005
-      - can_id: 0x010A${pcm_address}05 #0x010A0005
-        use_extended_id: true
-        then:
-          - lambda: |-
-              // uint32_t sn_code = (x[4] << 24) | (x[3] << 16) | (x[2] << 8) | x[1];
-              // uint16_t sn_code = (x[3] << 8) | x[2];
-              uint8_t sn_low = x[2];
-              uint8_t sn_high = x[3];
-              char sn_str[10];
-              snprintf(sn_str, sizeof(sn_str), "V%d.%02d", sn_high, sn_low);
-              // snprintf(sn_str, sizeof(sn_str), "V%04X", sn_code);
-              id(sn_code_text_sensor).publish_state(sn_str);
-              ESP_LOGD("canbus", "SN Code: %s", sn_str);
+      # # SN Code Response - 0x010A0005
+      # - can_id: 0x010A${pcm_address}05 #0x010A0005
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         // uint32_t sn_code = (x[4] << 24) | (x[3] << 16) | (x[2] << 8) | x[1];
+      #         // uint16_t sn_code = (x[3] << 8) | x[2];
+      #         uint8_t sn_low = x[2];
+      #         uint8_t sn_high = x[3];
+      #         char sn_str[10];
+      #         snprintf(sn_str, sizeof(sn_str), "V%d.%02d", sn_high, sn_low);
+      #         // snprintf(sn_str, sizeof(sn_str), "V%04X", sn_code);
+      #         id(sn_code_text_sensor).publish_state(sn_str);
+      #         ESP_LOGD("canbus", "SN Code: %s", sn_str);
                              
-      # Version Response - 0x010A0007
-      - can_id: 0x010A${pcm_address}07 #0x010A0007
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t version_low = x[2];
-              uint8_t version_high = x[3];
-              char version_str[10];
-              snprintf(version_str, sizeof(version_str), "V%d.%02d", version_high, version_low);
-              id(program_version).publish_state(version_str);
-              ESP_LOGD("canbus", "Program Version: %s", version_str);
+      # # Version Response - 0x010A0007
+      # - can_id: 0x010A${pcm_address}07 #0x010A0007
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint8_t version_low = x[2];
+      #         uint8_t version_high = x[3];
+      #         char version_str[10];
+      #         snprintf(version_str, sizeof(version_str), "V%d.%02d", version_high, version_low);
+      #         id(program_version).publish_state(version_str);
+      #         ESP_LOGD("canbus", "Program Version: %s", version_str);
       
-      # Phase Mode Response - 0x010A000A
-      - can_id: 0x010A${pcm_address}0A #0x010A000A
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t phase_mode = x[2];
-              if (phase_mode == 0) {
-                id(phase_mode_select).publish_state("Single-Phase");
-                id(phase_mode_readback).publish_state(phase_mode+1);
-              } else if (phase_mode == 1) {
-                id(phase_mode_select).publish_state("Three-Phase");
-                id(phase_mode_readback).publish_state(phase_mode+2);
-              }         
-              ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
+      # # Phase Mode Response - 0x010A000A
+      # - can_id: 0x010A${pcm_address}0A #0x010A000A
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint8_t phase_mode = x[2];
+      #         if (phase_mode == 0) {
+      #           id(phase_mode_select).publish_state("Single-Phase");
+      #           id(phase_mode_readback).publish_state(phase_mode+1);
+      #         } else if (phase_mode == 1) {
+      #           id(phase_mode_select).publish_state("Three-Phase");
+      #           id(phase_mode_readback).publish_state(phase_mode+2);
+      #         }         
+      #         ESP_LOGD("canbus", "Phase Mode Readback: %s", phase_mode == 0 ? "Single" : "Three");
 
-      # Frequency Setting Response - 0x010A0011
-      - can_id: 0x010A${pcm_address}11 #0x010A0011
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t freq = x[2];
-              id(frequency_setting_readback).publish_state((freq== 0 ? 50 : 60));
-              if (freq == 0) {
-                id(frequency_select).publish_state("50 Hz");
-              } else if (freq == 1) {
-                id(frequency_select).publish_state("60 Hz");
-              }
-              ESP_LOGD("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
+      # # Frequency Setting Response - 0x010A0011
+      # - can_id: 0x010A${pcm_address}11 #0x010A0011
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint8_t freq = x[2];
+      #         id(frequency_setting_readback).publish_state((freq== 0 ? 50 : 60));
+      #         if (freq == 0) {
+      #           id(frequency_select).publish_state("50 Hz");
+      #         } else if (freq == 1) {
+      #           id(frequency_select).publish_state("60 Hz");
+      #         }
+      #         ESP_LOGD("canbus", "Frequency Setting Readback: %d Hz", freq == 0 ? 50 : 60);
       
-      # AC Voltage Setting Response - 0x010A0012
-      - can_id: 0x010A${pcm_address}12 #0x010A0012
-        use_extended_id: true
-        then:
-          - lambda: |-
-              uint8_t voltage = x[2];
-              id(ac_voltage_setting_readback).publish_state((voltage== 0 ? 230 : 240));
-              if (voltage == 0) {
-                id(ac_voltage_select).publish_state("230V");
-              } else if (voltage == 2) {
-                id(ac_voltage_select).publish_state("240V");
-              }
-              ESP_LOGD("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
+      # # AC Voltage Setting Response - 0x010A0012
+      # - can_id: 0x010A${pcm_address}12 #0x010A0012
+      #   use_extended_id: true
+      #   then:
+      #     - lambda: |-
+      #         uint8_t voltage = x[2];
+      #         id(ac_voltage_setting_readback).publish_state((voltage== 0 ? 230 : 240));
+      #         if (voltage == 0) {
+      #           id(ac_voltage_select).publish_state("230V");
+      #         } else if (voltage == 2) {
+      #           id(ac_voltage_select).publish_state("240V");
+      #         }
+      #         ESP_LOGD("canbus", "AC Voltage Setting Readback: %d", voltage == 0 ? 230 : 240);
 
       # AC Voltage Protection Response - 0x010A0013
       - can_id: 0x010A${pcm_address}13 #0x010A0013
