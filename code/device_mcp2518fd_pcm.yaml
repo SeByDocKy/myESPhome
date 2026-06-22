@@ -11,43 +11,43 @@ substitutions:
 #     refresh: 0s  
   
 esphome:
-  # on_boot: 
-  #   - priority: -100
-  #     then:
-  #       - delay: 2s
-  #       - canbus.send:
-  #           canbus_id: ${pcm_canbus_id}
-  #           can_id: 0x03${pcm_address}0A07
-  #           use_extended_id: true
-  #           data: !lambda |-
-  #             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  on_boot: 
+    - priority: -100
+      then:
+        - delay: 2s
+        - canbus.send:
+            canbus_id: ${pcm_canbus_id}
+            can_id: 0x03${pcm_address}0A07
+            use_extended_id: true
+            data: !lambda |-
+              return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
            
-  #       - delay: 50ms
+        - delay: 50ms
 
-  #       - canbus.send:
-  #           canbus_id: ${pcm_canbus_id}
-  #           can_id: 0x03${pcm_address}0A05
-  #           use_extended_id: true
-  #           data: !lambda |-
-  #             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        - canbus.send:
+            canbus_id: ${pcm_canbus_id}
+            can_id: 0x03${pcm_address}0A05
+            use_extended_id: true
+            data: !lambda |-
+              return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-  #       - delay: 50ms
+        - delay: 50ms
 
-  #       ### ------ Initialization of volatile register (36,37,38) -----------
+        ### ------ Initialization of volatile register (36,37,38) -----------
         
-  #       - switch.turn_on: discharge_charge_switch
+        - switch.turn_on: discharge_charge_switch
 
-  #       - delay: 50ms
+        - delay: 50ms
 
-  #       - number.set:
-  #          id: charging_current_number
-  #          value: 0
+        - number.set:
+           id: charging_current_number
+           value: 0
 
-  #       - delay: 50ms
+        - delay: 50ms
 
-  #       - number.set:
-  #          id: discharging_current_number
-  #          value: 0   
+        - number.set:
+           id: discharging_current_number
+           value: 0   
            
 canbus:
   - platform: mcp2518fd
