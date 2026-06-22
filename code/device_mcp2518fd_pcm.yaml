@@ -842,171 +842,171 @@ button:
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
        
 # Select Controls
-select:
-  # Grid Mode
-  - platform: template
-    name: ${name}_${pcm_name}_grid_mode
-    id: grid_mode_select
-    icon: mdi:power-plug-battery
-    optimistic: false #true
-    restore_value: true
-    initial_option: 'Charge mode'
-    options:
-      - 'Charge mode'
-      - 'Discharge mode'
-    set_action:  
-      - if:
-          condition:
-            lambda: |-
-              if (x == id(grid_mode_select).current_option()){
-                return false;
-              }
-              uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
-              uint8_t current_real_mode = id(grid_mode_readback).state;
-              return requested_mode != current_real_mode;
-          then:
-            # Si c'est différent (changement manuel), on envoie les trames d'origine
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A38
-                use_extended_id: true
-                data: !lambda |-
-                  uint8_t mode = (x == "Discharge mode") ? 1 : 0;
-                  return {${pcm_address}, 0x00, mode, 0x00, 0x00, 0x00, 0x00, 0x00};
-            - delay: ${delay_select}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A38
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            - delay: ${delay_select}
+# select:
+#   # Grid Mode
+#   - platform: template
+#     name: ${name}_${pcm_name}_grid_mode
+#     id: grid_mode_select
+#     icon: mdi:power-plug-battery
+#     optimistic: false #true
+#     restore_value: true
+#     initial_option: 'Charge mode'
+#     options:
+#       - 'Charge mode'
+#       - 'Discharge mode'
+#     set_action:  
+#       - if:
+#           condition:
+#             lambda: |-
+#               if (x == id(grid_mode_select).current_option()){
+#                 return false;
+#               }
+#               uint8_t requested_mode = (x == "Discharge mode") ? 1 : 0;
+#               uint8_t current_real_mode = id(grid_mode_readback).state;
+#               return requested_mode != current_real_mode;
+#           then:
+#             # Si c'est différent (changement manuel), on envoie les trames d'origine
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A38
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint8_t mode = (x == "Discharge mode") ? 1 : 0;
+#                   return {${pcm_address}, 0x00, mode, 0x00, 0x00, 0x00, 0x00, 0x00};
+#             - delay: ${delay_select}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A38
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#             - delay: ${delay_select}
             
-  # Phase Mode Setting
-  - platform: template
-    name: ${name}_${pcm_name}_phase_mode_setting
-    id: phase_mode_select
-    icon: mdi:electric-switch
-    optimistic: false #true
-    restore_value: true
-    initial_option: 'Single-Phase'
-    options:
-      - 'Single-Phase'
-      - 'Three-Phase'
-    set_action:  
-      - if:
-          condition:
-            lambda: |-
-              if (x == id(grid_mode_select).current_option()){
-                return false;
-              }
-              uint8_t requested_phase = (x == "Three-Phase") ? 1 : 0;
-              uint8_t current_real_phase = id(phase_mode_readback).state;
-              uint8_t current_real_phase_raw = (current_real_phase == 3) ? 1 : 0;
-              return requested_phase != current_real_phase_raw;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A0A
-                use_extended_id: true
-                data: !lambda |-
-                  uint8_t phase = (x == "Three-Phase") ? 1 : 0;
-                  return {${pcm_address}, 0x00, phase, 0x00, 0x00, 0x00, 0x00, 0x00};
-            - logger.log:
-                format: 'Phase Mode will take effect on next reboot'
-                level: WARN
-            - delay: ${delay_select}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A0A
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
-            - delay: ${delay_select}
+#   # Phase Mode Setting
+#   - platform: template
+#     name: ${name}_${pcm_name}_phase_mode_setting
+#     id: phase_mode_select
+#     icon: mdi:electric-switch
+#     optimistic: false #true
+#     restore_value: true
+#     initial_option: 'Single-Phase'
+#     options:
+#       - 'Single-Phase'
+#       - 'Three-Phase'
+#     set_action:  
+#       - if:
+#           condition:
+#             lambda: |-
+#               if (x == id(grid_mode_select).current_option()){
+#                 return false;
+#               }
+#               uint8_t requested_phase = (x == "Three-Phase") ? 1 : 0;
+#               uint8_t current_real_phase = id(phase_mode_readback).state;
+#               uint8_t current_real_phase_raw = (current_real_phase == 3) ? 1 : 0;
+#               return requested_phase != current_real_phase_raw;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A0A
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint8_t phase = (x == "Three-Phase") ? 1 : 0;
+#                   return {${pcm_address}, 0x00, phase, 0x00, 0x00, 0x00, 0x00, 0x00};
+#             - logger.log:
+#                 format: 'Phase Mode will take effect on next reboot'
+#                 level: WARN
+#             - delay: ${delay_select}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A0A
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};    
+#             - delay: ${delay_select}
 
-  # Frequency Setting
-  - platform: template
-    name: ${name}_${pcm_name}_frequency_setting
-    id: frequency_select
-    icon: mdi:metronome
-    optimistic: false #true
-    restore_value: true
-    initial_option: '50 Hz'
-    options:
-      - '50 Hz'
-      - '60 Hz'
-    set_action:  
-    # on_value:
-      - if:
-          condition:
-            lambda: |-
-              if (x == id(grid_mode_select).current_option()){
-                return false; 
-              }
-              uint8_t requested_freq = (x == "60 Hz") ? 1 : 0;
-              uint8_t current_real_freq_hz = id(frequency_setting_readback).state;
-              uint8_t current_real_freq_raw = (current_real_freq_hz == 60) ? 1 : 0;
-              return requested_freq != current_real_freq_raw;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A11
-                use_extended_id: true
-                data: !lambda |-
-                  uint8_t freq = (x == "60 Hz") ? 1 : 0;
-                  return {${pcm_address}, 0x00, freq, 0x00, 0x00, 0x00, 0x00, 0x00};
-            - logger.log:
-                format: "Frequency will take effect on next reboot"
-                level: WARN
-            - delay: ${delay_select}
-            # Query back the setting
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A11
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            - delay: ${delay_select}
+#   # Frequency Setting
+#   - platform: template
+#     name: ${name}_${pcm_name}_frequency_setting
+#     id: frequency_select
+#     icon: mdi:metronome
+#     optimistic: false #true
+#     restore_value: true
+#     initial_option: '50 Hz'
+#     options:
+#       - '50 Hz'
+#       - '60 Hz'
+#     set_action:  
+#     # on_value:
+#       - if:
+#           condition:
+#             lambda: |-
+#               if (x == id(grid_mode_select).current_option()){
+#                 return false; 
+#               }
+#               uint8_t requested_freq = (x == "60 Hz") ? 1 : 0;
+#               uint8_t current_real_freq_hz = id(frequency_setting_readback).state;
+#               uint8_t current_real_freq_raw = (current_real_freq_hz == 60) ? 1 : 0;
+#               return requested_freq != current_real_freq_raw;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A11
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint8_t freq = (x == "60 Hz") ? 1 : 0;
+#                   return {${pcm_address}, 0x00, freq, 0x00, 0x00, 0x00, 0x00, 0x00};
+#             - logger.log:
+#                 format: "Frequency will take effect on next reboot"
+#                 level: WARN
+#             - delay: ${delay_select}
+#             # Query back the setting
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A11
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#             - delay: ${delay_select}
      
-  # AC Voltage Setting
-  - platform: template
-    name: ${name}_${pcm_name}_ac_voltage_setting
-    id: ac_voltage_select
-    icon: mdi:sine-wave
-    optimistic: false #true
-    restore_value: true
-    initial_option: '230V'
-    options:
-      - '230V'
-      - '240V'
-    set_action:  
-      - if:
-          condition:
-            lambda: |-
-              if (x == id(grid_mode_select).current_option()){
-                return false;
-              }
-              uint8_t requested_voltage = (x == "240V") ? 2 : 0;
-              float current_real_voltage = id(ac_voltage_setting_readback).state;
-              uint8_t current_real_voltage_raw = (current_real_voltage >= 239.0) ? 2 : 0;
-              return requested_voltage != current_real_voltage_raw;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A12
-                use_extended_id: true
-                data: !lambda |-
-                  uint8_t voltage = (x == "240V") ? 2 : 0;
-                  return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
-            - delay: ${delay_select}
-            # Query back the setting
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A12
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            - delay: ${delay_select}
+#   # AC Voltage Setting
+#   - platform: template
+#     name: ${name}_${pcm_name}_ac_voltage_setting
+#     id: ac_voltage_select
+#     icon: mdi:sine-wave
+#     optimistic: false #true
+#     restore_value: true
+#     initial_option: '230V'
+#     options:
+#       - '230V'
+#       - '240V'
+#     set_action:  
+#       - if:
+#           condition:
+#             lambda: |-
+#               if (x == id(grid_mode_select).current_option()){
+#                 return false;
+#               }
+#               uint8_t requested_voltage = (x == "240V") ? 2 : 0;
+#               float current_real_voltage = id(ac_voltage_setting_readback).state;
+#               uint8_t current_real_voltage_raw = (current_real_voltage >= 239.0) ? 2 : 0;
+#               return requested_voltage != current_real_voltage_raw;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A12
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint8_t voltage = (x == "240V") ? 2 : 0;
+#                   return {${pcm_address}, 0x00, voltage, 0x00, 0x00, 0x00, 0x00, 0x00};
+#             - delay: ${delay_select}
+#             # Query back the setting
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A12
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#             - delay: ${delay_select}
        
 
 output:
@@ -1076,574 +1076,576 @@ fan:
     icon: mdi:battery-arrow-down
 
 # Number Controls for Parameters
-number:
-  # Charging Voltage (48V system example)
-  - platform: template
-    name: ${name}_${pcm_name}_charging_voltage
-    id: charging_voltage
-    icon: mdi:battery-charging-high
-    unit_of_measurement: 'V'
-    min_value: 40.0
-    max_value: 59.0
-    step: 0.1
-    mode: 'slider'
-    optimistic: false
-    initial_value: 56.0
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(charging_voltage_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A31
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t voltage = (uint16_t)(x * 10);
-                  uint16_t current = (uint16_t)(id(charging_current_number).state * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A31
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
+# number:
+#   # Charging Voltage (48V system example)
+#   - platform: template
+#     name: ${name}_${pcm_name}_charging_voltage
+#     id: charging_voltage
+#     icon: mdi:battery-charging-high
+#     unit_of_measurement: 'V'
+#     min_value: 40.0
+#     max_value: 59.0
+#     step: 0.1
+#     mode: 'slider'
+#     optimistic: false
+#     initial_value: 56.0
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(charging_voltage_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A31
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t voltage = (uint16_t)(x * 10);
+#                   uint16_t current = (uint16_t)(id(charging_current_number).state * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(voltage & 0xFF), (uint8_t)(voltage >> 8), (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A31
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
   
-  # Charging Current Limit (48V system)
-  - platform: template
-    name: ${name}_${pcm_name}_charging_current
-    id: charging_current_number
-    icon: mdi:battery-arrow-up
-    unit_of_measurement: 'A'
-    min_value: 1.0
-    max_value: 70.0
-    initial_value: 1.0
-    step: 0.5
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(charging_current_readback).state) > 0.01f;
-              // return true;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A36  # <-- Volatile
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t current = (uint16_t)(x * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+#   # Charging Current Limit (48V system)
+#   - platform: template
+#     name: ${name}_${pcm_name}_charging_current
+#     id: charging_current_number
+#     icon: mdi:battery-arrow-up
+#     unit_of_measurement: 'A'
+#     min_value: 1.0
+#     max_value: 70.0
+#     initial_value: 1.0
+#     step: 0.5
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(charging_current_readback).state) > 0.01f;
+#               // return true;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A36  # <-- Volatile
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t current = (uint16_t)(x * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
 
-            - lambda: |-
-                // uint16_t charge_current_value = (x[3] << 8) | x[2];
-                id(charging_current_readback).publish_state(x);
-                id(charging_current_number).publish_state(x);
-                ESP_LOGD("canbus", "Charge Current Readback: %.1fA", x);      
-            # - delay: ${delay_number}
-            # # Query back the setting
-            # - canbus.send:
-            #     canbus_id: ${pcm_canbus_id}
-            #     can_id: 0x03${pcm_address}0A36  # <-- Volatile
-            #     use_extended_id: true
-            #     data: !lambda |-
-            #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
+#             - lambda: |-
+#                 // uint16_t charge_current_value = (x[3] << 8) | x[2];
+#                 id(charging_current_readback).publish_state(x);
+#                 id(charging_current_number).publish_state(x);
+#                 ESP_LOGD("canbus", "Charge Current Readback: %.1fA", x);      
+#             # - delay: ${delay_number}
+#             # # Query back the setting
+#             # - canbus.send:
+#             #     canbus_id: ${pcm_canbus_id}
+#             #     can_id: 0x03${pcm_address}0A36  # <-- Volatile
+#             #     use_extended_id: true
+#             #     data: !lambda |-
+#             #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};      
   
-  # Discharge Current (48V system)
-  - platform: template
-    name: ${name}_${pcm_name}_discharging_current
-    id: discharging_current_number
-    icon: mdi:battery-arrow-down
-    unit_of_measurement: 'A'
-    min_value: 1.0
-    max_value: 75.0
-    initial_value: 1.0
-    step: 0.5
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(discharging_current_readback).state) > 0.01f;
-              // return true;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A37  # <-- Volatile
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t current = (uint16_t)(x * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
+#   # Discharge Current (48V system)
+#   - platform: template
+#     name: ${name}_${pcm_name}_discharging_current
+#     id: discharging_current_number
+#     icon: mdi:battery-arrow-down
+#     unit_of_measurement: 'A'
+#     min_value: 1.0
+#     max_value: 75.0
+#     initial_value: 1.0
+#     step: 0.5
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(discharging_current_readback).state) > 0.01f;
+#               // return true;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A37  # <-- Volatile
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t current = (uint16_t)(x * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(current & 0xFF), (uint8_t)(current >> 8), 0x00, 0x00, 0x00, 0x00 };
 
-            - lambda: |-
-                // uint16_t discharge_current_value = (x[3] << 8) | x[2];
-                id(discharging_current_readback).publish_state(x);
-                id(discharging_current_number).publish_state(x);
-                ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", x);
+#             - lambda: |-
+#                 // uint16_t discharge_current_value = (x[3] << 8) | x[2];
+#                 id(discharging_current_readback).publish_state(x);
+#                 id(discharging_current_number).publish_state(x);
+#                 ESP_LOGD("canbus", "Discharge Current Readback: %.1fA", x);
               
-            # - delay: ${delay_number}
-            # # Query back the setting
-            # - canbus.send:
-            #     canbus_id: ${pcm_canbus_id}
-            #     can_id: 0x03${pcm_address}0A37  # <-- Volatile
-            #     use_extended_id: true
-            #     data: !lambda |-
-            #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};       
+#             # - delay: ${delay_number}
+#             # # Query back the setting
+#             # - canbus.send:
+#             #     canbus_id: ${pcm_canbus_id}
+#             #     can_id: 0x03${pcm_address}0A37  # <-- Volatile
+#             #     use_extended_id: true
+#             #     data: !lambda |-
+#             #       return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};       
   
-  # AC Overvoltage Protection
-  - platform: template
-    name: ${name}_${pcm_name}_ac_overvoltage_protection
-    id: ac_overvoltage_protection
-    icon: mdi:flash-alert
-    unit_of_measurement: 'V'
-    min_value: 220.0
-    max_value: 258.0
-    initial_value: 250.0
-    step: 0.5
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(ac_overvoltage_protection_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A13
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(x * 10);
-                  uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_protection).state * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A13
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};     
+#   # AC Overvoltage Protection
+#   - platform: template
+#     name: ${name}_${pcm_name}_ac_overvoltage_protection
+#     id: ac_overvoltage_protection
+#     icon: mdi:flash-alert
+#     unit_of_measurement: 'V'
+#     min_value: 220.0
+#     max_value: 258.0
+#     initial_value: 250.0
+#     step: 0.5
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(ac_overvoltage_protection_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A13
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(x * 10);
+#                   uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_protection).state * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A13
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};     
   
-  # AC Undervoltage Protection
-  - platform: template
-    name: ${name}_${pcm_name}_ac_undervoltage_protection
-    id: ac_undervoltage_protection
-    icon: mdi:flash-alert-outline
-    unit_of_measurement: 'V'
-    min_value: 182.0
-    max_value: 220.0
-    initial_value: 200.0
-    step: 0.5
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(ac_undervoltage_protection_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A13
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_protection).state * 10);
-                  uint16_t undervoltage = (uint16_t)(x * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A13
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#   # AC Undervoltage Protection
+#   - platform: template
+#     name: ${name}_${pcm_name}_ac_undervoltage_protection
+#     id: ac_undervoltage_protection
+#     icon: mdi:flash-alert-outline
+#     unit_of_measurement: 'V'
+#     min_value: 182.0
+#     max_value: 220.0
+#     initial_value: 200.0
+#     step: 0.5
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(ac_undervoltage_protection_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A13
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_protection).state * 10);
+#                   uint16_t undervoltage = (uint16_t)(x * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A13
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       
 
-  # AC Overvoltage Alarm
-  - platform: template
-    name: ${name}_${pcm_name}_ac_overvoltage_alarm
-    id: ac_overvoltage_alarm
-    icon: mdi:flash-alert
-    unit_of_measurement: 'V'
-    min_value: 220.0
-    max_value: 258.0
-    initial_value: 248.0
-    step: 0.5
-    mode: slider
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(ac_overvoltage_alarm_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A14
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(x * 10);
-                  uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_alarm).state * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A14
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#   # AC Overvoltage Alarm
+#   - platform: template
+#     name: ${name}_${pcm_name}_ac_overvoltage_alarm
+#     id: ac_overvoltage_alarm
+#     icon: mdi:flash-alert
+#     unit_of_measurement: 'V'
+#     min_value: 220.0
+#     max_value: 258.0
+#     initial_value: 248.0
+#     step: 0.5
+#     mode: slider
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(ac_overvoltage_alarm_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A14
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(x * 10);
+#                   uint16_t undervoltage = (uint16_t)(id(ac_undervoltage_alarm).state * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A14
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   
-  # AC Undervoltage Alarm
-  - platform: template
-    name: ${name}_${pcm_name}_ac_undervoltage_alarm
-    id: ac_undervoltage_alarm
-    icon: mdi:flash-alert-outline
-    unit_of_measurement: 'V'
-    min_value: 182.0
-    max_value: 220.0
-    initial_value: 205.0
-    step: 0.5
-    mode: slider
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(ac_undervoltage_alarm_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A14
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_alarm).state * 10);
-                  uint16_t undervoltage = (uint16_t)(x * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A14
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#   # AC Undervoltage Alarm
+#   - platform: template
+#     name: ${name}_${pcm_name}_ac_undervoltage_alarm
+#     id: ac_undervoltage_alarm
+#     icon: mdi:flash-alert-outline
+#     unit_of_measurement: 'V'
+#     min_value: 182.0
+#     max_value: 220.0
+#     initial_value: 205.0
+#     step: 0.5
+#     mode: slider
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(ac_undervoltage_alarm_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A14
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(id(ac_overvoltage_alarm).state * 10);
+#                   uint16_t undervoltage = (uint16_t)(x * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A14
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   
-  # DC Overvoltage Protection (48V system)
-  - platform: template
-    name: ${name}_${pcm_name}_dc_overvoltage_protection
-    id: dc_overvoltage_protection
-    icon: mdi:battery-alert
-    unit_of_measurement: 'V'
-    min_value: 40.0
-    max_value: 59.5
-    initial_value: 58.0
-    step: 0.1
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(dc_overvoltage_protection_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A33
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(x * 10);
-                  uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_protection).state * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A33
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#   # DC Overvoltage Protection (48V system)
+#   - platform: template
+#     name: ${name}_${pcm_name}_dc_overvoltage_protection
+#     id: dc_overvoltage_protection
+#     icon: mdi:battery-alert
+#     unit_of_measurement: 'V'
+#     min_value: 40.0
+#     max_value: 59.5
+#     initial_value: 58.0
+#     step: 0.1
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(dc_overvoltage_protection_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A33
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(x * 10);
+#                   uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_protection).state * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A33
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       
-  # DC Undervoltage Protection (48V system)
-  - platform: template
-    name: ${name}_${pcm_name}_dc_undervoltage_protection
-    id: dc_undervoltage_protection
-    icon: mdi:battery-alert-variant-outline
-    unit_of_measurement: 'V'
-    min_value: 39.5
-    max_value: 59.0
-    initial_value: 49.0
-    step: 0.1
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(dc_undervoltage_protection_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A33
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_protection).state * 10);
-                  uint16_t undervoltage = (uint16_t)(x * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A33
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};          
+#   # DC Undervoltage Protection (48V system)
+#   - platform: template
+#     name: ${name}_${pcm_name}_dc_undervoltage_protection
+#     id: dc_undervoltage_protection
+#     icon: mdi:battery-alert-variant-outline
+#     unit_of_measurement: 'V'
+#     min_value: 39.5
+#     max_value: 59.0
+#     initial_value: 49.0
+#     step: 0.1
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(dc_undervoltage_protection_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A33
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_protection).state * 10);
+#                   uint16_t undervoltage = (uint16_t)(x * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A33
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};          
 
-# DC Overvoltage Alarm (48V system)
-  - platform: template
-    name: ${name}_${pcm_name}_dc_overvoltage_alarm
-    id: dc_overvoltage_alarm
-    icon: mdi:battery-alert
-    unit_of_measurement: 'V'
-    min_value: 40.0
-    max_value: 57.5
-    initial_value: 56.6
-    step: 0.1
-    mode: slider
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(dc_overvoltage_alarm_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A34
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(x * 10);
-                  uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_alarm).state * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A34
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+# # DC Overvoltage Alarm (48V system)
+#   - platform: template
+#     name: ${name}_${pcm_name}_dc_overvoltage_alarm
+#     id: dc_overvoltage_alarm
+#     icon: mdi:battery-alert
+#     unit_of_measurement: 'V'
+#     min_value: 40.0
+#     max_value: 57.5
+#     initial_value: 56.6
+#     step: 0.1
+#     mode: slider
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(dc_overvoltage_alarm_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A34
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(x * 10);
+#                   uint16_t undervoltage = (uint16_t)(id(dc_undervoltage_alarm).state * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A34
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-# DC Undervoltage Alarm (48V system)
-  - platform: template
-    name: ${name}_${pcm_name}_dc_undervoltage_alarm
-    id: dc_undervoltage_alarm
-    icon: mdi:battery-alert-variant-outline
-    unit_of_measurement: 'V'
-    min_value: 40.0
-    max_value: 59.0
-    initial_value: 50.0
-    step: 0.1
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return std::abs(x - id(dc_undervoltage_alarm_readback).state) > 0.01f;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A34
-                use_extended_id: true
-                data: !lambda |-
-                  uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_alarm).state * 10);
-                  uint16_t undervoltage = (uint16_t)(x * 10);
-                  return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A34
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+# # DC Undervoltage Alarm (48V system)
+#   - platform: template
+#     name: ${name}_${pcm_name}_dc_undervoltage_alarm
+#     id: dc_undervoltage_alarm
+#     icon: mdi:battery-alert-variant-outline
+#     unit_of_measurement: 'V'
+#     min_value: 40.0
+#     max_value: 59.0
+#     initial_value: 50.0
+#     step: 0.1
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return std::abs(x - id(dc_undervoltage_alarm_readback).state) > 0.01f;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A34
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint16_t overvoltage = (uint16_t)(id(dc_overvoltage_alarm).state * 10);
+#                   uint16_t undervoltage = (uint16_t)(x * 10);
+#                   return { ${pcm_address}, 0x00, (uint8_t)(overvoltage & 0xFF), (uint8_t)(overvoltage >> 8), (uint8_t)(undervoltage & 0xFF), (uint8_t)(undervoltage >> 8), 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A34
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-# Fan speed
-  - platform: template
-    name: ${name}_${pcm_name}_fan_speed
-    id: fan_speed
-    icon: mdi:fan
-    unit_of_measurement: '%'
-    min_value: 0
-    max_value: 100
-    initial_value: 0
-    step: 1
-    mode: 'slider'
-    optimistic: false
-    restore_value: true
-    set_action:
-      - if:
-          condition:
-            lambda: |-
-              return (int)x != (int)id(fan_speed_readback).state;
-          then:
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x02${pcm_address}0A35
-                use_extended_id: true
-                data: !lambda |-
-                  uint8_t activation = uint8_t(x > 0);
-                  return { ${pcm_address}, 0x00, activation, (uint8_t)(x), 0x00, 0x00, 0x00, 0x00 };
-            - delay: ${delay_number}
-            - canbus.send:
-                canbus_id: ${pcm_canbus_id}
-                can_id: 0x03${pcm_address}0A35
-                use_extended_id: true
-                data: !lambda |-
-                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};           
+# # Fan speed
+#   - platform: template
+#     name: ${name}_${pcm_name}_fan_speed
+#     id: fan_speed
+#     icon: mdi:fan
+#     unit_of_measurement: '%'
+#     min_value: 0
+#     max_value: 100
+#     initial_value: 0
+#     step: 1
+#     mode: 'slider'
+#     optimistic: false
+#     restore_value: true
+#     set_action:
+#       - if:
+#           condition:
+#             lambda: |-
+#               return (int)x != (int)id(fan_speed_readback).state;
+#           then:
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x02${pcm_address}0A35
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   uint8_t activation = uint8_t(x > 0);
+#                   return { ${pcm_address}, 0x00, activation, (uint8_t)(x), 0x00, 0x00, 0x00, 0x00 };
+#             - delay: ${delay_number}
+#             - canbus.send:
+#                 canbus_id: ${pcm_canbus_id}
+#                 can_id: 0x03${pcm_address}0A35
+#                 use_extended_id: true
+#                 data: !lambda |-
+#                   return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};           
             
-# Switches and Controls
-switch:
+# # Switches and Controls
+# switch:
 
-  # Power ON/OFF
-  - platform: template
-    name: ${name}_${pcm_name}_power
-    id: power_switch
-    icon: mdi:power
-    optimistic: true
-    # restore_mode: true
-    turn_on_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A01
-          can_id: 0x02${pcm_address}0A01
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_switch}
-    turn_off_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A01
-          can_id: 0x02${pcm_address}0A01
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_switch}
+#   # Power ON/OFF
+#   - platform: template
+#     name: ${name}_${pcm_name}_power
+#     id: power_switch
+#     icon: mdi:power
+#     optimistic: true
+#     # restore_mode: true
+#     turn_on_action:
+#       - canbus.send:
+#           canbus_id: ${pcm_canbus_id}
+#           # can_id: 0x02000A01
+#           can_id: 0x02${pcm_address}0A01
+#           use_extended_id: true
+#           data: !lambda |-
+#             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
+#       - delay: ${delay_switch}
+#     turn_off_action:
+#       - canbus.send:
+#           canbus_id: ${pcm_canbus_id}
+#           # can_id: 0x02000A01
+#           can_id: 0x02${pcm_address}0A01
+#           use_extended_id: true
+#           data: !lambda |-
+#             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#       - delay: ${delay_switch}
 
-# charge/discharge mode
-  - platform: template
-    name: ${name}_${pcm_name}_discharge_charge
-    id: discharge_charge_switch
-    icon: mdi:transmission-tower
-    optimistic: true
-    restore_mode: ALWAYS_ON
-    # restore_mode: true
-    turn_on_action: #charge
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          can_id: 0x02${pcm_address}0A38  #38 is not stored in EEProm
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_switch}
-      - lambda: |-
-          id(grid_mode_select).publish_state("Charge mode");
-      # - select.set:
-      #    id: grid_mode_select
-      #    option: 'Charge mode'
+# # charge/discharge mode
+#   - platform: template
+#     name: ${name}_${pcm_name}_discharge_charge
+#     id: discharge_charge_switch
+#     icon: mdi:transmission-tower
+#     optimistic: true
+#     restore_mode: ALWAYS_ON
+#     # restore_mode: true
+#     turn_on_action: #charge
+#       - canbus.send:
+#           canbus_id: ${pcm_canbus_id}
+#           can_id: 0x02${pcm_address}0A38  #38 is not stored in EEProm
+#           use_extended_id: true
+#           data: !lambda |-
+#             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#       - delay: ${delay_switch}
+#       - lambda: |-
+#           id(grid_mode_select).publish_state("Charge mode");
+#       # - select.set:
+#       #    id: grid_mode_select
+#       #    option: 'Charge mode'
          
-    turn_off_action: #discharge
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A02
-          can_id: 0x02${pcm_address}0A02
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_switch}
-      - lambda: |-
-          id(grid_mode_select).publish_state("Discharge mode");
-      # - select.set:
-      #    id: grid_mode_select
-      #    option: 'Discharge mode'
+#     turn_off_action: #discharge
+#       - canbus.send:
+#           canbus_id: ${pcm_canbus_id}
+#           # can_id: 0x02000A02
+#           can_id: 0x02${pcm_address}0A02
+#           use_extended_id: true
+#           data: !lambda |-
+#             return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
+#       - delay: ${delay_switch}
+#       - lambda: |-
+#           id(grid_mode_select).publish_state("Discharge mode");
+#       # - select.set:
+#       #    id: grid_mode_select
+#       #    option: 'Discharge mode'
 
 
-  ####### fan control
-  - platform: template
-    name: ${name}_${pcm_name}_manual_fan_control
-    id: manual_fan_control
-    icon: mdi:fan
-    optimistic: true
-    # restore_mode: true
-    turn_on_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A01
-          can_id: 0x02${pcm_address}0A35
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_switch}
-    turn_off_action:
-      - canbus.send:
-          canbus_id: ${pcm_canbus_id}
-          # can_id: 0x02000A01
-          can_id: 0x02${pcm_address}0A35
-          use_extended_id: true
-          data: !lambda |-
-            return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_switch}
+#   ####### fan control
+#   - platform: template
+#     name: ${name}_${pcm_name}_manual_fan_control
+#     id: manual_fan_control
+#     icon: mdi:fan
+#     optimistic: true
+#     # restore_mode: true
+#     turn_on_action:
+#       - canbus.send:
+#           canbus_id: ${pcm_canbus_id}
+#           # can_id: 0x02000A01
+#           can_id: 0x02${pcm_address}0A35
+#           use_extended_id: true
+#           data: !lambda |-
+#             return {${pcm_address}, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#       - delay: ${delay_switch}
+#     turn_off_action:
+#       - canbus.send:
+#           canbus_id: ${pcm_canbus_id}
+#           # can_id: 0x02000A01
+#           can_id: 0x02${pcm_address}0A35
+#           use_extended_id: true
+#           data: !lambda |-
+#             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#       - delay: ${delay_switch}
       
-# Text Sensors
-text_sensor:
-  - platform: template
-    id: running_mode_text
-    name: ${name}_${pcm_name}_running_mode
-    icon: mdi:state-machine
-    update_interval: ${pcm_text_sensor_interval}
-    lambda: |-
-      int mode = id(running_mode_sensor).state;
-      switch(mode) {
-        case 0: return {"Initialize"};
-        case 1: return {"Standby"};
-        case 2: return {"Grid-connected Charging"};
-        case 3: return {"Grid-connected Discharge"};
-        case 4: return {"Off-grid Inverter"};
-        case 5: return {"Fault"};
-        default: return {"Unknown"};
-      }
+# # Text Sensors
+# text_sensor:
+#   - platform: template
+#     id: running_mode_text
+#     name: ${name}_${pcm_name}_running_mode
+#     icon: mdi:state-machine
+#     update_interval: ${pcm_text_sensor_interval}
+#     lambda: |-
+#       int mode = id(running_mode_sensor).state;
+#       switch(mode) {
+#         case 0: return {"Initialize"};
+#         case 1: return {"Standby"};
+#         case 2: return {"Grid-connected Charging"};
+#         case 3: return {"Grid-connected Discharge"};
+#         case 4: return {"Off-grid Inverter"};
+#         case 5: return {"Fault"};
+#         default: return {"Unknown"};
+#       }
   
-  - platform: template
-    id: inverter_frequency_text
-    name: ${name}_${pcm_name}_inverter_frequency
-    icon: mdi:metronome
-    update_interval: ${pcm_text_sensor_interval}
-    lambda: |-
-      int freq = id(offgrid_frequency_sensor).state;
-      if (freq == 50) return {"50 Hz"};
-      else if (freq == 60) return {"60 Hz"};
-      else return {"Unknown"};
+#   - platform: template
+#     id: inverter_frequency_text
+#     name: ${name}_${pcm_name}_inverter_frequency
+#     icon: mdi:metronome
+#     update_interval: ${pcm_text_sensor_interval}
+#     lambda: |-
+#       int freq = id(offgrid_frequency_sensor).state;
+#       if (freq == 50) return {"50 Hz"};
+#       else if (freq == 60) return {"60 Hz"};
+#       else return {"Unknown"};
   
-  - platform: template
-    id: program_version
-    name: ${name}_${pcm_name}_program_version
-    icon: mdi:information
+#   - platform: template
+#     id: program_version
+#     name: ${name}_${pcm_name}_program_version
+#     icon: mdi:information
   
-  - platform: template
-    id: sn_code_text_sensor
-    name: ${name}_${pcm_name}_sn
-    icon: mdi:barcode
+#   - platform: template
+#     id: sn_code_text_sensor
+#     name: ${name}_${pcm_name}_sn
+#     icon: mdi:barcode
+
+
 
 # Interval updates to request status
 # interval:
