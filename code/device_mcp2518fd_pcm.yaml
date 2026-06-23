@@ -5,10 +5,10 @@ substitutions:
   delay_select: '130ms' #'120ms'
   
   
-# external_components:
-#   - source: "github://SeByDocKy/myESPhome/"
-#     components: [mcp2518fd]
-#     refresh: 0s  
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [mcp2518fd]
+    refresh: 0s  
   
 esphome:
   on_boot: 
