@@ -1,5 +1,6 @@
 #include "mcp2518fd.h"
 #include "esphome/core/log.h"
+#include "esphome/core/application.h"
 #include <inttypes.h>
 
 // ============================================================
@@ -28,30 +29,34 @@ static const char *const TAG = "mcp2518fd";
 // ============================================================
 
 uint32_t MCP2518FD::read_sfr_(uint16_t addr) {
-  uint8_t cmd[2];
-  build_cmd_(addr, MCP2518FD_INSTRUCTION_READ, cmd);
+  uint8_t buf[6] = {};
+  build_cmd_(addr, MCP2518FD_INSTRUCTION_READ, buf);
   this->enable();
-  this->transfer_byte(cmd[0]);
-  this->transfer_byte(cmd[1]);
-  uint32_t val = 0;
-  val |= static_cast<uint32_t>(this->transfer_byte(0x00));
-  val |= static_cast<uint32_t>(this->transfer_byte(0x00)) << 8;
-  val |= static_cast<uint32_t>(this->transfer_byte(0x00)) << 16;
-  val |= static_cast<uint32_t>(this->transfer_byte(0x00)) << 24;
+  this->transfer_array(buf, 6);
   this->disable();
-  return val;
+  return (uint32_t)buf[2] | ((uint32_t)buf[3] << 8) |
+         ((uint32_t)buf[4] << 16) | ((uint32_t)buf[5] << 24);
 }
 
 void MCP2518FD::write_sfr_(uint16_t addr, uint32_t value) {
-  uint8_t cmd[2];
-  build_cmd_(addr, MCP2518FD_INSTRUCTION_WRITE, cmd);
+  uint8_t tx[6];
+  build_cmd_(addr, MCP2518FD_INSTRUCTION_WRITE, tx);
+  tx[2] = value & 0xFF;
+  tx[3] = (value >> 8) & 0xFF;
+  tx[4] = (value >> 16) & 0xFF;
+  tx[5] = (value >> 24) & 0xFF;
   this->enable();
-  this->transfer_byte(cmd[0]);
-  this->transfer_byte(cmd[1]);
-  this->transfer_byte(static_cast<uint8_t>(value));
-  this->transfer_byte(static_cast<uint8_t>(value >> 8));
-  this->transfer_byte(static_cast<uint8_t>(value >> 16));
-  this->transfer_byte(static_cast<uint8_t>(value >> 24));
+  this->write_array(tx, 6);
+  this->disable();
+}
+
+// Write a single byte directly at byte-addressed register (no read-modify-write)
+void MCP2518FD::write_sfr_byte_(uint16_t byte_addr, uint8_t value) {
+  uint8_t tx[3];
+  build_cmd_(byte_addr, MCP2518FD_INSTRUCTION_WRITE, tx);
+  tx[2] = value;
+  this->enable();
+  this->write_array(tx, 3);
   this->disable();
 }
 
@@ -70,24 +75,25 @@ void MCP2518FD::write_byte_(uint16_t addr, uint8_t value) {
 }
 
 void MCP2518FD::read_ram_(uint16_t addr, uint8_t *data, uint8_t n) {
-  uint8_t cmd[2];
-  build_cmd_(addr, MCP2518FD_INSTRUCTION_READ, cmd);
+  if (n > 64) n = 64;
+  uint8_t buf[2 + 64] = {};
+  build_cmd_(addr, MCP2518FD_INSTRUCTION_READ, buf);
   this->enable();
-  this->transfer_byte(cmd[0]);
-  this->transfer_byte(cmd[1]);
-  for (uint8_t i = 0; i < n; i++)
-    data[i] = this->transfer_byte(0x00);
+  this->transfer_array(buf, 2 + n);
   this->disable();
+  memcpy(data, buf + 2, n);
 }
 
 void MCP2518FD::write_ram_(uint16_t addr, const uint8_t *data, uint8_t n) {
   uint8_t cmd[2];
   build_cmd_(addr, MCP2518FD_INSTRUCTION_WRITE, cmd);
+  uint8_t tx[2 + 64] = {};
+  if (n > 64) n = 64;
+  tx[0] = cmd[0];
+  tx[1] = cmd[1];
+  memcpy(tx + 2, data, n);
   this->enable();
-  this->transfer_byte(cmd[0]);
-  this->transfer_byte(cmd[1]);
-  for (uint8_t i = 0; i < n; i++)
-    this->transfer_byte(data[i]);
+  this->write_array(tx, 2 + n);
   this->disable();
 }
 
@@ -242,9 +248,9 @@ static const NbtEntry NBT_20MHZ[] = {
   { 1,159,40,4},  // 50kbps
   { 0,199,50,4},  // 80kbps
   { 0,159,40,4},  // 100kbps
-  { 0,127,32,4},  // 125kbps@20MHz (working)
+  { 0,125,32,4},  // 125kbps@20MHz (exact: 20M/(1*160)=125000, SP=79.4%)
   { 0, 79,20,4},  // 200kbps
-  { 0, 63,16,4},  // 250kbps@20MHz (working)
+  { 0, 62,15,4},  // 250kbps@20MHz (exact: 20M/(1*80)=250000, SP=80%)
   { 0, 31, 8,4},  // 500kbps
   { 0, 15, 4,4},  // 1000kbps
 };
@@ -321,7 +327,7 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
     return canbus::ERROR_FAIL;
   }
   write_sfr_(REG_CiNBTCFG, nbtcfg);
-  ESP_LOGV(TAG, "CiNBTCFG=0x%08" PRIx32 "", nbtcfg);
+  ESP_LOGVV(TAG, "CiNBTCFG=0x%08" PRIx32 "", nbtcfg);
 
   if (this->canfd_enabled_) {
     uint32_t dbtcfg = 0, tdcval = 0;
@@ -331,7 +337,7 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
     }
     write_sfr_(REG_CiDBTCFG, dbtcfg);
     write_sfr_(REG_CiTDC,    tdcval);
-    ESP_LOGV(TAG, "CiDBTCFG=0x%08" PRIx32 " CiTDC=0x%08" PRIx32 "", dbtcfg, tdcval);
+    ESP_LOGVV(TAG, "CiDBTCFG=0x%08" PRIx32 " CiTDC=0x%08" PRIx32 "", dbtcfg, tdcval);
   }
   return canbus::ERROR_OK;
 }
@@ -343,8 +349,8 @@ canbus::Error MCP2518FD::configure_bit_timing_() {
 canbus::Error MCP2518FD::configure_fifos_() {
   uint8_t plsize = this->canfd_enabled_ ? 7 : 0;
 
-  // CH1 = RX FIFO: TXEN=0, 8 messages deep, FRESET
-  uint32_t rxcon = (7UL << 24)               // FSIZE = 8 messages
+  // CH1 = RX FIFO: TXEN=0, 32 messages deep, FRESET
+  uint32_t rxcon = (31UL << 24)              // FSIZE = 32 messages
                  | (uint32_t(plsize) << 29)  // PLSIZE
                  | (1UL << 10);              // FRESET
   write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 1, rxcon);
@@ -370,6 +376,18 @@ canbus::Error MCP2518FD::configure_fifos_() {
   txcon &= ~(1UL << 10);  // FRESET=0
   txcon &= ~(1UL << 9);   // TXREQ=0  ← force clear
   write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txcon);
+
+  // Erase TX FIFO RAM content to prevent stale frame from persisting across OTA reboots
+  // (the chip keeps RAM content when only 5V is maintained across reboots)
+  {
+    uint32_t tx_ram_addr = static_cast<uint16_t>(read_sfr_(REG_CiFIFOUA + CIFIFO_OFFSET * 2));
+    if (tx_ram_addr < RAM_ADDR_START) tx_ram_addr += RAM_ADDR_START;
+    uint8_t zeros[16] = {};
+    // Erase all 4 slots of the TX FIFO (4 messages × 16 bytes each)
+    for (int slot = 0; slot < 4; slot++) {
+      write_ram_(static_cast<uint16_t>(tx_ram_addr + slot * 16), zeros, 16);
+    }
+  }
 
   uint32_t txsta = read_sfr_(REG_CiFIFOSTA + CIFIFO_OFFSET * 2);
   ESP_LOGD(TAG, "TX FIFO CH2 STA=0x%08" PRIx32 " (TXNIF=%d)", txsta, (int)(txsta&1));
@@ -593,7 +611,10 @@ void MCP2518FD::dump_config() {
 // ============================================================
 
 uint16_t MCP2518FD::tx_fifo_addr_() {
-  return static_cast<uint16_t>(read_sfr_(REG_CiFIFOUA + CIFIFO_OFFSET * 2));
+  uint16_t addr = static_cast<uint16_t>(read_sfr_(REG_CiFIFOUA + CIFIFO_OFFSET * 2));
+  if (addr < RAM_ADDR_START)
+    addr += RAM_ADDR_START;
+  return addr;
 }
 
 canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
@@ -621,7 +642,7 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   if ((txsta >> 1) & 1) {  // TXATIF set = attempt complete, log diagnostics
     uint32_t trec = read_sfr_(REG_CiTREC);
     uint32_t diag = read_sfr_(REG_CiBDIAG1);
-    ESP_LOGV(TAG, "TX: CiTREC=0x%08" PRIx32 " TEC=%d REC=%d", trec, (int)((trec>>8)&0xFF), (int)(trec&0xFF));
+    ESP_LOGVV(TAG, "TX: CiTREC=0x%08" PRIx32 " TEC=%d REC=%d", trec, (int)((trec>>8)&0xFF), (int)(trec&0xFF));
     if (diag & 0x00070000UL)
       ESP_LOGW(TAG, "TX CiBDIAG1=0x%08" PRIx32 " NACKERR=%d NBIT1=%d NBIT0=%d", diag, (int)((diag>>18)&1), (int)((diag>>17)&1), (int)((diag>>16)&1));
   }
@@ -649,16 +670,17 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
   uint16_t ram_addr = tx_fifo_addr_();
 
   // Build transmit message object (T0 + T1 + data)
-  // T0: ID word — MCP2518FD TX format.
-  // Note: RX stores SID at T0[10:0] and EID at T0[28:11] (confirmed by RAM analysis).
-  // TX uses the same format for correct round-trip.
+  // T0: ID word — MCP2518FD CAN_MSGOBJ_ID structure:
+  // bits[10:0]  = SID[10:0]
+  // bits[28:11] = EID[17:0]
+  // (matches Soldered Arduino library mcp2518fd_sendMsg)
   uint32_t id_word = 0;
   if (frame->use_extended_id) {
     uint32_t sid = (frame->can_id >> 18) & 0x7FFUL;
     uint32_t eid =  frame->can_id        & 0x3FFFFUL;
     id_word = sid | (eid << 11);
   } else {
-    id_word = frame->can_id & 0x7FFUL;
+    id_word = (frame->can_id & 0x7FFUL) << 18;
   }
 
   // T1: control word
@@ -678,10 +700,17 @@ canbus::Error MCP2518FD::send_message_txq_(struct canbus::CanFrame *frame) {
 
   write_ram_(ram_addr, obj, 8 + pad_len);
 
-  // Set UINC + TXREQ on TX FIFO CH2
-  uint32_t txfifocon = read_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2);
-  txfifocon |= FIFOCON_UINC | FIFOCON_TXREQ;
-  write_sfr_(REG_CiFIFOCON + CIFIFO_OFFSET * 2, txfifocon);
+  ESP_LOGVV(TAG, "TX RAM: addr=0x%04X id_word=0x%08" PRIx32 " ctrl=0x%08" PRIx32 " can_id=0x%08" PRIx32,
+           ram_addr, id_word, ctrl, frame->can_id);
+  ESP_LOGVV(TAG, "TX obj: %02X%02X%02X%02X %02X%02X%02X%02X",
+           obj[0],obj[1],obj[2],obj[3],obj[4],obj[5],obj[6],obj[7]);
+
+  // Set UINC + TXREQ by writing only byte[1] of CiFIFOCON (same as Soldered Arduino library)
+  // byte[1] contains: bit0=UINC, bit1=TXREQ, bit2=FRESET
+  // Writing only byte[1] avoids disturbing other bits in the register
+  uint8_t fifocon_byte1 = (1 << 0) | (1 << 1);  // UINC=1, TXREQ=1
+  uint16_t byte1_addr = static_cast<uint16_t>(REG_CiFIFOCON + CIFIFO_OFFSET * 2 + 1);
+  write_byte_(byte1_addr, fifocon_byte1);
 
   // No delay — just check NACKERR for debug (bus-off handled before TX)
 
@@ -705,7 +734,30 @@ uint16_t MCP2518FD::rx_fifo_addr_() {
   return addr;
 }
 
+void MCP2518FD::loop() {
+  if (mcp_mode_ == CAN_MODE_LISTEN_ONLY && sniffer_ != nullptr) {
+    // Drain FIFO repeatedly until empty or 10ms budget exceeded
+    uint32_t deadline = millis() + 10;
+    do {
+      drain_to_sniffer_();
+      App.feed_wdt();
+    } while (millis() < deadline);
+    return;
+  }
+  canbus::Canbus::loop();
+}
+
 bool MCP2518FD::rx_available_() {
+  // Limit messages processed per loop() call to prevent task watchdog trigger
+  uint8_t limit = 16;
+  if (this->rx_frame_count_ >= limit) {
+    this->rx_frame_count_ = 0;
+    return false;
+  }
+  // Feed watchdog every 8 frames when processing intensively
+  if (this->rx_frame_count_ % 8 == 0)
+    App.feed_wdt();
+  this->rx_frame_count_++;
   if (this->int1_pin_ != nullptr)
     return !this->int1_pin_->digital_read();
 
@@ -756,16 +808,13 @@ canbus::Error MCP2518FD::read_message_fifo_(struct canbus::CanFrame *frame) {
   frame->can_data_length_code        = nbytes;
 
   if (extended) {
-    // MCP2518FD T0 format for extended frames:
-    // T0[10:0]  = SID[10:0]   (standard ID bits)
-    // T0[28:11] = EID[17:0]   (extended ID bits)
-    // 29-bit CAN ID = (SID<<18) | EID
-    uint32_t sid = id_word & 0x7FFUL;              // T0[10:0]
-    uint32_t eid = (id_word >> 11) & 0x3FFFFUL;    // T0[28:11]
+    // CAN_MSGOBJ_ID: SID at bits[10:0], EID at bits[28:11]
+    // Reconstruct 29-bit ID: (SID<<18)|EID (matches Soldered Arduino mcp2518fd_readMsgBufID)
+    uint32_t sid = id_word & 0x7FFUL;
+    uint32_t eid = (id_word >> 11) & 0x3FFFFUL;
     frame->can_id = (sid << 18) | eid;
   } else {
-    // Standard frame: SID in T0[10:0]
-    frame->can_id = id_word & 0x7FFUL;
+    frame->can_id = (id_word >> 18) & 0x7FFUL;
   }
 
   if (nbytes > 0) {
@@ -783,11 +832,69 @@ uinc:
     rxcon |= FIFOCON_UINC;
     write_sfr_(rxcon_addr, rxcon);
   }
+
+  // Feed sniffer text_sensor if registered (LISTEN_ONLY mode)
+  if (sniffer_ != nullptr) {
+    sniffer_->push_frame(frame->can_id, frame->use_extended_id,
+                         frame->data,
+                         nbytes <= canbus::CAN_MAX_DATA_LENGTH ? nbytes : canbus::CAN_MAX_DATA_LENGTH);
+  }
+
   return canbus::ERROR_OK;
 }
 
 canbus::Error MCP2518FD::read_message(struct canbus::CanFrame *frame) {
   return read_message_fifo_(frame);
+}
+
+void MCP2518FD::drain_to_sniffer_() {
+  if (sniffer_ == nullptr) return;
+  if (mcp_mode_ != CAN_MODE_LISTEN_ONLY) return;
+
+  // CiFIFOCON/STA/UA for RX FIFO (FIFO1) are contiguous — read all 3 in one burst
+  uint16_t fifo1_base = REG_CiFIFOCON + CIFIFO_OFFSET * 1;  // 0x05C
+  // UINC is bit 8 of CiFIFOCON → byte offset 1 from CON base
+  uint16_t uinc_byte_addr = fifo1_base + 1;
+
+  int msg_count = 0;
+  for (int i = 0; i < 32; i++, msg_count++) {
+    // 1) Read CON+STA+UA in ONE 12-byte SPI burst
+    uint8_t regs[12];
+    read_ram_(fifo1_base, regs, 12);
+    // STA is at offset 4 (bytes 4-7), UA is at offset 8 (bytes 8-11)
+    uint32_t sta = (uint32_t)regs[4] | ((uint32_t)regs[5] << 8) |
+                   ((uint32_t)regs[6] << 16) | ((uint32_t)regs[7] << 24);
+    if (!(sta & 0x01)) break;  // RXNIF=0 → FIFO empty
+
+    uint16_t ram_addr = (uint32_t)regs[8] | ((uint32_t)regs[9] << 8);
+    if (ram_addr < RAM_ADDR_START) ram_addr += RAM_ADDR_START;
+
+    // 2) Read T0+T1+data (16 bytes) in ONE burst
+    uint8_t buf[16] = {};
+    read_ram_(ram_addr, buf, 16);
+
+    // 3) UINC — single byte write, no read-modify-write
+    write_sfr_byte_(uinc_byte_addr, 0x01);
+
+    // Decode ID
+    uint32_t id_word = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) |
+                       ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
+    uint32_t ctrl    = (uint32_t)buf[4] | ((uint32_t)buf[5] << 8) |
+                       ((uint32_t)buf[6] << 16) | ((uint32_t)buf[7] << 24);
+    bool extended = (ctrl >> 4) & 1;
+    uint8_t dlc   = ctrl & 0x0F;
+    uint8_t nbytes = dlc_to_bytes_(dlc);
+    if (nbytes > 8) nbytes = 8;
+
+    uint32_t can_id;
+    if (extended) {
+      can_id = ((id_word & 0x7FFUL) << 18) | ((id_word >> 11) & 0x3FFFFUL);
+    } else {
+      can_id = (id_word >> 18) & 0x7FFUL;
+    }
+
+    sniffer_->push_frame(can_id, extended, buf + 8, nbytes);
+  }
 }
 
 // ============================================================

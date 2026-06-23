@@ -110,7 +110,7 @@ CONFIG_SCHEMA = (
                 },
                 validate_id,
             ),
-            cv.Optional(CONF_CAN_CLOCK,     default="40MHz"):   cv.enum(CAN_CLOCK),
+            cv.Optional(CONF_CAN_CLOCK,     default="20MHz"):   cv.enum(CAN_CLOCK),
             cv.Optional(CONF_MCP_MODE,      default="NORMAL"):  cv.enum(CAN_MODE),
             cv.Optional(CONF_CANFD_ENABLED, default=False):     cv.boolean,
             cv.Optional(CONF_CAN_DATA_RATE, default="500KBPS"): _can_speed,
@@ -121,7 +121,7 @@ CONFIG_SCHEMA = (
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
-    .extend(spi.spi_device_schema(cs_pin_required=True))
+    .extend(spi.spi_device_schema(cs_pin_required=True, default_data_rate=10e6))
 )
 
 CONFIG_SCHEMA.add_extra(validate_id)
@@ -149,3 +149,39 @@ async def to_code(config):
         cg.add(var.set_int1_pin(pin))
 
     await spi.register_spi_device(var, config)
+
+
+# ---------------------------------------------------------------------------
+# text_sensor platform — sniffer (LISTEN_ONLY mode only)
+# ---------------------------------------------------------------------------
+from esphome.components import text_sensor as text_sensor_component
+
+CONF_MCP2518FD_ID    = "mcp2518fd_id"
+CONF_FRAME_DISPLAYED = "frame_displayed"
+
+MCP2518FDCanBusSniffer = mcp2518fd_ns.class_(
+    "MCP2518FDCanBusSniffer", text_sensor_component.TextSensor, cg.Component
+)
+
+TEXT_SENSOR_PLATFORM_SCHEMA = (
+    text_sensor_component.text_sensor_schema(MCP2518FDCanBusSniffer, icon="mdi:numeric")
+    .extend(
+        {
+            cv.GenerateID(CONF_MCP2518FD_ID): cv.use_id(mcp2518fd),
+            cv.Optional(CONF_FRAME_DISPLAYED, default=1): cv.templatable(
+                cv.int_range(min=1, max=6)
+            ),
+        }
+    )
+    .extend(cv.COMPONENT_SCHEMA)
+)
+
+
+async def text_sensor_to_code(config):
+    var = await text_sensor_component.new_text_sensor(config)
+    await cg.register_component(var, config)
+    parent = await cg.get_variable(config[CONF_MCP2518FD_ID])
+    cg.add(var.set_parent(parent))
+    template_ = await cg.templatable(config[CONF_FRAME_DISPLAYED], [], cg.uint8)
+    cg.add(var.set_frame_displayed(template_))
+    cg.add(parent.set_sniffer(var))
