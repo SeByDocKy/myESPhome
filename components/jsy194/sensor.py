@@ -222,6 +222,7 @@ async def to_code(config):
             cv.Required(CONF_ID): cv.use_id(JSY194),
         }
     ),
+	synchronous=False,
 )
 @automation.register_action(
     "jsy194.reset_energy1neg",
@@ -231,6 +232,7 @@ async def to_code(config):
             cv.Required(CONF_ID): cv.use_id(JSY194),
         }
     ),
+	synchronous=False,
 )
 @automation.register_action(
     "jsy194.reset_energy2pos",
@@ -240,6 +242,7 @@ async def to_code(config):
             cv.Required(CONF_ID): cv.use_id(JSY194),
         }
     ),
+	synchronous=False,
 )
 @automation.register_action(
     "jsy194.reset_energy2neg",
@@ -249,6 +252,7 @@ async def to_code(config):
             cv.Required(CONF_ID): cv.use_id(JSY194),
         }
     ),
+	synchronous=False,
 )
 
 async def reset_energy_to_code(config, action_id, template_arg, args):
@@ -265,6 +269,7 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
           cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
 		}
 	),
+	synchronous=False,
 )
 	
 async def writecommunicationsetting_to_code(config, action_id, template_arg, args):
