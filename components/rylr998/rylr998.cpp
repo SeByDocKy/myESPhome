@@ -134,7 +134,7 @@ void RYLR998Component::setup() {
     float Tpreamble = (static_cast<float>(this->preamble_length_) + 4.25f) * Tsym;
 
     float temp =
-        (8.0f * 248.0f   // (MAX_PAYLOAD=240 + header=8) octets
+        (8.0f * (MAX_PAYLOAD + 8.0f)   // (MAX_PAYLOAD=240 + header=8) octets
         - 4.0f * static_cast<float>(this->spreading_factor_)
         + 28.0f
         + 16.0f * 1.0f   // CRC activé
@@ -177,9 +177,9 @@ void RYLR998Component::loop() {
       //      innocent (Modbus, MQTT…) bien après la cause réelle.
       if (this->rx_buffer_.size() < RX_BUF_MAX_LEN) {
         this->rx_buffer_ += static_cast<char>(c);
-      } else {
-        ESP_LOGW(TAG, "RX buffer overflow (%u bytes) — line discarded",
-                 (unsigned) this->rx_buffer_.size());
+      } 
+      else {
+        ESP_LOGW(TAG, "RX buffer overflow (%u bytes) — line discarded", (unsigned) this->rx_buffer_.size());
         this->rx_buffer_.clear();
       }
     }
