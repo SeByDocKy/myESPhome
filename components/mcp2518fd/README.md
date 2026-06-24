@@ -47,7 +47,7 @@ optional interrupt pins, and a **text_sensor sniffer** platform for passive bus 
 | SDO  | GPIO 11 | MOSI (ESP → MCP2518FD) |
 | CS   | GPIO 10 | Chip select (active-low) |
 | INT1 | GPIO x  | Optional RX interrupt (active-low) |
-| 3.3V | 3V3     | Logic supply |
+| VCC  | 5V      | Power supply (onboard 5V→3.3V regulator) |
 | GND  | GND     | Common ground |
 
 ---
@@ -98,7 +98,7 @@ components/mcp2518fd/
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `mcp2518fd_id` | id | required | Reference to the parent `mcp2518fd` canbus |
-| `frame_displayed` | int 1–6 | `6` | Number of most-recently-active CAN IDs to display |
+| `frame_displayed` | int 1–6 | `1` | Number of most-recently-active CAN IDs to display |
 
 > The sniffer displays the **6 most recently active CAN IDs** on the bus, one per line,
 > updated every 500 ms. Limited to 6 lines to stay within Home Assistant's 255-character
