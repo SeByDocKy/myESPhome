@@ -1,3 +1,14 @@
+// rylr998.cpp — version corrigée
+// Corrections appliquées (voir analyse) :
+//   [C1] rx_buffer_ non bornée              → garde RX_BUF_MAX_LEN dans loop() et send_command_()
+//   [C2] send_command_() bloquant            → App.feed_wdt() à chaque itération
+//   [C3] std::stoi() exceptions désactivées → safe_parse_int_() / safe_parse_hex_byte_()
+//   [H1] air-time : bw_code ≠ BW(Hz)        → utilise this->bandwidth_ (float Hz)
+//   [H2] lora_air_time_ uint16_t overflow   → uint32_t (+ changement miroir dans .h)
+//   [M1] 240 allocs heap / paquet RX        → pointeur direct + data.reserve()
+//   [M3] send_raw_() alloc std::string      → 2× write_str(), signature const char *
+//   [L2] size_t underflow snr_comma == 0    → vérification explicite avant rfind()
+
 #include "rylr998.h"
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"
@@ -134,7 +145,7 @@ void RYLR998Component::setup() {
     float Tpreamble = (static_cast<float>(this->preamble_length_) + 4.25f) * Tsym;
 
     float temp =
-        (8.0f * (MAX_PAYLOAD + 8.0f)   // (MAX_PAYLOAD=240 + header=8) octets
+        (8.0f * 248.0f   // (MAX_PAYLOAD=240 + header=8) octets
         - 4.0f * static_cast<float>(this->spreading_factor_)
         + 28.0f
         + 16.0f * 1.0f   // CRC activé
@@ -148,7 +159,7 @@ void RYLR998Component::setup() {
     // [H2] CORRECTION : stocker en uint32_t (déclaré dans .h).
     //      L'ancienne valeur uint16_t débordait silencieusement pour les SF élevés.
     this->lora_air_time_ = static_cast<uint32_t>((Tpreamble + Tpayload) * 1000.0f);
-    ESP_LOGCONFIG(TAG, "RYLR998 computed LoRa air time: %u ms", this->lora_air_time_);
+    ESP_LOGCONFIG(TAG, "RYLR998 computed LoRa air time: %lu ms", this->lora_air_time_);
   }
 }
 
@@ -177,9 +188,9 @@ void RYLR998Component::loop() {
       //      innocent (Modbus, MQTT…) bien après la cause réelle.
       if (this->rx_buffer_.size() < RX_BUF_MAX_LEN) {
         this->rx_buffer_ += static_cast<char>(c);
-      } 
-      else {
-        ESP_LOGW(TAG, "RX buffer overflow (%u bytes) — line discarded", (unsigned) this->rx_buffer_.size());
+      } else {
+        ESP_LOGW(TAG, "RX buffer overflow (%u bytes) — line discarded",
+                 (unsigned) this->rx_buffer_.size());
         this->rx_buffer_.clear();
       }
     }
@@ -199,7 +210,7 @@ void RYLR998Component::dump_config() {
   ESP_LOGCONFIG(TAG, "  Preamble Length: %d", this->preamble_length_);
   ESP_LOGCONFIG(TAG, "  Network ID: %d",      this->network_id_);
   ESP_LOGCONFIG(TAG, "  TX Power: %d dBm",    this->tx_power_);
-  ESP_LOGCONFIG(TAG, "  LoRa air time: %u ms", this->lora_air_time_);
+  ESP_LOGCONFIG(TAG, "  LoRa air time: %lu ms", this->lora_air_time_);
 
   if (this->is_failed()) {
     ESP_LOGE(TAG, "Communication with RYLR998 failed!");
