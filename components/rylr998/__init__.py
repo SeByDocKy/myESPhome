@@ -137,6 +137,7 @@ async def to_code(config):
             cv.Required(CONF_DATA): cv.templatable(cv.ensure_list(cv.uint8_t)),
         }
     ),
+    synchronous=False,
 )
 async def rylr998_send_packet_to_code(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
