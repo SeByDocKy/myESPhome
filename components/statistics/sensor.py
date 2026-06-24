@@ -93,6 +93,7 @@ STATISTICS_RESET_SCHEMA = cv.Schema(
     "statistics.reset",
     STATISTICSresetaction,
     STATISTICS_RESET_SCHEMA,
+	synchronous=False,
 )	
 async def statistics_reset_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
