@@ -1,14 +1,3 @@
-// rylr998.cpp — version corrigée
-// Corrections appliquées (voir analyse) :
-//   [C1] rx_buffer_ non bornée              → garde RX_BUF_MAX_LEN dans loop() et send_command_()
-//   [C2] send_command_() bloquant            → App.feed_wdt() à chaque itération
-//   [C3] std::stoi() exceptions désactivées → safe_parse_int_() / safe_parse_hex_byte_()
-//   [H1] air-time : bw_code ≠ BW(Hz)        → utilise this->bandwidth_ (float Hz)
-//   [H2] lora_air_time_ uint16_t overflow   → uint32_t (+ changement miroir dans .h)
-//   [M1] 240 allocs heap / paquet RX        → pointeur direct + data.reserve()
-//   [M3] send_raw_() alloc std::string      → 2× write_str(), signature const char *
-//   [L2] size_t underflow snr_comma == 0    → vérification explicite avant rfind()
-
 #include "rylr998.h"
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"
