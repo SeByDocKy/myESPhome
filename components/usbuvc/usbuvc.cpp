@@ -354,7 +354,7 @@ void UsbUvcCamera::dump_config() {
       "USB UVC Camera:\n"
       "  Cible           : %s\n"
       "  Name            : %s\n"
-      "  USB VID:PID     : 0x%04X:0x%04X  stream_idx=%u\n"
+      "  USB VID:PID     : 0x%04X:0x%04X  stream_idx=%lu\n"
       "  Resolution      : %ux%u @ %u fps\n"
       "  Max interval    : %u ms\n"
       "  Idle interval   : %lu ms\n"
@@ -661,7 +661,7 @@ void UsbUvcCamera::publish_format_list_from_cache_() {
   std::vector<std::string> opts;
   char buf[32];
   for (const auto &e : entries) {
-    snprintf(buf, sizeof(buf), "%ux%u@%ufps", e.w, e.h, e.fps);
+    snprintf(buf, sizeof(buf), "%ux%u@%lufps", e.w, e.h, e.fps);
     opts.push_back(buf);
     ESP_LOGI(TAG, "  MJPEG: %s", buf);
   }
