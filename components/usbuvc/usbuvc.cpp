@@ -340,8 +340,8 @@ void UsbUvcCamera::dump_config() {
       "  USB VID:PID     : 0x%04X:0x%04X  stream_idx=%u\n"
       "  Resolution      : %ux%u @ %u fps\n"
       "  Max interval    : %u ms\n"
-      "  Idle interval   : %u ms\n"
-      "  Frame buffers   : %u   URBs: %u x %u B\n"
+      "  Idle interval   : %lu ms\n"
+      "  Frame buffers   : %u   URBs: %u x %lu B\n"
       "  Task USB lib    : prio=%u  stack=%u B\n"
       "  Task UVC conn   : prio=%u  stack=%u B\n"
       "  Downsampling    : 1 frame / %u",
