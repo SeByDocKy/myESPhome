@@ -46,6 +46,23 @@ static constexpr UBaseType_t UVC_TASK_PRIO            = 17;
 static constexpr BaseType_t  USB_LIB_CORE             = 1;
 static constexpr BaseType_t  UVC_CONNECT_CORE         = 1;
 
+#elif CONFIG_IDF_TARGET_ESP32S31
+
+// --- ESP32-S31 (USB High-Speed) -------------------------------------------
+// Stacks : 6 KB pour la lib, 8 KB pour la tâche connect/UVC
+// (le driver HS charge plus de contexte en isochronous haute bande passante)
+static constexpr uint32_t    USB_LIB_TASK_STACK     = 6144;
+static constexpr uint32_t    UVC_CONNECT_TASK_STACK  = 8192;
+// Priorités hautes pour respecter les micro-frames à 125 µs
+// (configMAX_PRIORITIES = 25 sur IDF ; on reste sous 20 pour laisser
+//  de la marge au watchdog IDF qui tourne à priorité 22)
+static constexpr UBaseType_t USB_LIB_TASK_PRIO       = 18;
+static constexpr UBaseType_t UVC_TASK_PRIO            = 17;
+// Affinité : Core 1 (Core 0 = main loop ESPHome + WiFi via esp32_hosted)
+static constexpr BaseType_t  USB_LIB_CORE             = tskNO_AFFINITY;
+static constexpr BaseType_t  UVC_CONNECT_CORE         = tskNO_AFFINITY;
+
+
 #elif CONFIG_IDF_TARGET_ESP32S3
 
 // --- ESP32-S3 (USB Full-Speed) --------------------------------------------
@@ -347,6 +364,8 @@ void UsbUvcCamera::dump_config() {
       "  Downsampling    : 1 frame / %u",
 #if CONFIG_IDF_TARGET_ESP32P4
       "ESP32-P4 (USB HS)",
+#elif CONFIG_IDF_TARGET_ESP32S31
+      "ESP32-S31 (USB HS)",  
 #elif CONFIG_IDF_TARGET_ESP32S3
       "ESP32-S3 (USB FS)",
 #else
