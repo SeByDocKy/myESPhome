@@ -127,8 +127,8 @@ sensor:
     id:  ${name}_power_imported
     name: ${name}_power_imported
     provider: ${name_controller}
-    # remote_id: jsy1039_power
-    remote_id: power
+    remote_id: jsy1039_power
+    # remote_id: power
     internal: false
     device_class: power
     unit_of_measurement: 'W'
