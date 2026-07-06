@@ -1,0 +1,294 @@
+##############################################################################
+# PACKAGE COMMUN A TOUS LES SLAVES MESHTASTIC
+#
+# Ce fichier n'est jamais compile seul. Chaque slave physique a son propre
+# petit fichier (slave0.yaml, slave1.yaml, ...) qui definit les substitutions
+# ci-dessous puis fait:
+#     packages:
+#       slave_common: !include meshtastic_common_slave.yaml
+#
+# PROTOCOLE APPLICATIF (sur le channel partage "meshstastic_channel_name"):
+#   Uplink   (slave -> master) : "SLAVE:<id>,TEMP:<t>,HUM:<h>,PRESS:<p>"  (BME280)
+#   Downlink (master -> slave) : "SLAVE:<id>,RELAY0:ON"   ou  "RELAY0:OFF"
+#                                 "SLAVE:<id>,RELAY1:ON"   ou  "RELAY1:OFF"
+#   ACK      (slave -> master) : "SLAVE:<id>,ACK:RELAY0:ON"  ou  ":OFF"
+#             (envoye par le slave juste apres avoir applique la commande,
+#              meme mecanisme pour RELAY0 et RELAY1)
+#
+#   Tous les messages passent en broadcast sur le meme channel chiffre (PSK).
+#   Chaque slave ignore les messages dont le "SLAVE:<id>" ne correspond pas
+#   a son propre ${slave_id}. C'est un filtrage applicatif, pas du routage
+#   Meshtastic natif (on reste volontairement simple, exclude_pki: true).
+#
+#
+#    to generate a AES-128 psk, run the following command 
+#    openssl rand -base64 16
+#
+#    to generate a AES-256 psk, run the following command 
+#    openssl rand -base64 32
+#
+#    To generate node public & private keys, run this python script
+#    python generate_node_keys.py
+##############################################################################
+
+# --- Valeurs par defaut, a surcharger dans le fichier de chaque slave ---
+substitutions:
+  name: "meshtastic-slave-0"
+  device_description: "Slave meshtastic générique"
+  slave_id: '0'          # identifiant applicatif unique (0, 1, 2, 3, 4...)
+  slave_name: "Slave 0"
+  slave_short_name: "SL0"
+  slave_0_public_key: "IUv1Lz/32H5ZqG9ElLYHG8hEENcEkcrKX7+Ch+f8hl4="
+  relay0_pin: "GPIO01"
+  relay1_pin: "GPIO04"
+  i2c_sda_pin: "GPIO02"
+  i2c_scl_pin: "GPIO03"
+  telemetry_interval: "5min"
+
+esphome:
+  name: ${name}
+  comment: ${device_description}
+  min_version: 2026.5.0
+  platformio_options:
+    board_build.arduino.memory_type: qio_opi
+    board_build.f_flash: 80000000L
+    board_build.flash_mode: qio
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  cpu_frequency: 240Mhz
+  toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${name}-fallback"
+    password: !secret ap_password
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [meshtastic]
+    refresh: 0s
+    
+  # - source:
+      # type: local
+      # path: components
+    # components: [meshtastic]
+
+time:
+  - platform: sntp
+    id: my_time
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+logger:
+  level: debug
+
+spi:
+  - id: spi_bus0
+    mosi_pin: GPIO09
+    miso_pin: GPIO08
+    clk_pin: GPIO07
+    interface: spi3
+
+# Bus I2C pour le capteur BME280 (temperature/pression/humidite).
+# Hypothese: GPIO02 = SDA, GPIO03 = SCL. Inverse-les si besoin dans
+# le fichier de chaque slave (substitutions i2c_sda_pin / i2c_scl_pin).
+i2c:
+  sda: ${i2c_sda_pin}
+  scl: ${i2c_scl_pin}
+  scan: true
+
+sx126x:
+  id: lora_radio
+  spi_id: spi_bus0
+  dio1_pin: GPIO39
+  busy_pin: GPIO40
+  rst_pin: GPIO42
+  cs_pin: GPIO41
+  pa_power: 22
+  bandwidth: 250_0kHz
+  crc_enable: true
+  frequency: 868000000
+  modulation: LORA
+  hw_version: sx1262
+  rf_switch: true
+  sync_value: [0x14, 0x24]
+  preamble_size: 16
+  spreading_factor: 11
+  coding_rate: CR_4_5
+  tcxo_voltage: 1_8V
+  tcxo_delay: 5ms
+  data_rate: '10MHz'
+
+meshtastic:
+  - id: id_mesh
+    lora: lora_radio
+    exclude_pki: true
+    hw_model: 81   # meshtastic_HardwareModel_SEEED_XIAO_S3
+    hop_limit: 3
+    ignore_mqtt: true
+    ok_to_mqtt: false
+    position:
+      latitude: !secret meshstastic_node_slave_0_lat
+      longitude: !secret meshstastic_node_slave_0_long
+      altitude: !secret meshstastic_node_slave_0_height
+      broadcast_interval: 3h
+
+    channels:
+      - name: !secret meshstastic_channel_name
+        psk: !secret meshstastic_channel_psk
+
+    nodes:
+      - node_number: 0   # 0 = "ce noeud lui-meme" (voir explication precedente)
+        name: ${slave_name}
+        short_name: ${slave_short_name}
+        public_key: ${slave_0_public_key} #meshstastic_node_slave_0_public_key #
+
+    on_packet:
+      then:
+        - lambda: |-
+            if (portnum != meshtastic_PortNum_TEXT_MESSAGE_APP) return;
+            std::string msg(data.begin(), data.end());
+            ESP_LOGD("mesh_rx", "RX de %08X : %s", from, msg.c_str());
+
+            // Decoupe "SLAVE:<id>,KEY1:VAL1,KEY2:VAL2,..." sur les virgules
+            std::vector<std::string> tokens;
+            std::string rest = msg;
+            size_t pos;
+            while ((pos = rest.find(',')) != std::string::npos) {
+              tokens.push_back(rest.substr(0, pos));
+              rest.erase(0, pos + 1);
+            }
+            tokens.push_back(rest);
+
+            if (tokens.empty() || tokens[0].rfind("SLAVE:", 0) != 0) return;
+
+            const int MY_SLAVE_ID = ${slave_id};
+            int target = atoi(tokens[0].substr(6).c_str());
+            if (target != MY_SLAVE_ID) {
+              return;  // ce message n'est pas pour moi, on ignore
+            }
+
+            for (size_t i = 1; i < tokens.size(); i++) {
+              size_t sep = tokens[i].find(':');
+              if (sep == std::string::npos) continue;
+              std::string key = tokens[i].substr(0, sep);
+              std::string val = tokens[i].substr(sep + 1);
+
+              // --- Ajoute ici d'autres "else if (key == "RELAYx")" pour
+              //     piloter d'autres sorties si besoin ---
+              if (key == "RELAY0") {
+                if (val == "ON") {
+                  id(relay0).turn_on();
+                  id(send_ack).execute(std::string("RELAY0"), std::string("ON"));
+                } else if (val == "OFF") {
+                  id(relay0).turn_off();
+                  id(send_ack).execute(std::string("RELAY0"), std::string("OFF"));
+                }
+              } else if (key == "RELAY1") {
+                if (val == "ON") {
+                  id(relay1).turn_on();
+                  id(send_ack).execute(std::string("RELAY1"), std::string("ON"));
+                } else if (val == "OFF") {
+                  id(relay1).turn_off();
+                  id(send_ack).execute(std::string("RELAY1"), std::string("OFF"));
+                }
+              }
+            }
+
+# --- Relais pilotables a distance par le master ---
+switch:
+  - platform: gpio
+    id: relay0
+    name: ${name}_relay0
+    pin: ${relay0_pin}
+    restore_mode: ALWAYS_OFF
+
+  - platform: gpio
+    id: relay1
+    name: ${name}_relay1
+    pin: ${relay1_pin}
+    restore_mode: ALWAYS_OFF
+
+# --- Accuse de reception envoye au master apres execution d'une commande ---
+# Format: "SLAVE:<slave_id>,ACK:<nom_relais>:<ON|OFF>"
+script:
+  - id: send_ack
+    parameters:
+      relay_name: string
+      relay_state: string
+    then:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: !lambda |-
+            return "SLAVE:${slave_id},ACK:" + relay_name + ":" + relay_state;
+
+# --- Capteur BME280 (temperature, pression, humidite) ---
+# Les 3 valeurs sont envoyees sur le mesh (voir plus bas).
+sensor:
+  - platform: bme280_i2c
+    address: 0x76   # ou 0x77 selon ton module, verifie avec "scan: true" dans les logs
+    update_interval: 30s
+    temperature:
+      name: ${name}_temperature
+      id: bme280_temperature
+      oversampling: 16x
+    pressure:
+      name: ${name}_pressure
+      id: bme280_pressure
+    humidity:
+      name: ${name}_humidity
+      id: bme280_humidity
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    update_interval: 60s
+
+  - platform: uptime
+    id: uptime_sec
+
+# --- Envoi periodique de la telemetrie sur le mesh ---
+interval:
+  - interval: ${telemetry_interval}
+    then:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: !lambda |-
+            char buf[64];
+            snprintf(buf, sizeof(buf), "SLAVE:${slave_id},TEMP:%.1f,HUM:%.1f,PRESS:%.1f",
+                     id(bme280_temperature).state, id(bme280_humidity).state, id(bme280_pressure).state);
+            return std::string(buf);
+
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+
+button:
+  - platform: restart
+    name: ${name}_restart
+
+  - platform: template
+    name: ${name}_send_now
+    on_press:
+      then:
+        - meshtastic.send_text_message:
+            id: id_mesh
+            channel: !secret meshstastic_channel_name
+            text: !lambda |-
+              char buf[64];
+              snprintf(buf, sizeof(buf), "SLAVE:${slave_id},TEMP:%.1f,HUM:%.1f,PRESS:%.1f",
+                       id(bme280_temperature).state, id(bme280_humidity).state, id(bme280_pressure).state);
+              return std::string(buf);

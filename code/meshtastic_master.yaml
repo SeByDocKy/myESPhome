@@ -1,0 +1,526 @@
+##############################################################################
+# MASTER MESHTASTIC - recoit la telemetrie de N slaves et peut piloter
+# leurs relais a distance.
+#
+# PROTOCOLE APPLICATIF (voir meshtastic_common_slave.yaml pour le detail):
+#   Uplink   (slave -> master) : "SLAVE:<id>,TEMP:<t>,HUM:<h>,PRESS:<p>"  (BME280)
+#   Downlink (master -> slave) : "SLAVE:<id>,RELAY0:ON/OFF"  ou  "RELAY1:ON/OFF"
+#   ACK      (slave -> master) : "SLAVE:<id>,ACK:RELAY0:ON/OFF"  ou  RELAY1
+#
+# Pour ajouter un 6e slave (id 5): duplique un bloc "SLAVE X" pour relay0 ET
+# relay1 (sensor temperature/humidite/pression + 2 switch + les "case"
+# correspondants dans le lambda on_packet).
+#
+#
+#    to generate a AES-128 psk, run the following command 
+#    openssl rand -base64 16
+#
+#    to generate a AES-256 psk, run the following command 
+#    openssl rand -base64 32
+#
+#    To generate node public & private keys, run this python script
+#    python generate_node_keys.py
+##############################################################################
+
+substitutions:
+  name: "meshtastic-master"
+  master_name: "home"
+  master_short_name: "HOME"
+  master_public_key: "ac7PB9k9gcx0uYKNMXmSACLXvOmlfWHQNnepDRbGDhg="
+  device_description: "Home master"
+
+esphome:
+  name: ${name}
+  comment: ${device_description}
+  min_version: 2026.5.0
+  platformio_options:
+    board_build.arduino.memory_type: qio_opi
+    board_build.f_flash: 80000000L
+    board_build.flash_mode: qio
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  cpu_frequency: 240Mhz
+  toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "base-maison-fallback"
+    password: !secret ap_password
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [meshtastic]
+    refresh: 0s
+
+  # - source:
+      # type: local
+      # path: components
+    # components: [meshtastic]
+
+time:
+  - platform: sntp
+    id: my_time
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+logger:
+  level: debug
+
+spi:
+  - id: spi_bus0
+    mosi_pin: GPIO09
+    miso_pin: GPIO08
+    clk_pin: GPIO07
+    interface: spi3
+
+sx126x:
+  id: lora_radio
+  spi_id: spi_bus0
+  dio1_pin: GPIO39
+  busy_pin: GPIO40
+  rst_pin: GPIO42
+  cs_pin: GPIO41
+  pa_power: 22
+  bandwidth: 250_0kHz
+  crc_enable: true
+  frequency: 868000000
+  modulation: LORA
+  hw_version: sx1262
+  rf_switch: true
+  sync_value: [0x14, 0x24]
+  preamble_size: 16
+  spreading_factor: 11
+  coding_rate: CR_4_5
+  tcxo_voltage: 1_8V
+  tcxo_delay: 5ms
+  data_rate: '10MHz'
+
+meshtastic:
+  - id: id_mesh
+    lora: lora_radio
+    exclude_pki: true
+    hw_model: 81   # meshtastic_HardwareModel_SEEED_XIAO_S3
+    hop_limit: 3
+    ignore_mqtt: true
+    ok_to_mqtt: false
+    position:
+      latitude: !secret meshstastic_node_master_lat
+      longitude: !secret meshstastic_node_master_long
+      altitude: !secret meshstastic_node_master_height
+      broadcast_interval: 3h
+
+    channels:
+      - name: !secret meshstastic_channel_name
+        psk: !secret meshstastic_channel_psk
+
+    nodes:
+      - node_number: 0
+        name: ${master_name}
+        short_name: ${master_short_name}
+        public_key: ${master_public_key}
+
+    on_packet:
+      then:
+        - lambda: |-
+            if (portnum != meshtastic_PortNum_TEXT_MESSAGE_APP) return;
+            std::string msg(data.begin(), data.end());
+            ESP_LOGI("mesh_rx", "RX de %08X : %s", from, msg.c_str());
+
+            // Decoupe "SLAVE:<id>,KEY1:VAL1,KEY2:VAL2,..." sur les virgules
+            std::vector<std::string> tokens;
+            std::string rest = msg;
+            size_t pos;
+            while ((pos = rest.find(',')) != std::string::npos) {
+              tokens.push_back(rest.substr(0, pos));
+              rest.erase(0, pos + 1);
+            }
+            tokens.push_back(rest);
+
+            if (tokens.empty() || tokens[0].rfind("SLAVE:", 0) != 0) return;
+            int slave_id = atoi(tokens[0].substr(6).c_str());
+
+            for (size_t i = 1; i < tokens.size(); i++) {
+              size_t sep = tokens[i].find(':');
+              if (sep == std::string::npos) continue;
+              std::string key = tokens[i].substr(0, sep);
+              std::string val = tokens[i].substr(sep + 1);
+
+              if (key == "TEMP") {
+                float temp = atof(val.c_str());
+                switch (slave_id) {
+                  case 0: id(remote_temp_0).publish_state(temp); break;
+                  case 1: id(remote_temp_1).publish_state(temp); break;
+                  case 2: id(remote_temp_2).publish_state(temp); break;
+                  case 3: id(remote_temp_3).publish_state(temp); break;
+                  case 4: id(remote_temp_4).publish_state(temp); break;
+                  // Ajoute un "case N:" ici pour un 6e slave
+                }
+              } else if (key == "HUM") {
+                float hum = atof(val.c_str());
+                switch (slave_id) {
+                  case 0: id(remote_hum_0).publish_state(hum); break;
+                  case 1: id(remote_hum_1).publish_state(hum); break;
+                  case 2: id(remote_hum_2).publish_state(hum); break;
+                  case 3: id(remote_hum_3).publish_state(hum); break;
+                  case 4: id(remote_hum_4).publish_state(hum); break;
+                  // Ajoute un "case N:" ici pour un 6e slave
+                }
+              } else if (key == "PRESS") {
+                float press = atof(val.c_str());
+                switch (slave_id) {
+                  case 0: id(remote_press_0).publish_state(press); break;
+                  case 1: id(remote_press_1).publish_state(press); break;
+                  case 2: id(remote_press_2).publish_state(press); break;
+                  case 3: id(remote_press_3).publish_state(press); break;
+                  case 4: id(remote_press_4).publish_state(press); break;
+                  // Ajoute un "case N:" ici pour un 6e slave
+                }
+              } else if (key == "ACK") {
+                // val attendu: "RELAY0:ON" / "RELAY0:OFF" / "RELAY1:ON" / "RELAY1:OFF"
+                size_t sep2 = val.find(':');
+                if (sep2 != std::string::npos) {
+                  std::string relay_name = val.substr(0, sep2);
+                  std::string relay_state = val.substr(sep2 + 1);
+                  bool relay_on = (relay_state == "ON");
+
+                  if (relay_name == "RELAY0") {
+                    switch (slave_id) {
+                      case 0: id(switch_slave0_relay0).publish_state(relay_on); break;
+                      case 1: id(switch_slave1_relay0).publish_state(relay_on); break;
+                      case 2: id(switch_slave2_relay0).publish_state(relay_on); break;
+                      case 3: id(switch_slave3_relay0).publish_state(relay_on); break;
+                      case 4: id(switch_slave4_relay0).publish_state(relay_on); break;
+                      // Ajoute un "case N:" ici pour un 6e slave
+                    }
+                  } else if (relay_name == "RELAY1") {
+                    switch (slave_id) {
+                      case 0: id(switch_slave0_relay1).publish_state(relay_on); break;
+                      case 1: id(switch_slave1_relay1).publish_state(relay_on); break;
+                      case 2: id(switch_slave2_relay1).publish_state(relay_on); break;
+                      case 3: id(switch_slave3_relay1).publish_state(relay_on); break;
+                      case 4: id(switch_slave4_relay1).publish_state(relay_on); break;
+                      // Ajoute un "case N:" ici pour un 6e slave
+                    }
+                  }
+                  ESP_LOGI("mesh_rx", "ACK confirme: slave %d %s = %s",
+                           slave_id, relay_name.c_str(), relay_state.c_str());
+                }
+              }
+              // --- Ajoute ici d'autres "else if (key == "...")" pour
+              //     d'autres types de telemetrie (HUM, BATT, etc.) ---
+            }
+
+            char buf[24];
+            snprintf(buf, sizeof(buf), "Slave %d (%08X)", slave_id, from);
+            id(remote_last_seen).publish_state(std::string(buf));
+
+# --- Telemetrie recue, une entite par slave ---
+sensor:
+  - platform: template
+    name: ${name}_slave0_temperature
+    id: remote_temp_0
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave1_temperature
+    id: remote_temp_1
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave2_temperature
+    id: remote_temp_2
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave3_temperature
+    id: remote_temp_3
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave4_temperature
+    id: remote_temp_4
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave0_humidity
+    id: remote_hum_0
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    device_class: humidity
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave1_humidity
+    id: remote_hum_1
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    device_class: humidity
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave2_humidity
+    id: remote_hum_2
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    device_class: humidity
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave3_humidity
+    id: remote_hum_3
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    device_class: humidity
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave4_humidity
+    id: remote_hum_4
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    device_class: humidity
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave0_pressure
+    id: remote_press_0
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: pressure
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave1_pressure
+    id: remote_press_1
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: pressure
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave2_pressure
+    id: remote_press_2
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: pressure
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave3_pressure
+    id: remote_press_3
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: pressure
+    state_class: measurement
+
+  - platform: template
+    name: ${name}_slave4_pressure
+    id: remote_press_4
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: pressure
+    state_class: measurement
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    update_interval: 60s
+
+  - platform: uptime
+    id: uptime_sec
+
+text_sensor:
+  - platform: template
+    name: ${name}_last_node_seen
+    id: remote_last_seen
+
+binary_sensor:
+  - platform: status
+    name: ${name}_status
+
+button:
+  - platform: restart
+    name: ${name}_restart
+
+# --- Pilotage a distance des relais de chaque slave ---
+# "optimistic: true" donne un retour immediat dans l'UI des le clic.
+# L'etat reel est ensuite reconcilie automatiquement des reception de
+# l'ACK du slave (voir bloc "else if (key == "ACK")" ci-dessus), donc si
+# la commande echoue ou que le slave etait deja dans un autre etat,
+# l'affichage se corrige tout seul en quelques secondes.
+switch:
+  - platform: template
+    name: ${name}_slave0_relay0
+    id: switch_slave0_relay0
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:0,RELAY0:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:0,RELAY0:OFF"
+
+  - platform: template
+    name: ${name}_slave1_relay0
+    id: switch_slave1_relay0
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:1,RELAY0:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:1,RELAY0:OFF"
+
+  - platform: template
+    name: ${name}_slave2_relay0
+    id: switch_slave2_relay0
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:2,RELAY0:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:2,RELAY0:OFF"
+
+  - platform: template
+    name: ${name}_slave3_relay0
+    id: switch_slave3_relay0
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:3,RELAY0:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:3,RELAY0:OFF"
+
+  - platform: template
+    name: ${name}_slave4_relay0
+    id: switch_slave4_relay0
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:4,RELAY0:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:4,RELAY0:OFF"
+
+  - platform: template
+    name: ${name}_slave0_relay1
+    id: switch_slave0_relay1
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:0,RELAY1:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:0,RELAY1:OFF"
+
+  - platform: template
+    name: ${name}_slave1_relay1
+    id: switch_slave1_relay1
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:1,RELAY1:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:1,RELAY1:OFF"
+
+  - platform: template
+    name: ${name}_slave2_relay1
+    id: switch_slave2_relay1
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:2,RELAY1:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:2,RELAY1:OFF"
+
+  - platform: template
+    name: ${name}_slave3_relay1
+    id: switch_slave3_relay1
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:3,RELAY1:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:3,RELAY1:OFF"
+
+  - platform: template
+    name: ${name}_slave4_relay1
+    id: switch_slave4_relay1
+    optimistic: true
+    turn_on_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:4,RELAY1:ON"
+    turn_off_action:
+      - meshtastic.send_text_message:
+          id: id_mesh
+          channel: !secret meshstastic_channel_name
+          text: "SLAVE:4,RELAY1:OFF"
