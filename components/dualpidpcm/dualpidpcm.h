@@ -106,6 +106,12 @@ class DUALPIDPCMComponent : public Component{
 
   float get_mode(void) {return this->current_mode_;}
   bool get_deadband(void){return this->current_deadband_;}
+
+  // ── Anti-cyclage adaptatif ────────────────────────────────────────────────
+  float get_adaptive_margin(void){return this->adaptive_margin_;}
+
+  // ── Bascule directe CHARGE<->DISCHARGE sans coupure onoff_switch_ ─────────
+  bool get_pass_through(void){return this->pass_through_;}
   
 
  protected:
@@ -187,6 +193,31 @@ class DUALPIDPCMComponent : public Component{
 
   bool current_onoff_    = false; 
   bool previous_activation_ = false;
+
+  // ── Anti-cyclage adaptatif ────────────────────────────────────────────────
+  // Historique des N dernières transitions de mode (IDLE<->CHARGE/DISCHARGE).
+  // Si N transitions se produisent dans une fenêtre glissante trop courte,
+  // on élargit temporairement l'hystérésis effective (olb_eff/oub_eff)
+  // pour freiner le cyclage. La marge se relâche automatiquement après une
+  // période de calme.
+  static const uint8_t TRANSITION_HISTORY_SIZE = 4;
+  uint32_t transition_history_[TRANSITION_HISTORY_SIZE] = {0, 0, 0, 0};
+  uint8_t  transition_idx_   = 0;
+  float    adaptive_margin_  = 0.0f;   // marge additionnelle courante (0 = pas de cyclage détecté)
+
+  void record_transition_(uint32_t now);
+  void decay_adaptive_margin_(uint32_t now);
+
+  // ── Bascule directe CHARGE<->DISCHARGE ────────────────────────────────────
+  // Le PCM gère électroniquement le sens (discharge_charge_switch_) sans
+  // nécessiter de coupure de l'alimentation générale (onoff_switch_).
+  // pass_through_ = true  : on quitte CHARGE/DISCHARGE parce que l'on bascule
+  //                         directement vers l'autre mode -> onoff_switch_
+  //                         reste allumé, seul discharge_charge_switch_ change.
+  // pass_through_ = false : arrêt réel (deadband) -> onoff_switch_ est coupé
+  //                         et le prochain démarrage repasse par le freeze
+  //                         STARTUP_INHIBIT_MS.
+  bool pass_through_ = false;
   
   // typedef enum {
   //   MODE_IDLE,       // Ni charge, ni décharge (zone morte)
@@ -198,6 +229,3 @@ class DUALPIDPCMComponent : public Component{
 		
  }  // namespace dualpidpcm
 }  // namespace esphome
-
-
-
