@@ -42,6 +42,8 @@ static const CalibrationPoint ff_table[] = {
     {3600.0f, 0.500f}   // Puissance max
 };
 
+static const int ff_table_size = sizeof(ff_table) / sizeof(ff_table[0]);
+
 
 float DUALPIDPCMComponent::calculate_ff_jump(float delta_w) {
     float abs_w = std::abs(delta_w);
