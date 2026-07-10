@@ -80,6 +80,9 @@ class DUALPIDPCMComponent : public Component{
 
   void set_setpoint(float value) {this->current_setpoint_ = value;}
   float get_setpoint(void){return this->current_setpoint_;}
+
+  void set_feedforward_threshold(float value) {this->current_feedforward_threshold_ = value;}
+  float get_feedforward_threshold(void){return this->current_feedforward_threshold_;}
   
   void set_starting_battery_voltage(float value) {this->current_starting_battery_voltage_ = value;}
   float get_starting_battery_voltage(void){return this->current_starting_battery_voltage_;}
@@ -131,7 +134,7 @@ class DUALPIDPCMComponent : public Component{
   float derivative_ = 0.0f;
   float current_min_charging_ = 5.0f;
   float current_min_discharging_ = 5.0f;
-  float current_feedforward_threshold_ = 300.0f;
+  // float current_feedforward_threshold_ = 300.0f;
 
   float Pmin_charging = 1.0f*51.2f;
   float Pmin_discharging = 1.0f*51.2f;
@@ -165,6 +168,7 @@ class DUALPIDPCMComponent : public Component{
 
 
   float current_setpoint_ = 0.0f;
+  float current_feedforward_threshold_ = 300.0f;
   float current_starting_battery_voltage_ = 51.0f;
 
   float current_kp_          = 1.1f;
