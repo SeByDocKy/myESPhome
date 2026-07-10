@@ -171,9 +171,9 @@ switch:
     reverse: 
       name: ${name}_${dualpidpcm_name}_reverse
       id:  ${dualpidpcm_name}_reverse
-    feedback: 
-      name: ${name}_${dualpidpcm_name}_feedback
-      id:  ${dualpidpcm_name}_feedback
+    feedforward: 
+      name: ${name}_${dualpidpcm_name}_feedforward
+      id:  ${dualpidpcm_name}_feedforward
       
 number:
   - platform: dualpidpcm
