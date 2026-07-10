@@ -43,7 +43,7 @@ static const CalibrationPoint ff_table[] = {
 };
 
 
-static float DUALPIDPCMComponent::calculate_ff_jump(float delta_w) {
+float DUALPIDPCMComponent::calculate_ff_jump(float delta_w) {
     float abs_w = std::abs(delta_w);
     float abs_jump = 0.0f;
 
