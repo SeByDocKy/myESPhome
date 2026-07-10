@@ -15,11 +15,14 @@ ActivationSwitch = dualpidpcm_ns.class_("ActivationSwitch", switch.Switch, cg.Co
 ManualOverrideSwitch = dualpidpcm_ns.class_("ManualOverrideSwitch", switch.Switch, cg.Component)
 PidModeSwitch = dualpidpcm_ns.class_("PidModeSwitch", switch.Switch, cg.Component)
 ReverseSwitch = dualpidpcm_ns.class_("ReverseSwitch", switch.Switch, cg.Component)
+FeedforwardSwitch = dualpidpcm_ns.class_("FeedforwardSwitch", switch.Switch, cg.Component)
+
 
 CONF_ACTIVATION = "activation"
 CONF_MANUAL_OVERRIDE = "manual_override"
 CONF_PID_MODE = "pid_mode"
 CONF_REVERSE = "reverse"
+CONF_FEEDFORWARD = "feedforward"
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_DUALPIDPCM_ID): cv.use_id(DUALPIDPCMComponent),
@@ -39,8 +42,13 @@ CONFIG_SCHEMA = {
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
-     cv.Optional(CONF_REVERSE): switch.switch_schema(
+    cv.Optional(CONF_REVERSE): switch.switch_schema(
         ReverseSwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,    
+    ).extend(cv.COMPONENT_SCHEMA),
+    cv.Optional(CONF_FEEDFORWARD): switch.switch_schema(
+        FeedforwardSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
@@ -72,4 +80,10 @@ async def to_code(config):
         await cg.register_component(s, reverse_config)
         await cg.register_parented(s, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_reverse_switch(s))
+        
+    if feedforward_config := config.get(CONF_FEEDFORWARD):
+        s = await switch.new_switch(feedforward_config)
+        await cg.register_component(s, feedforward_config)
+        await cg.register_parented(s, dualpidpcm_component)
+        cg.add(dualpidpcm_component.set_feedforward_switch(s))
     
