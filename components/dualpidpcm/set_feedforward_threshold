@@ -28,6 +28,7 @@ class DUALPIDPCMComponent : public Component{
 
 
  SUB_NUMBER(setpoint)
+ SUB_NUMBER(feedforward_threshold)
  SUB_NUMBER(starting_battery_voltage)
  SUB_NUMBER(kp)
  SUB_NUMBER(ki)
