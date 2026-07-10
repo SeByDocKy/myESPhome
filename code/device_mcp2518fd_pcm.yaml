@@ -34,6 +34,10 @@ esphome:
         - delay: 50ms
 
         ### ------ Initialization of volatile register (36,37,38) -----------
+
+        - switch.turn_off: discharge_charge_switch
+
+        - delay: 50ms
         
         - switch.turn_on: discharge_charge_switch
 
