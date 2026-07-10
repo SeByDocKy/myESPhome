@@ -43,6 +43,37 @@ static const CalibrationPoint ff_table[] = {
 };
 
 
+static float DUALPIDPCMComponent::calculate_ff_jump(float delta_w) {
+    float abs_w = std::abs(delta_w);
+    float abs_jump = 0.0f;
+
+    // Si on dépasse les bornes
+    if (abs_w <= ff_table[0].watts) {
+        abs_jump = ff_table[0].output_jump;
+    } else if (abs_w >= ff_table[ff_table_size - 1].watts) {
+        abs_jump = ff_table[ff_table_size - 1].output_jump;
+    } else {
+        // Recherche des deux points entre lesquels on se trouve (Interpolation linéaire)
+        for (int i = 0; i < ff_table_size - 1; i++) {
+            if (abs_w >= ff_table[i].watts && abs_w <= ff_table[i+1].watts) {
+                float w1 = ff_table[i].watts;
+                float j1 = ff_table[i].output_jump;
+                float w2 = ff_table[i+1].watts;
+                float j2 = ff_table[i+1].output_jump;
+                
+                // Produit en croix pour trouver la valeur exacte entre les deux points
+                abs_jump = j1 + (j2 - j1) * ((abs_w - w1) / (w2 - w1));
+                break;
+            }
+        }
+    }
+
+    // On redonne le bon signe (positif ou négatif)
+    return (delta_w < 0) ? -abs_jump : abs_jump;
+}
+
+
+
 // ── Helpers O_to_Oc / O_to_Od ────────────────────────────────────────────────
 
 float DUALPIDPCMComponent::O_to_Oc(float O) {
