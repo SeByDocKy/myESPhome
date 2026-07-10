@@ -29,6 +29,11 @@ static const float coeffP = 0.00001f;
 static const float coeffI = 0.00001f;
 static const float coeffD = 0.00001f;
 
+struct CalibrationPoint {
+    float watts;
+    float output_jump;
+};
+
 
 // ── Helpers O_to_Oc / O_to_Od ────────────────────────────────────────────────
 
