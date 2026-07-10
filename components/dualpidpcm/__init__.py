@@ -21,7 +21,7 @@ CONF_DISCHARGE_CHARGE_SWITCH_ID = 'discharge_charge_switch_id'
 CONF_ONOFF_SWITCH_ID = 'onoff_switch_id'
 CONF_CURRENT_MIN_CHARGING = 'current_min_charging'
 CONF_CURRENT_MIN_DISCHARGING = 'current_min_discharging'
-CONF_FEEDFORWARD_TRESHOLD = 'feedforward_threshold'
+# CONF_FEEDFORWARD_TRESHOLD = 'feedforward_threshold'
 
 DUALPIDPCMComponent_SCHEMA = cv.Schema(
     {
@@ -41,7 +41,7 @@ CONFIG_SCHEMA = (
           cv.Required(CONF_ONOFF_SWITCH_ID): cv.use_id(switch.Switch),
 		  cv.Optional(CONF_CURRENT_MIN_CHARGING): cv.float_range(min=0.0, max=70.0),
 		  cv.Optional(CONF_CURRENT_MIN_DISCHARGING): cv.float_range(min=0.0, max=70.0),
-          cv.Optional(CONF_FEEDFORWARD_TRESHOLD): cv.float_range(min=0.0, max=1000.0),          
+          # cv.Optional(CONF_FEEDFORWARD_TRESHOLD): cv.float_range(min=0.0, max=1000.0),          
         }
     )
  )
@@ -74,6 +74,6 @@ async def to_code(config):
     if CONF_CURRENT_MIN_DISCHARGING in config:
       cg.add(var.set_current_min_discharging_register(config[CONF_CURRENT_MIN_DISCHARGING]))
    
-    if CONF_FEEDFORWARD_TRESHOLD in config:
-      cg.add(var.set_feedforward_threshold(config[CONF_FEEDFORWARD_TRESHOLD]))   
+    # if CONF_FEEDFORWARD_TRESHOLD in config:
+    #   cg.add(var.set_feedforward_threshold(config[CONF_FEEDFORWARD_TRESHOLD]))   
        
