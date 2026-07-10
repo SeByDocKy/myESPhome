@@ -34,6 +34,14 @@ struct CalibrationPoint {
     float output_jump;
 };
 
+static const CalibrationPoint ff_table[] = {
+    {0.0f,    0.000f},
+    {900.0f,  0.125f},  // À vérifier : 900W correspondent-ils bien à 0.125 ?
+    {1800.0f, 0.250f},  // À vérifier : 1800W correspondent-ils bien à 0.250 ?
+    {2700.0f, 0.375f},  // À vérifier : 2700W correspondent-ils bien à 0.375 ?
+    {3600.0f, 0.500f}   // Puissance max
+};
+
 
 // ── Helpers O_to_Oc / O_to_Od ────────────────────────────────────────────────
 
