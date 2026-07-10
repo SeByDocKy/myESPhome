@@ -41,7 +41,6 @@ dualpidpcm:
     onoff_switch_id: ${dualpidpcm_onoff_switch_id}
     current_min_charging: ${dualpidpcm_current_min_charging}
     current_min_discharging: ${dualpidpcm_current_min_discharging}
-    # feedforward_threshold: 300.0
     
 sensor:
   - platform: copy
