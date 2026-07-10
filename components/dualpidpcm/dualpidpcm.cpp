@@ -87,8 +87,6 @@ float DUALPIDPCMComponent::O_to_Od(float O) {
     if (O < this->oneutral_) return 0.0f;
     return (O - this->oneutral_) / (1.0f - this->oneutral_);
 }
-static const int ff_table_size = sizeof(ff_table) / sizeof(ff_table[0]);
-
 
 // ── Anti-cyclage adaptatif ────────────────────────────────────────────────────
 
