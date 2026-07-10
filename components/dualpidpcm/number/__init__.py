@@ -34,6 +34,8 @@ OutputMaxChargingNumber = dualpidpcm_ns.class_("OutputMaxChargingNumber", number
 OutputMinDischargingNumber = dualpidpcm_ns.class_("OutputMinDischargingNumber", number.Number, cg.Component)
 OutputMaxDischargingNumber = dualpidpcm_ns.class_("OutputMaxDischargingNumber", number.Number, cg.Component)
 
+FeedforwardthresholdNumber = dualpidpcm_ns.class_("FeedforwardthresholdNumber", number.Number, cg.Component)
+
 CONF_SETPOINT = "setpoint"
 CONF_STARTING_BATTERY_VOLTAGE = "starting_battery_voltage"
 
@@ -47,6 +49,8 @@ CONF_OUTPUT_MAX_CHARGING = "output_max_charging"
 
 CONF_OUTPUT_MIN_DISCHARGING = "output_min_discharging"
 CONF_OUTPUT_MAX_DISCHARGING = "output_max_discharging"
+
+CONF_FEEDFORWARD_THRESHOLD = "feedforward_threshold"
 
 
 CONFIG_SCHEMA = {
@@ -110,7 +114,15 @@ CONFIG_SCHEMA = {
         icon = ICON_PERCENT,
         unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),                      
+    ).extend(cv.COMPONENT_SCHEMA),
+   
+    cv.Optional(CONF_FEEDFORWARD_THRESHOLD): number.number_schema(
+        SetpointNumber,
+        device_class=DEVICE_CLASS_POWER,
+        icon = ICON_POWER,
+        unit_of_measurement=UNIT_WATT,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),   
 }
 
 async def to_code(config):
@@ -187,3 +199,11 @@ async def to_code(config):
         await cg.register_component(n, output_max_discharging_config)
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_output_max_discharging_number(n))
+        
+  if feedforward_threshold_config := config.get(CONF_FEEDFORWARD_THRESHOLD):
+        n = await number.new_number(
+            setpoint_config, min_value=0.0, max_value=1000, step=50
+        )
+        await cg.register_component(n, feedforward_threshold_config)
+        await cg.register_parented(n, dualpidpcm_component)
+        cg.add(dualpidpcm_component.set_feedforward_threshold_number(n))      
