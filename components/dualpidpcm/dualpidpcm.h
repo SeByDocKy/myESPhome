@@ -51,6 +51,7 @@ class DUALPIDPCMComponent : public Component{
   void set_onoff_switch(switch_::Switch *sw) {this->onoff_switch_ = sw;}
   void set_current_min_charging_register(float current){this->current_min_charging_ = current;}
   void set_current_min_discharging_register(float current){this->current_min_discharging_ = current;}
+  void set_feedforward_threshold(float thresh){this->current_feedforward_threshold_ = current;}
   void set_charging_level(float level);
   void set_discharging_level(float level);
    
@@ -131,6 +132,7 @@ class DUALPIDPCMComponent : public Component{
   float derivative_ = 0.0f;
   float current_min_charging_ = 5.0f;
   float current_min_discharging_ = 5.0f;
+  float current_feedforward_threshold_ = 300.0f;
 
   float Pmin_charging = 1.0f*51.2f;
   float Pmin_discharging = 1.0f*51.2f;
