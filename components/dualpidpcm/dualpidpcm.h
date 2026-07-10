@@ -77,8 +77,6 @@ class DUALPIDPCMComponent : public Component{
   void set_feedforward(bool enable) {this->current_feedforward_ = enable;}
   bool get_feedforward(void){return this->current_feedforward_;}
 
-
-
   void set_setpoint(float value) {this->current_setpoint_ = value;}
   float get_setpoint(void){return this->current_setpoint_;}
   
@@ -199,6 +197,28 @@ class DUALPIDPCMComponent : public Component{
 
   bool current_onoff_    = false; 
   bool previous_activation_ = false;
+  
+  
+  
+  // ── NOUVEAU : Table de calibration pour le Feed-Forward ─────────────────────
+  // Structure d'un point de calibration : { variation en Watts, variation sur la sortie (0.0 à 0.5) }
+  struct CalibrationPoint {
+    float watts;
+    float output_jump;
+  };
+
+  // ⚠️ TABLE DE CALIBRATION ⚠️
+  // Tu peux ajuster les valeurs de "output_jump" si la réponse n'est pas linéaire.
+  // La table doit toujours rester triée par ordre croissant de Watts.
+  static const CalibrationPoint ff_table_[] = {
+    {0.0f,    0.000f},
+    {900.0f,  0.125f},  // À vérifier : 900W correspondent-ils bien à 0.125 ?
+    {1800.0f, 0.250f},  // À vérifier : 1800W correspondent-ils bien à 0.250 ?
+    {2700.0f, 0.375f},  // À vérifier : 2700W correspondent-ils bien à 0.375 ?
+    {3600.0f, 0.500f}   // Puissance max
+  };
+  static const int ff_table_size_ = sizeof(ff_table_) / sizeof(ff_table_[0]);
+  
 
   // ── Anti-cyclage adaptatif ────────────────────────────────────────────────
   // Historique des N dernières transitions de mode (IDLE<->CHARGE/DISCHARGE).
