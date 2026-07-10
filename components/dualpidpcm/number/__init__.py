@@ -202,8 +202,9 @@ async def to_code(config):
         
   if feedforward_threshold_config := config.get(CONF_FEEDFORWARD_THRESHOLD):
         n = await number.new_number(
-            setpoint_config, min_value=0.0, max_value=1000, step=50
+            feedforward_threshold_config, min_value=0.0, max_value=1000, step=50
         )
         await cg.register_component(n, feedforward_threshold_config)
         await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_feedforward_threshold_number(n))      
+        cg.add(dualpidpcm_component.set_feedforward_threshold_number(n))
+    
