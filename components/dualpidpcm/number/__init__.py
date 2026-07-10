@@ -117,7 +117,7 @@ CONFIG_SCHEMA = {
     ).extend(cv.COMPONENT_SCHEMA),
    
     cv.Optional(CONF_FEEDFORWARD_THRESHOLD): number.number_schema(
-        SetpointNumber,
+        FeedforwardthresholdNumber,
         device_class=DEVICE_CLASS_POWER,
         icon = ICON_POWER,
         unit_of_measurement=UNIT_WATT,
