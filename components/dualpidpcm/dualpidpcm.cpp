@@ -236,6 +236,7 @@ void DUALPIDPCMComponent::pid_update() {
     bool in_startup, outputs_at_rest;
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
     float olb_eff, oub_eff;
+    float delta_error, pending_jump;
 
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d", this->current_pid_mode_);
@@ -389,6 +390,17 @@ void DUALPIDPCMComponent::pid_update() {
         return;
     }
 
+        
+    if(this->current_feedforward_){
+      in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;  
+      delta_error = this->error_ - this->previous_error_;
+      pending_jump = 0.0f;
+      if (std::abs(delta_error) > this->current_feedforward_threshold_) {
+        pending_jump = calculate_ff_jump(delta_error);
+        ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
+      }    
+    }
+
     // ── Calcul PID ────────────────────────────────────────────────────
     tmp_i = this->error_ * this->dt_;
     if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
@@ -397,6 +409,14 @@ void DUALPIDPCMComponent::pid_update() {
     tmp = 0.0f;
     if (!std::isnan(this->previous_output_) && !this->current_pid_mode_) {
         tmp = this->previous_output_;
+    }
+
+    if(this->current_feedforward_){
+        if (!in_startup && std::abs(pending_jump) > 0.001f) {
+        tmp += pending_jump;
+        // On s'assure que le saut manuel ne sort pas des limites globales
+        tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
+       }
     }
 
     alphaP                = coeffP * this->current_kp_ * this->error_;
