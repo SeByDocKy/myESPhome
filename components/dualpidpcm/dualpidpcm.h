@@ -24,6 +24,7 @@ class DUALPIDPCMComponent : public Component{
  SUB_SWITCH(manual_override)
  SUB_SWITCH(pid_mode)
  SUB_SWITCH(reverse)
+ SUB_SWITCH(feedforward)
 
 
  SUB_NUMBER(setpoint)
@@ -72,6 +73,8 @@ class DUALPIDPCMComponent : public Component{
   bool get_pid_mode(void){return this->current_pid_mode_;}
   void set_reverse(bool enable) {this->current_reverse_ = enable;}
   bool get_reverse(void){return this->current_reverse_;}
+  void set_feedforward(bool enable) {this->current_feedforward_ = enable;}
+  bool get_feedforward(void){return this->current_feedforward_;}
 
 
 
@@ -157,6 +160,7 @@ class DUALPIDPCMComponent : public Component{
   bool current_manual_override_ = false;
   bool current_pid_mode_ = false;
   bool current_reverse_ = false;
+  bool current_feedforward_ = false;
 
 
   float current_setpoint_ = 0.0f;
