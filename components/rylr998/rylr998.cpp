@@ -118,6 +118,14 @@ void RYLR998Component::setup() {
   delay(COMMAND_DELAY_MS);
   App.feed_wdt();   // [C2]
 
+  // [VARIANT] Garde-fou : ne jamais dépasser le max RF du PA de la variante ciblée.
+  uint8_t max_power = this->max_tx_power_();
+  if (this->tx_power_ > max_power) {
+    ESP_LOGW(TAG, "tx_power (%d dBm) dépasse le max %d dBm pour %s, valeur bridée",
+             this->tx_power_, max_power, this->variant_name_());
+    this->tx_power_ = max_power;
+  }
+
   char power_cmd[32];
   snprintf(power_cmd, sizeof(power_cmd), "AT+CRFOP=%d", this->tx_power_);
   if (!this->send_command_(power_cmd, TIMEOUT_MS)) {
@@ -201,6 +209,7 @@ void RYLR998Component::loop() {
 
 void RYLR998Component::dump_config() {
   ESP_LOGCONFIG(TAG, "RYLR998:");
+  ESP_LOGCONFIG(TAG, "  Variant: %s",         this->variant_name_());
   ESP_LOGCONFIG(TAG, "  Address: %d",         this->address_);
   ESP_LOGCONFIG(TAG, "  Frequency: %lu Hz",   this->frequency_);
   ESP_LOGCONFIG(TAG, "  Spreading Factor: %d", this->spreading_factor_);
@@ -480,6 +489,15 @@ void RYLR998Component::apply_tx_power(uint8_t power) {
   if (!this->initialized_) {
     ESP_LOGW(TAG, "apply_tx_power: module not yet initialized, ignoring");
     return;
+  }
+
+  // [VARIANT] Même garde-fou qu'en setup() : une valeur reçue via l'entité
+  //           number ou une automation ne doit pas dépasser le max RF du module.
+  uint8_t max_power = this->max_tx_power_();
+  if (power > max_power) {
+    ESP_LOGW(TAG, "Requested tx_power %d dBm exceeds %s max (%d dBm), clamping",
+             power, this->variant_name_(), max_power);
+    power = max_power;
   }
   this->tx_power_ = power;
 

@@ -20,6 +20,19 @@ namespace esphome { namespace number  { class Number;  } }
 namespace esphome {
 namespace rylr998 {
 
+// [VARIANT] Les modules RYLR998 et RYLR999 partagent le même jeu de commandes
+//           AT côté port LoRa (AT+ADDRESS, AT+BAND, AT+PARAMETER, AT+NETWORKID,
+//           AT+CRFOP, AT+SEND, +RCV — vérifié par comparaison des docs REYAX).
+//           La seule différence fonctionnelle notée est la puissance RF max :
+//           22dBm (RYLR998, SX1262) vs 30dBm (RYLR999). `variant_` sert de
+//           garde-fou runtime pour ne jamais envoyer AT+CRFOP au-delà de ce
+//           que le PA du module cible supporte, même si tx_power est modifié
+//           dynamiquement via l'entité number ou une action rylr998.send_packet.
+enum class RYLRVariant : uint8_t {
+  RYLR998 = 0,
+  RYLR999 = 1,
+};
+
 class RYLR998Component : public Component, public uart::UARTDevice {
  public:
   void setup() override;
@@ -36,6 +49,8 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   void set_network_id(uint8_t nid)           { this->network_id_      = nid; }
   void set_tx_power(uint8_t tp)              { this->tx_power_        = tp; }
   void set_air_time(bool enable)             { this->compute_air_time_= enable; }
+  void set_variant(RYLRVariant variant)      { this->variant_         = variant; }
+  RYLRVariant get_variant() const            { return this->variant_; }
 
   void set_rssi_sensor(esphome::sensor::Sensor *s)       { this->rssi_sensor_       = s; }
   void set_snr_sensor(esphome::sensor::Sensor *s)        { this->snr_sensor_        = s; }
@@ -99,6 +114,16 @@ class RYLR998Component : public Component, public uart::UARTDevice {
 
   // [minor] const char * au lieu de std::string (pas d'alloc heap dans dump_config)
   const char *bandwidth_to_string_(uint32_t bandwidth);
+
+  // [VARIANT] Puissance RF max supportée par le PA du module (22dBm RYLR998 / 30dBm RYLR999).
+  uint8_t     max_tx_power_() const {
+    return this->variant_ == RYLRVariant::RYLR999 ? 30 : 22;
+  }
+  const char *variant_name_() const {
+    return this->variant_ == RYLRVariant::RYLR999 ? "RYLR999" : "RYLR998";
+  }
+
+  RYLRVariant variant_{RYLRVariant::RYLR998};
 
   packet_raw_cb_t raw_cb_{nullptr};
 
