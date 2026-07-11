@@ -443,7 +443,8 @@ void DUALPIDPCMComponent::pid_update() {
       error_for_D = this->previous_error_;
     }    
     if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
-    this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+    // this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
+    this->derivative_ = (error_for_D - this->previous_error_) / this->dt_;    
 
     tmp = 0.0f;
     if (!std::isnan(this->previous_output_) && !this->current_pid_mode_) {
