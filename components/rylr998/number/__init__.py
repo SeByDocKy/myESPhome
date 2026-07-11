@@ -22,9 +22,14 @@ RYLR998TxPowerNumber = rylr998_ns.class_(
 
 # ── Schema ────────────────────────────────────────────────────────────────────
 
-# Le RYLR998 accepte 0 à 22 dBm par pas de 1 dBm (AT+CRFOP)
+# AT+CRFOP accepte 0-22dBm sur RYLR998, 0-30dBm sur RYLR999. On expose ici la
+# borne large (30) pour ne pas dupliquer la logique de variante côté Python :
+# le clamp réel par variante est appliqué au runtime dans
+# RYLR998Component::apply_tx_power() (rylr998.cpp), donc une valeur envoyée
+# depuis Home Assistant au-delà du max du module cible sera silencieusement
+# bridée et loggée en WARN, jamais transmise telle quelle en AT+CRFOP.
 TX_POWER_MIN = 0
-TX_POWER_MAX = 22
+TX_POWER_MAX = 30
 TX_POWER_STEP = 1
 
 CONFIG_SCHEMA = cv.Schema(
