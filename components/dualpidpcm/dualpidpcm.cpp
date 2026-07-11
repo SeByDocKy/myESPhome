@@ -410,27 +410,27 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
         
-    if(this->current_feedforward_){
-      in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;  
-      delta_error = this->error_ - this->previous_error_;
-      if (std::abs(delta_error) > this->current_feedforward_threshold_) {
-        pending_jump = calculate_ff_jump(delta_error);
-        // if ( (now - last_ff_time) < DELAY_FEEDFORWARD) {
-        //    // ESP_LOGD(TAG, "Feed-Forward IGNORE (Attente réaction physique de l'onduleur) : delta=%.2f W", delta_error);
-        // } 
-        // else {
-        //   trigger_ff = true;
-        //   last_ff_time = now; // On démarre le chrono de verrouillage
-        //    // ESP_LOGD(TAG, "Feed-Forward DECLENCHE : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
-        // }  
-        // if (this->ff_locked_) {
-        //   ESP_LOGD(TAG, "Feed-Forward candidat IGNORE (verrouille, cycle precedent deja applique) : delta=%.2f W", delta_error);
-        // } 
-        // else {
-        //   ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
-        // }
-      }    
-    }
+    // if(this->current_feedforward_){
+    //   in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;  
+    //   delta_error = this->error_ - this->previous_error_;
+    //   if (std::abs(delta_error) > this->current_feedforward_threshold_) {
+    //     pending_jump = calculate_ff_jump(delta_error);
+    //     if ( (now - last_ff_time) < DELAY_FEEDFORWARD) {
+    //        // ESP_LOGD(TAG, "Feed-Forward IGNORE (Attente réaction physique de l'onduleur) : delta=%.2f W", delta_error);
+    //     } 
+    //     else {
+    //       trigger_ff = true;
+    //       last_ff_time = now; // On démarre le chrono de verrouillage
+    //        // ESP_LOGD(TAG, "Feed-Forward DECLENCHE : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
+    //     }  
+    //     // if (this->ff_locked_) {
+    //     //   ESP_LOGD(TAG, "Feed-Forward candidat IGNORE (verrouille, cycle precedent deja applique) : delta=%.2f W", delta_error);
+    //     // } 
+    //     // else {
+    //     //   ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
+    //     // }
+    //   }    
+    // }
 
     // ── Calcul PID ────────────────────────────────────────────────────
     tmp_i = this->error_ * this->dt_;
