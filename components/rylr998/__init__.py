@@ -25,12 +25,32 @@ CONF_ON_PACKET = "on_packet"
 CONF_DESTINATION = "destination"
 CONF_DATA = "data"
 CONF_AIR_TIME = "air_time"
+CONF_VARIANT = "variant"
+
+# [VARIANT] Le RYLR998 et le RYLR999 partagent le même jeu de commandes AT sur
+#           le port LoRa (vérifié contre la doc REYAX des deux modules).
+#           Seule différence fonctionnelle connue : la puissance RF max du PA.
+VARIANT_RYLR998 = "rylr998"
+VARIANT_RYLR999 = "rylr999"
+VARIANTS = [VARIANT_RYLR998, VARIANT_RYLR999]
+
+# AT+CRFOP : 0-22dBm sur RYLR998 (SX1262), 0-30dBm sur RYLR999
+TX_POWER_MAX_BY_VARIANT = {
+    VARIANT_RYLR998: 22,
+    VARIANT_RYLR999: 30,
+}
 
 rylr998_ns = cg.esphome_ns.namespace("rylr998")
 
 RYLR998Component = rylr998_ns.class_(
     "RYLR998Component", cg.Component, uart.UARTDevice
 )
+
+RYLRVariant = rylr998_ns.enum("RYLRVariant", is_class=True)
+VARIANT_ENUM = {
+    VARIANT_RYLR998: RYLRVariant.RYLR998,
+    VARIANT_RYLR999: RYLRVariant.RYLR999,
+}
 
 RYLR998PacketTrigger = rylr998_ns.class_(
     "RYLR998PacketTrigger",
@@ -73,10 +93,36 @@ def validate_network_id(value):
     return value
 
 
-CONFIG_SCHEMA = (
+def _validate_variant_constraints(config):
+    variant = config[CONF_VARIANT]
+    max_power = TX_POWER_MAX_BY_VARIANT[variant]
+    if config[CONF_TX_POWER] > max_power:
+        raise cv.Invalid(
+            f"tx_power maximum pour variant '{variant}' est {max_power}dBm "
+            f"(valeur donnée : {config[CONF_TX_POWER]}dBm)"
+        )
+
+    # Doc RYLR999 : le préambule n'est réglable (4-24) que si network_id: 18,
+    # sinon il doit rester à 12 (comportement non documenté/imposé sur le RYLR998).
+    if variant == VARIANT_RYLR999:
+        preamble = config[CONF_PREAMBLE_LENGTH]
+        network_id = config[CONF_NETWORK_ID]
+        if network_id != 18 and preamble != 12:
+            raise cv.Invalid(
+                "Sur le RYLR999, preamble_length n'est réglable (4-24) que si "
+                "network_id: 18. Pour toute autre valeur de network_id, "
+                "preamble_length doit rester à 12 (valeur par défaut)."
+            )
+    return config
+
+
+CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(RYLR998Component),
+            cv.Optional(CONF_VARIANT, default=VARIANT_RYLR998): cv.one_of(
+                *VARIANTS, lower=True
+            ),
             cv.Optional(CONF_ADDRESS, default=0): cv.int_range(min=0, max=65535),
             cv.Optional(CONF_FREQUENCY, default=915000000): cv.frequency,
             cv.Optional(CONF_SPREADING_FACTOR, default=9): validate_spreading_factor,
@@ -84,7 +130,10 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_CODING_RATE, default=1): validate_coding_rate,
             cv.Optional(CONF_PREAMBLE_LENGTH, default=12): cv.int_range(min=4, max=24),
             cv.Optional(CONF_NETWORK_ID, default=18): validate_network_id,
-            cv.Optional(CONF_TX_POWER, default=22): cv.int_range(min=0, max=22),
+            # [VARIANT] max porté à 30 ici (borne large) ; la borne réelle par
+            #           variante (22 ou 30) est vérifiée dans _validate_variant_constraints
+            #           ci-dessous, et re-vérifiée au runtime côté C++ (clamp défensif).
+            cv.Optional(CONF_TX_POWER, default=22): cv.int_range(min=0, max=30),
             cv.Optional(CONF_AIR_TIME, default=False): cv.boolean,
             cv.Optional(CONF_ON_PACKET): automation.validate_automation(
                 {
@@ -94,7 +143,8 @@ CONFIG_SCHEMA = (
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
-    .extend(uart.UART_DEVICE_SCHEMA)
+    .extend(uart.UART_DEVICE_SCHEMA),
+    _validate_variant_constraints,
 )
 
 
@@ -112,6 +162,7 @@ async def to_code(config):
     cg.add(var.set_network_id(config[CONF_NETWORK_ID]))
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
     cg.add(var.set_air_time(config[CONF_AIR_TIME]))
+    cg.add(var.set_variant(VARIANT_ENUM[config[CONF_VARIANT]]))
 
     for conf in config.get(CONF_ON_PACKET, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID])
