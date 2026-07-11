@@ -230,6 +230,16 @@ class DUALPIDPCMComponent : public Component{
   //                         et le prochain démarrage repasse par le freeze
   //                         STARTUP_INHIBIT_MS.
   bool pass_through_ = false;
+
+  // ── Anti-répétition du feedforward ────────────────────────────────────────
+  // Empêche le feedforward de se déclencher deux cycles consécutifs. Une
+  // grande erreur peut persister plusieurs cycles avant que le PID ne la
+  // résorbe ; sans ce verrou, le feedforward réappliquerait un saut
+  // supplémentaire à chaque cycle tant que delta_error reste au-dessus du
+  // seuil, ce qui sur-corrige la sortie. Le verrou se pose au cycle où le
+  // feedforward est réellement appliqué, et se relâche automatiquement au
+  // cycle suivant (fenêtre de blocage d'un seul cycle).
+  bool ff_locked_ = false;
   
   // typedef enum {
   //   MODE_IDLE,       // Ni charge, ni décharge (zone morte)
