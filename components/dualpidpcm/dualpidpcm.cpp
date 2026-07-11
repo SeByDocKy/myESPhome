@@ -36,11 +36,24 @@ struct CalibrationPoint {
 
 static const CalibrationPoint ff_table[] = {
     {0.0f,    0.000f},
-    {900.0f,  0.125f},  // À vérifier : 900W correspondent-ils bien à 0.125 ?
-    {1800.0f, 0.250f},  // À vérifier : 1800W correspondent-ils bien à 0.250 ?
-    {2700.0f, 0.375f},  // À vérifier : 2700W correspondent-ils bien à 0.375 ?
-    {3600.0f, 0.500f}   // Puissance max
+    {281.0f,  0.0325f}, // 6.5%   -> 0.065 * 0.5 = 0.0325
+    {712.6f,  0.083f},  // 16.6%  -> 0.166 * 0.5 = 0.083
+    {1393.0f, 0.1695f}, // 33.9%  -> 0.339 * 0.5 = 0.1695
+    {1856.5f, 0.229f},  // 45.8%  -> 0.458 * 0.5 = 0.229
+    {2290.0f, 0.297f},  // 59.4%  -> 0.594 * 0.5 = 0.297
+    {2500.0f, 0.3205f}, // 64.1%  -> 0.641 * 0.5 = 0.3205
+    {3184.0f, 0.415f},  // 83.0%  -> 0.830 * 0.5 = 0.415
+    {3450.0f, 0.475f},  // 95.0%  -> 0.950 * 0.5 = 0.475
+    {3630.0f, 0.500f}   // Extrapolation 100% décharge
 };
+
+// static const CalibrationPoint ff_table[] = {
+//     {0.0f,    0.000f},
+//     {900.0f,  0.125f},  // À vérifier : 900W correspondent-ils bien à 0.125 ?
+//     {1800.0f, 0.250f},  // À vérifier : 1800W correspondent-ils bien à 0.250 ?
+//     {2700.0f, 0.375f},  // À vérifier : 2700W correspondent-ils bien à 0.375 ?
+//     {3600.0f, 0.500f}   // Puissance max
+// };
 
 static const int ff_table_size = sizeof(ff_table) / sizeof(ff_table[0]);
 
