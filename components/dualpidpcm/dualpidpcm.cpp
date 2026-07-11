@@ -412,7 +412,7 @@ void DUALPIDPCMComponent::pid_update() {
     if(this->current_feedforward_){
       in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;  
       delta_error = this->error_ - this->previous_error_;
-      pending_jump = 0.0f;
+      // pending_jump = 0.0f;
       if (std::abs(delta_error) > this->current_feedforward_threshold_) {
         pending_jump = calculate_ff_jump(delta_error);
         if (this->ff_locked_) {
