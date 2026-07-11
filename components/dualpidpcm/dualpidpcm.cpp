@@ -415,11 +415,12 @@ void DUALPIDPCMComponent::pid_update() {
       // pending_jump = 0.0f;
       if (std::abs(delta_error) > this->current_feedforward_threshold_) {
         pending_jump = calculate_ff_jump(delta_error);
-        if (this->ff_locked_) {
-          ESP_LOGD(TAG, "Feed-Forward candidat IGNORE (verrouille, cycle precedent deja applique) : delta=%.2f W", delta_error);
-        } else {
-          ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
-        }
+        // if (this->ff_locked_) {
+        //   ESP_LOGD(TAG, "Feed-Forward candidat IGNORE (verrouille, cycle precedent deja applique) : delta=%.2f W", delta_error);
+        // } 
+        // else {
+        //   ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
+        // }
       }    
     }
 
