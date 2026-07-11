@@ -252,6 +252,9 @@ void DUALPIDPCMComponent::pid_update() {
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
     float olb_eff, oub_eff;
     float delta_error, pending_jump;
+    bool trigger_ff = false;
+    static uint32_t last_ff_time = 0;
+    float error_for_PID, error_for_D;
 
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d", this->current_pid_mode_);
