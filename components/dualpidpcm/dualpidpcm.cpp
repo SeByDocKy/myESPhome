@@ -19,6 +19,7 @@
 #define ADAPTIVE_MARGIN_STEP      0.02f   // +2% d'hystérésis à chaque détection
 #define ADAPTIVE_MARGIN_MAX       0.08f   // plafond +8%
 #define ADAPTIVE_MARGIN_DECAY_MS  180000  // 3 min de calme -> on relâche
+#define DELAY_FEEDFORWARD         3000
 
 namespace esphome {
 namespace dualpidpcm {
@@ -415,7 +416,7 @@ void DUALPIDPCMComponent::pid_update() {
       // pending_jump = 0.0f;
       if (std::abs(delta_error) > this->current_feedforward_threshold_) {
         pending_jump = calculate_ff_jump(delta_error);
-        if ((now - last_ff_time) < 8000) {
+        if ((now - last_ff_time) < DELAY_FEEDFORWARD) {
           ESP_LOGD(TAG, "Feed-Forward IGNORE (Attente réaction physique de l'onduleur) : delta=%.2f W", delta_error);
         }
         else {
@@ -433,6 +434,8 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     // ── Calcul PID ────────────────────────────────────────────────────
+    error_for_PID = this->error_;
+    error_for_D = this->error_;
     tmp_i = this->error_ * this->dt_;
     if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
