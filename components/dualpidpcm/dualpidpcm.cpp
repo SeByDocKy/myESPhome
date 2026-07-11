@@ -441,7 +441,7 @@ void DUALPIDPCMComponent::pid_update() {
       tmp_i = 0.0f;
       error_for_PID = 0.0f;
       error_for_D = this->previous_error_;
-    }    
+    }    
     if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
 
