@@ -178,6 +178,7 @@ void DUALPIDPCMComponent::setup() {
     this->adaptive_margin_             = 0.0f;
     this->transition_idx_              = 0;
     this->pass_through_                = false;
+    this->ff_locked_                   = false;
 
     if (this->input_sensor_ != nullptr) {
         this->input_sensor_->add_on_state_callback([this](float state) {
@@ -397,7 +398,11 @@ void DUALPIDPCMComponent::pid_update() {
       pending_jump = 0.0f;
       if (std::abs(delta_error) > this->current_feedforward_threshold_) {
         pending_jump = calculate_ff_jump(delta_error);
-        ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
+        if (this->ff_locked_) {
+          ESP_LOGD(TAG, "Feed-Forward candidat IGNORE (verrouille, cycle precedent deja applique) : delta=%.2f W", delta_error);
+        } else {
+          ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
+        }
       }    
     }
 
@@ -412,11 +417,19 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     if(this->current_feedforward_){
-        if (!in_startup && std::abs(pending_jump) > 0.001f) {
-        tmp += pending_jump;
-        // On s'assure que le saut manuel ne sort pas des limites globales
-        tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
-       }
+        // ── Anti-répétition : le feedforward ne s'applique que si le verrou
+        // n'est pas déjà posé (i.e. il n'a pas été appliqué au cycle précédent).
+        if (!in_startup && !this->ff_locked_ && std::abs(pending_jump) > 0.001f) {
+            tmp += pending_jump;
+            // On s'assure que le saut manuel ne sort pas des limites globales
+            tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
+            this->ff_locked_ = true;   // verrouille le prochain cycle
+        }
+        else {
+            // Rien appliqué ce cycle (pas de saut significatif, en startup,
+            // ou verrou consommé) -> on relâche le verrou pour le cycle suivant
+            this->ff_locked_ = false;
+        }
     }
 
     alphaP                = coeffP * this->current_kp_ * this->error_;
