@@ -438,9 +438,9 @@ void DUALPIDPCMComponent::pid_update() {
     error_for_D = this->error_;
     tmp_i = this->error_ * this->dt_;
     if (trigger_ff && !in_startup && std::abs(pending_jump) > 0.001f) {
-        tmp_i = 0.0f;                        // On coupe l'accumulation Intégrale pour ce cycle
-        error_for_PID = 0.0f;                // On annule l'action Proportionnelle pour ce cycle
-        error_for_D = this->previous_error_; // On annule l'action Dérivée pour ce cycle
+      tmp_i = 0.0f;                        // On coupe l'accumulation Intégrale pour ce cycle
+      error_for_PID = 0.0f;                // On annule l'action Proportionnelle pour ce cycle
+      error_for_D = this->previous_error_; // On annule l'action Dérivée pour ce cycle
     }    
     if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
     this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
@@ -452,8 +452,8 @@ void DUALPIDPCMComponent::pid_update() {
 
     if(this->current_feedforward_){
       if(trigger_ff && !in_startup && std::abs(pending_jump) > 0.001f){
-        tmp += pending_jump;
-        tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
+        tmp += pending_jump;
+        tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
       }   
         // if (!in_startup && !this->ff_locked_ && std::abs(pending_jump) > 0.001f) {
         //     tmp += pending_jump;
