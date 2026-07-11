@@ -466,7 +466,7 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     // alphaP                = coeffP * this->current_kp_ * this->error_;
-    alphaP                = coeffP * this->current_kp_ * error_for_PID;    
+    alphaP                = coeffP * this->current_kp_ * error_for_PID;    
     alphaI                = coeffI * this->current_ki_ * this->integral_;
     alphaD                = coeffD * this->current_kd_ * this->derivative_;
     alpha                 = alphaP + alphaI + alphaD;
