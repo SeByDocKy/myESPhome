@@ -448,7 +448,7 @@ void DUALPIDPCMComponent::pid_update() {
         tmp += pending_jump;
         // tmp += (pending_jump / 2.0f);  
         tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
-        this->previous_output_ = 0.0f;
+        // this->previous_output_ = 0.0f;
       }   
         // if (!in_startup && !this->ff_locked_ && std::abs(pending_jump) > 0.001f) {
         //     tmp += pending_jump;
