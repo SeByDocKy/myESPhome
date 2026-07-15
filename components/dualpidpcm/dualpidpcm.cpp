@@ -19,7 +19,7 @@
 #define ADAPTIVE_MARGIN_STEP      0.02f   // +2% d'hystérésis à chaque détection
 #define ADAPTIVE_MARGIN_MAX       0.08f   // plafond +8%
 #define ADAPTIVE_MARGIN_DECAY_MS  180000  // 3 min de calme -> on relâche
-#define DELAY_FEEDFORWARD         3000
+#define DELAY_FEEDFORWARD         4000
 
 namespace esphome {
 namespace dualpidpcm {
