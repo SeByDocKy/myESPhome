@@ -6,11 +6,12 @@ substitutions:
   my_minute: '59'
   my_second: '59'
   baud_rate: 115200 #9600 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
- 
+  bms_modbus_address: '1'
+  
 esphome:
   name: ${name}
   comment: ${device_description}
-  min_version: 2026.5.0
+  min_version: 2026.7.0
   platformio_options:
     # build_flags: -DBOARD_HAS_PSRAM
     board_build.arduino.memory_type: qio_opi
@@ -23,6 +24,7 @@ esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
   cpu_frequency: 240Mhz
+  toolchain: platformio
   framework:
     type: esp-idf
     version: 'dev'
@@ -33,7 +35,8 @@ wifi:
   ap:
     ssid: "battery_bidirectional"
     password: !secret ap_password
-        
+    
+    
 time:
   - platform: sntp
     id: my_time    
@@ -46,7 +49,7 @@ ota:
   
 logger:
   # hardware_uart: USB_SERIAL_JTAG
-   level: verbose
+   level: debug
     
 uart: 
   - id: uart_0
@@ -60,7 +63,8 @@ uart:
 modbus:
   - id: modbus_rtu
     uart_id: uart_0
-    send_wait_time: 50ms    
+    send_wait_time: 50ms
+    turnaround_time: 100ms
 
 spi:
 
@@ -69,7 +73,7 @@ spi:
     mosi_pin: GPIO09
     miso_pin: GPIO08
     clk_pin: GPIO07
-    interface: spi3   #### spi2 is for CMT2300A
+    interface: spi3
 
 sx126x:
   id: sx1262
@@ -127,8 +131,8 @@ sensor:
     id:  ${name}_power_imported
     name: ${name}_power_imported
     provider: ${name_controller}
-    remote_id: jsy1039_power
-    # remote_id: power
+    # remote_id: jsy1039_power
+    remote_id: power
     internal: false
     device_class: power
     unit_of_measurement: 'W'
@@ -184,7 +188,7 @@ packages:
         vars:
           bms_name: 'jkpbbms'
           bms_modbus_id: 'modbus_rtu'
-          bms_modbus_address: '1'
+          bms_modbus_address: ${bms_modbus_address}  #dip switches ON OFF OFF OFF
           bms_update_interval: '1500ms'
           bms_template_update: '3s'
           bms_text_update: '60s'
@@ -202,7 +206,7 @@ packages:
           pcm_cs_pin: 'GPIO06'
           pcm_canbus_id: 'pcm_can'
           pcm_address: '01'
-          pcm_interval: '4s' #'2500ms' #'1500ms'  ### pooling interval for non-feedback registers 
+          pcm_interval: '5s' #'2500ms' #'1500ms'  ### pooling interval for non-feedback registers 
           pcm_text_sensor_interval: '2500ms'
           pcm_min_charging: '1'
           pcm_max_charging: '70'
