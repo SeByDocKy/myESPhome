@@ -1,0 +1,113 @@
+substitutions:
+  name: "rylr999_ble_1"
+  compagnon: "rylr999_ble_2"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  # board: esp32dev
+  board: esp32-s3-devkitc-1
+  # board: seeed_xiao_esp32s3
+  # variant: esp32s3
+  cpu_frequency: 240Mhz
+  toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+        
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+  level: debug #verbose
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  platform: esphome
+  
+  
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [rylr999_ble]
+    refresh: 0s
+    
+  # - source:
+      # type: local
+      # path: components   
+  
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: true
+
+ble_client:
+  - mac_address: "90:39:5E:3F:6D:81"  # <-- MAC BLE du RYLR999 #1
+    id: my_ble
+
+
+rylr999_ble:
+  id: my_rylr999
+  ble_client_id: my_ble
+  service_uuid: 'F000C0C0-0451-4000-B000-000000000000'
+  characteristic_uuid: 'F000C0C1-0451-4000-B000-000000000000'
+  notify_characteristic_uuid: 'F000C0C2-0451-4000-B000-000000000000'
+  address: 1
+  frequency: 868MHz
+  spreading_factor: 9
+  signal_bandwidth: 125kHz
+  coding_rate: 1
+  preamble_length: 12
+  network_id: 10
+  tx_power: 20
+  air_time: false
+  min_tx_interval: 1s
+
+packet_transport:
+  platform: rylr999_ble
+  rylr999_ble_id: my_rylr999
+  update_interval: '10s'
+  encryption: !secret encryption_key
+  sensors:
+    - itemperature
+  providers:
+    - name: ${compagnon}
+      encryption: !secret encryption_key
+
+
+sensor:
+
+  - platform: internal_temperature
+    name: ${name}_internal_temperature
+    id: itemperature
+    update_interval: '5s'
+
+  - platform: packet_transport
+    provider: ${compagnon}
+    name: ${name}_temperature_received
+    id: temperature_received
+    internal: false
+    remote_id: lywsd_temperature
+    icon: mdi:thermometer
+    state_class: measurement
+    accuracy_decimals: 2
+    
+    
+  # - platform: packet_transport
+    # provider: ${compagnon}
+    # name: ${name}_internal_temperature_received
+    # id: internal_temperature_received
+    # internal: false
+    # remote_id: itemperature
+    # icon: mdi:thermometer
+    # state_class: measurement
+    # accuracy_decimals: 2    
+
+binary_sensor:
+  - platform: rylr999_ble
+    lora_ready:
+      name: ${name}_lora_ready

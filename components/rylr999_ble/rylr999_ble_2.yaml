@@ -1,0 +1,114 @@
+substitutions:
+  name: "rylr999_ble_2"
+  compagnon: "rylr999_ble_1"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+    
+logger:
+  level: debug #verbose
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  platform: esphome
+  
+  
+external_components:
+  # - source:
+      # type: local
+      # path: components
+      
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [rylr999_ble]
+    refresh: 0s     
+  
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: true
+
+ble_client:
+  - mac_address: "90:39:5E:3F:62:46"  # <-- MAC BLE du RYLR999 #2
+    id: my_ble
+
+
+rylr999_ble:
+  id: my_rylr999
+  ble_client_id: my_ble
+  service_uuid: 'F000C0C0-0451-4000-B000-000000000000'
+  characteristic_uuid: 'F000C0C1-0451-4000-B000-000000000000'
+  notify_characteristic_uuid: 'F000C0C2-0451-4000-B000-000000000000'
+  address: 2
+  frequency: 868MHz
+  spreading_factor: 9
+  signal_bandwidth: 125kHz
+  coding_rate: 1
+  preamble_length: 12
+  network_id: 10
+  tx_power: 20
+  air_time: false
+  min_tx_interval: 1s
+
+packet_transport:
+  platform: rylr999_ble
+  rylr999_ble_id: my_rylr999
+  update_interval: '10s'
+  encryption: !secret encryption_key
+  sensors:
+    - lywsd_temperature
+    # - itemperature
+    
+  providers:
+    - name: ${compagnon}
+      encryption: !secret encryption_key
+
+
+sensor:
+
+  # - platform: internal_temperature
+    # name: ${name}_internal_temperature
+    # id: itemperature
+    # update_interval: '5s'
+    
+    
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "A4:C1:38:CD:EF:01"       # <-- MAC du LYWSD03MMC  A4C138CDEF01C7D1
+    bindkey: "9d0750dff436ec94be9f6f710d3772ac"  # <-- bindkey stock firmware
+    temperature:
+      # name: ${name}_temperature
+      id: lywsd_temperature
+    humidity:
+      # name: ${name}_humidity
+      id: ${name}_humidity
+    battery_level:
+      # name: ${name}_battery_level
+      id: ${name}_battery_level
+      
+  - platform: packet_transport
+    provider: ${compagnon}
+    name: ${name}_itemperature_received
+    id: itemperature_received
+    internal: false
+    remote_id: itemperature
+    icon: mdi:thermometer
+    state_class: measurement
+    accuracy_decimals: 2      
+
+binary_sensor:
+  - platform: rylr999_ble
+    lora_ready:
+      # name: ${name}_lora_ready
+      id: ${name}_lora_ready
