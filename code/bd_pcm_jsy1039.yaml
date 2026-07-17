@@ -128,7 +128,7 @@ text_sensor:
               
 packages: 
 
-  powermeter_1:
+  powermeter:
     url: https://github.com/SeByDocKy/myESPhome/
     ref: main
     refresh: 0s
