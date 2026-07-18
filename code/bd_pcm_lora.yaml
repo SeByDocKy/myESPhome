@@ -63,7 +63,7 @@ uart:
 modbus:
   - id: modbus_rtu
     uart_id: uart_0
-    send_wait_time: 50ms
+    send_wait_time: 100ms
     turnaround_time: 100ms
 
 spi:
