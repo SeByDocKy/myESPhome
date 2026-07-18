@@ -29,6 +29,7 @@ class DUALPIDPCMComponent : public Component{
 
  SUB_NUMBER(setpoint)
  SUB_NUMBER(feedforward_threshold)
+ SUB_NUMBER(stopping_battery_voltage)
  SUB_NUMBER(starting_battery_voltage)
  SUB_NUMBER(kp)
  SUB_NUMBER(ki)
@@ -85,6 +86,9 @@ class DUALPIDPCMComponent : public Component{
   void set_feedforward_threshold(float value) {this->current_feedforward_threshold_ = value;}
   float get_feedforward_threshold(void){return this->current_feedforward_threshold_;}
   
+  void set_stopping_battery_voltage(float value) {this->current_stopping_battery_voltage_ = value;}
+  float get_stopping_battery_voltage(void){return this->current_stopping_battery_voltage_;}
+
   void set_starting_battery_voltage(float value) {this->current_starting_battery_voltage_ = value;}
   float get_starting_battery_voltage(void){return this->current_starting_battery_voltage_;}
 
@@ -170,7 +174,9 @@ class DUALPIDPCMComponent : public Component{
 
   float current_setpoint_ = 0.0f;
   float current_feedforward_threshold_ = 300.0f;
-  float current_starting_battery_voltage_ = 51.0f;
+  float current_stopping_battery_voltage_ = 51.0f;   // seuil bas (arrêt)
+  float current_starting_battery_voltage_ = 52.0f;   // seuil haut (redémarrage), doit rester > stopping
+  bool  undervoltage_lockout_             = false;   // état d'hystérésis latché
 
   float current_kp_          = 1.1f;
   float current_ki_          = 0.0f;

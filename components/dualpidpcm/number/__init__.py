@@ -22,6 +22,7 @@ from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
 
 SetpointNumber = dualpidpcm_ns.class_("SetpointNumber", number.Number, cg.Component)
 StartingBatteryVoltageNumber = dualpidpcm_ns.class_("StartingBatteryVoltageNumber", number.Number, cg.Component)
+StoppingBatteryVoltageNumber = dualpidpcm_ns.class_("StoppingBatteryVoltageNumber", number.Number, cg.Component)
 
 
 KpNumber = dualpidpcm_ns.class_("KpNumber", number.Number, cg.Component)
@@ -38,6 +39,7 @@ FeedforwardthresholdNumber = dualpidpcm_ns.class_("FeedforwardthresholdNumber", 
 
 CONF_SETPOINT = "setpoint"
 CONF_STARTING_BATTERY_VOLTAGE = "starting_battery_voltage"
+CONF_STOPPING_BATTERY_VOLTAGE = "stopping_battery_voltage"
 
 
 CONF_KP = "kp"
@@ -66,6 +68,14 @@ CONFIG_SCHEMA = {
     
     cv.Optional(CONF_STARTING_BATTERY_VOLTAGE): number.number_schema(
         StartingBatteryVoltageNumber,
+        device_class=DEVICE_CLASS_VOLTAGE,
+        icon = ICON_SINE_WAVE,
+        unit_of_measurement=UNIT_VOLT,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
+
+    cv.Optional(CONF_STOPPING_BATTERY_VOLTAGE): number.number_schema(
+        StoppingBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
         icon = ICON_SINE_WAVE,
         unit_of_measurement=UNIT_VOLT,
@@ -143,6 +153,14 @@ async def to_code(config):
         await cg.register_component(n, starting_battery_voltage_config)
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_starting_battery_voltage_number(n))
+
+  if stopping_battery_voltage_config := config.get(CONF_STOPPING_BATTERY_VOLTAGE):
+        n = await number.new_number(
+            stopping_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
+        )
+        await cg.register_component(n, stopping_battery_voltage_config)
+        await cg.register_parented(n, dualpidpcm_component)
+        cg.add(dualpidpcm_component.set_stopping_battery_voltage_number(n))
 
   if kp_config := config.get(CONF_KP):
         n = await number.new_number(

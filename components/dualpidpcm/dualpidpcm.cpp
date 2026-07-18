@@ -644,10 +644,22 @@ void DUALPIDPCMComponent::pid_update() {
     this->current_output_charging_    = std::min(std::max(this->current_output_charging_, this->current_output_min_charging_), this->current_output_max_charging_);
     this->current_output_discharging_ = std::min(std::max(this->current_output_discharging_, this->current_output_min_discharging_), this->current_output_max_discharging_);
 
-    // ── Protection sous-tension batterie ─────────────────────────────
+    // ── Protection sous-tension batterie (hystérésis) ─────────────────
     if (!std::isnan(this->current_battery_voltage_)) {
-        ESP_LOGI(TAG, "battery_voltage = %2.2f, starting battery voltage = %2.2f", this->current_battery_voltage_, this->current_starting_battery_voltage_);
-        if (this->current_battery_voltage_ < this->current_starting_battery_voltage_) {
+        ESP_LOGI(TAG, "battery_voltage = %2.2f, stop = %2.2f, start = %2.2f, lockout = %d",
+                 this->current_battery_voltage_,
+                 this->current_stopping_battery_voltage_,
+                 this->current_starting_battery_voltage_,
+                 this->undervoltage_lockout_);
+
+        if (this->current_battery_voltage_ < this->current_stopping_battery_voltage_) {
+            this->undervoltage_lockout_ = true;                       // arrêt
+        } else if (this->current_battery_voltage_ >= this->current_starting_battery_voltage_) {
+            this->undervoltage_lockout_ = false;                      // redémarrage
+        }
+        // entre les deux seuils : on garde l'état courant (hystérésis)
+
+        if (this->undervoltage_lockout_) {
             this->set_charging_level(0.0f);
             this->set_discharging_level(0.0f);
             this->current_output_             = this->oneutral_;
