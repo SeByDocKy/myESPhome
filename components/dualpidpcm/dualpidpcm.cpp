@@ -707,9 +707,19 @@ void DUALPIDPCMComponent::pid_update() {
 
     // ── Envoi des consignes via les helpers ───────────────────────────
     if(this->current_output_charging_  > 0.0f){
+      if(this->discharge_charge_switch_){
+         this->discharge_charge_switch_->publish_state(true);
+         this->discharge_charge_switch_->turn_on();
+         delay(CHARGE_DISCHARGE_DELAY); 
+      }
       this->set_charging_level(this->current_output_charging_);
     }
     if(this->current_output_discharging_  > 0.0f){
+      if(!this->discharge_charge_switch_){
+         this->discharge_charge_switch_->publish_state(false);
+         this->discharge_charge_switch_->turn_off();
+         delay(CHARGE_DISCHARGE_DELAY); 
+      }  
       this->set_discharging_level(this->current_output_discharging_);
     }
 
