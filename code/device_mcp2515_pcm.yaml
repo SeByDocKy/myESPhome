@@ -57,10 +57,10 @@ canbus:
     can_id: 0x0A
     bit_rate: 250kbps
     mode: NORMAL
-    data_rate: '10MHz'
-    # data_rate: '5MHz'
+    # data_rate: '10MHz'
+    data_rate: '4MHz'
 
-    on_frame:
+    on_frame
 
       # Grid Mode Response - 0x010A0002  # non-volatile register -> EEPROM  replaced with A038
       # - can_id: 0x010A${pcm_address}02 #0x010A0002
