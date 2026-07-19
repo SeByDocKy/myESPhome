@@ -3,8 +3,11 @@ substitutions:
   delay_number: '50ms'
   delay_switch: '130ms' #'120ms'
   delay_select: '130ms' #'120ms'
-  
-  
+
+  pcm_dir_watchdog_interval: '5s'   # periode de verification consigne vs reel
+  pcm_dir_watchdog_confirm:  '3'    # cycles consecutifs d'ecart avant reemission (~15s)
+
+
 esphome:
   on_boot: #!extend
     - priority: -100
@@ -46,8 +49,20 @@ esphome:
 
         - number.set:
            id: discharging_current_number
-           value: 0   
-           
+           value: 0
+
+globals:
+  # Watchdog anti-desync direction charge/decharge
+  - id: pcm_dir_mismatch_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+  # 0 = rien, 1 = reemettre CHARGE, 2 = reemettre DECHARGE
+  - id: pcm_dir_resend
+    type: int
+    restore_value: no
+    initial_value: '0'
+
 canbus:
   - platform: mcp2515
     id: ${pcm_canbus_id}
@@ -1826,5 +1841,72 @@ interval:
           use_extended_id: true
           data: !lambda |-
             return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      - delay: ${delay_interval}      
-          
+      - delay: ${delay_interval}
+
+  # --- Watchdog anti-desync direction charge/decharge ------------------------
+  # Compare l'intention (etat du switch) au mode reel du PCM (running_mode) et
+  # reemet la trame de direction sur le registre VOLATILE 0A38 en cas d'ecart
+  # persistant. Jamais 0A02 (EEPROM) -> aucune usure meme en boucle.
+  #   discharge_charge_switch.state : true = charge, false = decharge
+  #   running_mode_sensor           : 2 = charge, 3 = decharge (autres = inactif)
+  - interval: ${pcm_dir_watchdog_interval}
+    then:
+      - lambda: |-
+          id(pcm_dir_resend) = 0;
+
+          float pcm_f = id(running_mode_sensor).state;
+          if (std::isnan(pcm_f)) { id(pcm_dir_mismatch_count) = 0; return; }
+          int pcm = (int) pcm_f;
+
+          bool pcm_charging    = (pcm == 2);
+          bool pcm_discharging = (pcm == 3);
+          // On ignore standby / init / off-grid / fault.
+          if (!pcm_charging && !pcm_discharging) {
+            id(pcm_dir_mismatch_count) = 0;
+            return;
+          }
+
+          bool want_charge = id(discharge_charge_switch).state;  // intention
+          bool mismatch = ( want_charge && pcm_discharging) ||
+                          (!want_charge && pcm_charging);
+          if (!mismatch) {
+            id(pcm_dir_mismatch_count) = 0;
+            return;
+          }
+
+          id(pcm_dir_mismatch_count) += 1;
+          ESP_LOGW("dir_watchdog",
+                   "Desync direction: switch veut %s mais PCM est en %s (count=%d)",
+                   want_charge ? "CHARGE" : "DECHARGE",
+                   pcm_charging ? "CHARGE" : "DECHARGE",
+                   id(pcm_dir_mismatch_count));
+
+          // Confirmation avant d'agir (evite de lutter contre les transitions
+          // normales et le freeze de demarrage du PCM).
+          if (id(pcm_dir_mismatch_count) < ${pcm_dir_watchdog_confirm}) return;
+          id(pcm_dir_mismatch_count) = 0;
+          id(pcm_dir_resend) = want_charge ? 1 : 2;
+
+      - if:
+          condition:
+            lambda: 'return id(pcm_dir_resend) == 1;'
+          then:
+            - logger.log: "dir_watchdog: reemission CHARGE (volatile 0A38)"
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A38
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      - if:
+          condition:
+            lambda: 'return id(pcm_dir_resend) == 2;'
+          then:
+            - logger.log: "dir_watchdog: reemission DECHARGE (volatile 0A38)"
+            - canbus.send:
+                canbus_id: ${pcm_canbus_id}
+                can_id: 0x02${pcm_address}0A38
+                use_extended_id: true
+                data: !lambda |-
+                  return {${pcm_address}, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
+
