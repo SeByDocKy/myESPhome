@@ -40,8 +40,8 @@ void STATISTICSComponent::loop() {
 void STATISTICSComponent::reset() {
   auto t = this->time_->now();
   this->last_day_of_year_ = t.day_of_year;
-  //->stats_ = 0;
-  this->last_statistics_state_ = NULL;
+  //this->last_statistics_state_ = NULL;
+  this->last_statistics_state_ = NAN;	
   this->last_n_ = 0;
   this->publish_state_and_save(0);
 }
@@ -66,7 +66,8 @@ void STATISTICSComponent::process_new_state_(float state) {
   ESP_LOGVV(TAG, "old_state =%f, new_state = %f" , old_state, new_state);
   switch (this->method_) {
     case STATISTICS_METHODS_MIN:
-      if (old_state != NULL){
+      // if (old_state != NULL){
+	  if (!std::isnan(old_state)) {	  
         value = std::min(new_state , old_state);
       }
      else{
@@ -74,7 +75,8 @@ void STATISTICSComponent::process_new_state_(float state) {
      }
       break;
     case STATISTICS_METHODS_MAX:
-      if (old_state != NULL){	    
+      // if (old_state != NULL){
+	  if (!std::isnan(old_state)) {	  
          value = std::max(new_state , old_state);
       }
       else{
@@ -82,9 +84,10 @@ void STATISTICSComponent::process_new_state_(float state) {
       }
       break;
     case STATISTICS_METHODS_MEAN:
-	n++;
-	ninv = 1.0f/n;
-        value = ninv * new_state + (1 - ninv) * old_state;
+	  n++;
+	  ninv = 1.0f/n;
+      // value = ninv * new_state + (1 - ninv) * old_state;
+	  value = ninv * new_state + (1 - ninv) * (std::isnan(old_state) ? new_state : old_state);
       break;
   }
   ESP_LOGVV(TAG, "n = %d, value = %f" , n , value);
