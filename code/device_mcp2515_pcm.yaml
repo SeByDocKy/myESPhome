@@ -32,7 +32,7 @@ esphome:
 
         - switch.turn_off: discharge_charge_switch
 
-        - delay: 50ms
+        - delay: 100ms
         
         - switch.turn_on: discharge_charge_switch
 
@@ -40,13 +40,13 @@ esphome:
 
         - number.set:
            id: charging_current_number
-           value: 0
+           value: 1
 
         - delay: 50ms
 
         - number.set:
            id: discharging_current_number
-           value: 0   
+           value: 1 
            
 canbus:
   - platform: mcp2515
