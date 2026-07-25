@@ -1,7 +1,7 @@
 #include "ki_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 void KiNumber::setup() {
   float value;
   this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
@@ -17,5 +17,5 @@ void KiNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
