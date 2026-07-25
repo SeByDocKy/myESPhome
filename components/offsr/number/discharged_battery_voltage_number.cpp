@@ -1,7 +1,7 @@
 #include "discharged_battery_voltage_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 void DischargedBatteryVoltageNumber::setup() {
   float value;
@@ -18,5 +18,5 @@ void DischargedBatteryVoltageNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
