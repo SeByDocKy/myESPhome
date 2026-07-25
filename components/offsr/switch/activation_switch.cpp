@@ -1,7 +1,7 @@
 #include "activation_switch.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 void ActivationSwitch::setup() {
   bool state;
   this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
@@ -16,5 +16,5 @@ void ActivationSwitch::write_state(bool state) {
   this->pref_.save(&state);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
