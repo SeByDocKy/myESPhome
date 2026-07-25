@@ -3,8 +3,8 @@
 #include "esphome/components/switch/switch.h"
 #include "../offsr.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 class OutputNeverZeroSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
  public:
@@ -15,5 +15,5 @@ class OutputNeverZeroSwitch : public switch_::Switch, public Component, public P
   ESPPreferenceObject pref_;
 };
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
