@@ -7,8 +7,8 @@
 
 #include <vector>
 
-namespace esphome {
-namespace jsy1039 {
+namespace esphome::jsy1039 {
+// namespace jsy1039 {
 
 class JSY1039 : public PollingComponent, public modbus::ModbusDevice {
  public:
@@ -74,5 +74,5 @@ class WriteCommunicationSettingAction : public Action<Ts...> {
     JSY1039 *parent_;
 };
 
-}  // namespace jsy1039
-}  // namespace esphome
+// }  // namespace jsy1039
+}  // namespace esphome::jsy1039
