@@ -140,6 +140,7 @@ async def to_code(config):
             cv.Required(CONF_ID): cv.use_id(JSY1039),
         }
     ),
+	synchronous=False,
 )
 
 
@@ -157,6 +158,7 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
           cv.Required(CONF_NEW_BAUDRATE): cv.templatable(cv.int_range(min=3, max=8)),
 		}
 	),
+	synchronous=False,
 )
 	
 async def writecommunicationsetting_to_code(config, action_id, template_arg, args):
