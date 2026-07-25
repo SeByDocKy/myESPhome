@@ -1,8 +1,8 @@
 #include "jsy22x.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace jsy22x {
+namespace esphome::jsy22x {
+// namespace jsy22x {
 
 static const char *const TAG = "jsy22x";
 static const uint8_t JSY22X_CMD_READ_IN_REGISTERS = 0x03;   // multiple registers
@@ -255,5 +255,5 @@ void JSY22X::reset_energy() {
   #endif
 }
 
-}  // namespace jsy22x
-}  // namespace esphome
+// }  // namespace jsy22x
+}  // namespace esphome::jsy22x
