@@ -1,7 +1,7 @@
 #include "output_restart_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 void OutputRestartNumber::setup() {
   float value;
@@ -17,5 +17,5 @@ void OutputRestartNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
