@@ -2,8 +2,8 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 	
 static const char *const TAG = "offsr.binarysensor";
 
@@ -21,5 +21,5 @@ void OFFSRBinarySensor::publish_data_() {
     this->thermostat_cut_binary_sensor_->publish_state(this->parent_->get_thermostat_cut());  
 }
 
-} // offsr
-} // esphome
+// } // offsr
+} // namespace esphome::offsr
