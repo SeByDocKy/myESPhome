@@ -1,7 +1,7 @@
 #include "charged_battery_voltage_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 void ChargedBatteryVoltageNumber::setup() {
   float value;
@@ -17,5 +17,5 @@ void ChargedBatteryVoltageNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
