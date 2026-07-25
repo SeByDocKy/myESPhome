@@ -3,8 +3,8 @@
 #include "../offsr.h"
 #include "esphome/components/sensor/sensor.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 class OFFSRSensor : public Component, public Parented<OFFSRComponent> {
  public:
@@ -25,5 +25,5 @@ class OFFSRSensor : public Component, public Parented<OFFSRComponent> {
   void publish_data_();
 };	
 	
-} // offsr
-} // esphome
+// } // offsr
+} // namespace esphome::offsr
