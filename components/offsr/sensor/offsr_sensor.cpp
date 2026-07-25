@@ -2,8 +2,8 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 	
 static const char *const TAG = "offsr.sensor";
 
@@ -27,5 +27,5 @@ void OFFSRSensor::publish_data_() {
     this->target_sensor_->publish_state(this->parent_->get_target()); 
 }
 
-} // offsr
-} // esphome
+// } // offsr
+} // namespace esphome::offsr
