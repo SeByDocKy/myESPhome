@@ -1,8 +1,8 @@
 #include "jsy1039.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace jsy1039 {
+namespace esphome::jsy1039 {
+// namespace jsy1039 {
 
 static const char *const TAG = "jsy1039";
 static const uint8_t JSY1039_CMD_READ_IN_REGISTERS = 0x03;   // multiple registers
@@ -16,8 +16,12 @@ static const uint8_t JSY1039_REGISTER_DATA_COUNT = 9;  // 20 x 16-bit data regis
 void JSY1039::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY1039..."); 
 }
-
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+void JSY1039::on_response(std::span<const uint8_t> request_pdu, std::span<const uint8_t> response_pdu) {
+  auto data = modbus::helpers::server_pdu_payload(response_pdu);
+#else
 void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
+#endif
 	
   float sign;
   if ((this->read_data_ == 1) & (data.size() < JSY1039_REGISTER_DATA_COUNT*2)) {
@@ -123,7 +127,11 @@ void JSY1039::read_register04() {
   cmd.push_back(0x00);
   cmd.push_back(JSY1039_REGISTER_SETTINGS_COUNT);
   ESP_LOGD(TAG, "JSY1039: reading values from 0x04 register"); 
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+  this->send_pdu(cmd);	
+  #else
   this->send_raw(cmd);
+  #endif
 }
 
 void JSY1039::write_register04(uint8_t new_address , uint8_t new_baudrate) {
@@ -140,7 +148,11 @@ void JSY1039::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(new_address);
     cmd.push_back(new_baudrate);
     ESP_LOGD(TAG, "JSY1039: writing values into 0x04 register: address=%d, baudrate = %d", new_address_, new_baudrate); 
+    #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+    this->send_pdu(cmd);	
+    #else
     this->send_raw(cmd);
+    #endif
   } 
   else{
 	 ESP_LOGD(TAG, "JSY1039: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", new_address_, new_baudrate); 
@@ -168,9 +180,13 @@ void JSY1039::reset_energy() {
   cmd.push_back(0x00);
   cmd.push_back(0x00);
   ESP_LOGD(TAG, "JSY1039: sending reset Energy command"); 
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+  this->send_pdu(cmd);	
+  #else
   this->send_raw(cmd);
+  #endif
 }
 
 
-}  // namespace jsy1039
-}  // namespace esphome
+// }  // namespace jsy1039
+}  // namespace esphome::jsy1039
