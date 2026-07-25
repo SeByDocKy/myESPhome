@@ -1,7 +1,7 @@
 #include "output_max_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 void OutputMaxNumber::setup() {
   float value;
@@ -18,5 +18,5 @@ void OutputMaxNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
