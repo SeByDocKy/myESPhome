@@ -21,8 +21,8 @@
 #include "esphome/components/time/real_time_clock.h"
 
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 	
 class OFFSRComponent : public Component{
 
@@ -193,8 +193,8 @@ class PidUpdateAction : public Action<Ts...> {
   OFFSRComponent *parent_;
 };	 */
 
- }  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr 
 
 
 
