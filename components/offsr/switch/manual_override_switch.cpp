@@ -1,7 +1,7 @@
 #include "manual_override_switch.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 void ManualOverrideSwitch::setup() {
   bool state;
@@ -17,5 +17,5 @@ void ManualOverrideSwitch::write_state(bool state) {
   this->pref_.save(&state);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
