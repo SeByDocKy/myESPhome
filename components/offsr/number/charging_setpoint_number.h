@@ -3,8 +3,8 @@
 #include "esphome/components/number/number.h"
 #include "../offsr.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 class ChargingSetpointNumber : public number::Number, public Component, public Parented<OFFSRComponent> {
  public:
@@ -16,5 +16,5 @@ class ChargingSetpointNumber : public number::Number, public Component, public P
   ESPPreferenceObject pref_;
 };
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
