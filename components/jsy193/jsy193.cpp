@@ -17,8 +17,12 @@ static const uint8_t JSY193_REGISTER_DATA_COUNT = 20;  // 20 x 16-bit data regis
 void JSY193::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY193..."); 
 }
-
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+void JSY193::on_modbus_data(std::span<const uint8_t> request_pdu, std::span<const uint8_t> response_pdu) {
+  auto data = modbus::helpers::server_pdu_payload(response_pdu);	
+#else
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
+#endif	
   if ((this->read_data_ == 1) & (data.size() < JSY193_REGISTER_DATA_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY193 data!");
     return;
