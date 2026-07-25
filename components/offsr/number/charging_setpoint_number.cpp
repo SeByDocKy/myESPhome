@@ -1,7 +1,7 @@
 #include "charging_setpoint_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 // static const char *const TAG = "OFFSR.number";
 
@@ -19,5 +19,5 @@ void ChargingSetpointNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
