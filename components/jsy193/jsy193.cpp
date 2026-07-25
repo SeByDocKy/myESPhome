@@ -18,7 +18,7 @@ void JSY193::setup() {
   ESP_LOGCONFIG(TAG, "Setting up JSY193..."); 
 }
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-void JSY193::on_modbus_data(std::span<const uint8_t> request_pdu, std::span<const uint8_t> response_pdu) {
+void JSY193::on_response(std::span<const uint8_t> request_pdu, std::span<const uint8_t> response_pdu) {
   auto data = modbus::helpers::server_pdu_payload(response_pdu);	
 #else
 void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
