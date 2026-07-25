@@ -3,8 +3,8 @@
 #include "esphome/components/switch/switch.h"
 #include "../offsr.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 class PidModeSwitch : public switch_::Switch, public Component, public Parented<OFFSRComponent> {
  public:
@@ -16,5 +16,5 @@ class PidModeSwitch : public switch_::Switch, public Component, public Parented<
   ESPPreferenceObject pref_;
 };
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
