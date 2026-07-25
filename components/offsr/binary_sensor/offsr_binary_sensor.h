@@ -3,8 +3,8 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "../offsr.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 class OFFSRBinarySensor : public Component, public Parented<OFFSRComponent> {
  public:
@@ -22,5 +22,5 @@ class OFFSRBinarySensor : public Component, public Parented<OFFSRComponent> {
 };
 
 
-} // offsr
-} // esphome
+// } // offsr
+} // namespace esphome::offsr
