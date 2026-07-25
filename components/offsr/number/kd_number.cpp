@@ -1,7 +1,7 @@
 #include "kd_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 void KdNumber::setup() {
   float value;
@@ -17,5 +17,5 @@ void KdNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
