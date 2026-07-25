@@ -3,6 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/modbus/modbus.h"
+#include "esphome/core/version.h"
 
 #include <vector>
 
@@ -29,7 +30,11 @@ class JSY193 : public PollingComponent, public modbus::ModbusDevice {
   
   void setup() override;  
   void update() override;
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+  void on_response(std::span<const uint8_t> request_pdu, std::span<const uint8_t> response_pdu) override;
+  #else
   void on_modbus_data(const std::vector<uint8_t> &data) override;
+  #endif
   void dump_config() override;
   void reset_energy1();
   void reset_energy2();
