@@ -16,8 +16,12 @@ static const uint8_t JSY22X_REGISTER_DATA_COUNT = 30;  // 14 x 32-bit + 2 x 16-b
 void JSY22X::setup() { 
   ESP_LOGCONFIG(TAG, "Setting up JSY22X..."); 
 }
-
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+void JSY22X::on_response(std::span<const uint8_t> request_pdu, std::span<const uint8_t> response_pdu) {
+  auto data = modbus::helpers::server_pdu_payload(response_pdu);
+#else
 void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
+#endif
   if ((this->read_data_ == 1) & (data.size() < JSY22X_REGISTER_DATA_COUNT*2)) {
     ESP_LOGW(TAG, "Invalid size for JSY22X data!");
     return;
@@ -190,7 +194,11 @@ void JSY22X::read_register04() {
   cmd.push_back(0x00);                          //              0x00
   cmd.push_back(JSY22X_REGISTER_SETTINGS_COUNT);//              0x01
   ESP_LOGD(TAG, "JSY22X: reading values from 0x04 register"); 
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+  this->send_pdu(cmd);	
+  #else
   this->send_raw(cmd);
+  #endif
 }
 
 void JSY22X::write_register04(uint8_t new_address , uint8_t new_baudrate) {
@@ -207,7 +215,11 @@ void JSY22X::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(new_address);                   //           new_adress
     cmd.push_back(new_baudrate);                  //           new_baudrate
     ESP_LOGD(TAG, "JSY22X: writing values into 0x04 register: address=%d, baudrate = %d", new_address_, new_baudrate); 
+    #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+    this->send_pdu(cmd);	
+    #else
     this->send_raw(cmd);
+    #endif
   } 
   else{
 	 ESP_LOGD(TAG, "JSY22X: attempt to write bad values into 0x04 : Address=%d, baudrate = %d", new_address_, new_baudrate); 
@@ -236,7 +248,11 @@ void JSY22X::reset_energy() {
   cmd.push_back(0x00);
 */
   ESP_LOGD(TAG, "JSY22X: sending reset Energy command"); 
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+  this->send_pdu(cmd);	
+  #else
   this->send_raw(cmd);
+  #endif
 }
 
 }  // namespace jsy22x
