@@ -3,8 +3,8 @@
 #include "esphome/components/number/number.h"
 #include "../offsr.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 class StartingBatteryVoltageNumber : public number::Number, public Component, public Parented<OFFSRComponent> {
  public:
@@ -15,5 +15,5 @@ class StartingBatteryVoltageNumber : public number::Number, public Component, pu
   ESPPreferenceObject pref_;
 };
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
