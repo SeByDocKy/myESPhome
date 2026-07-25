@@ -1,7 +1,7 @@
 #include "floating_setpoint_number.h"
 
-namespace esphome {
-namespace offsr {
+namespace esphome::offsr {
+// namespace offsr {
 
 void FloatingSetpointNumber::setup() {
   float value;
@@ -18,5 +18,5 @@ void FloatingSetpointNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace offsr
-}  // namespace esphome
+// }  // namespace offsr
+}  // namespace esphome::offsr
