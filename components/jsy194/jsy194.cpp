@@ -1,8 +1,8 @@
 #include "jsy194.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace jsy194 {
+namespace esphome::jsy194 {
+// namespace jsy194 {
 
 static const char *const TAG = "jsy194";
 static const uint8_t JSY194_CMD_READ_IN_REGISTERS = 0x03;   // multiple registers
@@ -302,5 +302,5 @@ void JSY194::reset_energy2neg() {
   #endif  
 }
 
-}  // namespace jsy194
-}  // namespace esphome
+// }  // namespace jsy194
+}  // namespace esphome::jsy194
