@@ -15,9 +15,10 @@ esphome:
 esp32:
   board: esp32dev
   cpu_frequency: 240Mhz
+  toolchain: platformio
   framework:
     type: esp-idf
-    version: 'latest'
+    version: 'dev'
 
 wifi:
   ssid: !secret wifi_ssid
