@@ -14,6 +14,7 @@ esphome:
 esp32:
   board: esp32dev
   cpu_frequency: 240Mhz
+  toolchain: platformio
   framework:
     type: arduino # platformio/espressif32@5.4.0)
     # version: 3.0.4  ##  ~3.20005.0
