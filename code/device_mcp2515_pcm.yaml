@@ -28,16 +28,6 @@ esphome:
 
         - delay: 50ms
 
-        ### ------ Initialization of volatile register (36,37,38) -----------
-
-        - switch.turn_off: discharge_charge_switch
-
-        - delay: 100ms
-        
-        - switch.turn_on: discharge_charge_switch
-
-        - delay: 50ms
-
         - number.set:
            id: charging_current_number
            value: 1
@@ -46,7 +36,26 @@ esphome:
 
         - number.set:
            id: discharging_current_number
-           value: 1 
+           value: 1         
+
+        - delay: 100ms
+
+        - canbus.send:
+            canbus_id: ${pcm_canbus_id}
+            can_id: 0x02${pcm_address}0A38
+            use_extended_id: true
+            data: !lambda |-
+              return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};  ### byte 2 = 0x00 <=> charging 
+        
+        # - switch.turn_off: discharge_charge_switch
+
+        # - delay: 100ms
+        
+        # - switch.turn_on: discharge_charge_switch
+
+        # - delay: 50ms
+
+
            
 canbus:
   - platform: mcp2515
