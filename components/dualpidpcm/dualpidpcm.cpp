@@ -260,16 +260,22 @@ void DUALPIDPCMComponent::pid_update() {
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d", this->current_pid_mode_);
 
-    this->pid_computed_callback_.call();
+    // this->pid_computed_callback_.call();
 
     if (!this->current_manual_override_) {
 
     // ── Garde dt ──────────────────────────────────────────────────────
     this->dt_ = float(now - this->last_time_) / 1000.0f;
     if (this->dt_ < 0.001f) {
+        epsi = this->current_input_ - this->current_setpoint_;
+        this->error_ = epsi;
+        if (this->current_reverse_) this->error_ = -this->error_;
+        this->current_error_ = this->error_;
+        
         this->last_time_                   = now;
         this->previous_output_charging_    = this->current_output_charging_;
         this->previous_output_discharging_ = this->current_output_discharging_;
+        this->pid_computed_callback_.call();
         return;
     }
 
