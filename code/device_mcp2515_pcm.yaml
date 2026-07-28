@@ -45,7 +45,7 @@ esphome:
             can_id: 0x02${pcm_address}0A38
             use_extended_id: true
             data: !lambda |-
-              return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};  ### byte 2 = 0x00 <=> charging 
+              return {${pcm_address}, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};  
         
         # - switch.turn_off: discharge_charge_switch
 
