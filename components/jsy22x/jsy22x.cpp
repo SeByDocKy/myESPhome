@@ -159,8 +159,11 @@ void JSY22X::on_modbus_data(const std::vector<uint8_t> &data) {
   }  
 }
 
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+void JSY22X::update() { this->read_holding_registers(JSY22X_REGISTER_DATA_START, JSY22X_REGISTER_DATA_COUNT); }	
+#else	
 void JSY22X::update() { this->send(JSY22X_CMD_READ_IN_REGISTERS, JSY22X_REGISTER_DATA_START , JSY22X_REGISTER_DATA_COUNT); }
-
+#endif
 void JSY22X::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY22X:");
   ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address_);
