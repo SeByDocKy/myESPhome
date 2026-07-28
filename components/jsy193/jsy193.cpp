@@ -130,9 +130,11 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
 	this->read_data_ = 1; 
   }  
 }
-
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+void JSY193::update() { this->send_pdu(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_DATA_COUNT); }	
+#else
 void JSY193::update() { this->send(JSY193_CMD_READ_IN_REGISTERS, JSY193_REGISTER_DATA_START , JSY193_REGISTER_DATA_COUNT); }
-
+#endif
 void JSY193::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY193:");
   ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address_);
