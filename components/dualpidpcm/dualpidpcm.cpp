@@ -21,6 +21,14 @@
 #define ADAPTIVE_MARGIN_DECAY_MS  180000  // 3 min de calme -> on relâche
 #define DELAY_FEEDFORWARD         4000
 
+// ── Limiteur de pente en mode IDLE ───────────────────────────────────────────
+// Sans ce limiteur, un saut du PID (terme P proportionnel à l'erreur brute)
+// peut faire franchir olb_eff/oub_eff en un seul cycle, rendant la marge
+// adaptative ci-dessus purement cosmétique. On force donc current_output_ à
+// se rapprocher de sa cible progressivement pendant IDLE seulement — les
+// modes CHARGE/DISCHARGE ne sont pas concernés (clamps dédiés existants).
+#define IDLE_MAX_SLEW_PER_SEC     0.15f   // à ajuster selon vos gains
+
 namespace esphome {
 namespace dualpidpcm {
 
@@ -416,12 +424,6 @@ void DUALPIDPCMComponent::pid_update() {
           last_ff_time = now; // On démarre le chrono de verrouillage
           ESP_LOGD(TAG, "Feed-Forward DECLENCHE : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
         }  
-        // if (this->ff_locked_) {
-        //   ESP_LOGD(TAG, "Feed-Forward candidat IGNORE (verrouille, cycle precedent deja applique) : delta=%.2f W", delta_error);
-        // } 
-        // else {
-        //   ESP_LOGD(TAG, "Feed-Forward déclenché : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
-        // }
       }    
     }
 
@@ -435,7 +437,6 @@ void DUALPIDPCMComponent::pid_update() {
       error_for_D = this->previous_error_;
     }    
     if (!std::isnan(tmp_i)) this->integral_ += tmp_i;
-    // this->derivative_ = (this->error_ - this->previous_error_) / this->dt_;
     this->derivative_ = (error_for_D - this->previous_error_) / this->dt_;    
 
     tmp = 0.0f;
@@ -446,27 +447,30 @@ void DUALPIDPCMComponent::pid_update() {
     if(this->current_feedforward_){
       if(trigger_ff && !in_startup && std::abs(pending_jump) > 0.001f){
         tmp += pending_jump;
-        // tmp += (pending_jump / 2.0f);  
         tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
         this->previous_error_ = this->error_;  
-        // this->previous_output_ = 0.0f;
       }   
-        // if (!in_startup && !this->ff_locked_ && std::abs(pending_jump) > 0.001f) {
-        //     tmp += pending_jump;
-        //     tmp = std::min(std::max(tmp, this->output_min_), this->output_max_);
-        //     this->ff_locked_ = true;   // verrouille le prochain cycle
-        // }
-        // else {
-        //     this->ff_locked_ = false;
-        // }
     }
 
-    // alphaP                = coeffP * this->current_kp_ * this->error_;
     alphaP                = coeffP * this->current_kp_ * error_for_PID;    
     alphaI                = coeffI * this->current_ki_ * this->integral_;
     alphaD                = coeffD * this->current_kd_ * this->derivative_;
     alpha                 = alphaP + alphaI + alphaD;
     this->current_output_ = std::min(std::max(tmp + alpha, this->output_min_), this->output_max_);
+
+    // ── Limiteur de pente en mode IDLE ─────────────────────────────────
+    // Sans ce limiteur, le PID peut franchir olb_eff/oub_eff en un seul
+    // cycle, rendant adaptive_margin_ inopérant. On force donc current_output_
+    // à se rapprocher progressivement de sa cible pendant IDLE uniquement.
+    if (this->previous_mode_ == 0) {
+        float max_step = IDLE_MAX_SLEW_PER_SEC * this->dt_;
+        float delta    = this->current_output_ - this->previous_output_;
+        if (delta > max_step) {
+            this->current_output_ = this->previous_output_ + max_step;
+        } else if (delta < -max_step) {
+            this->current_output_ = this->previous_output_ - max_step;
+        }
+    }
 
     // ── Clamping O selon le mode courant ──────────────────────────────
     if (this->previous_mode_ == 1) {        // CHARGE
