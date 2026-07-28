@@ -151,9 +151,11 @@ void JSY194::on_modbus_data(const std::vector<uint8_t> &data) {
   }  
 }
 
-void JSY194::update() { 
-  this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*1); 
-}
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+void JSY194::update() { this->read_holding_registers(JSY194_REGISTER_DATA_START, JSY194_REGISTER_DATA_COUNT*1); }	
+#else
+void JSY194::update() { this->send(JSY194_CMD_READ_IN_REGISTERS, JSY194_REGISTER_DATA_START , JSY194_REGISTER_DATA_COUNT*1);  }
+#endif
 
 void JSY194::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY194:");
