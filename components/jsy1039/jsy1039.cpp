@@ -103,7 +103,11 @@ void JSY1039::on_modbus_data(const std::vector<uint8_t> &data) {
   }
 }
 
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+void JSY1039::update() { this->read_holding_registers(JSY1039_REGISTER_DATA_START, JSY1039_REGISTER_DATA_COUNT); }	
+#else	
 void JSY1039::update() { this->send(JSY1039_CMD_READ_IN_REGISTERS, JSY1039_REGISTER_DATA_START , JSY1039_REGISTER_DATA_COUNT); }
+#endif
 
 void JSY1039::dump_config() {
   ESP_LOGCONFIG(TAG, "JSY1039:");
