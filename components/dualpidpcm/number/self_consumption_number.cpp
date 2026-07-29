@@ -1,4 +1,4 @@
-#include "feedforward_threshold_number.h"
+#include "self_consumption_number.h"
 
 namespace esphome::dualpidpcm {
 // namespace dualpidpcm {
