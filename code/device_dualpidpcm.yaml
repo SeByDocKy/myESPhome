@@ -200,3 +200,5 @@ number:
       name: ${name}_${dualpidpcm_name}_output_max_discharging
     feedforward_threshold:
       name: ${name}_${dualpidpcm_name}_feedforward_threshold
+    self_consumption:
+      name: ${name}_${dualpidpcm_name}_self_consumption
