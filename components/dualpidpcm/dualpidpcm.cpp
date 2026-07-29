@@ -4,7 +4,7 @@
 #define SET_OUTPUT_DELAY       0   // 50
 #define ONOFF_DELAY            10  // 50
 #define CHARGE_DISCHARGE_DELAY 0   // 50
-#define DEADBAND_FACTOR        1.03
+#define DEADBAND_FACTOR        1.02
 #define STARTUP_INHIBIT_MS     6000
 #define DELAY_FEEDFORWARD      4000
 
