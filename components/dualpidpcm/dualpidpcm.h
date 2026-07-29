@@ -185,7 +185,7 @@ class DUALPIDPCMComponent : public Component{
   bool  undervoltage_lockout_ = false;
 
   // Autoconsommation à vide du convertisseur en décharge (W).
-  float current_discharge_self_consumption_ = 30.0f;
+  float current_self_consumption_ = 30.0f;
 
   float current_kp_          = 1.1f;
   float current_ki_          = 0.0f;
