@@ -6,28 +6,7 @@
 #define CHARGE_DISCHARGE_DELAY 0   // 50
 #define DEADBAND_FACTOR        1.03
 #define STARTUP_INHIBIT_MS     6000
-
-// ── Anti-cyclage adaptatif ──────────────────────────────────────────────────
-// Si TRANSITION_HISTORY_SIZE transitions de mode se produisent en moins de
-// CYCLING_WINDOW_MS, on considère qu'il y a du cyclage (nuages intermittents,
-// charges courtes...) et on élargit l'hystérésis effective de ADAPTIVE_MARGIN_STEP
-// (jusqu'à ADAPTIVE_MARGIN_MAX). La marge redescend automatiquement si aucune
-// transition ne survient pendant ADAPTIVE_MARGIN_DECAY_MS.
-// Une transition isolée n'est JAMAIS retardée : seule une salve rapprochée
-// déclenche l'élargissement.
-#define CYCLING_WINDOW_MS         120000  // 2 min
-#define ADAPTIVE_MARGIN_STEP      0.02f   // +2% d'hystérésis à chaque détection
-#define ADAPTIVE_MARGIN_MAX       0.08f   // plafond +8%
-#define ADAPTIVE_MARGIN_DECAY_MS  180000  // 3 min de calme -> on relâche
-#define DELAY_FEEDFORWARD         4000
-
-// ── Limiteur de pente en mode IDLE ───────────────────────────────────────────
-// Sans ce limiteur, un saut du PID (terme P proportionnel à l'erreur brute)
-// peut faire franchir olb_eff/oub_eff en un seul cycle, rendant la marge
-// adaptative ci-dessus purement cosmétique. On force donc current_output_ à
-// se rapprocher de sa cible progressivement pendant IDLE seulement — les
-// modes CHARGE/DISCHARGE ne sont pas concernés (clamps dédiés existants).
-#define IDLE_MAX_SLEW_PER_SEC     0.15f   // à ajuster selon vos gains
+#define DELAY_FEEDFORWARD      4000
 
 namespace esphome {
 namespace dualpidpcm {
@@ -103,40 +82,6 @@ float DUALPIDPCMComponent::O_to_Od(float O) {
     return (O - this->oneutral_) / (1.0f - this->oneutral_);
 }
 
-// ── Anti-cyclage adaptatif ────────────────────────────────────────────────────
-
-void DUALPIDPCMComponent::record_transition_(uint32_t now) {
-    this->transition_history_[this->transition_idx_ % TRANSITION_HISTORY_SIZE] = now;
-    this->transition_idx_++;
-
-    if (this->transition_idx_ >= TRANSITION_HISTORY_SIZE) {
-        uint32_t oldest = this->transition_history_[this->transition_idx_ % TRANSITION_HISTORY_SIZE];
-        if ((now - oldest) < CYCLING_WINDOW_MS) {
-            float before = this->adaptive_margin_;
-            this->adaptive_margin_ = std::min(this->adaptive_margin_ + ADAPTIVE_MARGIN_STEP,
-                                              (float) ADAPTIVE_MARGIN_MAX);
-            if (this->adaptive_margin_ != before) {
-                ESP_LOGW(TAG, "Cycling detected (%d transitions in %.0fs) -> adaptive_margin=%.3f",
-                         TRANSITION_HISTORY_SIZE, (now - oldest) / 1000.0f, this->adaptive_margin_);
-            }
-        }
-    }
-}
-
-void DUALPIDPCMComponent::decay_adaptive_margin_(uint32_t now) {
-    if (this->adaptive_margin_ <= 0.0f) return;
-
-    uint32_t last_transition = this->transition_history_[(this->transition_idx_ + TRANSITION_HISTORY_SIZE - 1)
-                                                           % TRANSITION_HISTORY_SIZE];
-    if ((now - last_transition) > ADAPTIVE_MARGIN_DECAY_MS) {
-        this->adaptive_margin_ = std::max(this->adaptive_margin_ - ADAPTIVE_MARGIN_STEP, 0.0f);
-        ESP_LOGI(TAG, "Adaptive margin decayed to %.3f", this->adaptive_margin_);
-        // Réarme le timer de decay pour la prochaine étape progressive
-        this->transition_history_[(this->transition_idx_ + TRANSITION_HISTORY_SIZE - 1)
-                                   % TRANSITION_HISTORY_SIZE] = now;
-    }
-}
-
 
 // ── Helpers d'envoi de consignes ─────────────────────────────────────────────
 // N'appellent set_level que si la valeur a changé depuis le dernier envoi,
@@ -190,10 +135,8 @@ void DUALPIDPCMComponent::setup() {
     this->previous_mode_               = 0;
     this->current_mode_                = 0;
     this->mode_start_time_             = millis() - STARTUP_INHIBIT_MS;  // in_startup=false au boot
-    this->adaptive_margin_             = 0.0f;
-    this->transition_idx_              = 0;
     this->pass_through_                = false;
-    this->ff_locked_                   = false;
+    this->undervoltage_lockout_        = false;
 
     if (this->input_sensor_ != nullptr) {
         this->input_sensor_->add_on_state_callback([this](float state) {
@@ -228,8 +171,6 @@ void DUALPIDPCMComponent::setup() {
       delay(CHARGE_DISCHARGE_DELAY);
     }
 
-    this->pid_computed_callback_.call();
-
     ESP_LOGI(TAG, "setup: battery_voltage=%3.2f, pid_mode = %d",
              this->current_battery_voltage_, this->current_pid_mode_);
 }
@@ -238,7 +179,6 @@ void DUALPIDPCMComponent::setup() {
 void DUALPIDPCMComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "dump config:");
     ESP_LOGVV(TAG, "setup import part: battery_voltage=%3.2f", this->current_battery_voltage_);
-    this->pid_computed_callback_.call();
 }
 
 
@@ -251,7 +191,6 @@ void DUALPIDPCMComponent::pid_update() {
     bool should_be_on, raw_deadband, output_is_active;
     bool in_startup, outputs_at_rest;
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
-    float olb_eff, oub_eff;
     float delta_error, pending_jump;
     bool trigger_ff = false;
     static uint32_t last_ff_time = 0;
@@ -260,32 +199,30 @@ void DUALPIDPCMComponent::pid_update() {
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d", this->current_pid_mode_);
 
-    // this->pid_computed_callback_.call();
-
-    if (!this->current_manual_override_) {
+    if (this->current_manual_override_) {
+        return;
+    }
 
     // ── Garde dt ──────────────────────────────────────────────────────
+    // Même si dt est trop court pour relancer une régulation complète, on
+    // recalcule quand même error_/current_error_ pour refléter le dernier
+    // input reçu, puis on republie via le callback AVANT de sortir — sinon
+    // current_error_ resterait figé sur sa valeur du cycle précédent tant
+    // qu'aucun cycle avec dt >= 1ms ne survient (cas rare mais réel : deux
+    // publications de capteur à moins d'1ms d'écart).
     this->dt_ = float(now - this->last_time_) / 1000.0f;
     if (this->dt_ < 0.001f) {
-        epsi = this->current_input_ - this->current_setpoint_;
+        epsi         = this->current_input_ - this->current_setpoint_;
         this->error_ = epsi;
         if (this->current_reverse_) this->error_ = -this->error_;
         this->current_error_ = this->error_;
-        
+
         this->last_time_                   = now;
         this->previous_output_charging_    = this->current_output_charging_;
         this->previous_output_discharging_ = this->current_output_discharging_;
         this->pid_computed_callback_.call();
         return;
     }
-
-    // ── Anti-cyclage : relâche progressive de la marge adaptative ────
-    this->decay_adaptive_margin_(now);
-
-    // Bornes effectives utilisées pour la détection de transition depuis IDLE.
-    // olb_/oub_ bruts restent utilisés pour O_to_Oc/O_to_Od (conversion physique).
-    olb_eff = this->olb_ - this->adaptive_margin_;
-    oub_eff = this->oub_ + this->adaptive_margin_;
 
     // ── Calcul de l'erreur ────────────────────────────────────────────
     epsi         = this->current_input_ - this->current_setpoint_;
@@ -312,8 +249,14 @@ void DUALPIDPCMComponent::pid_update() {
     this->previous_activation_ = this->current_activation_;
 
     // ── Seuils de puissance minimale ──────────────────────────────────
+    // Pmin_discharging inclut l'autoconsommation à vide du convertisseur en
+    // décharge (current_discharge_self_consumption_, ~30W typiquement) :
+    // décharger n'a de sens que si la conso maison dépasse ce que le
+    // convertisseur lui-même consomme pour fonctionner, sinon on tirerait
+    // plus du réseau/batterie qu'on en économise.
     this->Pmin_charging    = -this->current_battery_voltage_ * this->current_min_charging_;
-    this->Pmin_discharging =  this->current_battery_voltage_ * this->current_min_discharging_;
+    this->Pmin_discharging =  this->current_battery_voltage_ * this->current_min_discharging_
+                             + this->current_discharge_self_consumption_;
 
     // ── Deadband ──────────────────────────────────────────────────────
     raw_deadband     = (epsi > this->Pmin_charging  * DEADBAND_FACTOR) && (epsi < this->Pmin_discharging * DEADBAND_FACTOR);
@@ -380,6 +323,7 @@ void DUALPIDPCMComponent::pid_update() {
         this->set_discharging_level(0.0f);
         this->last_time_                   = now;
         this->previous_error_              = this->error_;
+        this->pid_computed_callback_.call();
         return;
     }
 
@@ -411,15 +355,14 @@ void DUALPIDPCMComponent::pid_update() {
         this->current_mode_   = 0;
         this->last_time_      = now;
         this->previous_error_ = this->error_;
-        this->record_transition_(now);   // ← anti-cyclage
+        this->pid_computed_callback_.call();
         return;
     }
 
-        
+
     if(this->current_feedforward_){
       in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;  
       delta_error = this->error_ - this->previous_error_;
-      // pending_jump = 0.0f;
       if (std::abs(delta_error) > this->current_feedforward_threshold_) {
         pending_jump = calculate_ff_jump(delta_error);
         if ((now - last_ff_time) < DELAY_FEEDFORWARD) {
@@ -463,20 +406,6 @@ void DUALPIDPCMComponent::pid_update() {
     alphaD                = coeffD * this->current_kd_ * this->derivative_;
     alpha                 = alphaP + alphaI + alphaD;
     this->current_output_ = std::min(std::max(tmp + alpha, this->output_min_), this->output_max_);
-
-    // ── Limiteur de pente en mode IDLE ─────────────────────────────────
-    // Sans ce limiteur, le PID peut franchir olb_eff/oub_eff en un seul
-    // cycle, rendant adaptive_margin_ inopérant. On force donc current_output_
-    // à se rapprocher progressivement de sa cible pendant IDLE uniquement.
-    if (this->previous_mode_ == 0) {
-        float max_step = IDLE_MAX_SLEW_PER_SEC * this->dt_;
-        float delta    = this->current_output_ - this->previous_output_;
-        if (delta > max_step) {
-            this->current_output_ = this->previous_output_ + max_step;
-        } else if (delta < -max_step) {
-            this->current_output_ = this->previous_output_ - max_step;
-        }
-    }
 
     // ── Clamping O selon le mode courant ──────────────────────────────
     if (this->previous_mode_ == 1) {        // CHARGE
@@ -529,15 +458,15 @@ void DUALPIDPCMComponent::pid_update() {
     //  - franchissement direct de la frontière opposée (rare) -> bascule
     //  - deadband + sortie déjà au repos                       -> arrêt réel
     //  - erreur franche + sortie déjà au repos                 -> bascule
-    // olb_eff/oub_eff (hystérésis + marge adaptative) ne sont utilisés que
-    // pour la détection de transition depuis IDLE (case 0).
+    // olb_/oub_ (hystérésis simple, potentiellement asymétrique via
+    // Pmin_charging/Pmin_discharging) servent pour toutes les décisions.
     this->current_mode_ = this->previous_mode_;
 
     switch (this->previous_mode_) {
         case 0:  // IDLE
-            if (this->current_output_ < olb_eff)
+            if (this->current_output_ < this->olb_)
                 this->current_mode_ = 1;
-            else if (this->current_output_ > oub_eff)
+            else if (this->current_output_ > this->oub_)
                 this->current_mode_ = 2;
             break;
 
@@ -577,8 +506,6 @@ void DUALPIDPCMComponent::pid_update() {
 
     // ── Transition de mode ────────────────────────────────────────────
     if (this->current_mode_ != this->previous_mode_) {
-
-        this->record_transition_(now);   // ← anti-cyclage : enregistrer AVANT le switch
 
         if (this->current_mode_ == 1) {        // → CHARGE
             this->previous_output_ = this->olb_;
@@ -627,6 +554,7 @@ void DUALPIDPCMComponent::pid_update() {
         this->previous_mode_  = this->current_mode_;
         this->last_time_      = now;
         this->previous_error_ = this->error_;
+        this->pid_computed_callback_.call();
         return;
     }
 
@@ -757,14 +685,13 @@ void DUALPIDPCMComponent::pid_update() {
         }
     }
 
-    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d margin=%.3f pass_through=%d",
+    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d pass_through=%d",
              this->current_output_,
              this->current_output_charging_,
              this->current_output_discharging_,
              this->previous_mode_,
              this->current_deadband_,
              (int)in_startup,
-             this->adaptive_margin_,
              (int)this->pass_through_);
 
     // ── Mise à jour des états précédents ──────────────────────────────
@@ -775,8 +702,6 @@ void DUALPIDPCMComponent::pid_update() {
     this->previous_output_ = this->current_output_;
 
     this->pid_computed_callback_.call();
-
-    }  // end if !manual_override
 }
 
 }  // namespace dualpidpcm
