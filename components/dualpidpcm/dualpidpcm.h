@@ -25,10 +25,11 @@ class DUALPIDPCMComponent : public Component{
  SUB_SWITCH(pid_mode)
  SUB_SWITCH(reverse)
  SUB_SWITCH(feedforward)
- SUB_SWITCH(self_consumption)
+ 
 
  SUB_NUMBER(setpoint)
  SUB_NUMBER(feedforward_threshold)
+ SUB_NUMBER(self_consumption)
  SUB_NUMBER(starting_battery_voltage)
  SUB_NUMBER(stopping_battery_voltage)
  SUB_NUMBER(discharge_self_consumption)
