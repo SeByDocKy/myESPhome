@@ -250,13 +250,13 @@ void DUALPIDPCMComponent::pid_update() {
 
     // ── Seuils de puissance minimale ──────────────────────────────────
     // Pmin_discharging inclut l'autoconsommation à vide du convertisseur en
-    // décharge (current_discharge_self_consumption_, ~30W typiquement) :
+    // décharge (current_self_consumption_, ~30W typiquement) :
     // décharger n'a de sens que si la conso maison dépasse ce que le
     // convertisseur lui-même consomme pour fonctionner, sinon on tirerait
     // plus du réseau/batterie qu'on en économise.
     this->Pmin_charging    = -this->current_battery_voltage_ * this->current_min_charging_;
     this->Pmin_discharging =  this->current_battery_voltage_ * this->current_min_discharging_
-                             + this->current_discharge_self_consumption_;
+                             + this->current_self_consumption_;
 
     // ── Deadband ──────────────────────────────────────────────────────
     raw_deadband     = (epsi > this->Pmin_charging  * DEADBAND_FACTOR) && (epsi < this->Pmin_discharging * DEADBAND_FACTOR);
