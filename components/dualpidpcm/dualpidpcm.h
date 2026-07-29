@@ -25,7 +25,7 @@ class DUALPIDPCMComponent : public Component{
  SUB_SWITCH(pid_mode)
  SUB_SWITCH(reverse)
  SUB_SWITCH(feedforward)
-
+ SUB_SWITCH(self_consumption)
 
  SUB_NUMBER(setpoint)
  SUB_NUMBER(feedforward_threshold)
@@ -95,8 +95,8 @@ class DUALPIDPCMComponent : public Component{
   // Autoconsommation à vide du convertisseur en décharge (W). Vient s'ajouter
   // à la consommation mesurée de la maison pour déterminer le seuil réel
   // Pmin_discharging à partir duquel décharger devient réellement utile.
-  void set_discharge_self_consumption(float value) {this->current_discharge_self_consumption_ = value;}
-  float get_discharge_self_consumption(void){return this->current_discharge_self_consumption_;}
+  void set_self_consumption(float value) {this->current_self_consumption_ = value;}
+  float get_self_consumption(void){return this->current_self_consumption_;}
 
   void set_kp(float value) {this->current_kp_ = value;}
   float get_kp(void){return this->current_kp_;}
