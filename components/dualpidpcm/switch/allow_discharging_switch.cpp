@@ -11,7 +11,7 @@ void AllowDischargingSwitch::setup() {
 
 void AllowDischargingSwitch::write_state(bool state) {
   this->publish_state(state);
-  this->parent_->set_allow_charging(state);
+  this->parent_->set_allow_discharging(state);
   this->pref_.save(&state);
 }
 }  // namespace esphome
