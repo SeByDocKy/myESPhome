@@ -1,8 +1,6 @@
 #include "feedforward_threshold_number.h"
 
-namespace esphome {
-namespace dualpidpcm {
-
+namespace esphome::dualpidpcm {
 void FeedforwardthresholdNumber::setup() {	
 	float value;
 	this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
@@ -17,5 +15,4 @@ void FeedforwardthresholdNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace dualpidpcm
 }  // namespace esphome
