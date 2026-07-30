@@ -208,3 +208,7 @@ number:
       name: ${name}_${dualpidpcm_name}_feedforward_threshold
     self_consumption:
       name: ${name}_${dualpidpcm_name}_self_consumption
+    delta_idle_charging:
+      name: ${name}_${dualpidpcm_name}_delta_idle_charging
+    delta_idle_discharging:
+      name: ${name}_${dualpidpcm_name}_delta_idle_discharging  
