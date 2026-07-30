@@ -220,6 +220,10 @@ class DUALPIDPCMComponent : public Component{
   bool current_onoff_    = false; 
   bool previous_activation_ = false;
 
+  bool current_allow_charging_ = true;
+  bool current_allow_discharging_ = true;
+
+
   // ── Bascule directe CHARGE<->DISCHARGE ────────────────────────────────────
   // Le PCM gère électroniquement le sens (discharge_charge_switch_) sans
   // nécessiter de coupure de l'alimentation générale (onoff_switch_).
