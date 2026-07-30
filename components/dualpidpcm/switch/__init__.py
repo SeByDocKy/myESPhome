@@ -54,16 +54,19 @@ CONFIG_SCHEMA = {
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_FEEDFORWARD): switch.switch_schema(
         FeedforwardSwitch,
+        default_restore_mode="RESTORE_DEFAULT_OFF",
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_ALLOW_CHARGING): switch.switch_schema(
         AllowChargingSwitch,
+        default_restore_mode="RESTORE_DEFAULT_ON",
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_ALLOW_DISCHARGING): switch.switch_schema(
         AllowDischargingSwitch,
+        default_restore_mode="RESTORE_DEFAULT_ON",
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
