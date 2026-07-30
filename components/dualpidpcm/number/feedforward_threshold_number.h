@@ -3,8 +3,7 @@
 #include "esphome/components/number/number.h"
 #include "../dualpidpcm.h"
 
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 
 class FeedforwardthresholdNumber : public number::Number, public Component, public Parented<DUALPIDPCMComponent> {
  public:
@@ -14,7 +13,5 @@ class FeedforwardthresholdNumber : public number::Number, public Component, publ
   void control(float value) override;
   ESPPreferenceObject pref_;
 };
-
-}  // namespace dualpidpcm
 }  // namespace esphome
 
