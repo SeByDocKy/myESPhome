@@ -4,7 +4,6 @@
 #include "../dualpidpcm.h"
 
 namespace esphome::dualpidpcm {
-// namespace dualpidpcm {
 
 class SelfConsumptionNumber : public number::Number, public Component, public Parented<DUALPIDPCMComponent> {
  public:
@@ -15,6 +14,5 @@ class SelfConsumptionNumber : public number::Number, public Component, public Pa
   ESPPreferenceObject pref_;
 };
 
-// }  // namespace dualpidpcm
 }  // namespace esphome::
 
