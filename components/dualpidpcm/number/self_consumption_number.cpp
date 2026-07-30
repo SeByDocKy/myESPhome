@@ -1,7 +1,6 @@
 #include "self_consumption_number.h"
 
 namespace esphome::dualpidpcm {
-// namespace dualpidpcm {
 
 void SelfConsumptionNumber::setup() {	
 	float value;
@@ -17,5 +16,4 @@ void SelfConsumptionNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-// }  // namespace dualpidpcm
 }  // namespace esphome
