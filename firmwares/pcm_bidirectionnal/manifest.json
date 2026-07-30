@@ -1,11 +1,11 @@
 {
   "name": "My ESPHome Project",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "builds": [
     {
       "chipFamily": "ESP32-S3",
       "ota": {
-        "md5": "c0f1dde0d3e05c04281419a9173e35cf",
+        "md5": "20d3aff056e5d4ebb108b534405f9fdc",
         "path": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/firmware.bin",
         "release_url": "http://example.com/releases/10",
         "summary": "New update"
