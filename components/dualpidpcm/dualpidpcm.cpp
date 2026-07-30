@@ -43,28 +43,23 @@ float DUALPIDPCMComponent::calculate_ff_jump(float delta_w) {
     float abs_w = std::abs(delta_w);
     float abs_jump = 0.0f;
 
-    // Si on dépasse les bornes
     if (abs_w <= ff_table[0].watts) {
         abs_jump = ff_table[0].output_jump;
     } else if (abs_w >= ff_table[ff_table_size - 1].watts) {
         abs_jump = ff_table[ff_table_size - 1].output_jump;
     } else {
-        // Recherche des deux points entre lesquels on se trouve (Interpolation linéaire)
         for (int i = 0; i < ff_table_size - 1; i++) {
             if (abs_w >= ff_table[i].watts && abs_w <= ff_table[i+1].watts) {
                 float w1 = ff_table[i].watts;
                 float j1 = ff_table[i].output_jump;
                 float w2 = ff_table[i+1].watts;
                 float j2 = ff_table[i+1].output_jump;
-                
-                // Produit en croix pour trouver la valeur exacte entre les deux points
                 abs_jump = j1 + (j2 - j1) * ((abs_w - w1) / (w2 - w1));
                 break;
             }
         }
     }
 
-    // On redonne le bon signe (positif ou négatif)
     return (delta_w < 0) ? -abs_jump : abs_jump;
 }
 
@@ -84,22 +79,16 @@ float DUALPIDPCMComponent::O_to_Od(float O) {
 
 
 // ── Helpers d'envoi de consignes ─────────────────────────────────────────────
-// N'appellent set_level que si la valeur a changé depuis le dernier envoi,
-// comparé à previous_output_* (et non current_output_* qui peut être modifié
-// manuellement avant l'appel). Cela évite de saturer le canal radio HMS/OpenDTU.
-
 void DUALPIDPCMComponent::set_charging_level(float level) {
     float quantized = std::round(level * 1000.0f) / 1000.0f;
     if (quantized != this->previous_output_charging_) {
         if (quantized > 0.0f) {
-            // N'envoyer une consigne active que si le switch est allumé
             if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
                 this->device_charging_output_->set_level(quantized);
                 delay(SET_OUTPUT_DELAY);
                 ESP_LOGD(TAG, "set_charging_level: %.4f", quantized);
             }
         }
-        // Pas de set_level pour level == 0 : c'est le onoff_switch qui coupe
     }
     this->current_output_charging_  = quantized;
     this->previous_output_charging_ = quantized;
@@ -163,8 +152,6 @@ void DUALPIDPCMComponent::setup() {
     this->olb_ = this->oneutral_ - this->lb_;
     this->oub_ = this->oneutral_ + this->ub_;
 
-    // Initialization of volatile registers (36,37,38)
-
     if (this->discharge_charge_switch_ != nullptr) {
       this->discharge_charge_switch_->publish_state(true);
       this->discharge_charge_switch_->turn_on();
@@ -195,6 +182,7 @@ void DUALPIDPCMComponent::pid_update() {
     bool trigger_ff = false;
     static uint32_t last_ff_time = 0;
     float error_for_PID, error_for_D;
+    float Pstart_charging, Pstart_discharging;
 
     ESP_LOGI(TAG, "Entered in pid_update()");
     ESP_LOGI(TAG, "Current pid mode %d", this->current_pid_mode_);
@@ -204,12 +192,6 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     // ── Garde dt ──────────────────────────────────────────────────────
-    // Même si dt est trop court pour relancer une régulation complète, on
-    // recalcule quand même error_/current_error_ pour refléter le dernier
-    // input reçu, puis on republie via le callback AVANT de sortir — sinon
-    // current_error_ resterait figé sur sa valeur du cycle précédent tant
-    // qu'aucun cycle avec dt >= 1ms ne survient (cas rare mais réel : deux
-    // publications de capteur à moins d'1ms d'écart).
     this->dt_ = float(now - this->last_time_) / 1000.0f;
     if (this->dt_ < 0.001f) {
         epsi         = this->current_input_ - this->current_setpoint_;
@@ -248,17 +230,32 @@ void DUALPIDPCMComponent::pid_update() {
 
     this->previous_activation_ = this->current_activation_;
 
-    // ── Seuils de puissance minimale ──────────────────────────────────
-    // Pmin_discharging inclut l'autoconsommation à vide du convertisseur en
-    // décharge (current_self_consumption_, ~30W typiquement) :
-    // décharger n'a de sens que si la conso maison dépasse ce que le
-    // convertisseur lui-même consomme pour fonctionner, sinon on tirerait
-    // plus du réseau/batterie qu'on en économise.
+    // ── Seuils de puissance ─────────────────────────────────────────────
+    //
+    // Deux seuils DISTINCTS par direction (hystérésis / trigger de Schmitt) :
+    //
+    //   Pstop_*  (= Pmin_charging / Pmin_discharging) : seuil d'ARRÊT.
+    //       Motivé par la physique : Pmin_discharging inclut déjà
+    //       current_self_consumption_ (autoconso à vide du convertisseur en
+    //       décharge, ~30W typique) — décharger n'a de sens que si la conso
+    //       maison dépasse ce que le convertisseur consomme lui-même.
+    //
+    //   Pstart_* (= Pstop_* ± current_delta_idle_*_)  : seuil de REDÉMARRAGE.
+    //       Motivé par la stabilité : après un arrêt, il faut que la
+    //       situation s'aggrave d'au moins current_delta_idle_*_ (W) avant
+    //       de rallumer — évite le cyclage rapide autour du seuil d'arrêt.
+    //
+    // Les deux notions sont complémentaires, pas redondantes : Pstop_* fixe
+    // OÙ s'arrêter (motif physique), current_delta_idle_*_ fixe DE COMBIEN il
+    // faut s'écarter avant de repartir (motif anti-cyclage).
     this->Pmin_charging    = -this->current_battery_voltage_ * this->current_min_charging_;
     this->Pmin_discharging =  this->current_battery_voltage_ * this->current_min_discharging_
                              + this->current_self_consumption_;
 
-    // ── Deadband ──────────────────────────────────────────────────────
+    Pstart_charging    = this->Pmin_charging    - this->current_delta_idle_charging_;
+    Pstart_discharging = this->Pmin_discharging + this->current_delta_idle_discharging_;
+
+    // ── Deadband (utilise les seuils d'ARRÊT, inchangé) ────────────────
     raw_deadband     = (epsi > this->Pmin_charging  * DEADBAND_FACTOR) && (epsi < this->Pmin_discharging * DEADBAND_FACTOR);
     output_is_active = (this->current_output_charging_  > this->current_output_min_charging_) || (this->current_output_discharging_ > this->current_output_min_discharging_);
 
@@ -328,8 +325,6 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     // ── Deadband depuis mode ACTIF : arrêt réel ───────────────────────
-    // C'est toujours un arrêt réel (jamais une bascule) : plus de besoin
-    // ni de charge ni de décharge -> on coupe onoff_switch_.
     if (this->current_deadband_ && this->previous_mode_ != 0) {
         this->pass_through_ = false;
 
@@ -342,7 +337,6 @@ void DUALPIDPCMComponent::pid_update() {
         this->set_discharging_level(0.0f);
         this->current_onoff_ = false;
 
-        // Repartir à la frontière du mode quitté
         if (this->previous_mode_ == 2) {
             this->previous_output_ = this->oub_;
             this->current_output_  = this->oub_;
@@ -370,7 +364,7 @@ void DUALPIDPCMComponent::pid_update() {
         }
         else {
           trigger_ff = true;
-          last_ff_time = now; // On démarre le chrono de verrouillage
+          last_ff_time = now;
           ESP_LOGD(TAG, "Feed-Forward DECLENCHE : Saut de %.2f W -> Ajustement sortie de %.4f", delta_error, pending_jump);
         }  
       }    
@@ -417,9 +411,6 @@ void DUALPIDPCMComponent::pid_update() {
         }
         this->current_output_ = o_clamped;
 
-        // ── Freeze pendant le démarrage du PCM ────────────────────────
-        // Ne s'applique qu'après un arrêt réel (pass_through_==false) puisque
-        // mode_start_time_ n'est réarmé que dans ce cas (voir plus bas).
         in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
         if (in_startup) {
             this->current_output_  = this->olb_;
@@ -438,7 +429,6 @@ void DUALPIDPCMComponent::pid_update() {
         }
         this->current_output_ = o_clamped;
 
-        // ── Freeze pendant le démarrage du PCM (décharge) ─────────────
         in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
 
         if (in_startup) {
@@ -454,29 +444,26 @@ void DUALPIDPCMComponent::pid_update() {
     in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
 
     // ── Machine d'état ────────────────────────────────────────────────
-    // pass_through_ est positionné ici selon la RAISON de la sortie de mode :
-    //  - franchissement direct de la frontière opposée (rare) -> bascule
-    //  - deadband + sortie déjà au repos                       -> arrêt réel
-    //  - erreur franche + sortie déjà au repos                 -> bascule
-    // olb_/oub_ (hystérésis simple, potentiellement asymétrique via
-    // Pmin_charging/Pmin_discharging) servent pour toutes les décisions.
+    // ENTRÉE (depuis IDLE) et BASCULE DIRECTE utilisent désormais toutes les
+    // deux le seuil de REDÉMARRAGE (Pstart_*), directement sur epsi — et non
+    // plus sur current_output_ vs olb_/oub_ (ancien mécanisme en espace O,
+    // déconnecté des seuils physiques en W). olb_/oub_ restent utilisés
+    // uniquement pour le clamp physique et le point d'atterrissage.
     //
-    // current_allow_charging_/current_allow_discharging_ (switches utilisateur,
-    // défaut ON) verrouillent respectivement l'entrée en CHARGE/DISCHARGE :
-    //  - depuis IDLE : la transition n'a lieu que si le mode cible est autorisé
-    //  - depuis CHARGE/DISCHARGE actif : un flag qui passe à false force un
-    //    arrêt réel immédiat (pass_through_=false), prioritaire sur tout le
-    //    reste — coupe onoff_switch_ proprement comme un vrai arrêt deadband.
-    //  - une bascule directe (pass_through_=true) n'est autorisée que si le
-    //    mode cible est lui-même permis, sinon le convertisseur reste bloqué
-    //    au minimum du mode courant en attendant.
+    // SORTIE (arrêt réel) continue d'utiliser le seuil d'ARRÊT (Pmin_*, via
+    // current_deadband_) — c'est la différence stop/start qui crée
+    // l'hystérésis voulue.
+    //
+    // current_allow_charging_/current_allow_discharging_ verrouillent
+    // toujours l'entrée/bascule vers le mode correspondant, priorité absolue
+    // en sortie forcée si le flag passe à false en cours de fonctionnement.
     this->current_mode_ = this->previous_mode_;
 
     switch (this->previous_mode_) {
         case 0:  // IDLE
-            if (this->current_output_ < this->olb_ && this->current_allow_charging_)
+            if (epsi < Pstart_charging * DEADBAND_FACTOR && this->current_allow_charging_)
                 this->current_mode_ = 1;
-            else if (this->current_output_ > this->oub_ && this->current_allow_discharging_)
+            else if (epsi > Pstart_discharging * DEADBAND_FACTOR && this->current_allow_discharging_)
                 this->current_mode_ = 2;
             break;
 
@@ -486,19 +473,19 @@ void DUALPIDPCMComponent::pid_update() {
              this->current_mode_ = 0;
              this->pass_through_ = false;
            }
-           // Sortie directe vers DISCHARGE si output franchit oub_ (rare mais possible)
+           // Sortie directe vers DISCHARGE si output franchit oub_ (rare, code défensif)
            else if (this->current_output_ > this->oub_ && this->current_allow_discharging_) {
              this->current_mode_ = 2;
              this->pass_through_ = true;
            }
-           // Arrêt réel : deadband confirmée + sortie déjà au minimum
+           // Arrêt réel : deadband confirmée (seuil d'ARRÊT) + sortie déjà au minimum
            else if (this->current_deadband_ && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && !in_startup) {
              this->current_mode_ = 0;
              this->pass_through_ = false;
            }
-           // Bascule : erreur franchement positive + sortie déjà au minimum
-           // + décharge autorisée (sinon on reste en charge au plancher)
-           else if (!in_startup && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && (epsi > this->Pmin_discharging * DEADBAND_FACTOR) && this->current_allow_discharging_) {
+           // Bascule (seuil de REDÉMARRAGE) : erreur franchement positive
+           // + sortie déjà au minimum + décharge autorisée
+           else if (!in_startup && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && (epsi > Pstart_discharging * DEADBAND_FACTOR) && this->current_allow_discharging_) {
              this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
              this->pass_through_ = true;
            }
@@ -517,7 +504,7 @@ void DUALPIDPCMComponent::pid_update() {
              this->current_mode_ = 0;
              this->pass_through_ = false;
            }
-           else if (!in_startup && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (epsi < this->Pmin_charging * DEADBAND_FACTOR) && this->current_allow_charging_) {
+           else if (!in_startup && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (epsi < Pstart_charging * DEADBAND_FACTOR) && this->current_allow_charging_) {
              this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE
              this->pass_through_ = true;
            }
@@ -531,12 +518,8 @@ void DUALPIDPCMComponent::pid_update() {
             this->previous_output_ = this->olb_;
             this->current_output_  = this->olb_;
             if (!this->pass_through_) {
-                // Arrêt réel précédent -> vrai redémarrage -> freeze complet
                 this->mode_start_time_ = now;
             }
-            // Si pass_through_ : le PCM était déjà alimenté (onoff_switch_ ON),
-            // pas de freeze nécessaire, discharge_charge_switch_ va basculer
-            // naturellement dans le bloc "Gestion discharge_charge_switch".
         }
         else if (this->current_mode_ == 2) {   // → DISCHARGE
             this->previous_output_ = this->oub_;
@@ -553,22 +536,17 @@ void DUALPIDPCMComponent::pid_update() {
             this->current_onoff_ = this->pass_through_;
 
             if (!this->pass_through_) {
-                // Arrêt réel : couper l'alimentation générale du PCM
                 if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
                     this->onoff_switch_->turn_off();
                     this->onoff_switch_->publish_state(false);
                     delay(ONOFF_DELAY);
                 }
-                // Repositionner discharge_charge_switch_ en "charge" par sécurité
                 if (this->discharge_charge_switch_ != nullptr && this->discharge_charge_switch_->state == false) {
                     this->discharge_charge_switch_->turn_on();
                     this->discharge_charge_switch_->publish_state(true);
                     delay(CHARGE_DISCHARGE_DELAY);
                 }
             }
-            // Si pass_through_ : onoff_switch_ reste ON. discharge_charge_switch_
-            // sera basculé par le bloc "Gestion discharge_charge_switch" dès que
-            // output_charging_/discharging_ dépassera son minimum au prochain cycle.
         }
 
         this->previous_mode_  = this->current_mode_;
@@ -611,11 +589,10 @@ void DUALPIDPCMComponent::pid_update() {
                  this->undervoltage_lockout_);
 
         if (this->current_battery_voltage_ < this->current_stopping_battery_voltage_) {
-            this->undervoltage_lockout_ = true;                       // arrêt
+            this->undervoltage_lockout_ = true;
         } else if (this->current_battery_voltage_ >= this->current_starting_battery_voltage_) {
-            this->undervoltage_lockout_ = false;                      // redémarrage
+            this->undervoltage_lockout_ = false;
         }
-        // entre les deux seuils : on garde l'état courant (hystérésis)
 
         if (this->undervoltage_lockout_) {
             this->set_charging_level(0.0f);
@@ -646,8 +623,6 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     // ── Gestion discharge_charge_switch ──────────────────────────────
-    // C'est ici que la bascule électronique réelle a lieu, que ce soit après
-    // un pass_through_ (onoff_switch_ resté ON) ou un redémarrage normal.
     if (!this->current_deadband_ && this->discharge_charge_switch_ != nullptr) {
         if ((this->current_output_charging_ > this->current_output_min_charging_) && (this->discharge_charge_switch_->state == false)) {
             this->discharge_charge_switch_->turn_on();
@@ -664,9 +639,6 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     // ── Envoi des consignes via les helpers ───────────────────────────
-    // Filet de sécurité supplémentaire : même si la machine d'état gère déjà
-    // l'interdiction plus haut (mode ne peut plus être 1/2 si non autorisé),
-    // on double-verrouille ici l'envoi physique par cohérence défensive.
     if(this->current_output_charging_  > 0.0f && this->current_allow_charging_){
       if(!this->discharge_charge_switch_->state){
          this->discharge_charge_switch_->publish_state(true);
@@ -685,13 +657,7 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
     // ── Gestion onoff_switch ──────────────────────────────────────────
-    // En pass_through_, onoff_switch_ est déjà ON depuis le mode précédent ;
-    // ce bloc ne fait que confirmer/maintenir l'état cohérent avec la
-    // consigne effective.
     if (this->onoff_switch_ != nullptr) {
-        // En pass_through_, on garde onoff_switch_ allumé même pendant le
-        // cycle transitoire en IDLE (output_charging_/discharging_ = 0),
-        // sinon ce bloc le coupe avant même d'atteindre le mode opposé.
         should_be_on = (this->current_output_charging_  > 0.0f)
                     || (this->current_output_discharging_ > 0.0f)
                     || (this->previous_mode_ == 0 && this->pass_through_);
@@ -708,7 +674,7 @@ void DUALPIDPCMComponent::pid_update() {
         }
     }
 
-    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d pass_through=%d allow_c=%d allow_d=%d",
+    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d pass_through=%d allow_c=%d allow_d=%d Pstart_c=%.1f Pstart_d=%.1f",
              this->current_output_,
              this->current_output_charging_,
              this->current_output_discharging_,
@@ -717,11 +683,10 @@ void DUALPIDPCMComponent::pid_update() {
              (int)in_startup,
              (int)this->pass_through_,
              (int)this->current_allow_charging_,
-             (int)this->current_allow_discharging_);
+             (int)this->current_allow_discharging_,
+             Pstart_charging,
+             Pstart_discharging);
 
-    // ── Mise à jour des états précédents ──────────────────────────────
-    // current_output_charging_ et previous_output_charging_ sont gérés
-    // par les helpers — ne pas les écraser ici
     this->last_time_      = now;
     this->previous_error_ = this->error_;
     this->previous_output_ = this->current_output_;

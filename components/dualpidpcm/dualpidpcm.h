@@ -37,6 +37,13 @@ class DUALPIDPCMComponent : public Component{
  SUB_NUMBER(starting_battery_voltage)
  SUB_NUMBER(stopping_battery_voltage)
  SUB_NUMBER(discharge_self_consumption)
+ // ── Hystérésis start/stop (anti-chatter) ──────────────────────────────────
+ // Écart en W à ajouter au seuil d'arrêt (Pmin_charging/Pmin_discharging)
+ // pour obtenir le seuil de (re)démarrage. self_consumption/discharge_self_
+ // consumption positionnent le seuil d'ARRÊT (motivation physique) ; ces deux
+ // numbers positionnent l'écart avant REDÉMARRAGE (motivation anti-cyclage).
+ SUB_NUMBER(delta_idle_charging)
+ SUB_NUMBER(delta_idle_discharging)
  SUB_NUMBER(kp)
  SUB_NUMBER(ki)
  SUB_NUMBER(kd)
@@ -103,9 +110,18 @@ class DUALPIDPCMComponent : public Component{
 
   // Autoconsommation à vide du convertisseur en décharge (W). Vient s'ajouter
   // à la consommation mesurée de la maison pour déterminer le seuil réel
-  // Pmin_discharging à partir duquel décharger devient réellement utile.
+  // Pmin_discharging (seuil d'ARRÊT) à partir duquel décharger devient
+  // réellement utile.
   void set_self_consumption(float value) {this->current_self_consumption_ = value;}
   float get_self_consumption(void){return this->current_self_consumption_;}
+
+  // Écart (W) entre le seuil d'ARRÊT et le seuil de REDÉMARRAGE, par direction.
+  // Pstart_charging    = Pmin_charging    - delta_idle_charging_
+  // Pstart_discharging = Pmin_discharging + delta_idle_discharging_
+  void set_delta_idle_charging(float value) {this->current_delta_idle_charging_ = value;}
+  float get_delta_idle_charging(void){return this->current_delta_idle_charging_;}
+  void set_delta_idle_discharging(float value) {this->current_delta_idle_discharging_ = value;}
+  float get_delta_idle_discharging(void){return this->current_delta_idle_discharging_;}
 
   void set_kp(float value) {this->current_kp_ = value;}
   float get_kp(void){return this->current_kp_;}
@@ -193,8 +209,12 @@ class DUALPIDPCMComponent : public Component{
   float current_stopping_battery_voltage_ = 49.5f;
   bool  undervoltage_lockout_ = false;
 
-  // Autoconsommation à vide du convertisseur en décharge (W).
+  // Autoconsommation à vide du convertisseur en décharge (W) — seuil d'ARRÊT.
   float current_self_consumption_ = 30.0f;
+
+  // Écart (W) seuil d'ARRÊT -> seuil de REDÉMARRAGE, par direction.
+  float current_delta_idle_charging_    = 20.0f;
+  float current_delta_idle_discharging_ = 20.0f;
 
   float current_kp_          = 1.1f;
   float current_ki_          = 0.0f;
