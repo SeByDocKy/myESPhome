@@ -14,5 +14,5 @@ class SelfConsumptionNumber : public number::Number, public Component, public Pa
   ESPPreferenceObject pref_;
 };
 
-}  // namespace esphome::
+}  // namespace esphome::dualpidpcm
 
