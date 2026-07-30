@@ -1,5 +1,15 @@
 {
-  "version": "1.0.1",
-  "url": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/firmware.bin",
-  "md5": "a9ff563484a203927cda3a759493d937"
+  "name": "My ESPHome Project",
+  "version": "1.0.2",
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "ota": {
+        "md5": "55fc98ea40d679bc068308c13b29d4dd",
+        "path": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/firmware.bin",
+        "release_url": "http://example.com/releases/10",
+        "summary": "Another update"
+      }
+    }
+  ]
 }
