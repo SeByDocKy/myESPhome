@@ -274,7 +274,7 @@ async def to_code(config):
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_delta_idle_charging_number(n))
 
-  if delta_idle_discharging_config := config.get(CONF_DELTA_IDLE_CHARGING):
+  if delta_idle_discharging_config := config.get(CONF_DELTA_IDLE_DISCHARGING):
         n = await number.new_number(
             delta_idle_discharging_config, min_value=0.0, max_value=50, step=1
         )
