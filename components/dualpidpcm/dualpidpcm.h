@@ -25,6 +25,10 @@ class DUALPIDPCMComponent : public Component{
  SUB_SWITCH(pid_mode)
  SUB_SWITCH(reverse)
  SUB_SWITCH(feedforward)
+ SUB_SWITCH(allow_charging)
+ SUB_SWITCH(allow_discharging)
+
+
  
 
  SUB_NUMBER(setpoint)
@@ -80,6 +84,10 @@ class DUALPIDPCMComponent : public Component{
   bool get_reverse(void){return this->current_reverse_;}
   void set_feedforward(bool enable) {this->current_feedforward_ = enable;}
   bool get_feedforward(void){return this->current_feedforward_;}
+  void set_allow_charging(bool enable) {this->current_allow_charging_ = enable;}
+  bool get_allow_charging(void){return this->current_allow_charging_;}
+  void set_allow_discharging(bool enable) {this->current_allow_discharging_ = enable;}
+  bool get_allow_discharging(void){return this->current_allow_discharging_;}
 
   void set_setpoint(float value) {this->current_setpoint_ = value;}
   float get_setpoint(void){return this->current_setpoint_;}
