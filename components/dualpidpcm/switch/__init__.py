@@ -16,6 +16,8 @@ ManualOverrideSwitch = dualpidpcm_ns.class_("ManualOverrideSwitch", switch.Switc
 PidModeSwitch = dualpidpcm_ns.class_("PidModeSwitch", switch.Switch, cg.Component)
 ReverseSwitch = dualpidpcm_ns.class_("ReverseSwitch", switch.Switch, cg.Component)
 FeedforwardSwitch = dualpidpcm_ns.class_("FeedforwardSwitch", switch.Switch, cg.Component)
+AllowChargingSwitch = dualpidpcm_ns.class_("AllowChargingSwitch", switch.Switch, cg.Component)
+AllowDischargingSwitch = dualpidpcm_ns.class_("AllowDischargingSwitch", switch.Switch, cg.Component)
 
 
 CONF_ACTIVATION = "activation"
@@ -23,6 +25,9 @@ CONF_MANUAL_OVERRIDE = "manual_override"
 CONF_PID_MODE = "pid_mode"
 CONF_REVERSE = "reverse"
 CONF_FEEDFORWARD = "feedforward"
+CONF_ALLOW_CHARGING = "allow_charging"
+CONF_ALLOW_DISCHARGING = "allow_discharging"
+
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_DUALPIDPCM_ID): cv.use_id(DUALPIDPCMComponent),
@@ -49,6 +54,16 @@ CONFIG_SCHEMA = {
     ).extend(cv.COMPONENT_SCHEMA),
     cv.Optional(CONF_FEEDFORWARD): switch.switch_schema(
         FeedforwardSwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,    
+    ).extend(cv.COMPONENT_SCHEMA),
+    cv.Optional(CONF_ALLOW_CHARGING): switch.switch_schema(
+        AllowChargingSwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,    
+    ).extend(cv.COMPONENT_SCHEMA),
+    cv.Optional(CONF_ALLOW_DISCHARGING): switch.switch_schema(
+        AllowDischargingSwitch,
         device_class=DEVICE_CLASS_SWITCH,
         entity_category=ENTITY_CATEGORY_CONFIG,    
     ).extend(cv.COMPONENT_SCHEMA),
@@ -86,4 +101,15 @@ async def to_code(config):
         await cg.register_component(s, feedforward_config)
         await cg.register_parented(s, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_feedforward_switch(s))
-    
+   
+    if allow_charging_config := config.get(CONF_ALLOW_CHARGING):
+        s = await switch.new_switch(allow_charging_config)
+        await cg.register_component(s, allow_charging_config)
+        await cg.register_parented(s, dualpidpcm_component)
+        cg.add(dualpidpcm_component.set_allow_charging_switch(s))
+        
+    if allow_discharging_config := config.get(CONF_ALLOW_DISCHARGING):
+        s = await switch.new_switch(allow_discharging_config)
+        await cg.register_component(s, allow_discharging_config)
+        await cg.register_parented(s, dualpidpcm_component)
+        cg.add(dualpidpcm_component.set_allow_discharging_switch(s))
