@@ -5,7 +5,7 @@
     {
       "chipFamily": "ESP32-S3",
       "ota": {
-        "md5": "55fc98ea40d679bc068308c13b29d4dd",
+        "md5": "27a291f3c3898da9d822489cee4bcd14",
         "path": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/firmware.bin",
         "release_url": "http://example.com/releases/10",
         "summary": "Another update"
