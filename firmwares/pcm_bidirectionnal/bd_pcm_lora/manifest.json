@@ -1,14 +1,14 @@
 {
   "name": "Bidirectional AC coupling battery with LoRa communication",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "builds": [
     {
       "chipFamily": "ESP32-S3",
       "ota": {
-        "md5": "a8a3060d3696695f5607586f8e131e57",
+        "md5": "799630e82c91d07ab9c5969fd8c0ba3a",
         "path": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_lora/firmware.bin",
         "release_url": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_lora/readme.md",
-        "summary": "MAJ 1.0.6"
+        "summary": "fix some deadbands bugs"
       }
     }
   ]
