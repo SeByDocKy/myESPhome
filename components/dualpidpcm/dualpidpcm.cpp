@@ -354,6 +354,22 @@ void DUALPIDPCMComponent::pid_update() {
     }
 
 
+    // ── Régulation PID (uniquement en mode ACTIF, jamais en IDLE) ──────
+    // Depuis le passage à l'hystérésis Watts (Pstart_*), current_output_ ne
+    // pilote plus aucune décision de transition pendant IDLE — l'entrée en
+    // CHARGE/DISCHARGE dépend uniquement de epsi vs Pstart_charging/
+    // Pstart_discharging (case 0 ci-dessous). Laisser le PID tourner en
+    // continu pendant IDLE n'a donc plus aucune utilité : current_output_
+    // dérivait librement (sans aucun clamp, celui-ci n'existant que dans
+    // les branches CHARGE/DISCHARGE) jusqu'à saturer à 100%, alors que rien
+    // n'était réellement envoyé (output_charging_/discharging_ restent à 0
+    // en IDLE) — comportement trompeur en diagnostic et signe d'un calcul
+    // PID inutile. On gèle donc current_output_ tant qu'on est en IDLE :
+    // il reste à oneutral_ (position posée à l'entrée en IDLE) jusqu'à la
+    // prochaine vraie transition de mode, qui le réinitialise de toute
+    // façon explicitement à olb_/oub_.
+    if (this->previous_mode_ != 0) {
+
     if(this->current_feedforward_){
       in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;  
       delta_error = this->error_ - this->previous_error_;
@@ -439,6 +455,8 @@ void DUALPIDPCMComponent::pid_update() {
             ESP_LOGD(TAG, "DISCHARGE startup freeze: output held at oub=%.4f", this->oub_);
         }
     }
+
+    }  // end if (previous_mode_ != 0) — régulation PID
 
     // ── Recalcul in_startup pour la machine d'état ────────────────────
     in_startup = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;

@@ -147,7 +147,14 @@ class DUALPIDPCMComponent : public Component{
   float get_input(void)  { return this->current_input_; }
 
   float get_mode(void) {return this->current_mode_;}
-  bool get_deadband(void){return this->current_deadband_;}
+  // Exposé stable pour le binary_sensor : reflète directement "on est en
+  // IDLE" (previous_mode_ == 0), qui ne change QUE lors d'une vraie
+  // transition de mode hystérétique — contrairement au calcul brut de
+  // current_deadband_ (basé sur les seuils STOP), recalculé à chaque cycle
+  // indépendamment du mode et donc sujet au yoyo quand epsi oscille près
+  // de ces seuils. current_deadband_ reste utilisé en interne pour piloter
+  // la sortie réelle de CHARGE/DISCHARGE (inchangé).
+  bool get_deadband(void){return (this->previous_mode_ == 0);}
 
   // ── Bascule directe CHARGE<->DISCHARGE sans coupure onoff_switch_ ─────────
   bool get_pass_through(void){return this->pass_through_;}
