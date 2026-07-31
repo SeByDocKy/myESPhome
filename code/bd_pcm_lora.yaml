@@ -1,7 +1,7 @@
 substitutions:
   name: "bd_pcm"
   name_controller: "lora_meter"
-  device_description: "Bidirectional battery AC coupling "
+  device_description: "Bidirectional battery AC coupling"
   my_hours: '23'
   my_minute: '59'
   my_second: '59'
@@ -12,6 +12,11 @@ esphome:
   name: ${name}
   comment: ${device_description}
   min_version: 2026.7.0
+  on_boot:
+  # priority: -100
+    then:
+      - update.check: github_firmware_update
+      
   platformio_options:
     # build_flags: -DBOARD_HAS_PSRAM
     board_build.arduino.memory_type: qio_opi
@@ -36,7 +41,20 @@ wifi:
     ssid: "battery_bidirectional"
     password: !secret ap_password
     
-    
+http_request:
+  useragent: ESPHome-Update-Checker
+  follow_redirects: true
+ 
+update:
+  - platform: http_request
+    name: ${name}_MAJ_firmware
+    id: github_firmware_update
+    icon: "mdi:github"
+    source: "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_lora/manifest.json" #?v=1.0.4
+    # Fréquence de vérification automatique
+    update_interval: 1h
+
+
 time:
   - platform: sntp
     id: my_time    
@@ -47,9 +65,12 @@ api:
 ota:
   - platform: esphome
   
+  - platform: http_request
+    id: http_ota
+  
 logger:
   # hardware_uart: USB_SERIAL_JTAG
-   level: debug
+   level: none #debug
     
 uart: 
   - id: uart_0
@@ -99,7 +120,7 @@ sx126x:
   coding_rate: CR_4_6
   tcxo_voltage: 1_8V
   tcxo_delay: 5ms
-  data_rate: '10MHz'
+  data_rate: '4Mhz' #'10MHz'
   on_packet:
     then:
       - lambda: |-
@@ -109,7 +130,7 @@ sx126x:
 
 packet_transport:
   platform: sx126x
-  update_interval: '1500ms'
+  update_interval: '1150ms' #'1500ms'
   providers:
     - name: ${name_controller}
       encryption: !secret encryption_key
@@ -152,6 +173,29 @@ binary_sensor:
 button:
   - platform: restart
     name: ${name}_restart
+    
+  - platform: template
+    name: ${name}_check_firmware
+    icon: "mdi:download-network"
+    on_press:
+      then: 
+        - update.check: github_firmware_update    
+        
+  - platform: template
+    name: ${name}_check_and_install_firmware
+    icon: "mdi:download-network"
+    on_press:
+      then:
+        - if:
+            condition:
+              update.is_available: github_firmware_update
+            then:
+              - logger.log: "Lancement de la mise à jour (Vérification MD5 active)..."
+              - update.perform: 
+                  id: github_firmware_update
+                  force_update: true
+            else:
+              - logger.log: "Aucune nouvelle mise à jour disponible."  
     
 text_sensor:
   - platform: template
