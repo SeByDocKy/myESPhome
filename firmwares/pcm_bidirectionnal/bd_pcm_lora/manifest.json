@@ -5,7 +5,7 @@
     {
       "chipFamily": "ESP32-S3",
       "ota": {
-        "md5": "c909dc01ffff26279638b7f31ce1fd94",
+        "md5": "a8a3060d3696695f5607586f8e131e57",
         "path": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_lora/firmware.bin",
         "release_url": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_lora/readme.md",
         "summary": "New update"
