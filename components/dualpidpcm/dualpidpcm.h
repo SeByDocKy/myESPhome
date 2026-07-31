@@ -147,14 +147,21 @@ class DUALPIDPCMComponent : public Component{
   float get_input(void)  { return this->current_input_; }
 
   float get_mode(void) {return this->current_mode_;}
-  // Exposé stable pour le binary_sensor : reflète directement "on est en
-  // IDLE" (previous_mode_ == 0), qui ne change QUE lors d'une vraie
-  // transition de mode hystérétique — contrairement au calcul brut de
-  // current_deadband_ (basé sur les seuils STOP), recalculé à chaque cycle
-  // indépendamment du mode et donc sujet au yoyo quand epsi oscille près
-  // de ces seuils. current_deadband_ reste utilisé en interne pour piloter
-  // la sortie réelle de CHARGE/DISCHARGE (inchangé).
-  bool get_deadband(void){return (this->previous_mode_ == 0);}
+  // Exposé stable pour le binary_sensor : reflète "actif ET en IDLE"
+  // (previous_mode_ == 0 && current_activation_), qui ne change QUE lors
+  // d'une vraie transition de mode hystérétique — contrairement au calcul
+  // brut de current_deadband_ (basé sur les seuils STOP), recalculé à
+  // chaque cycle indépendamment du mode et donc sujet au yoyo quand epsi
+  // oscille près de ces seuils. current_deadband_ reste utilisé en interne
+  // pour piloter la sortie réelle de CHARGE/DISCHARGE (inchangé).
+  //
+  // IMPORTANT : le && current_activation_ est indispensable — sans lui,
+  // le binary_sensor affiche "deadband=true" en continu tant que le
+  // composant n'est pas activé (previous_mode_ reste forcé à 0 dans le
+  // bloc désactivation), quelle que soit l'erreur réelle. C'est exactement
+  // ce que faisait déjà current_deadband_ (mis à false explicitement dans
+  // ce même bloc) — ce getter doit préserver la même garantie.
+  bool get_deadband(void){return (this->previous_mode_ == 0) && this->current_activation_;}
 
   // ── Bascule directe CHARGE<->DISCHARGE sans coupure onoff_switch_ ─────────
   bool get_pass_through(void){return this->pass_through_;}
