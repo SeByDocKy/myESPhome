@@ -1,6 +1,6 @@
 {
   "name": "My ESPHome Project",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "builds": [
     {
       "chipFamily": "ESP32-S3",
@@ -8,7 +8,7 @@
         "md5": "a8a3060d3696695f5607586f8e131e57",
         "path": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_lora/firmware.bin",
         "release_url": "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_lora/readme.md",
-        "summary": "New update"
+        "summary": "MAJ"
       }
     }
   ]
