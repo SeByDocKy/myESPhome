@@ -1,5 +1,5 @@
 {
-  "name": "My ESPHome Project",
+  "name": "Bidirectional AC coupling battery with LoRa communication",
   "version": "1.0.6",
   "builds": [
     {
