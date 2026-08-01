@@ -224,11 +224,11 @@ class DUALPIDPCMComponent : public Component{
   bool  undervoltage_lockout_ = false;
 
   // Autoconsommation à vide du convertisseur en décharge (W) — seuil d'ARRÊT.
-  float current_self_consumption_ = 30.0f;
+  float current_self_consumption_ = 35.0f;
 
   // Écart (W) seuil d'ARRÊT -> seuil de REDÉMARRAGE, par direction.
-  float current_delta_idle_charging_    = 20.0f;
-  float current_delta_idle_discharging_ = 20.0f;
+  float current_delta_idle_charging_    = 30.0f;
+  float current_delta_idle_discharging_ = 30.0f;
 
   float current_kp_          = 1.1f;
   float current_ki_          = 0.0f;
