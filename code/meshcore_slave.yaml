@@ -1,13 +1,3 @@
-##############################################################################
-# EXEMPLE — adaptation de votre meshtastic_slave_0.yaml pour le composant
-# "meshcore" (v1, cf. NOTES_PROTOCOLE.md pour le perimetre exact).
-#
-# Seuls les blocs "external_components" et "meshcore:" (ex-"meshtastic:")
-# changent ; le reste (sensor BME280, switch relais, script d'ACK...) est
-# identique dans l'esprit, en remplacant meshtastic.send_text_message par
-# meshcore.send_group_text.
-##############################################################################
-
 substitutions:
   name: "meshcore-slave-0"
   device_description: "Slave meshcore générique"
@@ -85,16 +75,16 @@ sx126x:
   rst_pin: GPIO42
   cs_pin: GPIO41
   pa_power: 22
-  bandwidth: 250_0kHz
+  bandwidth: 62_5kHz
   crc_enable: true
-  frequency: 868000000
+  frequency: 869618000
   modulation: LORA
   hw_version: sx1262
   rf_switch: true
   sync_value: [0x14, 0x24]
   preamble_size: 16
-  spreading_factor: 11
-  coding_rate: CR_4_5
+  spreading_factor: 8
+  coding_rate: CR_4_8
   tcxo_voltage: 1_8V
   tcxo_delay: 5ms
   data_rate: '10MHz'
@@ -105,8 +95,8 @@ meshcore:
     node_name: ${slave_name}
     hop_limit: 3
     channels:
-      - name: !secret meshstastic_channel_name
-        psk: !secret meshstastic_channel_psk
+      - name: !secret meshcore_channel_name
+        psk: !secret meshcore_channel_psk
 
     on_packet:
       then:
@@ -191,7 +181,7 @@ interval:
     then:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: !lambda |-
             char buf[64];
             snprintf(buf, sizeof(buf), "SLAVE:${slave_id},TEMP:%.1f,HUM:%.1f,PRESS:%.1f",

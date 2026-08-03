@@ -1,10 +1,4 @@
 ##############################################################################
-# EXEMPLE — delta entre votre meshtastic_master.yaml et la version meshcore.
-# Le reste du fichier (capteurs template par slave, switches de pilotage,
-# entites remote_*) ne change pas : seuls les 3 blocs ci-dessous different.
-##############################################################################
-
-
 substitutions:
   name: "meshcore-master"
   master_name: "home"
@@ -20,6 +14,10 @@ esphome:
     board_build.arduino.memory_type: qio_opi
     board_build.f_flash: 80000000L
     board_build.flash_mode: qio
+  on_boot:
+    priority: -100     # s'exécute après que tous les composants matériels (SPI, sx126x) soient prêts
+    then:
+      - delay: 2s  
 
 esp32:
   board: seeed_xiao_esp32s3
@@ -73,16 +71,16 @@ sx126x:
   rst_pin: GPIO42
   cs_pin: GPIO41
   pa_power: 22
-  bandwidth: 250_0kHz
+  bandwidth: 62_5kHz
   crc_enable: true
-  frequency: 868000000
+  frequency: 869618000
   modulation: LORA
   hw_version: sx1262
   rf_switch: true
   sync_value: [0x14, 0x24]
   preamble_size: 16
-  spreading_factor: 11
-  coding_rate: CR_4_5
+  spreading_factor: 8
+  coding_rate: CR_4_8
   tcxo_voltage: 1_8V
   tcxo_delay: 5ms
   data_rate: '10MHz'
@@ -122,10 +120,6 @@ meshcore:
               if (sep == std::string::npos) continue;
               std::string key = tokens[i].substr(0, sep);
               std::string val = tokens[i].substr(sep + 1);
-
-              // --- Le reste (TEMP / HUM / PRESS / ACK, switch(slave_id) {...})
-              //     est identique a votre lambda meshtastic_master.yaml actuelle,
-              //     il n'y a rien d'autre a changer ici. ---
               
               if (key == "TEMP") {
                 float temp = atof(val.c_str());
@@ -347,12 +341,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:0,RELAY0:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:0,RELAY0:OFF"
           
   - platform: template
@@ -362,12 +356,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:1,RELAY0:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:1,RELAY0:OFF"
 
   - platform: template
@@ -377,12 +371,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:2,RELAY0:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:2,RELAY0:OFF"
 
   - platform: template
@@ -392,12 +386,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:3,RELAY0:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:3,RELAY0:OFF"
 
   - platform: template
@@ -407,12 +401,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:4,RELAY0:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:4,RELAY0:OFF"
 
 
@@ -423,12 +417,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:0,RELAY1:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:0,RELAY1:OFF"
           
   - platform: template
@@ -438,12 +432,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:1,RELAY1:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:1,RELAY1:OFF"
 
   - platform: template
@@ -453,12 +447,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:2,RELAY1:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:2,RELAY1:OFF"
 
   - platform: template
@@ -468,12 +462,12 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:3,RELAY1:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:3,RELAY1:OFF"
 
   - platform: template
@@ -483,10 +477,10 @@ switch:
     turn_on_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:4,RELAY1:ON"
     turn_off_action:
       - meshcore.send_group_text:
           id: id_mesh
-          channel: !secret meshstastic_channel_name
+          channel: !secret meshcore_channel_name
           text: "SLAVE:4,RELAY1:OFF"          
