@@ -247,6 +247,14 @@ bool MeshCore::send_group_text(const std::string &channel_name, const std::strin
   packet.push_back(0x00);  // path_length = 0 : paquet flood qu'on emet nous-memes (path vide au depart)
   packet.insert(packet.end(), payload.begin(), payload.end());
 
+  // On enregistre le hash de CE paquet dans le cache anti-doublon avant de
+  // l'emettre : sans ca, quand un autre noeud nous renvoie notre propre
+  // message en le relayant (flood), on ne le reconnaissait pas comme deja
+  // vu et on le retraitait/rediffusait a nouveau -> jusqu'a 3 copies du
+  // meme message sur l'air pour un seul envoi. Ce "spam" involontaire peut
+  // declencher une protection anti-flood cote appli/reseau MeshCore.
+  this->seen_hashes_.insert(MeshCore::hash_payload(PAYLOAD_TYPE_GRP_TXT, payload.data(), payload.size()));
+
   ESP_LOGD(TAG, "Envoi GRP_TXT sur '%s' (hash=0x%02x, %u octets payload): \"%s\"", channel_name.c_str(), ch->hash(),
            payload.size(), body.c_str());
 
