@@ -282,7 +282,7 @@ void MeshCore::handle_group_text(const uint8_t *payload, size_t payload_len, flo
   if (ch == nullptr) {
     // Message pour un canal qu'on ne connait pas (ou dont on n'a pas la
     // PSK) : parfaitement normal sur un reseau MeshCore partage, on ignore.
-    ESP_LOGV(TAG, "GRP_TXT recu pour un canal inconnu (hash=0x%02x), ignore", channel_hash);
+    ESP_LOGD(TAG, "GRP_TXT recu pour un canal inconnu (hash=0x%02x), ignore", channel_hash);
     return;
   }
 
@@ -364,6 +364,13 @@ void MeshCore::on_packet(const std::vector<uint8_t> &packet, float rssi, float s
   uint8_t header = packet[0];
   uint8_t route_type = header & PH_ROUTE_MASK;
   uint8_t payload_type = (header >> PH_TYPE_SHIFT) & PH_TYPE_MASK;
+
+  // Toujours visible en logger:level:debug, meme si le paquet est ensuite
+  // rejete (canal inconnu, doublon, type non gere...) : ca permet de
+  // distinguer "rien n'arrive en RF" de "quelque chose arrive mais est
+  // rejete plus loin".
+  ESP_LOGD(TAG, "Paquet RX brut: %u octets, route=%u, payload_type=0x%02x, rssi=%.1f, snr=%.1f", packet.size(),
+           route_type, payload_type, rssi, snr);
 
   size_t idx = 1;
 
