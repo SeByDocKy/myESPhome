@@ -2,8 +2,7 @@
 #include "../rylr998.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace rylr998 {
+namespace esphome::rylr998 {
 
 static const char *const TAG = "rylr998.number";
 
@@ -29,5 +28,4 @@ void RYLR998TxPowerNumber::control(float value) {
   this->publish_state(value);
 }
 
-}  // namespace rylr998
-}  // namespace esphome
+}  // namespace eesphome::rylr998
