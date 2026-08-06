@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/components/number/number.h"
+#include "esphome/core/version.h"
 
 namespace esphome {
 namespace rylr998 {
