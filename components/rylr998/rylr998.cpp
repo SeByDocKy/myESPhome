@@ -23,8 +23,7 @@
 #define SEND_CMD_SIZE      520
 #define RX_BUF_MAX_LEN     600   // [C1] garde anti-OOM : limite la taille de rx_buffer_
 
-namespace esphome {
-namespace rylr998 {
+namespace esphome::rylr998 {
 
 static const char *const TAG = "rylr998";
 
@@ -544,5 +543,4 @@ const char *RYLR998Component::bandwidth_to_string_(uint32_t bandwidth) {
   }
 }
 
-}  // namespace rylr998
-}  // namespace esphome
+}  // namespace esphome::rylr998
