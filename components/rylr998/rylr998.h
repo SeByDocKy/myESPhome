@@ -17,8 +17,7 @@
 namespace esphome { namespace sensor { class Sensor; } }
 namespace esphome { namespace number  { class Number;  } }
 
-namespace esphome {
-namespace rylr998 {
+namespace esphome::rylr998 {
 
 // [VARIANT] Les modules RYLR998 et RYLR999 partagent le même jeu de commandes
 //           AT côté port LoRa (AT+ADDRESS, AT+BAND, AT+PARAMETER, AT+NETWORKID,
@@ -136,5 +135,4 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   CallbackManager<void(uint16_t, std::vector<uint8_t>, int, int)> packet_callback_;
 };
 
-}  // namespace rylr998
-}  // namespace esphome
+}  // namespace esphome::rylr998
