@@ -64,6 +64,16 @@ modbustcp_controller:
     update_interval: 2s   #default 60sec
 
 
+
+uart: 
+  - id: uart_0
+    tx_pin: GPIO43 #GPIO43
+    rx_pin: GPIO44 #GPIO44
+    baud_rate: ${baud_rate}
+    parity: none
+    data_bits: 8
+    stop_bits: 1
+
 modbus:
   - id: modbus_rtu
     uart_id: uart_0
@@ -83,15 +93,6 @@ logger:
   # hardware_uart: USB_SERIAL_JTAG
    level: very_verbose
     
-uart: 
-  - id: uart_0
-    tx_pin: GPIO43 #GPIO43
-    rx_pin: GPIO44 #GPIO44
-    baud_rate: ${baud_rate}
-    parity: none
-    data_bits: 8
-    stop_bits: 1
-
 spi:
 
  #### when connected with the B2B connector (no change vs direct wiring)
@@ -105,6 +106,19 @@ debug:
   update_interval: 5s
   
   
+# text:
+  # - platform: template
+    # id: host_address
+    # name: ${name}_host_address
+    # mode: 'text'
+    # set_action:
+      # then:
+        # - lambda: |-
+            # esphome::modbustcp::ModbusTCP *controller = id(modbus_tcp);
+            # if (!this->connected_) {
+            
+            # }
+  
 select:
   - platform: template
     name: ${name}_phase_select
@@ -117,6 +131,7 @@ select:
       - 'p1'
       - 'p2'
       - 'p3'
+      - 'p1+p2+p3'
     set_action:
       then:
         - globals.set:
@@ -134,6 +149,25 @@ sensor:
     device_class: power
     icon: mdi:flash
     unit_of_measurement: 'W'
+    
+    
+  - platform: modbustcp_controller
+    modbustcp_controller_id: modbus_device_tcp
+    name: ${name}_total_active_power
+    id: total_active_power
+    address: 1014
+    value_type: FP32  
+    register_type: read
+    accuracy_decimals: 1
+    device_class: power
+    icon: mdi:flash
+    unit_of_measurement: 'W'
+    on_value:
+      then:
+       - lambda: |-
+           if (id(phase_choice) == 4){
+            id(active_power).publish_state(id(total_active_power).state);
+           }    
 
   - platform: modbustcp_controller
     modbustcp_controller_id: modbus_device_tcp
