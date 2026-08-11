@@ -261,6 +261,58 @@ bool MeshCore::send_group_text(const std::string &channel_name, const std::strin
   return this->transmit_raw_packet(packet);
 }
 
+size_t MeshCore::max_group_data_size() {
+  // MAX_PACKET_PAYLOAD (payload GRP_x complet: channel_hash + mac + ciphertext)
+  // moins 1 (channel_hash) moins CIPHER_MAC_SIZE (mac) moins jusqu'a 15 octets
+  // de bourrage AES : on retire une marge de securite.
+  return MAX_PACKET_PAYLOAD - 1 - CIPHER_MAC_SIZE - 16 - 4;
+}
+
+// Pendant "donnees binaires" de send_group_text : pas de prefixe "nom: ",
+// pas d'horodatage injecte - le buffer est chiffre et envoye tel quel. Sert
+// de transport pour des protocoles applicatifs comme "packet_transport"
+// (voir components/meshcore/packet_transport/).
+bool MeshCore::send_group_data(const std::string &channel_name, const std::vector<uint8_t> &data) {
+  Channel *ch = this->get_channel_by_name(channel_name);
+  if (ch == nullptr) {
+    ESP_LOGE(TAG, "Canal '%s' inconnu, donnees non envoyees", channel_name.c_str());
+    return false;
+  }
+
+  if (data.size() > MeshCore::max_group_data_size()) {
+    ESP_LOGE(TAG, "Donnees trop longues (%u octets, max %u)", data.size(), MeshCore::max_group_data_size());
+    return false;
+  }
+
+  std::vector<uint8_t> enc(CIPHER_MAC_SIZE + data.size() + 16);
+  size_t enc_len = MeshCore::encrypt_then_mac(ch->secret(), data.data(), data.size(), enc.data());
+  enc.resize(enc_len);
+
+  std::vector<uint8_t> payload;
+  payload.push_back(ch->hash());
+  payload.insert(payload.end(), enc.begin(), enc.end());
+
+  if (payload.size() > MAX_PACKET_PAYLOAD) {
+    ESP_LOGE(TAG, "Payload GRP_DATA trop long (%u octets)", payload.size());
+    return false;
+  }
+
+  uint8_t header = (PAYLOAD_TYPE_GRP_DATA & PH_TYPE_MASK) << PH_TYPE_SHIFT;
+  header |= (ROUTE_TYPE_FLOOD & PH_ROUTE_MASK);
+
+  std::vector<uint8_t> packet;
+  packet.push_back(header);
+  packet.push_back(0x00);
+  packet.insert(packet.end(), payload.begin(), payload.end());
+
+  this->seen_hashes_.insert(MeshCore::hash_payload(PAYLOAD_TYPE_GRP_DATA, payload.data(), payload.size()));
+
+  ESP_LOGD(TAG, "Envoi GRP_DATA sur '%s' (hash=0x%02x, %u octets payload)", channel_name.c_str(), ch->hash(),
+           payload.size());
+
+  return this->transmit_raw_packet(packet);
+}
+
 // ---------------------------------------------------------------------
 // Reception
 // ---------------------------------------------------------------------
@@ -333,6 +385,42 @@ void MeshCore::handle_group_text(const uint8_t *payload, size_t payload_len, flo
            text.c_str(), rssi, snr);
 
   this->packet_listeners_.call(ch->get_name(), from_name, text, rssi, snr);
+}
+
+// Pendant "donnees binaires" de handle_group_text : pas de prefixe "nom: "
+// a retirer, pas d'horodatage a sauter - le protocole MeshCore ne rajoute
+// aucune structure a PAYLOAD_TYPE_GRP_DATA (voir Mesh::createGroupDatagram,
+// "data"/"data_len" passes tels quels). Le buffer dechiffre peut se
+// terminer par quelques octets de bourrage zero (padding AES) : c'est au
+// format applicatif au-dessus (ex: packet_transport, qui tolere et ignore
+// explicitement les octets nuls de fin) de s'en accommoder.
+void MeshCore::handle_group_data(const uint8_t *payload, size_t payload_len, float rssi, float snr) {
+  if (payload_len < 1 + CIPHER_MAC_SIZE) {
+    ESP_LOGW(TAG, "Payload GRP_DATA trop court (%u octets)", payload_len);
+    return;
+  }
+
+  uint8_t channel_hash = payload[0];
+  Channel *ch = this->get_channel_by_hash(channel_hash);
+  if (ch == nullptr) {
+    ESP_LOGD(TAG, "GRP_DATA recu pour un canal inconnu (hash=0x%02x), ignore", channel_hash);
+    return;
+  }
+
+  const uint8_t *enc = payload + 1;
+  size_t enc_len = payload_len - 1;
+
+  std::vector<uint8_t> plain(enc_len);
+  int plain_len = MeshCore::mac_then_decrypt(ch->secret(), enc, enc_len, plain.data());
+  if (plain_len < 0) {
+    ESP_LOGW(TAG, "MAC invalide pour des donnees sur '%s' (mauvaise PSK ou paquet corrompu)", ch->get_name().c_str());
+    return;
+  }
+  plain.resize(plain_len);
+
+  ESP_LOGD(TAG, "GRP_DATA sur '%s': %u octets (rssi=%.1f snr=%.1f)", ch->get_name().c_str(), plain.size(), rssi, snr);
+
+  this->data_listeners_.call(ch->get_name(), plain);
 }
 
 void MeshCore::maybe_repeat_flood(uint8_t header, const uint8_t *path, size_t path_len, const uint8_t *payload,
@@ -414,6 +502,8 @@ void MeshCore::on_packet(const std::vector<uint8_t> &packet, float rssi, float s
 
   if (payload_type == PAYLOAD_TYPE_GRP_TXT) {
     this->handle_group_text(payload, payload_len, rssi, snr);
+  } else if (payload_type == PAYLOAD_TYPE_GRP_DATA) {
+    this->handle_group_data(payload, payload_len, rssi, snr);
   } else {
     ESP_LOGV(TAG, "Type de payload 0x%02x non gere par cette v1, ignore", payload_type);
   }

@@ -118,11 +118,30 @@ class MeshCore : public Component
     this->packet_listeners_.add(std::move(listener));
   }
 
+  // Ecoute des paquets PAYLOAD_TYPE_GRP_DATA (donnees binaires opaques, pas
+  // de texte lisible) sur un canal : utilise par des plateformes comme
+  // packet_transport, qui gerent leur propre format binaire au-dessus.
+  void add_data_listener(std::function<void(std::string, std::vector<uint8_t>)> &&listener) {
+    this->data_listeners_.add(std::move(listener));
+  }
+
   // Envoie un message de groupe chiffre (PAYLOAD_TYPE_GRP_TXT) sur le canal
   // "channel_name". Le texte final envoye sur l'air est "node_name: text",
   // exactement le format attendu par le protocole MeshCore pour ce type de
   // paquet (voir docs/payloads.md, section "Group text message").
   bool send_group_text(const std::string &channel_name, const std::string &text);
+
+  // Envoie des donnees binaires opaques (PAYLOAD_TYPE_GRP_DATA) sur le canal
+  // "channel_name" - sans prefixe "nom: " ni horodatage ajoute par ce
+  // composant (contrairement a send_group_text), le buffer part tel quel une
+  // fois chiffre. C'est le pendant "data" du "text" GRP_TXT, prevu par le
+  // protocole MeshCore lui-meme pour ce genre d'usage (voir Packet.h,
+  // PAYLOAD_TYPE_GRP_DATA).
+  bool send_group_data(const std::string &channel_name, const std::vector<uint8_t> &data);
+
+  // Taille max de donnees utiles (avant chiffrement) qu'on peut faire tenir
+  // dans un seul paquet GRP_DATA sur un canal donne.
+  static size_t max_group_data_size();
 
   // Callback appele par sx126x/sx127x quand un paquet LoRa brut est recu.
   void on_packet(const std::vector<uint8_t> &packet, float rssi, float snr);
@@ -130,6 +149,7 @@ class MeshCore : public Component
  protected:
   CallbackManager<void(std::string channel, std::string from_name, std::string text, float rssi, float snr)>
       packet_listeners_{};
+  CallbackManager<void(std::string channel, std::vector<uint8_t> data)> data_listeners_{};
 
 #ifdef USE_SX126X
   sx126x::SX126x *sx126x_ = nullptr;
@@ -152,6 +172,7 @@ class MeshCore : public Component
 
   bool transmit_raw_packet(const std::vector<uint8_t> &packet);
   void handle_group_text(const uint8_t *payload, size_t payload_len, float rssi, float snr);
+  void handle_group_data(const uint8_t *payload, size_t payload_len, float rssi, float snr);
   void maybe_repeat_flood(uint8_t header, const uint8_t *path, size_t path_len, const uint8_t *payload,
                            size_t payload_len);
 
