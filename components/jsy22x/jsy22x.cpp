@@ -197,8 +197,8 @@ void JSY22X::read_register04() {
   cmd.push_back(0x00);                          //              0x00
   cmd.push_back(JSY22X_REGISTER_SETTINGS_COUNT);//              0x01
   ESP_LOGD(TAG, "JSY22X: reading values from 0x04 register"); 
-  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->send_pdu(cmd);	
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+  this->queue_pdu(cmd);	
   #else
   this->send_raw(cmd);
   #endif
@@ -218,8 +218,8 @@ void JSY22X::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(new_address);                   //           new_adress
     cmd.push_back(new_baudrate);                  //           new_baudrate
     ESP_LOGD(TAG, "JSY22X: writing values into 0x04 register: address=%d, baudrate = %d", new_address_, new_baudrate); 
-    #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-    this->send_pdu(cmd);	
+    #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+    this->queue_pdu(cmd);	
     #else
     this->send_raw(cmd);
     #endif
@@ -244,15 +244,9 @@ void JSY22X::reset_energy() {
   cmd.push_back(0x00);
   cmd.push_back(0x00);
   cmd.push_back(0x00);
-/*  
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-  cmd.push_back(0x00);
-*/
   ESP_LOGD(TAG, "JSY22X: sending reset Energy command"); 
-  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->send_pdu(cmd);	
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+  this->queue_pdu(cmd);	
   #else
   this->send_raw(cmd);
   #endif
