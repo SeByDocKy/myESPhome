@@ -13,7 +13,6 @@ void OutputMaxNumber::setup() {
   if (!this->pref_.load(&value)) value = this->parent_->get_output_max();
   this->parent_->set_output_max(value);
   this->publish_state(value);	
-	
 }
 
 void OutputMaxNumber::control(float value) {
