@@ -3,8 +3,7 @@
 #include "esphome/components/switch/switch.h"
 #include "../dualpidpcm.h"
 
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 
 class ActivationSwitch : public switch_::Switch, public Component, public Parented<DUALPIDPCMComponent> {
  public:
@@ -15,5 +14,4 @@ class ActivationSwitch : public switch_::Switch, public Component, public Parent
   ESPPreferenceObject pref_;
 };
 
-}  // namespace dualpidpcm
 }  // namespace esphome
