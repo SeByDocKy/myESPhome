@@ -1,10 +1,8 @@
 #pragma once
-
 #include "esphome/components/switch/switch.h"
 #include "../dualpidpcm.h"
 
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 
 class PidModeSwitch : public switch_::Switch, public Component, public Parented<DUALPIDPCMComponent> {
  public:
@@ -15,6 +13,5 @@ class PidModeSwitch : public switch_::Switch, public Component, public Parented<
   ESPPreferenceObject pref_;
 };
 
-}  // namespace dualpidpcm
 }  // namespace esphome
 
