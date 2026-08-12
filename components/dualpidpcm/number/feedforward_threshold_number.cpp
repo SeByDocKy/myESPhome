@@ -1,4 +1,4 @@
-#include "absorbing_setpoint_number.h"
+#include "esphome/core/version.h"
 #include "feedforward_threshold_number.h"
 
 namespace esphome::dualpidpcm {
