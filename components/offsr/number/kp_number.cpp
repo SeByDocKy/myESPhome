@@ -1,7 +1,7 @@
+#include "esphome/core/version.h"
 #include "kp_number.h"
 
 namespace esphome::offsr {
-// namespace offsr {
 void KpNumber::setup() {
   float value;
   this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
@@ -16,6 +16,4 @@ void KpNumber::control(float value) {
   this->parent_->set_kp(value);
   this->pref_.save(&value);
 }
-
-// }  // namespace offsr
 }  // namespace esphome::offsr {
