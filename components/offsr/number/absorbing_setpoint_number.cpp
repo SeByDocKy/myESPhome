@@ -1,5 +1,5 @@
-#include "absorbing_setpoint_number.h"
 #include "esphome/core/version.h"
+#include "absorbing_setpoint_number.h"
 
 namespace esphome::offsr {
 
