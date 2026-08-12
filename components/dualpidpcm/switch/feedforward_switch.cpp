@@ -1,7 +1,7 @@
+#include "esphome/core/version.h"
 #include "feedforward_switch.h"
 
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 void FeedforwardSwitch::setup() {
   bool state;
   this->pref_ = global_preferences->make_preference<bool>(this->get_object_id_hash());
@@ -16,5 +16,4 @@ void FeedforwardSwitch::write_state(bool state) {
   this->pref_.save(&state);
 }
 
-}  // namespace dualpidpcm
 }  // namespace esphome
