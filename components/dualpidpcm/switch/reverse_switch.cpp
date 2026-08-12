@@ -1,3 +1,4 @@
+#include "esphome/core/version.h"
 #include "reverse_switch.h"
 
 namespace esphome::dualpidpcm {
