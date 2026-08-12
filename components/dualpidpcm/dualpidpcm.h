@@ -13,9 +13,7 @@
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/time/real_time_clock.h"
 
-
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 	
 class DUALPIDPCMComponent : public Component{
 
@@ -285,5 +283,4 @@ class DUALPIDPCMComponent : public Component{
 
 };
 		
- }  // namespace dualpidpcm
 }  // namespace esphome
