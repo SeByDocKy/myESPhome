@@ -2,8 +2,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 	
 static const char *const TAG = "dualpidpcm.binarysensor";
 
@@ -25,5 +24,4 @@ void DUALPIDPCMBinarySensor::publish_data_() {
   //   this->swap_binary_sensor_->publish_state(this->parent_->get_swap());	
 }
 
-} // dualpidpcm
 } // esphome
