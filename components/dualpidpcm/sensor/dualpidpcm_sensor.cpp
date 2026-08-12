@@ -2,8 +2,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 	
 static const char *const TAG = "dualpidpcm.sensor";
 
@@ -35,15 +34,9 @@ void DUALPIDPCMSensor::publish_data_() {
   if (this->input_sensor_ != nullptr)
     this->input_sensor_->publish_state(this->parent_->get_input());
   if (this->mode_sensor_ != nullptr)
-    this->mode_sensor_->publish_state(this->parent_->get_mode());		
-  // if (this->offcharge_sensor_ != nullptr)
-  //   this->offcharge_sensor_ ->publish_state(this->parent_->get_offcharge());
-  // if (this->offdischarge_sensor_ != nullptr)
-  //   this->offdischarge_sensor_->publish_state(this->parent_->get_offdischarge());	
-	
+    this->mode_sensor_->publish_state(this->parent_->get_mode());			
 }
 
-} // dualpidpcm
 } // esphome
 
 
