@@ -231,8 +231,8 @@ void JSY194::reset_energy1pos() {
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
   ESP_LOGD(TAG, "JSY194: sending reset Energy1Pos command"); 
-  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->send_pdu(cmdpos);	
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+  this->queue_pdu(cmdpos);	
   #else
   this->send_raw(cmdpos);
   #endif
@@ -253,8 +253,8 @@ void JSY194::reset_energy1neg() {
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);  
   ESP_LOGD(TAG, "JSY194: sending reset Energy1Neg command"); 
-  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->send_pdu(cmdneg);	
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+  this->queue_pdu(cmdneg);	
   #else
   this->send_raw(cmdneg);
   #endif
@@ -275,8 +275,8 @@ void JSY194::reset_energy2pos() {
   cmdpos.push_back(0x00);
   cmdpos.push_back(0x00);
   ESP_LOGD(TAG, "JSY194: sending reset Energy2Pos command"); 
-  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->send_pdu(cmdpos);	
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+  this->queue_pdu(cmdpos);	
   #else
   this->send_raw(cmdpos);
   #endif
@@ -297,8 +297,8 @@ void JSY194::reset_energy2neg() {
   cmdneg.push_back(0x00);
   cmdneg.push_back(0x00);  
   ESP_LOGD(TAG, "JSY194: sending reset Energy2Neg command"); 
-  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->send_pdu(cmdneg);	
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+  this->queue_pdu(cmdneg);	
   #else
   this->send_raw(cmdneg);
   #endif  
