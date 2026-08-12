@@ -2,8 +2,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/version.h"
 
-namespace esphome {
-namespace statistics {
+namespace esphome::statistics {
 
 static const char *const TAG = "statistics";
 
@@ -102,5 +101,4 @@ void STATISTICSComponent::process_new_state_(float state) {
   this->publish_state_and_save(value);
 }
 
-}  // namespace statistics
 }  // namespace esphome
