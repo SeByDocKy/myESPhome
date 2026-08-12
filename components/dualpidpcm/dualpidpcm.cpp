@@ -8,8 +8,7 @@
 #define STARTUP_INHIBIT_MS     6000
 #define DELAY_FEEDFORWARD      4000
 
-namespace esphome {
-namespace dualpidpcm {
+namespace esphome::dualpidpcm {
 
 static const char *const TAG = "dualpidpcm";
 
@@ -712,5 +711,4 @@ void DUALPIDPCMComponent::pid_update() {
     this->pid_computed_callback_.call();
 }
 
-}  // namespace dualpidpcm
 }  // namespace esphome
