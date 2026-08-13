@@ -3,8 +3,7 @@
 #include "esphome/components/switch/switch.h"
 #include "../dualpid.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class ReverseSwitch : public switch_::Switch, public Component, public Parented<DUALPIDComponent> {
  public:
@@ -14,8 +13,6 @@ class ReverseSwitch : public switch_::Switch, public Component, public Parented<
   void write_state(bool state) override;
   ESPPreferenceObject pref_;
 };
-
-}  // namespace dualpid
 
 }  // namespace esphome
 
