@@ -3,8 +3,7 @@
 #include "esphome/components/number/number.h"
 #include "../dualpid.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class StartingBatteryVoltageNumber : public number::Number, public Component, public Parented<DUALPIDComponent> {
  public:
@@ -15,5 +14,4 @@ class StartingBatteryVoltageNumber : public number::Number, public Component, pu
   ESPPreferenceObject pref_;
 };
 
-}  // namespace dualpid
 }  // namespace esphome
