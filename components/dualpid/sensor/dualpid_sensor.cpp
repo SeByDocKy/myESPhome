@@ -2,8 +2,7 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 	
 static const char *const TAG = "dualpid.sensor";
 
@@ -39,7 +38,6 @@ void DUALPIDSensor::publish_data_() {
     this->mode_sensor_->publish_state(this->parent_->get_mode());	
 }
 
-} // dualpid
 } // esphome
 
 
