@@ -399,5 +399,5 @@ async def to_code(config):
             delta_idle_charging_config, min_value=0.0, max_value=100, step=1
         )
         await cg.register_component(n, delta_idle_charging_config)
-        await cg.register_parented(n, dualpidp_component)
+        await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_delta_idle_charging_number(n))
