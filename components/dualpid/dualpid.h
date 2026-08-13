@@ -16,12 +16,10 @@
 #include "esphome/components/time/real_time_clock.h"
 
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 	
 class DUALPIDComponent : public Component{
 
-#ifdef USE_SWITCH
 
 SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
@@ -29,12 +27,8 @@ SUB_SWITCH(pid_mode)
 SUB_SWITCH(reverse)
 // SUB_SWITCH(r48)
 
-#endif
-
-#ifdef USE_NUMBER
 
 SUB_NUMBER(setpoint)
-
 SUB_NUMBER(charging_epoint)
 SUB_NUMBER(absorbing_epoint)
 SUB_NUMBER(floating_epoint)
@@ -58,8 +52,6 @@ SUB_NUMBER(output_max_charging)
 SUB_NUMBER(output_min_discharging)
 SUB_NUMBER(output_max_discharging)
 
-#endif
-
  public:
   
   void setup() override;
@@ -81,7 +73,6 @@ SUB_NUMBER(output_max_discharging)
     pid_computed_callback_.add(std::move(callback));
   }
   
-#ifdef USE_SWITCH 
   void set_activation(bool enable) {this->current_activation_ = enable;}
   bool get_activation(void){return this->current_activation_;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
@@ -92,9 +83,6 @@ SUB_NUMBER(output_max_discharging)
   bool get_reverse(void){return this->current_reverse_;}
   // void set_r48(bool enable) {this->current_r48_ = enable;}
   // bool get_r48(void){return this->current_r48_;}
-#endif
-
-#ifdef USE_NUMBER
 
   void set_setpoint(float value) {this->current_setpoint_ = value;}
   float get_setpoint(void){return this->current_setpoint_;}
@@ -142,11 +130,19 @@ SUB_NUMBER(output_max_discharging)
   float get_output_min_discharging(void){return this->current_output_min_discharging_;}
   void set_output_max_discharging(float value) {this->current_output_max_discharging_ = value;}
   float get_output_max_discharging(void){return this->current_output_max_discharging_;}
+
+  void set_allow_charging(bool enable) {this->current_allow_charging_ = enable;}
+  bool get_allow_charging(void){return this->current_allow_charging_;}
+  void set_allow_discharging(bool enable) {this->current_allow_discharging_ = enable;}
+  bool get_allow_discharging(void){return this->current_allow_discharging_;}
+
+  void set_self_consumption(float value) {this->current_self_consumption_ = value;}
+  float get_self_consumption(void){return this->current_self_consumption_;}
+  void set_delta_idle_charging(float value) {this->current_delta_idle_charging_ = value;}
+  float get_delta_idle_charging(void){return this->current_delta_idle_charging_;}
   
-#endif
 
 
-#ifdef USE_SENSOR
   float get_error(void) { return this->current_error_; }
   float get_output(void) { return this->current_output_; }
   float get_output_charging(void) { return this->current_output_charging_; }
@@ -154,7 +150,6 @@ SUB_NUMBER(output_max_discharging)
   float get_target(void) { return this->current_target_; }
   float get_epoint(void) { return this->current_epoint_; }
   float get_mode(void) {return this->current_mode_;}
-#endif
 
  bool get_deadband(void){return this->current_deadband_;}
 
@@ -190,6 +185,13 @@ SUB_NUMBER(output_max_discharging)
   bool current_deadband_           = false;
   float o_hysteresis_              = 0.02f;
   uint32_t mode_start_time_        = 0;
+
+    // Membres protégés, à côté des autres bool/float
+  bool current_allow_charging_    = true;
+  bool current_allow_discharging_ = true;
+  float current_self_consumption_      = 20.0f;   // W, autoconsommation R48 en charge
+  float current_delta_idle_charging_   = 20.0f;   // W, écart hystérésis start/stop pour la charge
+
    
   
   sensor::Sensor *input_sensor_;
@@ -210,16 +212,12 @@ SUB_NUMBER(output_max_discharging)
   int current_mode_     = 0;
 
 
-#ifdef USE_SWITCH  
   bool current_activation_ = false;
   bool current_manual_override_ = false;
   bool current_pid_mode_ = false;
   bool current_reverse_ = false;
-#endif  
-  
-#ifdef USE_NUMBER
-  float current_setpoint_ = 0.0f;
 
+  float current_setpoint_ = 0.0f;
   float current_starting_battery_voltage_ = 50.0f;
   float current_charged_battery_voltage_ = 55.8f;
   float current_discharged_battery_voltage_ = 55.6f;
@@ -245,11 +243,8 @@ SUB_NUMBER(output_max_discharging)
   float current_output_max_discharging_ = 100.0f;
   float current_output_min_discharging_ = 2.0f;
 
-#endif
-
 };
 		
- }  // namespace dualpid
 }  // namespace esphome
 
 
