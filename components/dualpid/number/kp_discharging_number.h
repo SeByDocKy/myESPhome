@@ -2,8 +2,7 @@
 #include "esphome/components/number/number.h"
 #include "../dualpid.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class KpDischargingNumber : public number::Number, public Component, public Parented<DUALPIDComponent> {
  public:
@@ -14,6 +13,5 @@ class KpDischargingNumber : public number::Number, public Component, public Pare
   ESPPreferenceObject pref_;
 };
 
-}  // namespace dualpid
 }  // namespace esphome
 
