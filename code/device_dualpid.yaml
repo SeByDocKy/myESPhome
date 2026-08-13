@@ -65,11 +65,11 @@ switch:
       name: ${name}_${dualpid_name}_reverse
       id:  ${dualpid_name}_reverse
     allow_charging:
-      name: ${name}_${dualpidpcm_name}_allow_charging
-      id:  ${dualpidpcm_name}_allow_charging
+      name: ${name}_${dualpid_name}_allow_charging
+      id:  ${dualpid_name}_allow_charging
     allow_discharging:
-      name: ${name}_${dualpidpcm_name}_allow_discharging
-      id:  ${dualpidpcm_name}_allow_discharging  
+      name: ${name}_${dualpid_name}_allow_discharging
+      id:  ${dualpid_name}_allow_discharging  
       
 number:
   - platform: dualpid
