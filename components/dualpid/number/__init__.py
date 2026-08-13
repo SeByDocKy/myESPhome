@@ -385,8 +385,8 @@ async def to_code(config):
         await cg.register_component(n, output_max_discharging_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_discharging_number(n))
-
- if self_consumption_config := config.get(CONF_SELF_CONSUMPTION):
+      
+  if self_consumption_config := config.get(CONF_SELF_CONSUMPTION):
         n = await number.new_number(
             self_consumption_config, min_value=0.0, max_value=50, step=1
         )
@@ -394,7 +394,7 @@ async def to_code(config):
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_self_consumption_number(n))
 
-if delta_idle_charging_config := config.get(CONF_DELTA_IDLE_CHARGING):
+  if delta_idle_charging_config := config.get(CONF_DELTA_IDLE_CHARGING):
         n = await number.new_number(
             delta_idle_charging_config, min_value=0.0, max_value=100, step=1
         )
