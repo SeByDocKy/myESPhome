@@ -112,4 +112,8 @@ number:
       name: ${name}_${dualpid_name}_output_min_discharging
     output_max_discharging: 
       name: ${name}_${dualpid_name}_output_max_discharging
+    self_consumption:
+      name: ${name}_${dualpid_name}_self_consumption
+    delta_idle_charging:
+      name: ${name}_${dualpid_name}_delta_idle_charging  
 
