@@ -1,7 +1,7 @@
+#include "esphome/core/version.h"
 #include "kd_discharging_number.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 void KdDischargingNumber::setup() {
   float value;
@@ -17,5 +17,4 @@ void KdDischargingNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace dualpid
 }  // namespace esphome
