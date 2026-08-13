@@ -1,11 +1,15 @@
+#include "esphome/core/version.h"
 #include "setpoint_number.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 void SetpointNumber::setup() {	
 	float value;
-	this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+	#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+    this->pref_ = global_preferences->make_preference<float>(this->get_entity_key());
+    #else
+    this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+    #endif
 	if (!this->pref_.load(&value)) value = this->parent_->get_setpoint();
 	this->parent_->set_setpoint(value);
 	this->publish_state(value);
@@ -17,5 +21,4 @@ void SetpointNumber::control(float value) {
   this->pref_.save(&value);
 }
 
-}  // namespace dualpid
 }  // namespace esphome
