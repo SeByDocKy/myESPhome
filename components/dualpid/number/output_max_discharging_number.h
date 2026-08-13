@@ -3,8 +3,7 @@
 #include "esphome/components/number/number.h"
 #include "../dualpid.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class OutputMaxDischargingNumber : public number::Number, public Component, public Parented<DUALPIDComponent> {
  public:
@@ -15,5 +14,4 @@ class OutputMaxDischargingNumber : public number::Number, public Component, publ
   ESPPreferenceObject pref_;
 };
 
-}  // namespace dualpid
 }  // namespace esphome
