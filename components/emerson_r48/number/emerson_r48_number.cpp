@@ -1,5 +1,6 @@
 #include "emerson_r48_number.h"
 #include "esphome/core/log.h"
+#include "esphome/core/version.h"
 
 namespace esphome {
 namespace emerson_r48 {
