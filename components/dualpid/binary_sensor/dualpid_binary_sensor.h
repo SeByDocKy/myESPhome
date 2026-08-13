@@ -3,8 +3,7 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "../dualpid.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class DUALPIDBinarySensor : public Component, public Parented<DUALPIDComponent> {
  public:
@@ -22,6 +21,4 @@ class DUALPIDBinarySensor : public Component, public Parented<DUALPIDComponent> 
   void publish_data_();
 };
 
-
-} // dualpid
 } // esphome
