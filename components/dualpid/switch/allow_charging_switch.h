@@ -1,7 +1,7 @@
 #pragma once
 
 #include "esphome/components/switch/switch.h"
-#include "../dualpidpcm.h"
+#include "../dualpid.h"
 
 namespace esphome::dualpid {
 
