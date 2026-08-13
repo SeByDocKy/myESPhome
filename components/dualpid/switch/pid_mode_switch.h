@@ -3,8 +3,7 @@
 #include "esphome/components/switch/switch.h"
 #include "../dualpid.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class PidModeSwitch : public switch_::Switch, public Component, public Parented<DUALPIDComponent> {
  public:
@@ -15,6 +14,5 @@ class PidModeSwitch : public switch_::Switch, public Component, public Parented<
   ESPPreferenceObject pref_;
 };
 
-}  // namespace dualpid
 }  // namespace esphome
 
