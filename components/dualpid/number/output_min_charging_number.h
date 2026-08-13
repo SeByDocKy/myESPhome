@@ -2,8 +2,7 @@
 #include "esphome/components/number/number.h"
 #include "../dualpid.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class OutputMinChargingNumber : public number::Number, public Component, public Parented<DUALPIDComponent> {
  public:
@@ -14,5 +13,4 @@ class OutputMinChargingNumber : public number::Number, public Component, public 
   ESPPreferenceObject pref_;
 };
 
-}  // namespace dualpid
 }  // namespace esphome
