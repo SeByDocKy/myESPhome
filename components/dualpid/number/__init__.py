@@ -47,6 +47,9 @@ OutputMaxChargingNumber = dualpid_ns.class_("OutputMaxChargingNumber", number.Nu
 OutputMinDischargingNumber = dualpid_ns.class_("OutputMinDischargingNumber", number.Number, cg.Component)
 OutputMaxDischargingNumber = dualpid_ns.class_("OutputMaxDischargingNumber", number.Number, cg.Component)
 
+SelfConsumptionNumber = dualpid_ns.class_("SelfConsumptionNumber", number.Number, cg.Component)
+DeltaIdleChargingNumber = dualpid_ns.class_("DeltaIdleChargingNumber", number.Number, cg.Component)
+
 
 CONF_SETPOINT = "setpoint"
 
@@ -74,6 +77,9 @@ CONF_OUTPUT_MAX_CHARGING = "output_max_charging"
 
 CONF_OUTPUT_MIN_DISCHARGING = "output_min_discharging"
 CONF_OUTPUT_MAX_DISCHARGING = "output_max_discharging"
+
+CONF_SELF_CONSUMPTION = "self_consumption"
+CONF_DELTA_IDLE_CHARGING = "delta_idle_charging"
 
 
 CONFIG_SCHEMA = {
@@ -205,7 +211,23 @@ CONFIG_SCHEMA = {
         icon = ICON_PERCENT,
         unit_of_measurement=UNIT_PERCENT,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),  
+    ).extend(cv.COMPONENT_SCHEMA),
+
+    cv.Optional(CONF_SELF_CONSUMPTION): number.number_schema(
+        SelfConsumptionNumber,
+        device_class=DEVICE_CLASS_POWER,
+        icon = ICON_POWER,
+        unit_of_measurement=UNIT_WATT,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
+
+    cv.Optional(CONF_DELTA_IDLE_CHARGING): number.number_schema(
+        DeltaIdleChargingNumber,
+        device_class=DEVICE_CLASS_POWER,
+        icon = ICON_POWER,
+        unit_of_measurement=UNIT_WATT,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
                     
 }
 
@@ -363,3 +385,19 @@ async def to_code(config):
         await cg.register_component(n, output_max_discharging_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_output_max_discharging_number(n))
+
+ if self_consumption_config := config.get(CONF_SELF_CONSUMPTION):
+        n = await number.new_number(
+            self_consumption_config, min_value=0.0, max_value=50, step=1
+        )
+        await cg.register_component(n, self_consumption_config)
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_self_consumption_number(n))
+
+if delta_idle_charging_config := config.get(CONF_DELTA_IDLE_CHARGING):
+        n = await number.new_number(
+            delta_idle_charging_config, min_value=0.0, max_value=100, step=1
+        )
+        await cg.register_component(n, delta_idle_charging_config)
+        await cg.register_parented(n, dualpidp_component)
+        cg.add(dualpid_component.set_delta_idle_charging_number(n))
