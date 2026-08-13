@@ -35,23 +35,6 @@ void DUALPIDComponent::set_charging_level(float level) {
     this->previous_output_charging_ = level;
 }
 
-// void DUALPIDComponent::set_discharging_level(float level) {
-//     if (level != this->previous_output_discharging_) {
-//         if (level <= HMS_MIN_LEVEL) {
-//             this->device_discharging_output_->set_level(level);
-//             ESP_LOGD(TAG, "set_discharging_level (min/stop): %.4f", level);
-//         } else {
-//             if ((this->producing_binary_sensor_ == nullptr)
-//                 || (this->producing_binary_sensor_->state == true)) {
-//                 this->device_discharging_output_->set_level(level);
-//                 ESP_LOGD(TAG, "set_discharging_level: %.4f", level);
-//             }
-//         }
-//     }
-//     this->current_output_discharging_  = level;
-//     this->previous_output_discharging_ = level;
-// }
-
 void DUALPIDComponent::set_discharging_level(float level) {
     // Quantifier à 0.5% près pour éviter de saturer le canal radio HMS/OpenDTU
     // ex: 0.2137 → 0.215 (21.5%), 0.2024 → 0.200 (20.0%)
@@ -72,37 +55,6 @@ void DUALPIDComponent::set_discharging_level(float level) {
     this->current_output_discharging_  = quantized;
     this->previous_output_discharging_ = quantized;
 }
-
-
-
-
-
-// void DUALPIDComponent::set_charging_level(float level) {
-//     if (level != this->current_output_charging_) {
-//         this->device_charging_output_->set_level(level);
-//         this->current_output_charging_ = level;
-//         ESP_LOGD(TAG, "set_charging_level: %.4f", level);
-//     }
-// }
-
-// void DUALPIDComponent::set_discharging_level(float level) {
-//     if (level != this->current_output_discharging_) {
-//         if (level <= HMS_MIN_LEVEL) {
-//             // Retour au niveau minimum : toujours envoyer (sécurité)
-//             this->device_discharging_output_->set_level(level);
-//             this->current_output_discharging_ = level;
-//             ESP_LOGD(TAG, "set_discharging_level (min/stop): %.4f", level);
-//         } else {
-//             // Consigne active : envoyer seulement si HMS prêt à produire
-//             if ((this->producing_binary_sensor_ == nullptr)
-//                 || (this->producing_binary_sensor_->state == true)) {
-//                 this->device_discharging_output_->set_level(level);
-//                 this->current_output_discharging_ = level;
-//                 ESP_LOGD(TAG, "set_discharging_level: %.4f", level);
-//             }
-//         }
-//     }
-// }
 
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
@@ -166,7 +118,7 @@ void DUALPIDComponent::pid_update() {
     bool raw_deadband;
     bool in_startup;
     bool outputs_at_rest;
-    float Pmin_ch, Pmin_dis;
+    float Pmin_ch, Pmin_dis, Pstart_charging;
     float elb, eub;
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped, span;
     float span_c, oc, span_d, od;
@@ -289,32 +241,44 @@ void DUALPIDComponent::pid_update() {
     // ── Calcul deadband asymétrique ───────────────────────────────────
     //
     // R48 (charge)  : courant minimum = 3.5A
-    //   → Pmin_charging = Vbatt × Imin_charge  (ex: 51.2 × 3.5 ≈ 179 W)
-    //   → deadband côté charge : epsi > -Pmin_charging × DEADBAND_FACTOR
+    //   → Pmin_ch = Vbatt × Imin_charge + self_consumption
+    //     (self_consumption : autoconsommation propre du R48 en charge,
+    //      ~20W typique — l'AC tiré par le R48 lui-même pour fonctionner
+    //      doit être couvert par le surplus solaire avant que charger
+    //      ait un sens réel)
+    //   → deadband côté charge : epsi > -Pmin_ch × DEADBAND_FACTOR
     //
     // HMS (décharge) : courant minimum ≈ 0A
-    //   → Pmin_discharging ≈ 0 W
+    //   → Pmin_dis ≈ 0 W, pas de self_consumption HMS (négligeable, non
+    //     demandé côté décharge)
     //   → pas de deadband côté décharge
     //
+    // ── Hystérésis start/stop (CHARGE uniquement) ─────────────────────
+    // Pmin_ch reste le seuil d'ARRÊT (utilisé tel quel dans raw_deadband
+    // et dans la condition de sortie de CHARGE en case 1 — logique de
+    // stabilité déjà existante, volontairement inchangée).
+    // Pstart_charging = Pmin_ch + delta_idle_charging (number, ~20W) est
+    // le nouveau seuil de REDÉMARRAGE, utilisé uniquement pour l'entrée
+    // en CHARGE depuis IDLE (case 0) — crée un vrai écart anti-cyclage.
+    // Côté décharge, pas de delta demandé (consommation HMS négligeable) :
+    // l'entrée en DISCHARGE reste basée sur current_output_ vs eub,
+    // inchangée.
+    //
     // Zone morte ASYMÉTRIQUE :
-    //   epsi < -Pmin_ch × k    → surplus suffisant → CHARGE
+    //   epsi < -Pmin_ch × k    → surplus suffisant → CHARGE (arrêt)
     //   epsi > +Pmin_dis × k   → moindre conso → DISCHARGE
     //   entre les deux         → IDLE
 
-    Pmin_ch  = this->current_battery_voltage_ * this->current_min_charging_;
+    Pmin_ch  = this->current_battery_voltage_ * this->current_min_charging_
+             + this->current_self_consumption_;
     Pmin_dis = this->current_battery_voltage_ * this->current_min_discharging_;
+
+    Pstart_charging = Pmin_ch + this->current_delta_idle_charging_;
         
    if (this->current_activation_){
       raw_deadband = (epsi > -(Pmin_ch * DEADBAND_FACTOR)) && (epsi <  (Pmin_dis * DEADBAND_FACTOR));
 
-    // ── Fix ii) : deadband basée uniquement sur raw_deadband + in_startup ──
-    // Suppression de output_is_active : il causait une sortie prématurée de
-    // CHARGE quand output_charging descendait à output_min_charging alors que
-    // error était encore < 0. La protection contre le démarrage prématuré
-    // est assurée par in_startup seul, et la sortie de mode par la machine
-    // d'état (condition error > Pmin_ch dans case 1 et case 2).
       in_startup              = (now - this->mode_start_time_) < STARTUP_INHIBIT_MS;
-      // outputs_at_rest         = (this->current_output_charging_  <= this->current_output_min_charging_) && (this->current_output_discharging_ <= this->current_output_min_discharging_);  
       
       if (this->previous_mode_ == 1) {
        // En charge : on attend que output_charging soit au repos
@@ -335,7 +299,7 @@ void DUALPIDComponent::pid_update() {
     this->current_deadband_ = false;
    }
 
-    ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
+    ESP_LOGI(TAG, "deadband: epsi=%.1f Pmin_ch=%.1f Pstart_ch=%.1f Pmin_dis=%.1f raw=%d startup=%d db=%d", epsi, Pmin_ch, Pstart_charging, Pmin_dis, raw_deadband, (int)in_startup, this->current_deadband_);
 
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
@@ -450,36 +414,36 @@ void DUALPIDComponent::pid_update() {
     ESP_LOGI(TAG, "PID: E=%.2f I=%.2f D=%.2f alpha=%.6f prev=%.4f out=%.4f", this->error_, this->integral_, this->derivative_, alpha, tmp, this->current_output_);
 
     // ── Machine d'état ────────────────────────────────────────────────
+    //
+    // current_allow_charging_/current_allow_discharging_ (switches, défaut
+    // ON) verrouillent l'entrée/le maintien de chaque direction :
+    //  - depuis IDLE (case 0) : entrée gatée par le flag correspondant
+    //  - depuis CHARGE/DISCHARGE actif : priorité absolue, arrêt immédiat
+    //    vers IDLE si le flag passe à false en cours de fonctionnement
     this->current_mode_ = this->previous_mode_;
 
     switch (this->previous_mode_) {
         case 0:  // IDLE
-            if (this->current_output_ <= elb)
+            if ((this->error_ < -(Pstart_charging * DEADBAND_FACTOR)) && this->current_allow_charging_)
                 this->current_mode_ = 1;   // → CHARGE
-            else if (this->current_output_ >= eub)
+            else if ((this->current_output_ >= eub) && this->current_allow_discharging_)
                 this->current_mode_ = 2;   // → DISCHARGE
             break;
 
         case 1:  // CHARGE
-            // if (this->current_deadband_) {
-            //     this->current_mode_ = 0;
-            // }
-            // // error franchement positif → surplus insuffisant → IDLE
-            // else if (!in_startup && this->error_ > (Pmin_ch * DEADBAND_FACTOR)) {
-            //     this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
-            // }
-            if (!in_startup && (this->output_charging_ <= this->current_output_min_charging_ + 0.01f ) && (this->error_ > (Pmin_ch * DEADBAND_FACTOR)) ) {
+            if (!this->current_allow_charging_) {
+                this->current_mode_ = 0;
+            }
+            else if (!in_startup && (this->output_charging_ <= this->current_output_min_charging_ + 0.01f ) && (this->error_ > (Pmin_ch * DEADBAND_FACTOR)) ) {
                this->current_mode_ = 0;
             }
             break;
 
         case 2:  // DISCHARGE
-            // if (this->current_deadband_) {
-            //     this->current_mode_ = 0;
-            // }
-            // error franchement négatif → surplus suffisant → IDLE
-            // else if (!in_startup && this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) {
-            if (!in_startup && (this->output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) ) {    
+            if (!this->current_allow_discharging_) {
+                this->current_mode_ = 0;
+            }
+            else if (!in_startup && (this->output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) ) {    
                 this->current_mode_ = 0;   // → IDLE, qui basculera en CHARGE
             }
             break;
@@ -599,29 +563,30 @@ void DUALPIDComponent::pid_update() {
         }
     }
 
-    // ── Envoi des consignes via les helpers (fix i) ───────────────────
+    // ── Envoi des consignes via les helpers ───────────────────────────
     // set_charging_level et set_discharging_level n'appellent set_level
     // que si la valeur a changé → évite de saturer le canal radio HMS/OpenDTU
+    // Filet de sécurité supplémentaire : même si la machine d'état gère déjà
+    // l'interdiction plus haut (mode ne peut plus être 1/2 si non autorisé),
+    // on double-verrouille ici l'envoi physique par cohérence défensive.
     if (this->current_activation_) {
-        this->set_charging_level(this->output_charging_);
-        this->set_discharging_level(this->output_discharging_);
+        this->set_charging_level(this->current_allow_charging_ ? this->output_charging_ : 0.0f);
+        this->set_discharging_level(this->current_allow_discharging_ ? this->output_discharging_ : HMS_MIN_LEVEL);
     }
 
-    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d",
+    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d allow_c=%d allow_d=%d",
              this->current_output_,
              this->output_charging_,
              this->output_discharging_,
              this->previous_mode_,
-             this->current_deadband_);
+             this->current_deadband_,
+             (int)this->current_allow_charging_,
+             (int)this->current_allow_discharging_);
 
     // ── Mise à jour des états précédents ──────────────────────────────
     this->last_time_                   = now;
     this->previous_error_              = this->error_;
     this->previous_output_             = this->current_output_;
-    // this->current_output_charging_     = this->output_charging_;
-    // this->current_output_discharging_  = this->output_discharging_;
-    // this->previous_output_charging_    = this->output_charging_;
-    // this->previous_output_discharging_ = this->output_discharging_;
 
     this->pid_computed_callback_.call();
     }  // end else !manual_override
