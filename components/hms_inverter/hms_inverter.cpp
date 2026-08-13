@@ -1,3 +1,4 @@
+#include "esphome/core/version.h"
 #include "hms_inverter.h"
 
 namespace esphome {
@@ -47,7 +48,11 @@ void PalevelNumber::control(float value){
 
 void PercentNumber::setup() {
     float value;
-    this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+    #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+    this->pref_ = global_preferences->make_preference<float>(this->get_entity_key());
+    #else
+	this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+	#endif
     if (!this->pref_.load(&value)) value = this->get_percent_power();
     this->set_percent_power(value);
     this->publish_state(value);
@@ -59,7 +64,11 @@ void PercentNumber::control(float value) {
 
 void AbsoluteNumber::setup() {
     float value;
-    this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+    #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
+    this->pref_ = global_preferences->make_preference<float>(this->get_entity_key());
+    #else
+	this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
+	#endif
     if (!this->pref_.load(&value)) value = this->get_absolute_power();
     this->set_absolute_power(value);
     this->publish_state(value);
