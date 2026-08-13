@@ -25,7 +25,9 @@ SUB_SWITCH(activation)
 SUB_SWITCH(manual_override)
 SUB_SWITCH(pid_mode)
 SUB_SWITCH(reverse)
-// SUB_SWITCH(r48)
+
+SUB_SWITCH(allow_charging)
+SUB_SWITCH(allow_discharging)
 
 
 SUB_NUMBER(setpoint)
@@ -51,6 +53,9 @@ SUB_NUMBER(output_min_charging)
 SUB_NUMBER(output_max_charging)
 SUB_NUMBER(output_min_discharging)
 SUB_NUMBER(output_max_discharging)
+
+SUB_NUMBER(self_consumption)
+SUB_NUMBER(delta_idle_charging)
 
  public:
   
