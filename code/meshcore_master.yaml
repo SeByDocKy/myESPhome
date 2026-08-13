@@ -30,33 +30,28 @@ esp32:
 
 
 external_components:
-  # - source: "github://SeByDocKy/myESPhome/"
-    # components: [meshcore]  
-    # refresh: 0s
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [meshcore]  
+    refresh: 0s
 
+  # - source:
+      # type: local
+      # path: components
+    # components: [meshcore]
 
-  - source:
-      type: local
-      path: components
-    components: [meshcore]
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "base-maison-fallback"
+    password: !secret ap_password
 
+api:
+  batch_delay: 50ms
 
-# wifi:
-  # ssid: !secret wifi_ssid
-  # password: !secret wifi_password
-  # ap:
-    # ssid: "base-maison-fallback"
-    # password: !secret ap_password
+ota:
+  - platform: esphome
 
-# api:
-  # batch_delay: 50ms
-
-# ota:
-  # - platform: esphome
-
-
-  
-   
  
 logger:
   level: verbose
@@ -111,6 +106,8 @@ meshcore:
 # "binary_sensors:" = ce que CE master diffuse vers les slaves : l'etat
 # VOULU de chaque relais (voir binary_sensor "cmd_slaveS_relayR" plus bas,
 # mis a jour directement par les actions turn_on/turn_off des switches).
+
+
 packet_transport:
   - platform: meshcore
     meshcore_id: id_mesh
@@ -136,9 +133,9 @@ packet_transport:
 
 sensor:
 
-  # - platform: wifi_signal
-    # name: ${name}_wifi_power
-    # update_interval: 60s
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    update_interval: 60s
 
   - platform: packet_transport
     provider: meshcore-slave-0
@@ -309,8 +306,6 @@ sensor:
     device_class: pressure
     state_class: measurement
 
-
-
   - platform: uptime
     id: uptime_sec
 
@@ -420,24 +415,15 @@ binary_sensor:
     id: cmd_slave4_relay1
     internal: true
 
-# text_sensor: (retire : "remote_last_seen"/"remote_raw_message" etaient
-# alimentes par l'ancien "on_packet", desormais supprime - tout passe par
-# packet_transport. Si vous voulez retrouver un suivi "dernier slave vu",
-# ce serait a reconstruire cote packet_transport, par ex. via un
-# binary_sensor "status" par provider avec ping_pong_enable: true.)
+  - platform: status
+    name: ${name}_status
 
-# binary_sensor:
-  # - platform: status
-    # name: ${name}_status
 
 button:
   - platform: restart
     name: ${name}_restart            
 
-# Pilotage des relais : chaque switch met a jour un binary_sensor local
-# ("cmd_slaveS_relayR"), diffuse au slave concerne via packet_transport
-# (voir packet_transport: plus haut) - plus de GRP_TXT/meshcore.send_group_text.
-#
+
 switch:
   - platform: template
     name: ${name}_slave0_relay0

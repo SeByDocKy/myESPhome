@@ -25,33 +25,32 @@ esp32:
 
 external_components:
 
-  - source:
-      type: local
-      path: components
-    components: [meshcore]
-    
-    
-  # - source: "github://SeByDocKy/myESPhome/"
+  # - source:
+      # type: local
+      # path: components
     # components: [meshcore]
-    # refresh: 0s
+    
+    
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [meshcore]
+    refresh: 0s
 
 # time:
   # - platform: sntp
     # id: my_time
 
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${name}-fallback"
+    password: !secret ap_password
 
-# wifi:
-  # ssid: !secret wifi_ssid
-  # password: !secret wifi_password
-  # ap:
-    # ssid: "${name}-fallback"
-    # password: !secret ap_password
+api:
+  batch_delay: 50ms
 
-# api:
-  # batch_delay: 50ms
-
-# ota:
-  # - platform: esphome
+ota:
+  - platform: esphome
 
 logger:
   level: debug
