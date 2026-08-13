@@ -3,8 +3,7 @@
 #include "../dualpid.h"
 #include "esphome/components/sensor/sensor.h"
 
-namespace esphome {
-namespace dualpid {
+namespace esphome::dualpid {
 
 class DUALPIDSensor : public Component, public Parented<DUALPIDComponent> {
  public:
@@ -34,7 +33,6 @@ class DUALPIDSensor : public Component, public Parented<DUALPIDComponent> {
   void publish_data_();
 };	
 	
-} // dualpid
 } // esphome
 
 
