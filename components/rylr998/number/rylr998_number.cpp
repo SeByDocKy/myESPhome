@@ -9,8 +9,9 @@ static const char *const TAG = "rylr998.number";
 void RYLR998TxPowerNumber::setup() {
 
   uint8_t value;
-  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->pref_ = global_preferences->make_preference<uint8_t>(this->get_entity_key());
+  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 9, 0)
+  // this->pref_ = global_preferences->make_preference<uint8_t>(this->get_entity_key());
+  this->pref_ = global_preferences->make_preference<uint8_t>(this->get_object_id_hash());
   #else
   this->pref_ = global_preferences->make_preference<uint8_t>(this->get_object_id_hash());
   #endif
