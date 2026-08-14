@@ -57,7 +57,8 @@ class PalevelNumber : public esphome::number::Number, public Component {
         esphome::CallbackManager<void(int8_t)> control_callback_;
 
         #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-        ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_entity_key());
+        // ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_entity_key());
+        ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_object_id_hash());
         #else
 	    ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_object_id_hash());
 	    #endif
@@ -76,7 +77,8 @@ class PercentNumber : public esphome::number::Number, public Component {
     private:
         esphome::CallbackManager<void(float)> control_callback_;
         #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-        ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_entity_key());
+        // ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_entity_key());
+        ESPPreferenceObject pref_ = global_preferences->make_preference<int8_t>(this->get_object_id_hash());
         #else
 	    ESPPreferenceObject pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
 	    #endif
