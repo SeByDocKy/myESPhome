@@ -36,8 +36,8 @@ esp32:
   toolchain: platformio
   framework:
     type: arduino
+    version: dev
     
-    # version: dev
     # version: latest
     # type: esp-idf
     # version: 5.5.2
