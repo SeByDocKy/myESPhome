@@ -7,9 +7,8 @@
 #include <memory>
 #include <vector>
 #include <queue>
+
 namespace esphome::modbustcp {
-
-
 
 class ModbusDevice;
 
@@ -36,6 +35,10 @@ class ModbusTCP :  public Component {
   void set_send_wait_time(uint16_t time_in_ms) { send_wait_time_ = time_in_ms; }
   void set_host(const std::string &host) { this->host_ = host; }
   void set_port(uint16_t port) { this->port_ = port; }
+  
+  // Nouvelle méthode pour changer d'hôte à la volée et se reconnecter
+  void set_host_and_reconnect(const std::string &host);
+
   void handle_message(uint8_t byte[256]);
   void on_shutdown() override;
   void connect();
@@ -57,7 +60,6 @@ class ModbusTCP :  public Component {
   uint16_t port_;
   std::string host_;
   
-   
 };
 
 class ModbusDevice {
@@ -84,8 +86,6 @@ class ModbusDevice {
   // If more than one device is connected block sending a new command before a response is received
   bool waiting_for_response() { return parent_->waiting_for_response != 0; }
 
-    
-
  protected:
   friend ModbusTCP;
   
@@ -94,4 +94,3 @@ class ModbusDevice {
 };
 
 }  // namespace esphome::modbustcp
-
