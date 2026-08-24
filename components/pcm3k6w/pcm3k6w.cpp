@@ -1,6 +1,8 @@
 #include "pcm3k6w.h"
 #include "esphome/core/log.h"
 
+#include <cstdio>
+
 namespace esphome::pcm3k6w {
 
 static const char *const TAG = "pcm3k6w";
@@ -11,13 +13,30 @@ static inline uint16_t le16(const std::vector<uint8_t> &d, size_t i) {
   return (static_cast<uint16_t>(d[i + 1]) << 8) | d[i];
 }
 
+static const char *running_mode_text(uint8_t mode) {
+  switch (mode) {
+    case 0: return "Initialize";
+    case 1: return "Standby";
+    case 2: return "Grid-connected Charging";
+    case 3: return "Grid-connected Discharge";
+    case 4: return "Off-grid Inverter";
+    case 5: return "Fault";
+    default: return "Unknown";
+  }
+}
+
 void PCM3K6WComponent::setup() {
   this->canbus_->add_callback([this](uint32_t can_id, bool extended_id, bool rtr, const std::vector<uint8_t> &data) {
     this->on_frame_(can_id, extended_id, rtr, data);
   });
 
-  // Mirrors the original on_boot sequence: after a 2s settle, force the
-  // charge/discharge current limits to a safe 1.0A and select charge mode.
+  // Mirrors the original on_boot sequence: query version + SN once, then
+  // after a 2s settle, force the charge/discharge current limits to a safe
+  // 1.0A and select charge mode.
+  this->set_timeout("pcm3k6w_boot_query", 500, [this]() {
+    this->enqueue_query_(0x07);  // program version
+    this->enqueue_query_(0x05);  // SN code
+  });
   this->set_timeout("pcm3k6w_boot", 2000, [this]() {
     this->enqueue_(0x02, 0x36, {0x0A, 0x00});  // charging current -> 1.0A
     this->enqueue_(0x02, 0x37, {0x0A, 0x00});  // discharging current -> 1.0A
@@ -84,6 +103,18 @@ void PCM3K6WComponent::on_frame_(uint32_t can_id, bool extended_id, bool rtr, co
   if (rx_type != 0x01 || rx_module != 0x0A || rx_addr != this->address_) return;
 
   switch (rx_reg) {
+    case 0x05: {  // SN code response
+      char buf[10];
+      snprintf(buf, sizeof(buf), "V%d.%02d", data[3], data[2]);
+      this->publish_text_sensor_(TXT_SN_CODE, buf);
+      break;
+    }
+    case 0x07: {  // Program version response
+      char buf[10];
+      snprintf(buf, sizeof(buf), "V%d.%02d", data[3], data[2]);
+      this->publish_text_sensor_(TXT_PROGRAM_VERSION, buf);
+      break;
+    }
     case 0x0A: {  // Phase mode readback
       uint8_t phase = data[2];
       this->publish_sensor_(SENS_PHASE_MODE_READBACK, phase == 0 ? 1.0f : 3.0f);
@@ -178,6 +209,7 @@ void PCM3K6WComponent::on_frame_(uint32_t can_id, bool extended_id, bool rtr, co
       this->publish_sensor_(SENS_INVERTER_VOLTAGE, inv_v);
       this->publish_sensor_(SENS_INVERTING_CURRENT, inv_i);
       this->publish_sensor_(SENS_RUNNING_MODE_VALUE, running_mode);
+      this->publish_text_sensor_(TXT_RUNNING_MODE, running_mode_text(running_mode));
       break;
     }
     case 0x52: {  // Feedback parameter 2
@@ -208,6 +240,7 @@ void PCM3K6WComponent::on_frame_(uint32_t can_id, bool extended_id, bool rtr, co
       uint8_t inverter_freq = data[2];
       uint8_t f1 = data[4], f2 = data[5], f3 = data[6];
       this->publish_sensor_(SENS_OFFGRID_FREQUENCY, inverter_freq);
+      this->publish_text_sensor_(TXT_OFFGRID_FREQUENCY, inverter_freq == 50 ? "50 Hz" : (inverter_freq == 60 ? "60 Hz" : "Unknown"));
 
       this->publish_binary_sensor_(BSENS_FAULT_SOFT_START_TIMEOUT, f1 & 0x01);
       this->publish_binary_sensor_(BSENS_FAULT_BUS_OVERVOLTAGE, f1 & 0x02);

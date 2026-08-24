@@ -8,6 +8,7 @@
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/number/number.h"
 #include "esphome/components/select/select.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 
 #include <string>
 #include <vector>
@@ -132,6 +133,14 @@ enum OutputKind : uint8_t {
   OUT_COUNT
 };
 
+enum TextSensorKind : uint8_t {
+  TXT_PROGRAM_VERSION = 0,
+  TXT_SN_CODE,
+  TXT_RUNNING_MODE,
+  TXT_OFFGRID_FREQUENCY,
+  TXT_COUNT
+};
+
 // ---------------------------------------------------------------------------
 // Hub component.
 //
@@ -169,6 +178,9 @@ class PCM3K6WComponent : public Component {
   }
   void set_select(uint8_t kind, select::Select *s) {
     if (kind < SEL_COUNT) this->selects_[kind] = s;
+  }
+  void set_text_sensor(uint8_t kind, text_sensor::TextSensor *s) {
+    if (kind < TXT_COUNT) this->text_sensors_[kind] = s;
   }
 
   // Called from the entity control()/write_state() overrides.
@@ -211,6 +223,11 @@ class PCM3K6WComponent : public Component {
   switch_::Switch *switches_[SW_COUNT] = {nullptr};
   number::Number *numbers_[NUM_COUNT] = {nullptr};
   select::Select *selects_[SEL_COUNT] = {nullptr};
+
+  text_sensor::TextSensor *text_sensors_[TXT_COUNT] = {nullptr};
+  void publish_text_sensor_(uint8_t kind, const std::string &value) {
+    if (this->text_sensors_[kind] != nullptr) this->text_sensors_[kind]->publish_state(value);
+  }
 
   void publish_sensor_(uint8_t kind, float value) {
     if (this->sensors_[kind] != nullptr) this->sensors_[kind]->publish_state(value);

@@ -1,0 +1,8 @@
+#include "pcm3k6w_text_sensor.h"
+
+namespace esphome::pcm3k6w {
+
+// PCM3K6WTextSensor currently adds no behaviour beyond text_sensor::TextSensor;
+// state is pushed to it directly by PCM3K6WComponent::publish_text_sensor_().
+
+}  // namespace esphome::pcm3k6w
