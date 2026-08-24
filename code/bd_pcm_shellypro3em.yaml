@@ -9,6 +9,7 @@ substitutions:
   shelly_ip_address: '192.168.1.45'
   shelly_ip_port: '512'
   shelly_modbus_address: '1'
+  shelly_update_interval: '1500ms'
   bms_modbus_address: '1'
   
   
@@ -16,7 +17,13 @@ globals:
   - id: phase_choice
     type: int
     restore_value: yes
-    initial_value: '1'  
+    initial_value: '1'
+
+  - id: shelly_ip_address_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${shelly_ip_address}"'
+    max_restore_data_length: 24    
   
 esphome:
   name: ${name}
@@ -27,12 +34,24 @@ esphome:
     board_build.arduino.memory_type: qio_opi
     board_build.f_flash: 80000000L
     board_build.flash_mode: qio
+  
+  on_boot:
+    - priority: -100.0
+      then:
+        - text.set:
+            id: ha_shelly_ip_address
+            value: !lambda return ( id(shelly_ip_address_global) );
+            
+        - text_sensor.template.publish:
+            id: current_shelly_ip_address
+            state: !lambda return ( id(shelly_ip_address_global) );
 
    
 esp32:
   board: seeed_xiao_esp32s3
   variant: esp32s3
   cpu_frequency: 240Mhz
+  toolchain: platformio
   framework:
     type: esp-idf
     version: 'dev'
@@ -43,12 +62,30 @@ wifi:
   ap:
     ssid: "battery_bidirectional"
     password: !secret ap_password
+    
+    
+http_request:
+  useragent: ESPHome-Update-Checker
+  follow_redirects: true
+ 
+update:
+  - platform: http_request
+    name: ${name}_MAJ_firmware
+    id: github_firmware_update
+    icon: "mdi:github"
+    source: "https://raw.githubusercontent.com/SeByDocKy/myESPhome/main/firmwares/pcm_bidirectionnal/bd_pcm_shellypro3em/manifest.json" #?v=1.0.4
+    # Fréquence de vérification automatique
+    update_interval: 1h    
 
    
 external_components:
-  - source: github://creepystefan/esphome_tcp
-    # components: [modbustcp, modbustcp_controller]
-    refresh: 0s  
+  # - source: github://creepystefan/esphome_tcp
+    # # components: [modbustcp, modbustcp_controller]
+    # refresh: 0s 
+    
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [modbustcp, modbustcp_controller]
+    refresh: 10s  
   
   
 modbustcp:
@@ -62,8 +99,6 @@ modbustcp_controller:
     modbustcp_id: modbus_tcp
     address: ${shelly_modbus_address}
     update_interval: 2s   #default 60sec
-
-
 
 uart: 
   - id: uart_0
@@ -89,9 +124,12 @@ api:
 ota:
   - platform: esphome
   
+  - platform: http_request
+    id: http_ota
+  
 logger:
   # hardware_uart: USB_SERIAL_JTAG
-   level: very_verbose
+   level: verbose
     
 spi:
 
@@ -106,19 +144,7 @@ debug:
   update_interval: 5s
   
   
-# text:
-  # - platform: template
-    # id: host_address
-    # name: ${name}_host_address
-    # mode: 'text'
-    # set_action:
-      # then:
-        # - lambda: |-
-            # esphome::modbustcp::ModbusTCP *controller = id(modbus_tcp);
-            # if (!this->connected_) {
-            
-            # }
-  
+ 
 select:
   - platform: template
     name: ${name}_phase_select
@@ -139,6 +165,10 @@ select:
            value: !lambda |- 
              auto index = id(phase_select).active_index();
              return (index.value()+1);
+             
+        - lambda: |-
+            id(active_power).update();
+     
 
 sensor:
 
@@ -147,82 +177,120 @@ sensor:
     name: ${name}_active_power
     accuracy_decimals: 1
     device_class: power
+    state_class: measurement
     icon: mdi:flash
     unit_of_measurement: 'W'
-    
-    
-  - platform: modbustcp_controller
-    modbustcp_controller_id: modbus_device_tcp
-    name: ${name}_total_active_power
-    id: total_active_power
-    address: 1014
-    value_type: FP32  
-    register_type: read
-    accuracy_decimals: 1
-    device_class: power
-    icon: mdi:flash
-    unit_of_measurement: 'W'
-    on_value:
-      then:
-       - lambda: |-
-           if (id(phase_choice) == 4){
-            id(active_power).publish_state(id(total_active_power).state);
-           }    
+    update_interval: ${shelly_update_interval}
+    lambda: |-
+      uint16_t reg_address;
+      switch (id(phase_choice)) {
+        case 1: reg_address = 1025; break;  // p1
+        case 2: reg_address = 1045; break;  // p2
+        case 3: reg_address = 1065; break;  // p3
+        default: reg_address = 1014; break; // p1+p2+p3 (total)
+      }
+      auto *controller = id(modbus_device_tcp);
 
-  - platform: modbustcp_controller
-    modbustcp_controller_id: modbus_device_tcp
-    name: ${name}_p1_active_power
-    id: p1_active_power
-    address: 1025  #1045=p2, 1065=p3
-    value_type: FP32  
-    register_type: read
-    accuracy_decimals: 1
-    device_class: power
-    icon: mdi:flash
-    unit_of_measurement: 'W'
-    on_value:
-      then:
-       - lambda: |-
-           if (id(phase_choice) == 1){
-             id(active_power).publish_state(id(p1_active_power).state);
-           }
+      auto command = esphome::modbustcp_controller::ModbusCommandItem::create_read_command(
+          controller,
+          esphome::modbustcp_controller::ModbusRegisterType::READ,
+          reg_address,
+          2,  // FP32 = 2 registres 16 bits
+          [](esphome::modbustcp_controller::ModbusRegisterType register_type,
+             uint16_t start_address,
+             const std::vector<uint8_t> &data) {
+            if (data.size() < 4) return;
+            uint32_t raw = (uint32_t(data[0]) << 24) | (uint32_t(data[1]) << 16) |
+                           (uint32_t(data[2]) << 8)  |  uint32_t(data[3]);
+            float value;
+            memcpy(&value, &raw, sizeof(value));
+            id(active_power).publish_state(value);
+          });
+
+      controller->queue_command(command);
+      return {};
+
+  # - platform: template
+    # id: active_power
+    # name: ${name}_active_power
+    # accuracy_decimals: 1
+    # device_class: power
+    # icon: mdi:flash
+    # unit_of_measurement: 'W'
     
-  - platform: modbustcp_controller
-    modbustcp_controller_id: modbus_device_tcp
-    name: ${name}_p2_active_power
-    id: p2_active_power
-    address: 1045  #1045=p2, 1065=p3
-    value_type: FP32  
-    register_type: read
-    accuracy_decimals: 1
-    device_class: power
-    icon: mdi:flash
-    unit_of_measurement: 'W'
-    on_value:
-      then:
-       - lambda: |-
-           if (id(phase_choice) == 2){
-             id(active_power).publish_state(id(p2_active_power).state);
-           }
+    
+  # - platform: modbustcp_controller
+    # modbustcp_controller_id: modbus_device_tcp
+    # name: ${name}_total_active_power
+    # id: total_active_power
+    # address: 1014
+    # value_type: FP32  
+    # register_type: read
+    # accuracy_decimals: 1
+    # device_class: power
+    # icon: mdi:flash
+    # unit_of_measurement: 'W'
+    # on_value:
+      # then:
+       # - lambda: |-
+           # if (id(phase_choice) == 4){
+            # id(active_power).publish_state(id(total_active_power).state);
+           # }    
+
+  # - platform: modbustcp_controller
+    # modbustcp_controller_id: modbus_device_tcp
+    # name: ${name}_p1_active_power
+    # id: p1_active_power
+    # address: 1025  #1045=p2, 1065=p3
+    # value_type: FP32  
+    # register_type: read
+    # accuracy_decimals: 1
+    # device_class: power
+    # icon: mdi:flash
+    # unit_of_measurement: 'W'
+    # on_value:
+      # then:
+       # - lambda: |-
+           # if (id(phase_choice) == 1){
+             # id(active_power).publish_state(id(p1_active_power).state);
+           # }
+    
+  # - platform: modbustcp_controller
+    # modbustcp_controller_id: modbus_device_tcp
+    # name: ${name}_p2_active_power
+    # id: p2_active_power
+    # address: 1045  #1045=p2, 1065=p3
+    # value_type: FP32  
+    # register_type: read
+    # accuracy_decimals: 1
+    # device_class: power
+    # icon: mdi:flash
+    # unit_of_measurement: 'W'
+    # on_value:
+      # then:
+       # - lambda: |-
+           # if (id(phase_choice) == 2){
+             # id(active_power).publish_state(id(p2_active_power).state);
+           # }
 
     
-  - platform: modbustcp_controller
-    modbustcp_controller_id: modbus_device_tcp
-    name: ${name}_p3_active_power
-    id: p3_active_power
-    address: 1065  #1045=p2, 1065=p3
-    value_type: FP32  
-    register_type: read
-    accuracy_decimals: 1
-    device_class: power
-    icon: mdi:flash
-    unit_of_measurement: 'W'
-    on_value:
-      then:
-       - lambda: |-
-           if (id(phase_choice) == 3){
-            id(active_power).publish_state(id(p3_active_power).state);
-           }  
+  # - platform: modbustcp_controller
+    # modbustcp_controller_id: modbus_device_tcp
+    # name: ${name}_p3_active_power
+    # id: p3_active_power
+    # address: 1065  #1045=p2, 1065=p3
+    # value_type: FP32  
+    # register_type: read
+    # accuracy_decimals: 1
+    # device_class: power
+    # icon: mdi:flash
+    # unit_of_measurement: 'W'
+    # on_value:
+      # then:
+       # - lambda: |-
+           # if (id(phase_choice) == 3){
+            # id(active_power).publish_state(id(p3_active_power).state);
+           # }  
             
   - platform: wifi_signal
     name: ${name}_wifi_power
@@ -246,7 +314,79 @@ button:
   - platform: restart
     name: ${name}_restart
     
+  - platform: template
+    name: ${name}_check_firmware
+    icon: "mdi:download-network"
+    on_press:
+      then: 
+        - update.check: github_firmware_update    
+        
+  - platform: template
+    name: ${name}_check_and_install_firmware
+    icon: "mdi:download-network"
+    on_press:
+      then:
+        - if:
+            condition:
+              update.is_available: github_firmware_update
+            then:
+              - logger.log: "Run OTA (Checking MD5)..."
+              - update.perform: 
+                  id: github_firmware_update
+                  force_update: true
+            else:
+              - logger.log: "No new firmware available"  
+ 
+text:
+  - platform: template
+    name: ${name}_ha_shelly_ip_address
+    id: ha_shelly_ip_address
+    mode: text # ou 'password' pour masquer la saisie
+    min_length: 0
+    max_length: 24
+    optimistic: true # Met à jour la valeur immédiatement à la saisie
+    restore_value: yes # Conserve la valeur au redémarrage
+    initial_value: ${shelly_ip_address}
+    
+    # Action exécutée à chaque fois que la valeur change
+    on_value:
+      then:
+        - lambda: |-
+           
+            // Ignore la vérification si la chaîne est vide (évite une boucle infinie lors de l'effacement)
+            if (x.empty()) {
+              return;
+            }
+            // Validation du format IPv4 sans bibliothèque externe
+            int a, b, c, d;
+            char dummy;
+            bool isValid = (sscanf(x.c_str(), "%d.%d.%d.%d%c", &a, &b, &c, &d, &dummy) == 4) &&
+                           (a >= 0 && a <= 255) &&
+                           (b >= 0 && b <= 255) &&
+                           (c >= 0 && c <= 255) &&
+                           (d >= 0 && d <= 255);
+                           
+            if (isValid) {
+              ESP_LOGI("ip_validation", "Valid IP address: %s", x.c_str());
+              
+              esphome::modbustcp::ModbusTCP *controller = id(modbus_tcp);
+              controller->set_host_and_reconnect(x);
+              id(shelly_ip_address_global) = x;
+              id(current_shelly_ip_address).publish_state(x);
+            } 
+            else {
+              // Si le format est invalide, on efface le champ de saisie
+              ESP_LOGW("ip_validation", "Invalid IP address : %s (réinitialisation)", x.c_str());
+              id(ha_shelly_ip_address).publish_state("");
+            }
+
 text_sensor:
+
+  - platform: template
+    name: ${name}_current_shelly_ip_address
+    id: current_shelly_ip_address
+    icon: "mdi:text-box-outline"
+    
   - platform: template
     name: ${name}_uptime
     lambda: |-
@@ -298,26 +438,44 @@ packages:
       # bms_text_update: '60s'
       # bms_modbus_throttle: '50ms'          
 
-
+  # pcm: 
+    # url: https://github.com/SeByDocKy/myESPhome/
+    # ref: main
+    # refresh: 0s
+    # files: 
+      # - path: 'code/device_mcp2515_pcm.yaml' 
+        # vars:
+          # pcm_name: 'pcm'
+          # pcm_spid_id: 'shared_spi'
+          # pcm_cs_pin: 'GPIO06'
+          # pcm_canbus_id: 'pcm_can'
+          # pcm_address: '01'
+          # pcm_interval: '5s' #'1500ms'
+          # pcm_text_sensor_interval: '2200ms'
+          # pcm_min_charging: '1'
+          # pcm_max_charging: '70'
+          # pcm_min_discharging: '1'
+          # pcm_max_discharging: '75'
+          
+          
+          
   pcm: 
     url: https://github.com/SeByDocKy/myESPhome/
     ref: main
     refresh: 0s
     files: 
-      - path: 'code/device_mcp2515_pcm.yaml' 
+      - path: 'code/device_mcp2515_pcm3k6w.yaml' 
         vars:
           pcm_name: 'pcm'
           pcm_spid_id: 'shared_spi'
           pcm_cs_pin: 'GPIO06'
           pcm_canbus_id: 'pcm_can'
           pcm_address: '01'
-          pcm_interval: '2200ms' #'1500ms'
-          pcm_interval_slow: '30s' #'1500ms'
-          pcm_text_sensor_interval: '2200ms'
+          pcm_interval: '5s' #'1500ms'
           pcm_min_charging: '1'
           pcm_max_charging: '70'
           pcm_min_discharging: '1'
-          pcm_max_discharging: '75'
+          pcm_max_discharging: '75'          
    
   dualpidpcm:
     url: https://github.com/SeByDocKy/myESPhome/
