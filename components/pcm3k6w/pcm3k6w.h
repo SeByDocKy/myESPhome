@@ -119,6 +119,13 @@ enum SelectKind : uint8_t {
   SEL_COUNT
 };
 
+enum ButtonKind : uint8_t {
+  BTN_STOP = 0,
+  BTN_START,
+  BTN_RESET,
+  BTN_COUNT
+};
+
 // ---------------------------------------------------------------------------
 // Hub component.
 //
@@ -162,6 +169,7 @@ class PCM3K6WComponent : public Component {
   void write_switch(uint8_t kind, bool state);
   void write_number(uint8_t kind, float value);
   void write_select(uint8_t kind, const std::string &value);
+  void write_button(uint8_t kind);
 
  protected:
   canbus::Canbus *canbus_{nullptr};

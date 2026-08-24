@@ -392,4 +392,20 @@ void PCM3K6WComponent::write_select(uint8_t kind, const std::string &value) {
   if (this->selects_[kind] != nullptr) this->selects_[kind]->publish_state(value);
 }
 
+void PCM3K6WComponent::write_button(uint8_t kind) {
+  switch (kind) {
+    case BTN_STOP:
+      this->enqueue_(0x02, 0x01, {0x00, 0x00});
+      break;
+    case BTN_START:
+      this->enqueue_(0x02, 0x01, {0x01, 0x00});
+      break;
+    case BTN_RESET:
+      this->enqueue_(0x02, 0x01, {0x02, 0x00});
+      break;
+    default:
+      break;
+  }
+}
+
 }  // namespace esphome::pcm3k6w
