@@ -238,8 +238,10 @@ switch:
     pcm3k6w_id: my_pcm3k6w
     power:
       name: ${name}_${pcm_name}_power
+      id: power_switch
     discharge_charge:
       name: ${name}_${pcm_name}_discharge_charge
+      id: discharge_charge_switch
     manual_fan_control:
       name: ${name}_${pcm_name}_manual_fan_control
 
