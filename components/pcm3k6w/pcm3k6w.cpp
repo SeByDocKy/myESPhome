@@ -408,4 +408,17 @@ void PCM3K6WComponent::write_button(uint8_t kind) {
   }
 }
 
+void PCM3K6WComponent::write_output(uint8_t kind, float value) {
+  switch (kind) {
+    case OUT_CHARGING_CURRENT:
+      this->write_number(NUM_CHARGING_CURRENT, value);
+      break;
+    case OUT_DISCHARGING_CURRENT:
+      this->write_number(NUM_DISCHARGING_CURRENT, value);
+      break;
+    default:
+      break;
+  }
+}
+
 }  // namespace esphome::pcm3k6w

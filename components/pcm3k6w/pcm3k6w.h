@@ -126,6 +126,12 @@ enum ButtonKind : uint8_t {
   BTN_COUNT
 };
 
+enum OutputKind : uint8_t {
+  OUT_CHARGING_CURRENT = 0,
+  OUT_DISCHARGING_CURRENT,
+  OUT_COUNT
+};
+
 // ---------------------------------------------------------------------------
 // Hub component.
 //
@@ -170,6 +176,13 @@ class PCM3K6WComponent : public Component {
   void write_number(uint8_t kind, float value);
   void write_select(uint8_t kind, const std::string &value);
   void write_button(uint8_t kind);
+
+  // Float outputs (charging_current_output / discharging_current_output)
+  // write to the same volatile registers as NUM_CHARGING_CURRENT /
+  // NUM_DISCHARGING_CURRENT - `value` here is already scaled to amps by the
+  // output entity's min/max range, this just forwards to write_number() so
+  // any configured number entity for the same current stays in sync too.
+  void write_output(uint8_t kind, float value);
 
  protected:
   canbus::Canbus *canbus_{nullptr};
