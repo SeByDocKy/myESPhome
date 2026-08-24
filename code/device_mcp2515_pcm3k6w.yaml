@@ -147,7 +147,7 @@ binary_sensor:
     fault_locked:
       name: ${name}_${pcm_name}_fault_locked
     fault_address_fault:
-      name: ${name}_${pcm_name}_fault_address_fault
+      name: ${name}_${pcm_name}_fault_address
     fault_sn_repetition:
       name: ${name}_${pcm_name}_fault_sn_repetition
     fault_load_rms_overcurrent:
