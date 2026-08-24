@@ -1,0 +1,256 @@
+# substitutions:
+  # delay_interval: '100ms' #'120ms'
+  # delay_number: '50ms'
+  # delay_switch: '130ms' #'120ms'
+  # delay_select: '130ms' #'120ms'
+  
+
+external_components:
+  # - source:
+      # type: local
+      # path: components
+    # components: [pcm3k6w]
+    
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [pcm3k6w]
+    refresh: 0s
+
+             
+canbus:
+  - platform: mcp2515
+    id: ${pcm_canbus_id}
+    spi_id: ${pcm_spid_id}
+    use_extended_id: true
+    cs_pin: ${pcm_cs_pin}
+    can_id: 0x0A
+    bit_rate: 250kbps
+    mode: NORMAL
+    # data_rate: '10MHz'
+    data_rate: '4MHz'
+
+pcm3k6w:
+  id: my_pcm3k6w
+  canbus_id: ${pcm_canbus_id}
+  address: ${pcm_address}
+  poll_interval: ${pcm_interval}
+
+sensor:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    grid_voltage:
+      name: ${name}_${pcm_name}_grid_voltage
+    inverter_voltage:
+      name: ${name}_${pcm_name}_inverter_voltage
+    bus_voltage:
+      name: ${name}_${pcm_name}_bus_voltage
+    inverting_current:
+      name: ${name}_${pcm_name}_inverting_current
+    dc_voltage:
+      name: ${name}_${pcm_name}_dc_voltage
+    dc_current:
+      name: ${name}_${pcm_name}_dc_current
+    load_current:
+      name: ${name}_${pcm_name}_load_current
+    ac_power:
+      name: ${name}_${pcm_name}_ac_power
+    dc_power:
+      name: ${name}_${pcm_name}_dc_power
+    temperature_pfc:
+      name: ${name}_${pcm_name}_temperature_pfc
+    temperature_llc:
+      name: ${name}_${pcm_name}_temperature_llc
+    running_mode_value:
+      name: ${name}_${pcm_name}_running_mode_value
+    offgrid_frequency:
+      name: ${name}_${pcm_name}_offgrid_frequency
+    frequency_setting_readback:
+      name: ${name}_${pcm_name}_frequency_setting_readback
+    ac_voltage_setting_readback:
+      name: ${name}_${pcm_name}_ac_voltage_setting_readback
+    phase_mode_readback:
+      name: ${name}_${pcm_name}_phase_mode_readback
+    charging_voltage_readback:
+      name: ${name}_${pcm_name}_charging_voltage_readback
+    charging_current_readback:
+      name: ${name}_${pcm_name}_charging_current_readback
+    discharging_current_readback:
+      name: ${name}_${pcm_name}_discharging_current_readback
+    ac_overvoltage_protection_readback:
+      name: ${name}_${pcm_name}_ac_overvoltage_protection_readback
+    ac_undervoltage_protection_readback:
+      name: ${name}_${pcm_name}_ac_undervoltage_protection_readback
+    ac_overvoltage_alarm_readback:
+      name: ${name}_${pcm_name}_ac_overvoltage_alarm_readback
+    ac_undervoltage_alarm_readback:
+      name: ${name}_${pcm_name}_ac_undervoltage_alarm_readback
+    dc_overvoltage_protection_readback:
+      name: ${name}_${pcm_name}_dc_overvoltage_protection_readback
+    dc_undervoltage_protection_readback:
+      name: ${name}_${pcm_name}_dc_undervoltage_protection_readback
+    dc_overvoltage_alarm_readback:
+      name: ${name}_${pcm_name}_dc_overvoltage_alarm_readback
+    dc_undervoltage_alarm_readback:
+      name: ${name}_${pcm_name}_dc_undervoltage_alarm_readback
+    fan_speed_readback:
+      name: ${name}_${pcm_name}_fan_speed_readback
+    grid_mode_readback:
+      name: ${name}_${pcm_name}_grid_mode_readback
+
+
+binary_sensor:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    battery_undervoltage_alarm:
+      name: ${name}_${pcm_name}_battery_undervoltage_alarm
+    battery_overvoltage_alarm:
+      name: ${name}_${pcm_name}_battery_overvoltage_alarm
+    grid_undervoltage_alarm:
+      name: ${name}_${pcm_name}_grid_undervoltage_alarm
+    grid_overvoltage_alarm:
+      name: ${name}_${pcm_name}_grid_overvoltage_alarm
+    fault_status:
+      name: ${name}_${pcm_name}_fault_status
+    fault_soft_start_timeout:
+      name: ${name}_${pcm_name}_fault_soft_start_timeout
+    fault_bus_overvoltage:
+      name: ${name}_${pcm_name}_fault_bus_overvoltage
+    fault_bus_undervoltage:
+      name: ${name}_${pcm_name}_fault_bus_undervoltage
+    fault_inverter_overvoltage:
+      name: ${name}_${pcm_name}_fault_inverter_overvoltage
+    fault_inverter_undervoltage:
+      name: ${name}_${pcm_name}_fault_inverter_undervoltage
+    fault_inverter_rms_overcurrent:
+      name: ${name}_${pcm_name}_fault_inverter_rms_overcurrent
+    fault_inverter_fast_overcurrent:
+      name: ${name}_${pcm_name}_fault_inverter_fast_overcurrent
+    fault_dc_overvoltage:
+      name: ${name}_${pcm_name}_fault_dc_overvoltage
+    fault_dc_undervoltage:
+      name: ${name}_${pcm_name}_fault_dc_undervoltage
+    fault_dc_fast_overcurrent:
+      name: ${name}_${pcm_name}_fault_dc_fast_overcurrent
+    fault_dc_rms_overcurrent:
+      name: ${name}_${pcm_name}_fault_dc_rms_overcurrent
+    fault_load_overcurrent:
+      name: ${name}_${pcm_name}_fault_load_overcurrent
+    fault_soft_start_short_circuit:
+      name: ${name}_${pcm_name}_fault_soft_start_short_circuit
+    fault_output_overload:
+      name: ${name}_${pcm_name}_fault_output_overload
+    fault_over_temperature:
+      name: ${name}_${pcm_name}_fault_over_temperature
+    fault_fan_fault:
+      name: ${name}_${pcm_name}_fault_fan_fault
+    fault_sync_signal_loss:
+      name: ${name}_${pcm_name}_fault_sync_signal_loss
+    fault_locked:
+      name: ${name}_${pcm_name}_fault_locked
+    fault_address_fault:
+      name: ${name}_${pcm_name}_fault_address_fault
+    fault_sn_repetition:
+      name: ${name}_${pcm_name}_fault_sn_repetition
+    fault_load_rms_overcurrent:
+      name: ${name}_${pcm_name}_fault_load_rms_overcurrent
+    fault_overload:
+      name: ${name}_${pcm_name}_fault_overload
+ 
+button:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    stop:
+      name: ${name}_${pcm_name}_stop
+    start:
+      name: ${name}_${pcm_name}_start
+    reset:
+      name: ${name}_${pcm_name}_reset 
+
+
+select:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    grid_mode:
+      name: ${name}_${pcm_name}_grid_mode
+    phase_mode_setting:
+      name: ${name}_${pcm_name}_phase_mode_setting
+    frequency_setting:
+      name: ${name}_${pcm_name}_frequency_setting
+    ac_voltage_setting:
+      name: ${name}_${pcm_name}_ac_voltage_setting
+
+    
+output:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    charging_current_output:
+      id: charging_current_output
+      min_current: ${pcm_min_charging}
+      max_current: ${pcm_max_charging}
+    discharging_current_output:
+      id: discharging_current_output
+      min_current: ${pcm_min_discharging}
+      max_current: ${pcm_max_discharging}    
+      
+fan:
+  - platform: speed
+    id: charging_current_fan
+    name: ${name}_${pcm_name}_charging_current
+    output: charging_current_output
+    icon: mdi:battery-arrow-up
+
+  - platform: speed
+    id: discharging_current_fan
+    name: ${name}_${pcm_name}_discharging_current
+    output: discharging_current_output
+    icon: mdi:battery-arrow-down
+
+number:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    charging_voltage:
+      name: ${name}_${pcm_name}_charging_voltage
+    charging_current:
+      name: ${name}_${pcm_name}_charging_current
+    discharging_current:
+      name: ${name}_${pcm_name}_discharging_current
+    ac_overvoltage_protection:
+      name: ${name}_${pcm_name}_ac_overvoltage_protection
+    ac_undervoltage_protection:
+      name: ${name}_${pcm_name}_ac_undervoltage_protection
+    ac_overvoltage_alarm:
+      name: ${name}_${pcm_name}_ac_overvoltage_alarm
+    ac_undervoltage_alarm:
+      name: ${name}_${pcm_name}_ac_undervoltage_alarm
+    dc_overvoltage_protection:
+      name: ${name}_${pcm_name}_dc_overvoltage_protection
+    dc_undervoltage_protection:
+      name: ${name}_${pcm_name}_dc_undervoltage_protection
+    dc_overvoltage_alarm:
+      name: ${name}_${pcm_name}_dc_overvoltage_alarm
+    dc_undervoltage_alarm:
+      name: ${name}_${pcm_name}_dc_undervoltage_alarm
+    fan_speed:
+      name: ${name}_${pcm_name}_fan_speed
+
+
+switch:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    power:
+      name: ${name}_${pcm_name}_power
+    discharge_charge:
+      name: ${name}_${pcm_name}_discharge_charge
+    manual_fan_control:
+      name: ${name}_${pcm_name}_manual_fan_control
+
+text_sensor:
+  - platform: pcm3k6w
+    pcm3k6w_id: my_pcm3k6w
+    program_version:
+      name: ${name}_${pcm_name}_program_version
+    sn_code:
+      name: ${name}_${pcm_name}_sn
+    running_mode:
+      name: ${name}_${pcm_name}_running_mode
+    inverter_frequency:
+      name: ${name}_${pcm_name}_inverter_frequency
