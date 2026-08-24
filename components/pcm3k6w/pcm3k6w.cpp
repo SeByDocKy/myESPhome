@@ -1,6 +1,7 @@
 #include "pcm3k6w.h"
 #include "esphome/core/log.h"
 
+#include <cmath>
 #include <cstdio>
 
 namespace esphome::pcm3k6w {
@@ -301,6 +302,16 @@ void PCM3K6WComponent::write_switch(uint8_t kind, bool state) {
 }
 
 void PCM3K6WComponent::write_number(uint8_t kind, float value) {
+  // Quantize to the configured number's `step` before doing anything else,
+  // so both the CAN payload and the value echoed back to the frontend match
+  // - this matters most for NUM_CHARGING_CURRENT / NUM_DISCHARGING_CURRENT,
+  // which can also be driven by an `output:` (fan speed 0.0-1.0) whose
+  // linear mapping doesn't naturally land on the number's 0.5A step.
+  if (kind < NUM_COUNT && this->numbers_[kind] != nullptr) {
+    float step = this->numbers_[kind]->traits.get_step();
+    if (!std::isnan(step) && step > 0.0f) value = std::round(value / step) * step;
+  }
+
   auto to_u16 = [](float v) -> uint16_t { return static_cast<uint16_t>(v * 10.0f); };
   auto lo = [](uint16_t v) -> uint8_t { return static_cast<uint8_t>(v & 0xFF); };
   auto hi = [](uint16_t v) -> uint8_t { return static_cast<uint8_t>(v >> 8); };
