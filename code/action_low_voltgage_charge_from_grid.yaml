@@ -49,7 +49,7 @@ sensor:
             - delay: 100ms
             - number.set:
                 id: ${automation_charging_current_id}
-                value: 5A
+                value: 10
             - delay: 100ms
             - switch.turn_on: ${automation_power_id}
  
@@ -62,7 +62,7 @@ sensor:
           then:
             - number.set:
                 id: ${automation_charging_current_id}
-                value: 1A
+                value: 1
             - delay: 100ms
             - switch.turn_off: ${automation_power_id}
             - delay: 100ms
