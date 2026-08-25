@@ -198,7 +198,8 @@ void PCM3K6WComponent::on_frame_(uint32_t can_id, bool extended_id, bool rtr, co
       this->publish_sensor_(SENS_GRID_MODE_READBACK, mode);
       if (this->selects_[SEL_GRID_MODE] != nullptr)
         this->selects_[SEL_GRID_MODE]->publish_state(mode == 1 ? "Discharge mode" : "Charge mode");
-      if (this->switches_[SW_DISCHARGE_CHARGE] != nullptr) this->switches_[SW_DISCHARGE_CHARGE]->publish_state(mode == 1);
+      // Switch semantics (see write_switch/SW_DISCHARGE_CHARGE): ON = charge (mode 0), OFF = discharge (mode 1).
+      if (this->switches_[SW_DISCHARGE_CHARGE] != nullptr) this->switches_[SW_DISCHARGE_CHARGE]->publish_state(mode == 0);
       break;
     }
     case 0x51: {  // Feedback parameter 1
