@@ -294,3 +294,20 @@ packages:
           dualpidpcm_current_min_discharging: '1.0'
           dualpidpcm_windows_size: '1'
           dualpidpcm_template_update: '5s'
+
+
+          
+  # automation:
+  #   url: https://github.com/SeByDocKy/myESPhome/
+  #   ref: main
+  #   refresh: 0s
+  #   files: 
+  #     - path: 'code/action_low_voltage_force_charge_from_grid.yaml' 
+  #       vars:
+  #         automation_name: 'recovery'
+  #         automation_battery_voltage_id: jkpbbms_battery_voltage
+  #         automation_power_id: power_switch
+  #         automation_activation_id: pid_activation 
+  #         automation_manual_override_id: pid_manual_override
+  #         automation_discharge_charge_id: discharge_charge_switch
+  #         automation_charging_current_id: charging_current
