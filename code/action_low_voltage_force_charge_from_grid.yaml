@@ -1,0 +1,72 @@
+switch:
+  - platform: template
+    name: ${name}_${automation_name}_emergency_charge_from_grid_automatic_control
+    id: ${automation_name}_offgrid_emergency_charge_from_grid_automatic_control
+    optimistic: true
+    # assumed_state : false
+    restore_mode: 'RESTORE_DEFAULT_ON'
+    
+
+number:
+ - platform: template
+   name: ${name}_${automation_name}_emergency_battery_voltage
+   id: ${automation_name}_emergency_battery_voltage
+   optimistic: true
+   min_value: 46.0
+   max_value: 52.0
+   step: 0.5
+   initial_value: 49.0
+   restore_value: true
+   
+ - platform: template
+   name: ${name}_${automation_name}_recovery_battery_voltage
+   id: ${automation_name}_recovery_battery_voltage
+   optimistic: true
+   min_value: 48
+   max_value: 53
+   step: 0.5
+   initial_value: 50.5
+   restore_value: true
+   
+   
+sensor:
+  - platform: copy
+    source_id: ${automation_battery_voltage_id}
+    id: ${automation_name}_battery_voltage_copy_id
+    on_value:
+       - if:  ##### if battery voltage < battery emergency  => force charge from grid  ######
+          condition:
+            and:
+              - switch.is_on: ${automation_name}_offgrid_emergency_charge_from_grid_automatic_control
+              - lambda: |-
+                 return ( ( float(id(${automation_name}_battery_voltage_copy_id).state) < float(id(${automation_name}_emergency_battery_voltage).state) )     );            
+          then:
+            - switch.turn_off: ${automation_activation_id}
+            - delay: 100ms
+            - switch.turn_on: ${automation_manual_override_id}
+            - delay: 100ms
+            - switch.turn_on: ${automation_discharge_charge_id}
+            - delay: 100ms
+            - number.set:
+                id: ${automation_charging_current_id}
+                value: 10
+            - delay: 100ms
+            - switch.turn_on: ${automation_power_id}
+ 
+       - if:  ####   if battery voltage > battery emergency => return to automation on   ######
+          condition:
+            and: 
+              - switch.is_on: ${automation_name}_offgrid_emergency_charge_from_grid_automatic_control
+              - lambda: |-
+                  return ( ( float(id(${automation_name}_battery_voltage_copy_id).state) > float(id(${automation_name}_recovery_battery_voltage).state) )     );            
+          then:
+            - number.set:
+                id: ${automation_charging_current_id}
+                value: 1
+            - delay: 100ms
+            - switch.turn_off: ${automation_power_id}
+            - delay: 100ms
+            - switch.turn_off: ${automation_manual_override_id}
+            - delay: 100ms
+            - switch.turn_on: ${automation_activation_id}
+            - delay: 100ms   
