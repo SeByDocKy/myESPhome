@@ -211,8 +211,10 @@ number:
       name: ${name}_${pcm_name}_charging_voltage
     charging_current:
       name: ${name}_${pcm_name}_charging_current
+      id: charging_current
     discharging_current:
       name: ${name}_${pcm_name}_discharging_current
+      id: discharging_current
     ac_overvoltage_protection:
       name: ${name}_${pcm_name}_ac_overvoltage_protection
     ac_undervoltage_protection:
