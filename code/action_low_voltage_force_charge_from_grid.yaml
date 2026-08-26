@@ -19,6 +19,7 @@ number:
    restore_value: true
    icon: mdi:sine-wave
    device_class: voltage
+   unit_of_measurement: 'V'
    
  - platform: template
    name: ${name}_${automation_name}_recovery_battery_voltage
@@ -31,6 +32,7 @@ number:
    restore_value: true
    icon: mdi:sine-wave
    device_class: voltage
+   unit_of_measurement: 'V'
    
    
 sensor:
