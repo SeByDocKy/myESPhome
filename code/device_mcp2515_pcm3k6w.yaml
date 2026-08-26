@@ -246,6 +246,8 @@ switch:
       id: discharge_charge_switch
     manual_fan_control:
       name: ${name}_${pcm_name}_manual_fan_control
+    discharge_charge_eeprom:
+      name: ${name}_${pcm_name}_discharge_charge_eeprom
 
 text_sensor:
   - platform: pcm3k6w
