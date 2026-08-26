@@ -17,6 +17,8 @@ number:
    step: 0.5
    initial_value: 49.0
    restore_value: true
+   icon: mdi:sine-wave
+   device_class: voltage
    
  - platform: template
    name: ${name}_${automation_name}_recovery_battery_voltage
@@ -27,6 +29,8 @@ number:
    step: 0.5
    initial_value: 50.5
    restore_value: true
+   icon: mdi:sine-wave
+   device_class: voltage
    
    
 sensor:
@@ -38,6 +42,7 @@ sensor:
           condition:
             and:
               - switch.is_on: ${automation_name}_offgrid_emergency_charge_from_grid_automatic_control
+              - switch.is_on: ${automation_activation_id}
               - lambda: |-
                  return ( ( float(id(${automation_name}_battery_voltage_copy_id).state) < float(id(${automation_name}_emergency_battery_voltage).state) )     );            
           then:
@@ -57,6 +62,7 @@ sensor:
           condition:
             and: 
               - switch.is_on: ${automation_name}_offgrid_emergency_charge_from_grid_automatic_control
+              - switch.is_off: ${automation_activation_id}
               - lambda: |-
                   return ( ( float(id(${automation_name}_battery_voltage_copy_id).state) > float(id(${automation_name}_recovery_battery_voltage).state) )     );            
           then:
