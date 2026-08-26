@@ -79,6 +79,7 @@ void PCM3K6WComponent::enqueue_(uint8_t cmd_type, uint8_t reg, const std::vector
 // Live measurements (feedback 1-3, running status, bus voltage) arrive
 // unsolicited from the PCM and are handled directly in on_frame_().
 void PCM3K6WComponent::poll_() {
+  this->enqueue_query_(0x02);  // grid mode (EEPROM)
   this->enqueue_query_(0x0A);  // phase mode
   this->enqueue_query_(0x11);  // frequency setting
   this->enqueue_query_(0x12);  // AC voltage setting
@@ -104,6 +105,12 @@ void PCM3K6WComponent::on_frame_(uint32_t can_id, bool extended_id, bool rtr, co
   if (rx_type != 0x01 || rx_module != 0x0A || rx_addr != this->address_) return;
 
   switch (rx_reg) {
+    case 0x02: {  // Grid mode readback (EEPROM, persisted - see SW_DISCHARGE_CHARGE_EEPROM)
+      uint8_t mode = data[2];
+      if (this->switches_[SW_DISCHARGE_CHARGE_EEPROM] != nullptr)
+        this->switches_[SW_DISCHARGE_CHARGE_EEPROM]->publish_state(mode == 0);
+      break;
+    }
     case 0x05: {  // SN code response
       char buf[10];
       snprintf(buf, sizeof(buf), "V%d.%02d", data[3], data[2]);
@@ -295,6 +302,15 @@ void PCM3K6WComponent::write_switch(uint8_t kind, bool state) {
       break;
     case SW_MANUAL_FAN_CONTROL:
       this->enqueue_(0x02, 0x35, {static_cast<uint8_t>(state ? 0x01 : 0x00), 0x00});
+      break;
+    case SW_DISCHARGE_CHARGE_EEPROM:
+      // Persisted (EEPROM) grid mode, same ON=charge/OFF=discharge semantics
+      // as SW_DISCHARGE_CHARGE but written to register 0x02 instead of the
+      // volatile 0x38 - survives a PCM power cycle. Deliberately does not
+      // touch SEL_GRID_MODE / SENS_GRID_MODE_READBACK / SW_DISCHARGE_CHARGE,
+      // which continue to reflect the live (volatile) mode only.
+      this->enqueue_(0x02, 0x02, {static_cast<uint8_t>(state ? 0x00 : 0x01), 0x00});
+      this->enqueue_query_(0x02);
       break;
     default:
       break;
