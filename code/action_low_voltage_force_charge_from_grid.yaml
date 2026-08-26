@@ -4,7 +4,7 @@ switch:
     id: ${automation_name}_offgrid_emergency_charge_from_grid_automatic_control
     optimistic: true
     # assumed_state : false
-    restore_mode: 'RESTORE_DEFAULT_ON'
+    restore_mode: 'RESTORE_DEFAULT_OFF'
     
 
 number:
