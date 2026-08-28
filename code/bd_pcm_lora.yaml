@@ -311,3 +311,4 @@ packages:
   #         automation_manual_override_id: pid_manual_override
   #         automation_discharge_charge_id: discharge_charge_switch
   #         automation_charging_current_id: charging_current
+  #         automation_starting_battery_voltage_id: pid_starting_battery_voltage
