@@ -188,8 +188,10 @@ number:
       name: ${name}_${dualpidpcm_name}_setpoint
     starting_battery_voltage:                     # seuil HAUT (redémarrage)
       name: ${name}_${dualpidpcm_name}_starting_battery_voltage
+      id: ${dualpidpcm_name}_starting_battery_voltage
     stopping_battery_voltage:                     # seuil BAS (arrêt)
       name: ${name}_${dualpidpcm_name}_stopping_battery_voltage
+      id: ${dualpidpcm_name}_stopping_battery_voltage
     kp:
       name: ${name}_${dualpidpcm_name}_kp
     ki: 
