@@ -66,7 +66,9 @@ sensor:
               - switch.is_on: ${automation_name}_offgrid_emergency_charge_from_grid_automatic_control
               - switch.is_off: ${automation_activation_id}
               - lambda: |-
-                  return ( ( float(id(${automation_name}_battery_voltage_copy_id).state) > float(id(${automation_name}_recovery_battery_voltage).state) )     );            
+                  return ( ( float(id(${automation_name}_battery_voltage_copy_id).state) > float(id(${automation_name}_recovery_battery_voltage).state) )     );
+              - lambda: |-
+                  return ( ( float(id(${automation_name}_battery_voltage_copy_id).state) < float(id(${automation_starting_battery_voltage_id}).state) )     );     
           then:
             - switch.turn_off: ${automation_power_id}
             - delay: 100ms
