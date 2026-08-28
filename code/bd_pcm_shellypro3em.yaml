@@ -7,7 +7,7 @@ substitutions:
   my_second: '59'
   baud_rate: 115200 #9600 ### JKPBBMS baudrate : if UART1 protocol = 001, set baud_rate=115200, if UART1 protocol = 013, set baud_rate=9600
   shelly_ip_address: '192.168.1.45'
-  shelly_ip_port: '512'
+  shelly_ip_port: '502'
   shelly_modbus_address: '1'
   shelly_update_interval: '1500ms'
   bms_modbus_address: '1'
