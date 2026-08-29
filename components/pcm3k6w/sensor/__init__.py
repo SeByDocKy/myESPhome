@@ -7,7 +7,7 @@ from esphome.const import (
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_VOLTAGE,
-    DEVICE_WIND_SPEED,
+    DEVICE_CLASS_WIND_SPEED,
     ENTITY_CATEGORY_DIAGNOSTIC,
     STATE_CLASS_MEASUREMENT,
     UNIT_AMPERE,
@@ -92,7 +92,7 @@ SENSORS = [
     ("dc_undervoltage_protection_readback", KIND_DC_UNDERVOLTAGE_PROTECTION_READBACK, {**_V, "icon": "mdi:battery-alert-variant-outline"}),
     ("dc_overvoltage_alarm_readback", KIND_DC_OVERVOLTAGE_ALARM_READBACK, {**_V, "icon": "mdi:battery-alert"}),
     ("dc_undervoltage_alarm_readback", KIND_DC_UNDERVOLTAGE_ALARM_READBACK, {**_V, "icon": "mdi:battery-alert-variant-outline"}),
-    ("fan_speed_readback", KIND_FAN_SPEED_READBACK, dict(unit_of_measurement=UNIT_PERCENT, device_class=DEVICE_WIND_SPEED, accuracy_decimals=1, icon="mdi:fan")),
+    ("fan_speed_readback", KIND_FAN_SPEED_READBACK, dict(unit_of_measurement=UNIT_PERCENT, device_class=DEVICE_CLASS_WIND_SPEED, accuracy_decimals=1, icon="mdi:fan")),
     ("grid_mode_readback", KIND_GRID_MODE_READBACK, dict(accuracy_decimals=0, icon="mdi:transmission-tower", entity_category=ENTITY_CATEGORY_DIAGNOSTIC)),
 ]
 
