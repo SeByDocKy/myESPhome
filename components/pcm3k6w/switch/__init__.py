@@ -9,14 +9,13 @@ DEPENDENCIES = ["canbus"]
 PCM3K6WSwitch = pcm3k6w_ns.class_("PCM3K6WSwitch", switch.Switch, cg.Component)
 
 # Kind indices MUST match the SwitchKind enum order in pcm3k6w.h.
-KIND_POWER, KIND_DISCHARGE_CHARGE, KIND_MANUAL_FAN_CONTROL, KIND_DISCHARGE_CHARGE_EEPROM = range(4)
+KIND_POWER, KIND_DISCHARGE_CHARGE, KIND_MANUAL_FAN_CONTROL = range(3)
 
 # (config key, kind, icon)
 SWITCHES = [
     ("power", KIND_POWER, "mdi:power"),
     ("discharge_charge", KIND_DISCHARGE_CHARGE, "mdi:transmission-tower"),
     ("manual_fan_control", KIND_MANUAL_FAN_CONTROL, "mdi:fan"),
-    ("discharge_charge_eeprom", KIND_DISCHARGE_CHARGE_EEPROM, "mdi:content-save-cog"),
 ]
 
 CONFIG_SCHEMA = PCM3K6W_PLATFORM_SCHEMA.extend(

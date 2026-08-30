@@ -93,7 +93,6 @@ enum SwitchKind : uint8_t {
   SW_POWER = 0,
   SW_DISCHARGE_CHARGE,
   SW_MANUAL_FAN_CONTROL,
-  SW_DISCHARGE_CHARGE_EEPROM,
   SW_COUNT
 };
 
@@ -125,6 +124,7 @@ enum ButtonKind : uint8_t {
   BTN_STOP = 0,
   BTN_START,
   BTN_RESET,
+  BTN_SET_DEFAULT_EEPROM,
   BTN_COUNT
 };
 
