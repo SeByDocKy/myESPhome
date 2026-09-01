@@ -5,6 +5,6 @@
 dependencies:
   idf: ">=5.0.0"
   espressif/usb_host_uvc:
-    version: "^1.0.0"
+    version: ">=2.5.2"
     rules:
       - if: "idf_version >= 5.0"
