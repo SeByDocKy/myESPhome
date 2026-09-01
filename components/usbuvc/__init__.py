@@ -215,8 +215,8 @@ async def to_code(config):
         )
 
     add_idf_component(
-        name="espressif/usb_host_uvc",
-        ref=">=2.2.0",
+       name="espressif/usb_host_uvc",
+       ref=">=2.5.2",
     )
 
     cg.add_platformio_option(
