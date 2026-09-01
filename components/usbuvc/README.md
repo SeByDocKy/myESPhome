@@ -66,10 +66,9 @@ components/usbuvc/
 
 ```yaml
 external_components:
-  - source:
-      type: local
-      path: components
+  - source: "github://SeByDocKy/myESPhome/"
     components: [usbuvc]
+    refresh: 0s
 
 usbuvc:
   id: my_webcam
@@ -142,7 +141,7 @@ esp32:
   variant: esp32p4
   framework:
     type: esp-idf
-    version: recommended
+    version: dev
     sdkconfig_options:
       CONFIG_ESP_CONSOLE_USB_CDC: "n"        # disable USB CDC console
       CONFIG_ESP_CONSOLE_UART_DEFAULT: "y"   # use UART0 for logs
