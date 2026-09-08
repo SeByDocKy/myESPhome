@@ -146,6 +146,11 @@ class HMSComponent : public Component {
   void set_power_limit_percent(float percent);
   /// Limite de puissance en Watts absolus (non persistant)
   void set_power_limit_absolute(float watts);
+  /// Limite de puissance en % (0-100, relatif), écrite en PERSISTANT (mémorisée dans
+  /// l'EEPROM de l'onduleur, survit aux coupures secteur). A n'utiliser que
+  /// ponctuellement (usure de la flash) -- typiquement via les boutons
+  /// reset_to_output_min/reset_to_output_max, pas pour un pilotage fréquent.
+  void set_power_limit_percent_persistent(float percent);
 
   void setup() override;
   void loop() override;
@@ -174,7 +179,7 @@ class HMSComponent : public Component {
   // --- Construction de trames (porté de commands/*.cpp) ---
   void build_realtime_data_request_(uint8_t *out, uint8_t *out_len);
   void build_request_frame_(uint8_t frame_no, uint8_t *out, uint8_t *out_len);
-  void build_active_power_control_(float limit, PowerLimitType type, uint8_t *out, uint8_t *out_len);
+  void build_active_power_control_(float limit, PowerLimitType type, bool persistent, uint8_t *out, uint8_t *out_len);
   void build_channel_change_(uint8_t channel, uint8_t *out, uint8_t *out_len);
 
   void send_current_command_();
@@ -243,6 +248,7 @@ class HMSComponent : public Component {
   bool power_limit_pending_{false};
   float power_limit_value_{100.0f};
   PowerLimitType power_limit_type_{POWER_RELATIVE};
+  bool power_limit_persistent_{false};
 
   uint32_t last_poll_{0};
   int8_t last_rssi_dbm_{-127};

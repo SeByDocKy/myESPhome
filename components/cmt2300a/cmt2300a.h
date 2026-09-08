@@ -158,6 +158,7 @@ class CMT2300AComponent : public Component {
   /// Utilisé quand un protocole tiers (Hoymiles/HMS) a besoin de ses propres bancs
   /// de registres et de sa propre cadence Tx/Rx, incompatibles avec le mode générique.
   void set_external_mode(bool external) { this->external_mode_ = external; }
+  bool get_external_mode() const { return this->external_mode_; }
 
   // ---------------------------------------------------------------------------
   // Arbitrage pour plusieurs composants "external_mode" partageant la même puce

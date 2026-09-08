@@ -461,7 +461,8 @@ void HMSComponent::build_request_frame_(uint8_t frame_no, uint8_t *out, uint8_t 
   *out_len = 11;
 }
 
-void HMSComponent::build_active_power_control_(float limit, PowerLimitType type, uint8_t *out, uint8_t *out_len) {
+void HMSComponent::build_active_power_control_(float limit, PowerLimitType type, bool persistent, uint8_t *out,
+                                                uint8_t *out_len) {
   memset(out, 0, 19);
   out[0] = 0x51;
   serial_to_packet_id(&out[1], this->inverter_serial_);
@@ -474,8 +475,15 @@ void HMSComponent::build_active_power_control_(float limit, PowerLimitType type,
   out[12] = static_cast<uint8_t>(l >> 8);
   out[13] = static_cast<uint8_t>(l);
 
-  // Valeurs HMS (HmsActivePowerControl) : Absolu non-persistant = 0x0000, Relatif non-persistant = 0x0001
-  uint16_t type_value = (type == POWER_RELATIVE) ? 0x0001 : 0x0000;
+  // Table HmsActivePowerControl exacte (ActivePowerControlCommand.cpp) :
+  //   AbsolutNonPersistent = 0x0000, RelativNonPersistent = 0x0001,
+  //   AbsolutPersistent    = 0x0002, RelativPersistent    = 0x0003
+  uint16_t type_value;
+  if (type == POWER_RELATIVE) {
+    type_value = persistent ? 0x0003 : 0x0001;
+  } else {
+    type_value = persistent ? 0x0002 : 0x0000;
+  }
   out[14] = static_cast<uint8_t>(type_value >> 8);
   out[15] = static_cast<uint8_t>(type_value);
 
@@ -729,12 +737,22 @@ void HMSComponent::publish_reachable_() {
 void HMSComponent::set_power_limit_percent(float percent) {
   this->power_limit_value_ = percent;
   this->power_limit_type_ = POWER_RELATIVE;
+  this->power_limit_persistent_ = false;
   this->power_limit_pending_ = true;
 }
 
 void HMSComponent::set_power_limit_absolute(float watts) {
   this->power_limit_value_ = watts;
   this->power_limit_type_ = POWER_ABSOLUTE;
+  this->power_limit_persistent_ = false;
+  this->power_limit_pending_ = true;
+}
+
+void HMSComponent::set_power_limit_percent_persistent(float percent) {
+  ESP_LOGI(TAG, "Limite persistante demandée : %.1f%% (écriture EEPROM côté onduleur)", percent);
+  this->power_limit_value_ = percent;
+  this->power_limit_type_ = POWER_RELATIVE;
+  this->power_limit_persistent_ = true;
   this->power_limit_pending_ = true;
 }
 
@@ -920,8 +938,10 @@ void HMSComponent::loop() {
       // l'écoute une fois la trame partie (ou en timeout), sans bloquer loop().
     } else if (this->power_limit_pending_) {
       uint8_t out[24], out_len;
-      this->build_active_power_control_(this->power_limit_value_, this->power_limit_type_, out, &out_len);
+      this->build_active_power_control_(this->power_limit_value_, this->power_limit_type_,
+                                         this->power_limit_persistent_, out, &out_len);
       this->power_limit_pending_ = false;
+      this->power_limit_persistent_ = false;  // ne concerne que cet envoi précis
       this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, 2000);
     } else {
       uint8_t out[32], out_len;
