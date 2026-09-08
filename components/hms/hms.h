@@ -85,7 +85,11 @@ struct fragment_t {
   bool wasReceived{false};
 };
 
-static const uint8_t MAX_RF_FRAGMENT_COUNT = 13;
+// OpenDTU utilise 13 pour couvrir tous ses types d'onduleurs (y compris les plus
+// gros HMT triphasés). Les modèles HMS n'ont jamais besoin de plus de 4-5 fragments
+// (observé 3 en test réel sur un HMS-2CH) -- on réduit ici pour économiser de la RAM
+// statique, avec une marge confortable.
+static const uint8_t MAX_RF_FRAGMENT_COUNT = 6;
 
 enum RadioOpState : uint8_t {
   OP_IDLE = 0,

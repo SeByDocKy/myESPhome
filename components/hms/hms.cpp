@@ -857,8 +857,13 @@ void HMSComponent::loop() {
     return;
   }
 
-  // 1. Réception : un paquet est-il disponible dans le FIFO ?
-  if (this->cmt_rx_packet_available_()) {
+  // 1. Réception : un paquet est-il disponible dans le FIFO ? Uniquement pertinent
+  // quand on attend effectivement une réponse -- le protocole Hoymiles est
+  // requête/réponse pur, l'onduleur n'émet jamais spontanément. Scruter le registre
+  // hors de ce cas ne sert à rien et coûte une vraie transaction bit-bang à chaque
+  // tick de loop() (significatif cumulé sur un poll_interval de plusieurs secondes,
+  // et multiplié par le nombre d'onduleurs si plusieurs hms: partagent une radio).
+  if (this->op_state_ == OP_WAIT_RESPONSE && this->cmt_rx_packet_available_()) {
     uint8_t raw[33];
     uint8_t len = this->cmt_read_dynamic_payload_(raw, sizeof(raw));
     this->radio_->fifo_clear_rx();
