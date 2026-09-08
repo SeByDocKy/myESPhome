@@ -76,7 +76,7 @@ cmt2300a:
 hms:
   - id: hms_1
     cmt2300a_id: cmt_radio
-    sn: "1410A01121AE"        # INVERTER serial number (determines model / DC channel count)
+    sn: "1410A011xxxx"        # INVERTER serial number (determines model / DC channel count)
     # dtu_serial: "1999812345"  # optional -- auto-derived from the ESP32 MAC if omitted
     frequency_band: eu_860      # eu_860 (868MHz) or us_900 (915MHz)
     poll_interval: 5s
@@ -232,7 +232,7 @@ cmt2300a:
 hms:
   - id: hms_1
     cmt2300a_id: cmt_radio
-    sn: "1410A01121AE"
+    sn: "1410A011xxxx"
     frequency_band: eu_860
 
   - id: hms_2
