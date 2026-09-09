@@ -528,6 +528,7 @@ bool HMComponent::handle_realtime_response_() {
 
   this->has_valid_stats_ = true;
   this->rx_failure_count_ = 0;
+  this->publish_reachable_();
   this->publish_sensors_();
   return true;
 }
@@ -608,18 +609,29 @@ void HMComponent::publish_sensors_() {
     if (this->dc_energy_total_[c] != nullptr) this->dc_energy_total_[c]->publish_state(this->get_field_value_(TYPE_DC, ch, FLD_YT));
   }
 
+  float ac_power_value = this->get_field_value_(TYPE_AC, CH0, FLD_PAC);
   if (this->ac_voltage_ != nullptr) this->ac_voltage_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_UAC));
   if (this->ac_current_ != nullptr) this->ac_current_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_IAC));
-  if (this->ac_power_ != nullptr) this->ac_power_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_PAC));
+  if (this->ac_power_ != nullptr) this->ac_power_->publish_state(ac_power_value);
   if (this->ac_frequency_ != nullptr) this->ac_frequency_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_F));
   if (this->ac_power_factor_ != nullptr) this->ac_power_factor_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_PF));
   if (this->ac_reactive_power_ != nullptr) this->ac_reactive_power_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_Q));
+
+  // isProducing() -- porté de InverterAbstract::isProducing() (totalAc > 0)
+  if (this->producing_sensor_ != nullptr) this->producing_sensor_->publish_state(ac_power_value > 0.0f);
 
   if (this->inv_temperature_ != nullptr) this->inv_temperature_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_T));
   if (this->inv_power_ != nullptr) this->inv_power_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_PDC));
   if (this->inv_energy_today_ != nullptr) this->inv_energy_today_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_YD));
   if (this->inv_energy_total_ != nullptr) this->inv_energy_total_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_YT));
   if (this->inv_efficiency_ != nullptr) this->inv_efficiency_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_EFF));
+}
+
+// isReachable() -- porté de InverterAbstract::isReachable() (rxFailureCount <= reachableThreshold)
+void HMComponent::publish_reachable_() {
+  if (this->reachable_sensor_ != nullptr) {
+    this->reachable_sensor_->publish_state(this->rx_failure_count_ <= REACHABLE_THRESHOLD);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -706,6 +718,7 @@ void HMComponent::setup() {
 
   ESP_LOGCONFIG(TAG, "HM prêt, hop de canal actif (%u/%u/%u/%u/%u)", this->rx_ch_list_[0], this->rx_ch_list_[1],
                 this->rx_ch_list_[2], this->rx_ch_list_[3], this->rx_ch_list_[4]);
+  this->publish_reachable_();
 }
 
 void HMComponent::loop() {
@@ -758,6 +771,7 @@ void HMComponent::loop() {
       this->rx_failure_count_++;
       ESP_LOGD(TAG, "Echec définitif du cycle de commande (résultat=%u) -- rx_failure_count_=%u", result,
                this->rx_failure_count_);
+      this->publish_reachable_();
       this->op_state_ = OP_IDLE;
       this->pending_cmd_ = CMD_NONE;
     }

@@ -7,6 +7,7 @@
 #include "esphome/core/hal.h"
 #include "esphome/components/nrf24l01/nrf24l01.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
 
 namespace esphome {
 namespace hm {
@@ -100,6 +101,8 @@ class HMComponent : public Component {
   void set_inv_energy_today_sensor(sensor::Sensor *s) { this->inv_energy_today_ = s; }
   void set_inv_energy_total_sensor(sensor::Sensor *s) { this->inv_energy_total_ = s; }
   void set_inv_efficiency_sensor(sensor::Sensor *s) { this->inv_efficiency_ = s; }
+  void set_reachable_sensor(binary_sensor::BinarySensor *s) { this->reachable_sensor_ = s; }
+  void set_producing_sensor(binary_sensor::BinarySensor *s) { this->producing_sensor_ = s; }
 
   uint8_t get_dc_channel_count() const { return this->dc_channel_count_; }
 
@@ -141,6 +144,7 @@ class HMComponent : public Component {
   uint8_t verify_all_fragments_();
   bool handle_realtime_response_();
   void publish_sensors_();
+  void publish_reachable_();
 
   const byteAssign_t *find_assignment_(ChannelType_t type, ChannelNum_t ch, FieldId_t field) const;
   float get_field_value_(ChannelType_t type, ChannelNum_t ch, FieldId_t field) const;
@@ -209,6 +213,8 @@ class HMComponent : public Component {
   sensor::Sensor *inv_energy_today_{nullptr};
   sensor::Sensor *inv_energy_total_{nullptr};
   sensor::Sensor *inv_efficiency_{nullptr};
+  binary_sensor::BinarySensor *reachable_sensor_{nullptr};
+  binary_sensor::BinarySensor *producing_sensor_{nullptr};
 };
 
 }  // namespace hm

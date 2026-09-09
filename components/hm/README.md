@@ -99,7 +99,32 @@ number:
     hm_id: hm_1
     power_percent: {name: "Power Limit (%)"}
     power_absolute: {name: "Power Limit (W)"}
+
+binary_sensor:
+  - platform: hm
+    hm_id: hm_1
+    reachable: {name: "HM Reachable"}
+    producing: {name: "HM Producing"}
+
+button:
+  - platform: hm
+    hm_id: hm_1
+    reset_to_output_min: {name: "Reset to 2%"}
+    reset_to_output_max: {name: "Reset to 100%"}
 ```
+
+- `reachable` — ported from `InverterAbstract::isReachable()`
+  (`rx_failure_count <= REACHABLE_THRESHOLD`), published every time the
+  failure counter changes.
+- `producing` — ported from `InverterAbstract::isProducing()`
+  (`AC power > 0`), published on every fresh telemetry frame.
+- `reset_to_output_min`/`reset_to_output_max` write the **persistent**
+  power-limit variant (`RelativePersistent = 0x0101` for HM — note this
+  differs from HMS's `0x0003`, see the value table above), stored in the
+  inverter's own EEPROM. Same rationale as `hms`: meant to be pressed rarely,
+  `reset_to_output_min` forces 2% (not 0%, which would stop production
+  entirely) and `reset_to_output_max` forces 100%. Each press logs a
+  `WARN`-level line so accidental presses are visible.
 
 `hm:` supports multiple instances (`MULTI_CONF`) exactly like `hms:` — several
 inverters can share one `nrf24l01:` radio; declare multiple `hm:` entries with
@@ -111,13 +136,12 @@ power-limit values, same rationale as `hms`.
 ## What's in this v1, and what isn't yet
 
 Shipped: hub (`hm:`), `sensor` platform, `number` platform (non-persistent
-power control).
+power control), `binary_sensor` platform (`reachable`/`producing`), `button`
+platform (persistent power-limit reset).
 
 **Not yet ported** (same shape as `hms`, straightforward to add on request):
-`binary_sensor` (`reachable`/`producing`), `button`
-(`reset_to_output_min`/`reset_to_output_max`, persistent power-limit reset),
 `output` (float output for the relative power limit), and a `packet_transport`
-medium for `nrf24l01` reuse. None of these need new protocol research — they'd
+medium for `nrf24l01` reuse. Neither needs new protocol research — they'd
 follow the exact same pattern already built for `hms`.
 
 ## Untested on real hardware
