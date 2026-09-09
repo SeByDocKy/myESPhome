@@ -309,6 +309,30 @@ void DUALPIDPCMComponent::pid_update() {
         return;
     }
 
+    // ── Protection sous-tension batterie (hystérésis) ─────────────────
+    // Évaluée tôt, avant les sorties anticipées de deadband et avant la machine
+    // d'état : le verrou agit via discharging_allowed(), exactement comme le
+    // verrou utilisateur allow_discharging. La CHARGE reste autorisée — c'est
+    // elle qui fait remonter la tension jusqu'au seuil haut ; la couper aussi
+    // rendrait le verrou définitif.
+    // Volontairement placée APRÈS les gardes manual_override et activation : si
+    // une automatisation externe pilote le PCM (cf. code/action_low_voltage_
+    // force_charge_from_grid.yaml), on gèle le latch plutôt que de le suivre.
+    if (!std::isnan(this->current_battery_voltage_)) {
+        if (this->current_battery_voltage_ < this->current_stopping_battery_voltage_) {
+            this->undervoltage_lockout_ = true;
+        } else if (this->current_battery_voltage_ >= this->current_starting_battery_voltage_) {
+            this->undervoltage_lockout_ = false;
+        }
+        // entre les deux seuils : on garde l'état courant (hystérésis)
+
+        ESP_LOGI(TAG, "battery_voltage = %2.2f, stop = %2.2f, start = %2.2f, lockout = %d",
+                 this->current_battery_voltage_,
+                 this->current_stopping_battery_voltage_,
+                 this->current_starting_battery_voltage_,
+                 this->undervoltage_lockout_);
+    }
+
     // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
         if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
@@ -471,16 +495,19 @@ void DUALPIDPCMComponent::pid_update() {
     // current_deadband_) — c'est la différence stop/start qui crée
     // l'hystérésis voulue.
     //
-    // current_allow_charging_/current_allow_discharging_ verrouillent
-    // toujours l'entrée/bascule vers le mode correspondant, priorité absolue
-    // en sortie forcée si le flag passe à false en cours de fonctionnement.
+    // current_allow_charging_/discharging_allowed() verrouillent toujours
+    // l'entrée/bascule vers le mode correspondant, priorité absolue en sortie
+    // forcée si le flag passe à false en cours de fonctionnement.
+    // discharging_allowed() combine le verrou utilisateur et le lockout
+    // sous-tension : les deux empruntent donc le même chemin d'arrêt propre
+    // (case 2 -> mode 0, pass_through_ = false -> transition IDLE).
     this->current_mode_ = this->previous_mode_;
 
     switch (this->previous_mode_) {
         case 0:  // IDLE
             if (epsi < Pstart_charging * DEADBAND_FACTOR && this->current_allow_charging_)
                 this->current_mode_ = 1;
-            else if (epsi > Pstart_discharging * DEADBAND_FACTOR && this->current_allow_discharging_)
+            else if (epsi > Pstart_discharging * DEADBAND_FACTOR && this->discharging_allowed())
                 this->current_mode_ = 2;
             break;
 
@@ -491,7 +518,7 @@ void DUALPIDPCMComponent::pid_update() {
              this->pass_through_ = false;
            }
            // Sortie directe vers DISCHARGE si output franchit oub_ (rare, code défensif)
-           else if (this->current_output_ > this->oub_ && this->current_allow_discharging_) {
+           else if (this->current_output_ > this->oub_ && this->discharging_allowed()) {
              this->current_mode_ = 2;
              this->pass_through_ = true;
            }
@@ -502,14 +529,14 @@ void DUALPIDPCMComponent::pid_update() {
            }
            // Bascule (seuil de REDÉMARRAGE) : erreur franchement positive
            // + sortie déjà au minimum + décharge autorisée
-           else if (!in_startup && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && (epsi > Pstart_discharging * DEADBAND_FACTOR) && this->current_allow_discharging_) {
+           else if (!in_startup && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && (epsi > Pstart_discharging * DEADBAND_FACTOR) && this->discharging_allowed()) {
              this->current_mode_ = 0;   // → IDLE, qui basculera en DISCHARGE
              this->pass_through_ = true;
            }
            break;
 
         case 2:  // DISCHARGE
-           if (!this->current_allow_discharging_) {
+           if (!this->discharging_allowed()) {
              this->current_mode_ = 0;
              this->pass_through_ = false;
            }
@@ -597,48 +624,6 @@ void DUALPIDPCMComponent::pid_update() {
     this->current_output_charging_    = std::min(std::max(this->current_output_charging_, this->current_output_min_charging_), this->current_output_max_charging_);
     this->current_output_discharging_ = std::min(std::max(this->current_output_discharging_, this->current_output_min_discharging_), this->current_output_max_discharging_);
 
-    // ── Protection sous-tension batterie (hystérésis) ─────────────────
-    if (!std::isnan(this->current_battery_voltage_)) {
-        ESP_LOGI(TAG, "battery_voltage = %2.2f, stop = %2.2f, start = %2.2f, lockout = %d",
-                 this->current_battery_voltage_,
-                 this->current_stopping_battery_voltage_,
-                 this->current_starting_battery_voltage_,
-                 this->undervoltage_lockout_);
-
-        if (this->current_battery_voltage_ < this->current_stopping_battery_voltage_) {
-            this->undervoltage_lockout_ = true;
-        } else if (this->current_battery_voltage_ >= this->current_starting_battery_voltage_) {
-            this->undervoltage_lockout_ = false;
-        }
-
-        if (this->undervoltage_lockout_) {
-            this->set_charging_level(0.0f);
-            this->set_discharging_level(0.0f);
-            this->current_output_             = this->oneutral_;
-            this->previous_output_            = this->oneutral_;
-            this->previous_mode_              = 0;
-            this->current_mode_               = 0;
-            this->current_onoff_              = false;
-            this->current_deadband_           = false;
-            this->pass_through_               = false;
-
-            if (this->onoff_switch_ != nullptr) {
-                this->onoff_switch_->publish_state(false);
-                this->onoff_switch_->turn_off();
-                delay(ONOFF_DELAY);
-            }
-            if (this->discharge_charge_switch_ != nullptr) {
-                this->discharge_charge_switch_->publish_state(true);
-                this->discharge_charge_switch_->turn_on();
-                delay(CHARGE_DISCHARGE_DELAY);
-            }
-            this->last_time_      = now;
-            this->previous_error_ = this->error_;
-            this->pid_computed_callback_.call();
-            return;
-        }
-    }
-
     // ── Gestion discharge_charge_switch ──────────────────────────────
     if (!this->current_deadband_ && this->discharge_charge_switch_ != nullptr) {
         if ((this->current_output_charging_ > this->current_output_min_charging_) && (this->discharge_charge_switch_->state == false)) {
@@ -664,7 +649,7 @@ void DUALPIDPCMComponent::pid_update() {
       }
       this->set_charging_level(this->current_output_charging_);
     }
-    if(this->current_output_discharging_  > 0.0f && this->current_allow_discharging_){
+    if(this->current_output_discharging_  > 0.0f && this->discharging_allowed()){
       if(this->discharge_charge_switch_->state){
          this->discharge_charge_switch_->publish_state(false);
          this->discharge_charge_switch_->turn_off();
@@ -691,7 +676,7 @@ void DUALPIDPCMComponent::pid_update() {
         }
     }
 
-    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d pass_through=%d allow_c=%d allow_d=%d Pstart_c=%.1f Pstart_d=%.1f",
+    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d pass_through=%d allow_c=%d allow_d=%d uv_lockout=%d Pstart_c=%.1f Pstart_d=%.1f",
              this->current_output_,
              this->current_output_charging_,
              this->current_output_discharging_,
@@ -700,7 +685,8 @@ void DUALPIDPCMComponent::pid_update() {
              (int)in_startup,
              (int)this->pass_through_,
              (int)this->current_allow_charging_,
-             (int)this->current_allow_discharging_,
+             (int)this->discharging_allowed(),
+             (int)this->undervoltage_lockout_,
              Pstart_charging,
              Pstart_discharging);
 

@@ -154,6 +154,8 @@ binary_sensor:
     dualpidpcm_id: ${dualpidpcm_id}
     deadband:
       name: ${name}_${dualpidpcm_name}_deadband
+    undervoltage_lockout:
+      name: ${name}_${dualpidpcm_name}_undervoltage_lockout
 
   
 switch:

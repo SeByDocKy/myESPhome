@@ -188,7 +188,9 @@ async def to_code(config):
 
   if stopping_battery_voltage_config := config.get(CONF_STOPPING_BATTERY_VOLTAGE):
         n = await number.new_number(
-            stopping_battery_voltage_config, min_value=50.0, max_value=60.0, step=0.1
+            # min 49.5 pour que le defaut C++ (current_stopping_battery_voltage_)
+            # soit atteignable : a 50.0 le seuil bas etait hors bornes.
+            stopping_battery_voltage_config, min_value=49.5, max_value=60.0, step=0.1
         )
         await cg.register_component(n, stopping_battery_voltage_config)
         await cg.register_parented(n, dualpidpcm_component)

@@ -5,12 +5,16 @@ from esphome.components import binary_sensor
 from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_OCCUPANCY,
+    DEVICE_CLASS_PROBLEM,
+    ENTITY_CATEGORY_DIAGNOSTIC,
 )
 
 DEPENDENCIES = ["dualpidpcm"]
 CONF_DEADBAND = "deadband"
 CONF_SWAP     = "swap"
+CONF_UNDERVOLTAGE_LOCKOUT = "undervoltage_lockout"
 ICON_DEADBAND = "mdi:emoticon-dead-outline"
+ICON_UNDERVOLTAGE_LOCKOUT = "mdi:battery-alert-variant-outline"
 # ICON_SWAP     = "mdi:swap-vertical"
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
@@ -25,6 +29,12 @@ CONFIG_SCHEMA = {
     cv.Optional(CONF_DEADBAND): binary_sensor.binary_sensor_schema(
         device_class=DEVICE_CLASS_OCCUPANCY,
         icon = ICON_DEADBAND,
+    ),
+    # Verrou sous-tension actif : la decharge est inhibee, la charge reste permise.
+    cv.Optional(CONF_UNDERVOLTAGE_LOCKOUT): binary_sensor.binary_sensor_schema(
+        device_class=DEVICE_CLASS_PROBLEM,
+        icon = ICON_UNDERVOLTAGE_LOCKOUT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     # cv.Optional(CONF_SWAP): binary_sensor.binary_sensor_schema(
     #     device_class=DEVICE_CLASS_OCCUPANCY,
@@ -42,6 +52,10 @@ async def to_code(config):
     if CONF_DEADBAND in config:
         bsens = await binary_sensor.new_binary_sensor(config[CONF_DEADBAND])
         cg.add(var.set_deadband_binary_sensor(bsens))
+
+    if CONF_UNDERVOLTAGE_LOCKOUT in config:
+        bsens = await binary_sensor.new_binary_sensor(config[CONF_UNDERVOLTAGE_LOCKOUT])
+        cg.add(var.set_undervoltage_lockout_binary_sensor(bsens))
         
     # if CONF_SWAP in config:
     #     bsens = await binary_sensor.new_binary_sensor(config[CONF_SWAP])
