@@ -96,6 +96,28 @@ button:
 `data` accepts either a literal list of bytes or a template (a lambda
 returning a `std::vector<uint8_t>`), up to 32 bytes.
 
+## `duty_cycle` sensor
+
+Only useful when `cmt2300a:` is shared by several `hms:` instances (or any
+other future `external_mode` consumer): reports the measured percentage of
+time the radio was actually locked/busy, over the window since the last
+publication (`update_interval`, default `60s`). This is a real measurement,
+not an estimate — useful for tuning `poll_interval` on each `hms:` instance
+to keep the channel from becoming saturated (which would delay `number`/
+`output` power-limit commands behind ongoing telemetry exchanges).
+
+```yaml
+sensor:
+  - platform: cmt2300a
+    cmt2300a_id: cmt_radio
+    duty_cycle:
+      name: "CMT2300A Duty Cycle"
+      update_interval: 60s
+```
+
+With a generic (non-`hms`) `cmt2300a:` usage, this always reads `0%` — the
+lock is only used by `external_mode` consumers.
+
 ## Example 1 — generic usage (without `packet_transport`)
 
 Two devices exchanging raw messages, filtered by `node_id`.

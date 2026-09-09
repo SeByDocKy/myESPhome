@@ -168,19 +168,44 @@ class CMT2300AComponent : public Component {
   /// Tente de prendre la main sur la puce. Retourne true si acquis (ou déjà détenu
   /// par ce même owner) ; false si un autre composant l'utilise actuellement.
   bool try_lock_external(const void *owner) {
-    if (this->external_lock_owner_ == nullptr || this->external_lock_owner_ == owner) {
+    if (this->external_lock_owner_ == nullptr) {
       this->external_lock_owner_ = owner;
+      this->duty_lock_start_ms_ = millis();
       return true;
     }
+    if (this->external_lock_owner_ == owner) return true;
     return false;
   }
   /// Relâche la main -- n'a d'effet que si 'owner' est bien le détenteur actuel.
   void unlock_external(const void *owner) {
-    if (this->external_lock_owner_ == owner) this->external_lock_owner_ = nullptr;
+    if (this->external_lock_owner_ == owner) {
+      this->duty_busy_accum_ms_ += millis() - this->duty_lock_start_ms_;
+      this->external_lock_owner_ = nullptr;
+    }
   }
   /// True si un AUTRE composant que 'owner' détient actuellement la main sur la puce.
   bool is_owned_by_other(const void *owner) const {
     return this->external_lock_owner_ != nullptr && this->external_lock_owner_ != owner;
+  }
+
+  /// Taux d'occupation radio (% de temps passé verrou pris) depuis le dernier appel,
+  /// puis réinitialise la fenêtre de mesure. Prévu pour être appelé périodiquement
+  /// (ex. depuis un composant sensor), pas en continu.
+  float get_duty_cycle_percent_and_reset() {
+    uint32_t now = millis();
+    uint32_t window_ms = now - this->duty_window_start_ms_;
+    uint32_t busy_ms = this->duty_busy_accum_ms_;
+    if (this->external_lock_owner_ != nullptr) {
+      // Verrou actuellement pris : compter la portion de l'échange en cours qui
+      // tombe dans cette fenêtre, sinon on sous-estime le taux si la fenêtre se
+      // termine pendant un échange.
+      busy_ms += now - this->duty_lock_start_ms_;
+      this->duty_lock_start_ms_ = now;
+    }
+    this->duty_busy_accum_ms_ = 0;
+    this->duty_window_start_ms_ = now;
+    if (window_ms == 0) return 0.0f;
+    return (static_cast<float>(busy_ms) / static_cast<float>(window_ms)) * 100.0f;
   }
 
   /// Permet à plusieurs composants coopérants de savoir si l'un d'eux a déjà fait
@@ -290,6 +315,9 @@ class CMT2300AComponent : public Component {
   bool setup_failed_{false};
   bool external_mode_{false};
   const void *external_lock_owner_{nullptr};
+  uint32_t duty_lock_start_ms_{0};
+  uint32_t duty_busy_accum_ms_{0};
+  uint32_t duty_window_start_ms_{0};
   bool external_radio_ready_{false};
   uint8_t external_radio_variant_{0xFF};
 

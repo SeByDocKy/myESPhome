@@ -103,6 +103,29 @@ these data rates normally completes in well under a millisecond to a few
 milliseconds even with retries, so this is not comparable to the CMT2300A's
 blocking-vs-async concerns.
 
+## `duty_cycle` sensor
+
+Only useful when `nrf24l01:` is shared by several `hm:` instances: reports
+the measured percentage of time the radio was actually locked/busy, over the
+window since the last publication (`update_interval`, default `60s`). Same
+mechanism and purpose as [`cmt2300a`'s `duty_cycle`
+sensor](../cmt2300a/README.md#duty_cycle-sensor) — a real measurement, not an
+estimate, useful for tuning each `hm:` instance's `poll_interval` to keep the
+channel from getting saturated (which would delay `number`/`output`
+power-limit commands behind ongoing telemetry exchanges).
+
+```yaml
+sensor:
+  - platform: nrf24l01
+    nrf24l01_id: radio
+    duty_cycle:
+      name: "NRF24 Duty Cycle"
+      update_interval: 60s
+```
+
+With a generic (non-`hm`) `nrf24l01:` usage, this always reads `0%` — the
+lock is only used by `external_mode` consumers.
+
 ## Two-device example
 
 ```yaml

@@ -121,17 +121,38 @@ class NRF24Component : public Component,
   // un identifiant opaque (typiquement 'this' de l'appelant).
   // ---------------------------------------------------------------------------
   bool try_lock_external(const void *owner) {
-    if (this->external_lock_owner_ == nullptr || this->external_lock_owner_ == owner) {
+    if (this->external_lock_owner_ == nullptr) {
       this->external_lock_owner_ = owner;
+      this->duty_lock_start_ms_ = millis();
       return true;
     }
+    if (this->external_lock_owner_ == owner) return true;
     return false;
   }
   void unlock_external(const void *owner) {
-    if (this->external_lock_owner_ == owner) this->external_lock_owner_ = nullptr;
+    if (this->external_lock_owner_ == owner) {
+      this->duty_busy_accum_ms_ += millis() - this->duty_lock_start_ms_;
+      this->external_lock_owner_ = nullptr;
+    }
   }
   bool is_owned_by_other(const void *owner) const {
     return this->external_lock_owner_ != nullptr && this->external_lock_owner_ != owner;
+  }
+
+  /// Taux d'occupation radio (% de temps verrou pris) depuis le dernier appel, puis
+  /// réinitialise la fenêtre de mesure -- même implémentation que cmt2300a.
+  float get_duty_cycle_percent_and_reset() {
+    uint32_t now = millis();
+    uint32_t window_ms = now - this->duty_window_start_ms_;
+    uint32_t busy_ms = this->duty_busy_accum_ms_;
+    if (this->external_lock_owner_ != nullptr) {
+      busy_ms += now - this->duty_lock_start_ms_;
+      this->duty_lock_start_ms_ = now;
+    }
+    this->duty_busy_accum_ms_ = 0;
+    this->duty_window_start_ms_ = now;
+    if (window_ms == 0) return 0.0f;
+    return (static_cast<float>(busy_ms) / static_cast<float>(window_ms)) * 100.0f;
   }
 
   // ---------------------------------------------------------------------------
@@ -223,6 +244,9 @@ class NRF24Component : public Component,
   bool setup_failed_{false};
   bool external_mode_{false};
   const void *external_lock_owner_{nullptr};
+  uint32_t duty_lock_start_ms_{0};
+  uint32_t duty_busy_accum_ms_{0};
+  uint32_t duty_window_start_ms_{0};
 
   CallbackManager<void(std::vector<uint8_t>)> packet_callback_{};
 };
