@@ -877,6 +877,19 @@ void HMSComponent::loop() {
         // comme HoymilesRadio_CMT::loop() (memcmp sur l'adresse source du fragment).
         if (memcmp(&raw[5], source_id, 4) == 0) {
           this->add_rx_fragment_(raw, len);
+          // Si ce fragment complète la réponse, on traite immédiatement au tick
+          // suivant plutôt que d'attendre systématiquement l'échéance de 500ms --
+          // c'était une latence artificielle même quand la réponse arrivait vite.
+          if (this->rx_fragment_max_id_ != 0) {
+            bool complete = true;
+            for (uint8_t i = 0; i < this->rx_fragment_max_id_; i++) {
+              if (!this->rx_fragments_[i].wasReceived) {
+                complete = false;
+                break;
+              }
+            }
+            if (complete) this->cmd_deadline_ = millis();
+          }
         }
       }
     }

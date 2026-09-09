@@ -752,6 +752,16 @@ void HMComponent::loop() {
       uint8_t crc = crc8(raw, len - 1);
       if (crc == raw[len - 1]) {
         this->add_rx_fragment_(raw, len);
+        if (this->rx_fragment_max_id_ != 0) {
+          bool complete = true;
+          for (uint8_t i = 0; i < this->rx_fragment_max_id_; i++) {
+            if (!this->rx_fragments_[i].wasReceived) {
+              complete = false;
+              break;
+            }
+          }
+          if (complete) this->cmd_deadline_ = millis();
+        }
       }
     }
   }
