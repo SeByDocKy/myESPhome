@@ -111,6 +111,12 @@ button:
     hm_id: hm_1
     reset_to_output_min: {name: "Reset to 2%"}
     reset_to_output_max: {name: "Reset to 100%"}
+
+output:
+  - platform: hm
+    hm_id: hm_1
+    power_limit_percent:
+      id: hm1_power_limit_percent_output
 ```
 
 - `reachable` — ported from `InverterAbstract::isReachable()`
@@ -137,12 +143,12 @@ power-limit values, same rationale as `hms`.
 
 Shipped: hub (`hm:`), `sensor` platform, `number` platform (non-persistent
 power control), `binary_sensor` platform (`reachable`/`producing`), `button`
-platform (persistent power-limit reset).
+platform (persistent power-limit reset), `output` platform (float output,
+non-persistent).
 
-**Not yet ported** (same shape as `hms`, straightforward to add on request):
-`output` (float output for the relative power limit), and a `packet_transport`
-medium for `nrf24l01` reuse. Neither needs new protocol research — they'd
-follow the exact same pattern already built for `hms`.
+**Not yet ported**: a `packet_transport` medium for `nrf24l01` reuse. Doesn't
+need new protocol research — it'd follow the exact same pattern already built
+for `cmt2300a`/`nrf24l01`.
 
 ## Untested on real hardware
 
