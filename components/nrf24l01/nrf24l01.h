@@ -116,6 +116,25 @@ class NRF24Component : public Component,
   bool get_external_mode() const { return this->external_mode_; }
 
   // ---------------------------------------------------------------------------
+  // Arbitrage pour plusieurs composants "external_mode" partageant la même puce
+  // (ex. plusieurs hm: sur un seul nrf24l01:). Même API que cmt2300a. owner est
+  // un identifiant opaque (typiquement 'this' de l'appelant).
+  // ---------------------------------------------------------------------------
+  bool try_lock_external(const void *owner) {
+    if (this->external_lock_owner_ == nullptr || this->external_lock_owner_ == owner) {
+      this->external_lock_owner_ = owner;
+      return true;
+    }
+    return false;
+  }
+  void unlock_external(const void *owner) {
+    if (this->external_lock_owner_ == owner) this->external_lock_owner_ = nullptr;
+  }
+  bool is_owned_by_other(const void *owner) const {
+    return this->external_lock_owner_ != nullptr && this->external_lock_owner_ != owner;
+  }
+
+  // ---------------------------------------------------------------------------
   // API bas niveau publique -- réservée aux composants coopérants (ex. hm) quand
   // external_mode est actif.
   // ---------------------------------------------------------------------------
@@ -203,6 +222,7 @@ class NRF24Component : public Component,
   bool listening_{false};
   bool setup_failed_{false};
   bool external_mode_{false};
+  const void *external_lock_owner_{nullptr};
 
   CallbackManager<void(std::vector<uint8_t>)> packet_callback_{};
 };

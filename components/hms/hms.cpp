@@ -914,7 +914,26 @@ void HMSComponent::loop() {
     }
   }
 
-  // 3. Cadence de polling (uniquement si le canal radio est libre)
+  // 3. Commande de limite de puissance en attente -- traitée en PRIORITÉ, dès que
+  // le canal radio est libre, sans attendre le prochain créneau de poll_interval.
+  // Crucial pour un pilotage réactif (zero-injection, PID, etc.) : sans ce
+  // découplage, un ordre envoyé par number:/output:/button: pouvait attendre
+  // jusqu'à poll_interval (5s par défaut) avant d'être seulement transmis.
+  if (this->op_state_ == OP_IDLE && this->power_limit_pending_) {
+    if (!this->radio_->try_lock_external(this)) {
+      return;  // radio prise par une autre instance -- on retente au tick suivant
+    }
+    uint8_t out[24], out_len;
+    this->build_active_power_control_(this->power_limit_value_, this->power_limit_type_,
+                                       this->power_limit_persistent_, out, &out_len);
+    this->power_limit_pending_ = false;
+    this->power_limit_persistent_ = false;  // ne concerne que cet envoi précis
+    this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, 2000);
+    this->last_poll_ = millis();  // évite un sondage télémétrie immédiatement après
+    return;
+  }
+
+  // 4. Cadence de polling (télémétrie / reachability / ChannelChangeCommand)
   if (this->op_state_ == OP_IDLE && millis() - this->last_poll_ > this->poll_interval_ms_) {
     // Plusieurs hms: peuvent partager le même cmt2300a: -- on ne lance un nouvel
     // échange que si on parvient à prendre la main sur la radio. Sinon on retente
@@ -941,13 +960,6 @@ void HMSComponent::loop() {
       this->cmt_start_tx_(out, out_len);
       // process_tx_() restaure le canal de travail, relâche le jeton et relance
       // l'écoute une fois la trame partie (ou en timeout), sans bloquer loop().
-    } else if (this->power_limit_pending_) {
-      uint8_t out[24], out_len;
-      this->build_active_power_control_(this->power_limit_value_, this->power_limit_type_,
-                                         this->power_limit_persistent_, out, &out_len);
-      this->power_limit_pending_ = false;
-      this->power_limit_persistent_ = false;  // ne concerne que cet envoi précis
-      this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, 2000);
     } else {
       uint8_t out[32], out_len;
       this->build_realtime_data_request_(out, &out_len);

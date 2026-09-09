@@ -724,6 +724,10 @@ void HMComponent::setup() {
 void HMComponent::loop() {
   if (this->is_failed() || this->radio_ == nullptr) return;
 
+  // Une autre instance hm: (même nrf24l01: partagé) est en train d'utiliser la
+  // radio -- on ne touche à aucun registre tant qu'elle n'a pas rendu la main.
+  if (this->radio_->is_owned_by_other(this)) return;
+
   // 0. Emission Tx en cours -- non bloquant, comme hms
   if (this->tx_sending_) {
     this->process_tx_();
@@ -759,6 +763,7 @@ void HMComponent::loop() {
     if (result == FRAGMENT_OK) {
       this->op_state_ = OP_IDLE;
       this->pending_cmd_ = CMD_NONE;
+      this->radio_->unlock_external(this);
     } else if (result == FRAGMENT_ALL_MISSING_RESEND) {
       this->send_current_command_();
       this->cmd_deadline_ = millis() + 500;
@@ -774,25 +779,37 @@ void HMComponent::loop() {
       this->publish_reachable_();
       this->op_state_ = OP_IDLE;
       this->pending_cmd_ = CMD_NONE;
+      this->radio_->unlock_external(this);
     }
   }
 
-  // 4. Cadence de polling
+  // 4. Commande de limite de puissance en attente -- traitée en PRIORITÉ, dès que
+  // le canal radio est libre, sans attendre le prochain créneau de poll_interval
+  // (voir la même correction apportée à hms -- crucial pour un pilotage réactif).
+  if (this->op_state_ == OP_IDLE && this->power_limit_pending_) {
+    if (!this->radio_->try_lock_external(this)) {
+      return;  // radio prise par une autre instance -- on retente au tick suivant
+    }
+    uint8_t out[24], out_len;
+    this->build_active_power_control_(this->power_limit_value_, this->power_limit_type_,
+                                       this->power_limit_persistent_, out, &out_len);
+    this->power_limit_pending_ = false;
+    this->power_limit_persistent_ = false;
+    this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, 2000);
+    this->last_poll_ = millis();
+    return;
+  }
+
+  // 5. Cadence de polling (télémétrie)
   if (this->op_state_ == OP_IDLE && millis() - this->last_poll_ > this->poll_interval_ms_) {
+    if (!this->radio_->try_lock_external(this)) {
+      return;
+    }
     this->last_poll_ = millis();
 
-    if (this->power_limit_pending_) {
-      uint8_t out[24], out_len;
-      this->build_active_power_control_(this->power_limit_value_, this->power_limit_type_,
-                                         this->power_limit_persistent_, out, &out_len);
-      this->power_limit_pending_ = false;
-      this->power_limit_persistent_ = false;
-      this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, 2000);
-    } else {
-      uint8_t out[32], out_len;
-      this->build_realtime_data_request_(out, &out_len);
-      this->start_command_(CMD_REALTIME_DATA, out, out_len, 500);
-    }
+    uint8_t out[32], out_len;
+    this->build_realtime_data_request_(out, &out_len);
+    this->start_command_(CMD_REALTIME_DATA, out, out_len, 500);
   }
 }
 
