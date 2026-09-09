@@ -139,16 +139,20 @@ different `sn`, and matching `sensor:`/`number:` blocks per `hm_id`.
 `number.power_percent`/`number.power_absolute` use the **non-persistent**
 power-limit values, same rationale as `hms`.
 
-## What's in this v1, and what isn't yet
+## What's in this v1
 
 Shipped: hub (`hm:`), `sensor` platform, `number` platform (non-persistent
 power control), `binary_sensor` platform (`reachable`/`producing`), `button`
 platform (persistent power-limit reset), `output` platform (float output,
 non-persistent).
 
-**Not yet ported**: a `packet_transport` medium for `nrf24l01` reuse. Doesn't
-need new protocol research — it'd follow the exact same pattern already built
-for `cmt2300a`/`nrf24l01`.
+This gives `hm` full parity with [`hms`](../hms/README.md)'s platform set.
+Note that `packet_transport` is **not** something `hm` needs or is missing —
+that medium lives one layer down, on the physical radio component
+([`nrf24l01`](../nrf24l01/README.md#packet_transport), which already has
+one, the same way [`cmt2300a`](../cmt2300a/README.md#example-2--with-packet_transport)
+does) for generic sensor-state exchange independent of any Hoymiles protocol.
+`hms` doesn't have a `packet_transport` platform either, for the same reason.
 
 ## Untested on real hardware
 
