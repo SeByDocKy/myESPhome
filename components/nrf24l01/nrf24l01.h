@@ -106,6 +106,44 @@ class NRF24Component : public Component,
     for (uint8_t i = 0; i < 5 && i < addr.size(); i++) this->rx_address_[i] = addr[i];
   }
 
+  /// Quand true : setup() se limite à l'init SPI/CE + détection puce. Aucune config
+  /// registre "générique" (data rate/CRC/pipes/écoute), et loop() ne fait rien --
+  /// le composant appelant (ex. hm) pilote tout via l'API bas niveau ci-dessous.
+  /// Nécessaire pour le protocole Hoymiles NRF, qui fait du hop de canal continu
+  /// et impose ses propres data rate/CRC/largeur d'adresse/retries, incompatibles
+  /// avec la config statique du mode générique.
+  void set_external_mode(bool external) { this->external_mode_ = external; }
+  bool get_external_mode() const { return this->external_mode_; }
+
+  // ---------------------------------------------------------------------------
+  // API bas niveau publique -- réservée aux composants coopérants (ex. hm) quand
+  // external_mode est actif.
+  // ---------------------------------------------------------------------------
+  uint8_t read_register(uint8_t reg) { return this->read_register_(reg); }
+  void read_register(uint8_t reg, uint8_t *buf, uint8_t len) { this->read_register_(reg, buf, len); }
+  uint8_t write_register(uint8_t reg, uint8_t value) { return this->write_register_(reg, value); }
+  uint8_t write_register(uint8_t reg, const uint8_t *buf, uint8_t len) {
+    return this->write_register_(reg, buf, len);
+  }
+  uint8_t get_status() { return this->get_status_(); }
+  void flush_rx() { this->flush_rx_(); }
+  void flush_tx() { this->flush_tx_(); }
+  bool write_payload(const uint8_t *buf, uint8_t len) { return this->write_payload_(buf, len); }
+  uint8_t read_payload(uint8_t *buf, uint8_t maxlen) { return this->read_payload_(buf, maxlen); }
+  bool rx_available() { return this->rx_available_(); }
+  void open_writing_pipe(const uint8_t *addr) {
+    this->write_register_(REG_RX_ADDR_P0, addr, this->address_width_);
+    this->write_register_(REG_TX_ADDR, addr, this->address_width_);
+  }
+  void open_reading_pipe(uint8_t pipe, const uint8_t *addr) { this->open_reading_pipe_(pipe, addr); }
+  void start_listening() { this->start_listening_(); }
+  void stop_listening() { this->stop_listening_(); }
+  void set_channel_reg(uint8_t channel) { this->write_register_(REG_RF_CH, channel > 125 ? 125 : channel); }
+  void set_retries_reg(uint8_t delay, uint8_t count) {
+    this->write_register_(REG_SETUP_RETR, ((delay & 0x0F) << 4) | (count & 0x0F));
+  }
+  GPIOPin *get_ce_pin() { return this->ce_pin_; }
+
   void setup() override;
   void loop() override;
   void dump_config() override;
@@ -164,6 +202,7 @@ class NRF24Component : public Component,
 
   bool listening_{false};
   bool setup_failed_{false};
+  bool external_mode_{false};
 
   CallbackManager<void(std::vector<uint8_t>)> packet_callback_{};
 };

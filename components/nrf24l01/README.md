@@ -147,6 +147,189 @@ button:
       - nrf24l01.send: {id: radio, data: [0xAA]}
 ```
 
+## `packet_transport`
+
+Same medium as [`cmt2300a`](../cmt2300a/README.md#example-2--with-packet_transport):
+automatic exchange of sensor states between devices via ESPHome's official
+[`packet_transport`](https://esphome.io/components/packet_transport/)
+component, without writing your own parsing.
+
+```yaml
+packet_transport:
+  - platform: nrf24l01
+    nrf24l01_id: radio
+    update_interval: 10s
+    encryption: "MySharedSecret123"
+    sensors:
+      - my_temperature
+    binary_sensors:
+      - my_door_sensor
+```
+
+### Full two-device demo (sensor + binary_sensor)
+
+Two ESP32s, each with its own nRF24L01, mutually exchanging a temperature
+reading and a door sensor via `packet_transport`. Copy each block into a
+separate YAML file.
+
+#### `device_a.yaml`
+
+```yaml
+esphome:
+  name: device-a
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  - platform: esphome
+logger:
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [nrf24l01]
+    refresh: 10s
+
+spi:
+  id: spi_bus
+  clk_pin: GPIO18
+  mosi_pin: GPIO23
+  miso_pin: GPIO19
+
+nrf24l01:
+  id: radio
+  spi_id: spi_bus
+  cs_pin: GPIO5
+  ce_pin: GPIO4
+  tx_address: "AABBCCDDEE"    # A writes here -- B must listen on this
+  rx_address: "11223344EE"    # A listens here -- B must write here
+
+# --- What device-a SENDS to device-b, AND receives from device-b ---
+sensor:
+  - platform: dht
+    pin: GPIO25
+    temperature:
+      name: "Temperature A"
+      id: temperature_a
+    update_interval: 30s
+
+  - platform: packet_transport
+    provider: device-b
+    id: temperature_b
+    name: "Temperature B (received)"
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO26
+      mode: INPUT_PULLUP
+    name: "Door A"
+    id: door_a
+
+  - platform: packet_transport
+    provider: device-b
+    id: door_b
+    name: "Door B (received)"
+
+packet_transport:
+  - platform: nrf24l01
+    nrf24l01_id: radio
+    update_interval: 10s
+    encryption: "SharedSecretAB"
+    sensors:
+      - temperature_a
+    binary_sensors:
+      - door_a
+```
+
+#### `device_b.yaml`
+
+```yaml
+esphome:
+  name: device-b
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  - platform: esphome
+logger:
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [nrf24l01]
+    refresh: 10s
+
+spi:
+  id: spi_bus
+  clk_pin: GPIO18
+  mosi_pin: GPIO23
+  miso_pin: GPIO19
+
+nrf24l01:
+  id: radio
+  spi_id: spi_bus
+  cs_pin: GPIO5
+  ce_pin: GPIO4
+  tx_address: "11223344EE"    # B writes here -- A listens here
+  rx_address: "AABBCCDDEE"    # B listens here -- A writes here
+
+# --- What device-b SENDS to device-a, AND receives from device-a ---
+sensor:
+  - platform: dht
+    pin: GPIO25
+    temperature:
+      name: "Temperature B"
+      id: temperature_b
+    update_interval: 30s
+
+  - platform: packet_transport
+    provider: device-a
+    id: temperature_a
+    name: "Temperature A (received)"
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO26
+      mode: INPUT_PULLUP
+    name: "Door B"
+    id: door_b
+
+  - platform: packet_transport
+    provider: device-a
+    id: door_a
+    name: "Door A (received)"
+
+packet_transport:
+  - platform: nrf24l01
+    nrf24l01_id: radio
+    update_interval: 10s
+    encryption: "SharedSecretAB"
+    sensors:
+      - temperature_b
+    binary_sensors:
+      - door_b
+```
+
+Same key points as the CMT2300A demo: `provider:` must match the sending
+device's ESPHome name, `encryption:` must match on both sides, and each
+device is both a provider and a consumer.
+
 ## Known limitations of this v1
 
 - No multi-pipe reception (pipes 2-5) exposed in YAML — only pipe 1 is opened
@@ -154,5 +337,3 @@ button:
   but isn't wired up to configuration yet.
 - No ACK-payload support (`W_ACK_PAYLOAD`) even with `dynamic_payloads: true`
   — only plain auto-ack (empty acknowledgment) is used.
-- No `packet_transport` medium yet (unlike `cmt2300a`) — can be added the
-  same way if useful.

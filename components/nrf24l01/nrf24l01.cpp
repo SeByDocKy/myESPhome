@@ -273,6 +273,11 @@ void NRF24Component::setup() {
     return;
   }
 
+  if (this->external_mode_) {
+    ESP_LOGCONFIG(TAG, "NRF24 prêt (mode externe -- piloté par un autre composant)");
+    return;
+  }
+
   this->open_writing_pipe_();
   this->open_reading_pipe_(1, this->rx_address_);
   this->start_listening_();
@@ -281,7 +286,7 @@ void NRF24Component::setup() {
 }
 
 void NRF24Component::loop() {
-  if (this->is_failed()) return;
+  if (this->is_failed() || this->external_mode_) return;
   if (!this->listening_) return;
 
   if (this->rx_available_()) {

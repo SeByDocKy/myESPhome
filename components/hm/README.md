@@ -1,0 +1,128 @@
+# `hm` — native ESPHome component for Hoymiles HM micro-inverters
+
+Native ESPHome/ESP-IDF port of OpenDTU's Hoymiles protocol for the **HM**
+family of micro-inverters (HM-300 through HM-1500, the classic single/dual/
+quad-channel models that predate the HMS line), which communicate over an
+**nRF24L01(+)** radio rather than a CMT2300A. Built on top of
+[`nrf24l01`](../nrf24l01/README.md), which it drives in a dedicated mode —
+**not to be confused with [`hms`](../hms/README.md)**, which is for the
+newer HMS family over CMT2300A.
+
+## How HM differs from HMS (why this isn't just a copy of `hms`)
+
+Checked directly against OpenDTU's source, not assumed by analogy:
+
+- **Radio layer**: HM does continuous channel hopping across 5 fixed
+  channels (`3, 23, 40, 61, 75`), switching the RX channel every 4ms and
+  picking the next channel from the same list for every transmission —
+  ported from `HoymilesRadio_NRF.cpp`. This is fundamentally different from
+  HMS/CMT2300A's fixed work-channel + occasional boot-frequency handshake.
+- **Serial number validation**: not a simple prefix match like HMS — each
+  model (`HM_1CH`/`HM_2CH`/`HM_4CH`) uses a specific bit-shift formula plus
+  special-case exceptions, ported literally from `isValidSerial()` in each
+  file.
+- **Byte tables**: `HM_1CH.cpp`/`HM_2CH.cpp`/`HM_4CH.cpp`, offsets/divisors
+  ported exactly — the 4-channel model additionally uses a `CALC_CH_UDC`
+  computed field (channel 1's voltage mirrors channel 0's, channel 3
+  mirrors channel 2's) that HMS never needed.
+- **Power-limit control values**: `HmActivePowerControl`'s
+  persistent/non-persistent values (`0x0100`/`0x0101`) differ from
+  `HmsActivePowerControl`'s (`0x0002`/`0x0003`) — verified directly in
+  `ActivePowerControlCommand.cpp`.
+
+What's **shared** with `hms` (same Hoymiles protocol family): CRC8/CRC16,
+`CommandAbstract` frame structure, fragment reassembly logic, and the
+DTU-serial generation from the ESP32's MAC.
+
+## Installation
+
+```yaml
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [nrf24l01, hm]
+    refresh: 10s
+```
+
+## Basic setup
+
+```yaml
+spi:
+  id: spi_bus
+  clk_pin: GPIO18
+  mosi_pin: GPIO23
+  miso_pin: GPIO19
+
+nrf24l01:
+  id: radio
+  spi_id: spi_bus
+  cs_pin: GPIO5
+  ce_pin: GPIO4
+  # channel / pa_level / air_data_rate / crc_length / address_width /
+  # dynamic_payloads / tx_address / rx_address are all overridden internally
+  # by hm: to match the fixed Hoymiles NRF protocol requirements (250kbps,
+  # CRC-16, 5-byte addresses, dynamic payloads, continuous channel hopping)
+  # -- only pa_level and the pin assignments really matter here.
+
+hm:
+  - id: hm_1
+    nrf24l01_id: radio
+    sn: "112183001234"        # INVERTER serial number (determines model / DC channel count)
+    # dtu_serial: "1999812345"  # optional -- auto-derived from the ESP32 MAC if omitted
+    poll_interval: 5s
+
+sensor:
+  - platform: hm
+    hm_id: hm_1
+    dc_channels:
+      - pv0:
+          power: {name: "PV0 Power"}
+          current: {name: "PV0 Current"}
+          voltage: {name: "PV0 Voltage"}
+          energy_today: {name: "PV0 Energy Today"}
+          energy_total: {name: "PV0 Energy Total"}
+    ac:
+      voltage: {name: "AC Voltage"}
+      current: {name: "AC Current"}
+      power: {name: "AC Power"}
+      frequency: {name: "AC Frequency"}
+      power_factor: {name: "AC Power Factor"}
+      reactive_power: {name: "AC Reactive Power"}
+    inverter:
+      temperature: {name: "Inverter Temperature"}
+      power: {name: "Inverter DC Power"}
+      energy_today: {name: "Inverter Energy Today"}
+      energy_total: {name: "Inverter Energy Total"}
+      efficiency: {name: "Inverter Efficiency"}
+
+number:
+  - platform: hm
+    hm_id: hm_1
+    power_percent: {name: "Power Limit (%)"}
+    power_absolute: {name: "Power Limit (W)"}
+```
+
+`hm:` supports multiple instances (`MULTI_CONF`) exactly like `hms:` — several
+inverters can share one `nrf24l01:` radio; declare multiple `hm:` entries with
+different `sn`, and matching `sensor:`/`number:` blocks per `hm_id`.
+
+`number.power_percent`/`number.power_absolute` use the **non-persistent**
+power-limit values, same rationale as `hms`.
+
+## What's in this v1, and what isn't yet
+
+Shipped: hub (`hm:`), `sensor` platform, `number` platform (non-persistent
+power control).
+
+**Not yet ported** (same shape as `hms`, straightforward to add on request):
+`binary_sensor` (`reachable`/`producing`), `button`
+(`reset_to_output_min`/`reset_to_output_max`, persistent power-limit reset),
+`output` (float output for the relative power limit), and a `packet_transport`
+medium for `nrf24l01` reuse. None of these need new protocol research — they'd
+follow the exact same pattern already built for `hms`.
+
+## Untested on real hardware
+
+Like every component in this repository at first delivery, this hasn't been
+validated against a real HM inverter yet. Expect a debugging round (extra
+logging, possibly a wiring or timing fix) similar to what `hms` went through
+before its first successful exchange.
