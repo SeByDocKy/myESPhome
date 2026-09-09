@@ -18,7 +18,7 @@ NRF24PacketReceivedTrigger = nrf24l01_ns.class_(
 CONF_CE_PIN = "ce_pin"
 CONF_IRQ_PIN = "irq_pin"
 CONF_PA_LEVEL = "pa_level"
-CONF_DATA_RATE = "data_rate"
+CONF_AIR_DATA_RATE = "air_data_rate"
 CONF_CRC_LENGTH = "crc_length"
 CONF_ADDRESS_WIDTH = "address_width"
 CONF_AUTO_ACK = "auto_ack"
@@ -52,7 +52,7 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_IRQ_PIN): pins.internal_gpio_input_pin_schema,
             cv.Optional(CONF_CHANNEL, default=76): cv.int_range(min=0, max=125),
             cv.Optional(CONF_PA_LEVEL, default="max"): cv.enum(PA_LEVELS, lower=True),
-            cv.Optional(CONF_DATA_RATE, default="1mbps"): cv.enum(
+            cv.Optional(CONF_AIR_DATA_RATE, default="1mbps"): cv.enum(
                 DATA_RATES, lower=True
             ),
             cv.Optional(CONF_CRC_LENGTH, default="16bit"): cv.enum(
@@ -93,7 +93,7 @@ async def to_code(config):
 
     cg.add(var.set_channel(config[CONF_CHANNEL]))
     cg.add(var.set_pa_level(config[CONF_PA_LEVEL]))
-    cg.add(var.set_data_rate(config[CONF_DATA_RATE]))
+    cg.add(var.set_data_rate(config[CONF_AIR_DATA_RATE]))
     cg.add(var.set_crc_length(config[CONF_CRC_LENGTH]))
     cg.add(var.set_address_width(config[CONF_ADDRESS_WIDTH]))
     cg.add(var.set_auto_ack(config[CONF_AUTO_ACK]))

@@ -46,7 +46,7 @@ nrf24l01:
   # irq_pin: GPIO2        # optional, not actively used
   channel: 76              # 0-125 -> 2400+channel MHz
   pa_level: max             # min | low | high | max
-  data_rate: 1mbps          # 1mbps | 2mbps | 250kbps
+  air_data_rate: 1mbps          # 1mbps | 2mbps | 250kbps
   crc_length: 16bit         # disabled | 8bit | 16bit
   address_width: 5          # 3-5 bytes
   auto_ack: true
@@ -72,7 +72,7 @@ nrf24l01:
 | `irq_pin` | no | — | IRQ pin, declared for future use but not currently polled/attached — the component checks `FIFO_STATUS` directly on every `loop()` tick instead |
 | `channel` | no | `76` | RF channel, `0`-`125` → `2400 + channel` MHz |
 | `pa_level` | no | `max` | `min` (-18dBm) / `low` (-12dBm) / `high` (-6dBm) / `max` (0dBm) |
-| `data_rate` | no | `1mbps` | `1mbps` / `2mbps` / `250kbps` |
+| `air_data_rate` | no | `1mbps` | `1mbps` / `2mbps` / `250kbps` |
 | `crc_length` | no | `16bit` | `disabled` / `8bit` / `16bit`. `disabled` is only honored if `auto_ack: false` — the chip requires CRC whenever hardware auto-ack is active; otherwise a warning is logged and CRC-16 is kept |
 | `address_width` | no | `5` | `3`-`5` bytes |
 | `auto_ack` | no | `true` | Hardware auto-acknowledgment on all pipes |
