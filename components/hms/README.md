@@ -276,6 +276,44 @@ Keep in mind the radio is only ever talking to one inverter at a time
 inverters sharing one radio the effective per-inverter refresh rate will be
 lower than `poll_interval` under contention.
 
+## Tuning `poll_interval` (radio duty cycle)
+
+Every successful telemetry exchange occupies the radio for a measurable
+duration (`duty_cycle = N × exchange_time / poll_interval`, see
+[`cmt2300a`'s `duty_cycle` sensor](../cmt2300a/README.md#duty_cycle-sensor)).
+On a single inverter at -68 to -70 dBm RSSI (a fairly typical home
+installation, not a lab-perfect signal), real measurements gave:
+
+| `poll_interval` | Measured duty cycle | Implied exchange time |
+|---|---|---|
+| 5 s | 4% | ~200 ms |
+| 2 s | 13% | ~260 ms |
+| 1.1 s | 22% | ~242 ms |
+
+These converge on **~230-250 ms per exchange** at that signal level — this
+is a **real measurement**, not a theoretical estimate; it will vary with
+your own RSSI, obstacles, and interference, so treat it as a starting point
+rather than a guarantee. Use the `duty_cycle` sensor to verify your own
+numbers rather than assuming these transfer directly to your setup.
+
+Extrapolating linearly to multiple inverters (untested with N > 1, but the
+underlying math is straightforward since only one exchange happens at a
+time regardless of N), targeting ~20% duty cycle as a reasonable balance
+between responsiveness and channel headroom:
+
+| Inverters (`hms:`) | Suggested `poll_interval` | Target duty cycle |
+|---|---|---|
+| 1 | ~1.1 s | ~20% |
+| 2 | ~2.2 s | ~20% |
+| 4 | ~4.4 s | ~20% |
+| 8 | ~8.8 s | ~20% |
+
+Going lower than this trades responsiveness (fresher telemetry, and less
+chance of a `number`/`output` power-limit command having to wait behind an
+in-flight exchange) against less radio headroom — if your signal is weaker
+than -70 dBm, retransmissions will push the real duty cycle above these
+figures, so re-measure with the sensor rather than trusting the table blindly.
+
 ## Troubleshooting
 
 - **Nothing but `"Onduleur injoignable" / "inverter unreachable"` warnings,
