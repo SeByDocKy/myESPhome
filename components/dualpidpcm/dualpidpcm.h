@@ -94,6 +94,15 @@ class DUALPIDPCMComponent : public Component{
   void set_allow_discharging(bool enable) {this->current_allow_discharging_ = enable;}
   bool get_allow_discharging(void){return this->current_allow_discharging_;}
 
+  // Décharge réellement autorisée = intention utilisateur ET absence de lockout
+  // sous-tension. Fonction dérivée, en lecture seule : la régulation ne pilote
+  // PAS allow_discharging. current_allow_discharging_ appartient exclusivement
+  // à AllowDischargingSwitch (action utilisateur + restauration NVS) et n'est
+  // écrit que par lui ; l'algorithme se contente de le lire ici.
+  // La charge, elle, reste toujours permise — c'est le seul moyen de faire
+  // remonter la tension, donc de sortir du lockout.
+  bool discharge_gate(void){return this->current_allow_discharging_ && !this->undervoltage_lockout_;}
+
   void set_setpoint(float value) {this->current_setpoint_ = value;}
   float get_setpoint(void){return this->current_setpoint_;}
 
@@ -105,6 +114,8 @@ class DUALPIDPCMComponent : public Component{
 
   void set_stopping_battery_voltage(float value) {this->current_stopping_battery_voltage_ = value;}
   float get_stopping_battery_voltage(void){return this->current_stopping_battery_voltage_;}
+
+  bool get_undervoltage_lockout(void){return this->undervoltage_lockout_;}
 
   // Autoconsommation à vide du convertisseur en décharge (W). Vient s'ajouter
   // à la consommation mesurée de la maison pour déterminer le seuil réel
@@ -215,9 +226,11 @@ class DUALPIDPCMComponent : public Component{
   float current_feedforward_threshold_ = 300.0f;
   float current_starting_battery_voltage_ = 51.0f;
 
-  // Seuil bas de l'hystérésis de sous-tension : en dessous, on arrête
-  // (undervoltage_lockout_ = true) ; il faut remonter au-dessus de
-  // current_starting_battery_voltage_ pour relancer.
+  // Seuil bas de l'hystérésis de sous-tension : en dessous, on interdit la
+  // décharge (undervoltage_lockout_ = true) ; il faut remonter au-dessus de
+  // current_starting_battery_voltage_ pour relever le verrou.
+  // Le lockout n'inhibe QUE la décharge (cf. discharge_gate()) : couper
+  // aussi la charge rendrait le seuil haut inatteignable et le verrou définitif.
   float current_stopping_battery_voltage_ = 49.5f;
   bool  undervoltage_lockout_ = false;
 
