@@ -31,7 +31,7 @@ def _validate_serial(value):
     value = cv.string_strict(value)
     if not _SERIAL_RE.match(value):
         raise cv.Invalid(
-            "Le numéro de série doit être composé de 12 caractères hexadécimaux (ex. '1410A01121AE')"
+            "Le numéro de série doit être composé de 12 caractères hexadécimaux (ex. '1410A011xxxx')"
         )
     return value
 
