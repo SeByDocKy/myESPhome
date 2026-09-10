@@ -110,6 +110,10 @@ class HMComponent : public Component {
   void set_power_limit_absolute(float watts);
   void set_power_limit_percent_persistent(float percent);
 
+  /// Reset matériel de la puce + reconfiguration Hoymiles NRF complète, sans reboot
+  /// de l'ESP32. Bloquant (quelques ms) -- action manuelle rare.
+  void reset_radio();
+
   void setup() override;
   void loop() override;
   void dump_config() override;

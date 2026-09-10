@@ -156,6 +156,11 @@ class HMSComponent : public Component {
   /// reset_to_output_min/reset_to_output_max, pas pour un pilotage fréquent.
   void set_power_limit_percent_persistent(float percent);
 
+  /// Reset matériel de la puce + reconfiguration Hoymiles complète, sans reboot de
+  /// l'ESP32. Bloquant (jusqu'à ~400ms, similaire au setup() initial) -- action
+  /// manuelle rare, pas un chemin appelé en routine.
+  void reset_radio();
+
   void setup() override;
   void loop() override;
   void dump_config() override;

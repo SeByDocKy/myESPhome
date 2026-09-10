@@ -663,6 +663,39 @@ void HMComponent::set_power_limit_percent_persistent(float percent) {
   this->power_limit_pending_ = true;
 }
 
+void HMComponent::reset_radio() {
+  if (this->radio_ == nullptr) return;
+  ESP_LOGW(TAG, "Réinitialisation manuelle de la radio (reset_radio)");
+
+  if (this->radio_->is_owned_by_other(this)) {
+    ESP_LOGW(TAG, "Une autre instance hm: utilise actuellement la radio -- reset différé");
+    return;
+  }
+  this->radio_->try_lock_external(this);
+
+  this->tx_sending_ = false;
+  this->op_state_ = OP_IDLE;
+  this->pending_cmd_ = CMD_NONE;
+
+  if (!this->radio_->reset_radio()) {
+    this->radio_->unlock_external(this);
+    return;
+  }
+  if (!this->init_radio_()) {
+    ESP_LOGE(TAG, "Reconfiguration Hoymiles NRF après reset échouée");
+    this->radio_->unlock_external(this);
+    return;
+  }
+
+  this->rx_ch_idx_ = 0;
+  this->tx_ch_idx_ = 0;
+  this->last_rx_switch_ms_ = millis();
+  this->rx_failure_count_ = 0;
+  this->publish_reachable_();
+  this->radio_->unlock_external(this);
+  ESP_LOGI(TAG, "Radio réinitialisée et reconfigurée");
+}
+
 // ---------------------------------------------------------------------------
 // send_current_command_ / start_command_ -- identiques à hms
 // ---------------------------------------------------------------------------

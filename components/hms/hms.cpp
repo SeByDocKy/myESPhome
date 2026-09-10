@@ -760,6 +760,43 @@ void HMSComponent::set_power_limit_percent_persistent(float percent) {
   this->power_limit_pending_ = true;
 }
 
+void HMSComponent::reset_radio() {
+  if (this->radio_ == nullptr) return;
+  ESP_LOGW(TAG, "Réinitialisation manuelle de la radio (reset_radio)");
+
+  if (this->radio_->is_owned_by_other(this)) {
+    ESP_LOGW(TAG, "Une autre instance hms: utilise actuellement la radio -- reset différé");
+    return;
+  }
+  this->radio_->try_lock_external(this);
+
+  // Abandonne un éventuel échange de cette instance qui serait en cours
+  this->tx_sending_ = false;
+  this->op_state_ = OP_IDLE;
+  this->pending_cmd_ = CMD_NONE;
+
+  if (!this->radio_->reset_radio()) {
+    this->radio_->unlock_external(this);
+    return;
+  }
+  if (!this->init_radio_()) {
+    ESP_LOGE(TAG, "Reconfiguration Hoymiles après reset échouée");
+    this->radio_->unlock_external(this);
+    return;
+  }
+  this->radio_->set_external_radio_variant(static_cast<uint8_t>(this->frequency_band_));
+  this->radio_->set_external_radio_ready(true);
+
+  uint32_t default_freq = (this->frequency_band_ == FrequencyBand::US_900) ? 918000000UL : 865000000UL;
+  this->switch_to_frequency_(default_freq);
+  this->cmt_start_listening_();
+
+  this->rx_failure_count_ = 0;
+  this->publish_reachable_();
+  this->radio_->unlock_external(this);
+  ESP_LOGI(TAG, "Radio réinitialisée et reconfigurée (canal %u)", this->work_channel_);
+}
+
 // ---------------------------------------------------------------------------
 // Machine à état Tx/Rx + cadence de polling -- portée depuis HoymilesRadio.cpp
 // et Hoymiles.cpp (boucle principale)

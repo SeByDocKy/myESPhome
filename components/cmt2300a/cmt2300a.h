@@ -261,6 +261,11 @@ class CMT2300AComponent : public Component {
   void set_external_radio_variant(uint8_t variant) { this->external_radio_variant_ = variant; }
 
   void setup() override;
+
+  /// Reset matériel de la puce (commande soft reset du chip), sans reconfiguration
+  /// -- laisse la puce à l'état d'usine. En mode externe, à appeler suivi d'une
+  /// reconfiguration complète côté composant appelant (ex. hms::reset_radio()).
+  bool reset_radio();
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }

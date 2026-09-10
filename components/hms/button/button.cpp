@@ -13,5 +13,10 @@ void HMSResetPercentButton::press_action() {
   this->parent_->set_power_limit_percent_persistent(this->target_percent_);
 }
 
+void HMSResetHmsButton::press_action() {
+  if (this->parent_ == nullptr) return;
+  this->parent_->reset_radio();
+}
+
 }  // namespace hms
 }  // namespace esphome

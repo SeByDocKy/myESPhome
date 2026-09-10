@@ -228,6 +228,24 @@ bool NRF24Component::rx_available_() {
 // ---------------------------------------------------------------------------
 // ESPHome : setup / loop / dump_config
 // ---------------------------------------------------------------------------
+bool NRF24Component::reset_radio() {
+  ESP_LOGW(TAG, "Reset radio matériel demandé");
+  this->ce_pin_->digital_write(false);
+  uint8_t cfg = this->read_register_(REG_CONFIG);
+  this->write_register_(REG_CONFIG, cfg & ~MASK_PWR_UP);
+  delay(2);  // NOLINT -- Tpd du datasheet
+  this->flush_rx_();
+  this->flush_tx_();
+  this->write_register_(REG_CONFIG, cfg | MASK_PWR_UP);
+  delay(5);  // NOLINT -- Tpd2stby du datasheet
+  uint8_t check = this->read_register_(REG_CONFIG);
+  if (check == 0xFF) {
+    ESP_LOGE(TAG, "Reset radio : la puce ne répond pas");
+    return false;
+  }
+  return true;
+}
+
 void NRF24Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up NRF24...");
   this->spi_setup();

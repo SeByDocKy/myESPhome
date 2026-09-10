@@ -335,6 +335,16 @@ bool CMT2300AComponent::allow_receiving_any_nodeid_(bool allow) {
 // ---------------------------------------------------------------------------
 // ESPHome: setup / loop / dump_config
 // ---------------------------------------------------------------------------
+bool CMT2300AComponent::reset_radio() {
+  ESP_LOGW(TAG, "Reset radio matériel demandé");
+  if (!this->soft_reset_()) {
+    ESP_LOGE(TAG, "Reset radio : la puce ne répond pas");
+    return false;
+  }
+  this->external_radio_ready_ = false;
+  return true;
+}
+
 void CMT2300AComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up CMT2300A...");
 

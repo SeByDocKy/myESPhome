@@ -111,6 +111,7 @@ button:
     hm_id: hm_1
     reset_to_output_min: {name: "Reset to 2%"}
     reset_to_output_max: {name: "Reset to 100%"}
+    reset_hm: {name: "HM Reset Radio"}
 
 output:
   - platform: hm
@@ -131,6 +132,13 @@ output:
   `reset_to_output_min` forces 2% (not 0%, which would stop production
   entirely) and `reset_to_output_max` forces 100%. Each press logs a
   `WARN`-level line so accidental presses are visible.
+- `reset_hm` — resets the nRF24L01 chip in hardware (power-down/flush/
+  power-up cycle) and immediately re-runs the full Hoymiles NRF
+  configuration, without rebooting the ESP32. Same rationale, caveats, and
+  suggested `interval:`-based retry automation as
+  [`hms`'s `reset_hms`](../hms/README.md#reset_hms--chip-level-reset-no-esp32-reboot)
+  — this is a mitigation for an intermittent "won't connect after ESP32
+  boot" symptom some users report, not a confirmed root-cause fix.
 
 `hm:` supports multiple instances (`MULTI_CONF`) exactly like `hms:` — several
 inverters can share one `nrf24l01:` radio; declare multiple `hm:` entries with

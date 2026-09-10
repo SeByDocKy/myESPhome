@@ -215,6 +215,54 @@ value survives a mains power cycle. Meant to be pressed rarely:
 Each button press logs a `WARN`-level line ("PERSISTENT write") so accidental
 presses are visible in your logs.
 
+### `reset_hms` — chip-level reset, no ESP32 reboot
+
+```yaml
+button:
+  - platform: hms
+    hms_id: hms_1
+    reset_hms: {name: "HMS Reset Radio"}
+```
+
+Resets the CMT2300A chip in hardware (soft-reset command) and immediately
+re-runs the full Hoymiles register configuration (banks, merged FIFO,
+channel) — without rebooting the ESP32. Meant as a recovery tool for a
+specific symptom some users see: after an ESP32 boot, the inverter sometimes
+refuses to establish contact for several minutes, while a full power-cycle
+of the ESP32 (not just a software reset) fixes it immediately. The suspected
+cause is the radio chip retaining internal state across a plain MCU reset
+(since it typically shares the same power rail and isn't power-cycled by an
+ESP32-only reset) — `reset_hms` re-issues the chip's own reset command
+without needing to physically unplug anything, which is the next best thing
+to a real power cycle. **This is not a confirmed root-cause fix** — it's a
+plausible mitigation for an intermittent issue that hasn't been fully
+diagnosed.
+
+If you have multiple `hms:` instances sharing one `cmt2300a:`, pressing one
+instance's `reset_hms` resets the chip for **all** of them (it's the same
+physical radio) — each instance's own software state recovers on its next
+poll cycle, but an exchange another instance had in flight at that exact
+moment would be lost.
+
+A common pattern is to retry automatically until the inverter reports
+reachable, using ESPHome's `interval:` component:
+
+```yaml
+interval:
+  - interval: 30s
+    then:
+      - if:
+          condition:
+            binary_sensor.is_off: hms1_reachable
+          then:
+            - button.press: hms1_reset_hms
+```
+
+(`hms1_reachable` / `hms1_reset_hms` refer to whatever `id:` you gave those
+two entities.) Adjust the 30s retry period to taste — there's no need to go
+faster than the time it takes for a reset + reconfiguration + a few
+connection attempts to play out (a handful of seconds).
+
 ## Multiple inverters on one radio
 
 A single CMT2300A can talk to several HMS inverters. Declare several `hms:`

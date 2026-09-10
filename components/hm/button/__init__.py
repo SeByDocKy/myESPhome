@@ -7,6 +7,7 @@ from .. import HMComponent, hm_ns
 CONF_HM_ID = "hm_id"
 CONF_RESET_TO_OUTPUT_MIN = "reset_to_output_min"
 CONF_RESET_TO_OUTPUT_MAX = "reset_to_output_max"
+CONF_RESET_HM = "reset_hm"
 
 DEPENDENCIES = ["hm"]
 
@@ -16,6 +17,7 @@ HM_OUTPUT_MIN_PERCENT = 2.0
 HM_OUTPUT_MAX_PERCENT = 100.0
 
 HMResetPercentButton = hm_ns.class_("HMResetPercentButton", button.Button)
+HMResetHmButton = hm_ns.class_("HMResetHmButton", button.Button)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -27,6 +29,11 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_RESET_TO_OUTPUT_MAX): button.button_schema(
             HMResetPercentButton,
             icon="mdi:arrow-collapse-up",
+        ),
+        cv.Optional(CONF_RESET_HM): button.button_schema(
+            HMResetHmButton,
+            icon="mdi:restart",
+            entity_category="diagnostic",
         ),
     }
 )
@@ -46,3 +53,8 @@ async def to_code(config):
         var = await button.new_button(conf)
         cg.add(var.set_parent(hub))
         cg.add(var.set_target_percent(HM_OUTPUT_MAX_PERCENT))
+
+    if CONF_RESET_HM in config:
+        conf = config[CONF_RESET_HM]
+        var = await button.new_button(conf)
+        cg.add(var.set_parent(hub))

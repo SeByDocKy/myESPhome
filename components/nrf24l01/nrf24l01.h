@@ -225,6 +225,11 @@ class NRF24Component : public Component,
   GPIOPin *get_ce_pin() { return this->ce_pin_; }
 
   void setup() override;
+
+  /// Reset matériel de la puce (cycle power-down/flush/power-up), sans
+  /// reconfiguration -- en mode externe, à appeler suivi d'une reconfiguration
+  /// complète côté composant appelant (ex. hm::reset_radio()).
+  bool reset_radio();
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
