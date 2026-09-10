@@ -629,8 +629,12 @@ void HMComponent::publish_sensors_() {
 
 // isReachable() -- porté de InverterAbstract::isReachable() (rxFailureCount <= reachableThreshold)
 void HMComponent::publish_reachable_() {
+  bool reachable = this->rx_failure_count_ <= REACHABLE_THRESHOLD;
   if (this->reachable_sensor_ != nullptr) {
-    this->reachable_sensor_->publish_state(this->rx_failure_count_ <= REACHABLE_THRESHOLD);
+    this->reachable_sensor_->publish_state(reachable);
+  }
+  if (this->radio_ != nullptr) {
+    this->radio_->report_reachable(this, reachable);
   }
 }
 
@@ -696,6 +700,7 @@ void HMComponent::setup() {
     this->mark_failed();
     return;
   }
+  this->radio_->register_reachable_consumer(this);
 
   if (!this->decode_serial_()) {
     ESP_LOGE(TAG, "Numéro de série 0x%012llX non reconnu (préfixe HM inconnu)",

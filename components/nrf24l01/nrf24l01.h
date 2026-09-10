@@ -5,6 +5,7 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
+#include "esphome/components/sensor/sensor.h"
 #include "esphome/components/spi/spi.h"
 
 namespace esphome {
@@ -156,6 +157,45 @@ class NRF24Component : public Component,
   }
 
   // ---------------------------------------------------------------------------
+  // Suivi du nombre de composants "hm" rattachés à ce nrf24l01: et actuellement
+  // joignables (reachable). Même mécanisme que cmt2300a/hms : chaque hm: s'enregistre
+  // une fois au démarrage puis remonte son état reachable à chaque changement.
+  // ---------------------------------------------------------------------------
+  void set_hm_count_sensor(sensor::Sensor *s) { this->hm_count_sensor_ = s; }
+
+  void register_reachable_consumer(const void *owner) {
+    for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
+      if (this->reachable_consumers_[i].owner == owner) return;
+    }
+    if (this->reachable_consumer_count_ < MAX_REACHABLE_CONSUMERS) {
+      this->reachable_consumers_[this->reachable_consumer_count_].owner = owner;
+      this->reachable_consumers_[this->reachable_consumer_count_].reachable = false;
+      this->reachable_consumer_count_++;
+    }
+  }
+
+  void report_reachable(const void *owner, bool reachable) {
+    for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
+      if (this->reachable_consumers_[i].owner == owner) {
+        if (this->reachable_consumers_[i].reachable != reachable) {
+          this->reachable_consumers_[i].reachable = reachable;
+          this->update_hm_count_sensor_();
+        }
+        return;
+      }
+    }
+  }
+
+  uint8_t get_registered_hm_count() const { return this->reachable_consumer_count_; }
+  uint8_t get_reachable_hm_count() const {
+    uint8_t n = 0;
+    for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
+      if (this->reachable_consumers_[i].reachable) n++;
+    }
+    return n;
+  }
+
+  // ---------------------------------------------------------------------------
   // API bas niveau publique -- réservée aux composants coopérants (ex. hm) quand
   // external_mode est actif.
   // ---------------------------------------------------------------------------
@@ -247,6 +287,19 @@ class NRF24Component : public Component,
   uint32_t duty_lock_start_ms_{0};
   uint32_t duty_busy_accum_ms_{0};
   uint32_t duty_window_start_ms_{0};
+
+  struct ReachableEntry {
+    const void *owner{nullptr};
+    bool reachable{false};
+  };
+  static const uint8_t MAX_REACHABLE_CONSUMERS = 8;
+  ReachableEntry reachable_consumers_[MAX_REACHABLE_CONSUMERS]{};
+  uint8_t reachable_consumer_count_{0};
+  sensor::Sensor *hm_count_sensor_{nullptr};
+
+  void update_hm_count_sensor_() {
+    if (this->hm_count_sensor_ != nullptr) this->hm_count_sensor_->publish_state(this->get_reachable_hm_count());
+  }
 
   CallbackManager<void(std::vector<uint8_t>)> packet_callback_{};
 };

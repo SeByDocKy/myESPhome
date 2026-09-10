@@ -5,6 +5,7 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
+#include "esphome/components/sensor/sensor.h"
 
 namespace esphome {
 namespace cmt2300a {
@@ -208,6 +209,45 @@ class CMT2300AComponent : public Component {
     return (static_cast<float>(busy_ms) / static_cast<float>(window_ms)) * 100.0f;
   }
 
+  // ---------------------------------------------------------------------------
+  // Suivi du nombre de composants "hms" rattachés à ce cmt2300a: et actuellement
+  // joignables (reachable). Chaque hms: s'enregistre une fois au démarrage puis
+  // remonte son état reachable à chaque changement.
+  // ---------------------------------------------------------------------------
+  void set_hms_count_sensor(sensor::Sensor *s) { this->hms_count_sensor_ = s; }
+
+  void register_reachable_consumer(const void *owner) {
+    for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
+      if (this->reachable_consumers_[i].owner == owner) return;
+    }
+    if (this->reachable_consumer_count_ < MAX_REACHABLE_CONSUMERS) {
+      this->reachable_consumers_[this->reachable_consumer_count_].owner = owner;
+      this->reachable_consumers_[this->reachable_consumer_count_].reachable = false;
+      this->reachable_consumer_count_++;
+    }
+  }
+
+  void report_reachable(const void *owner, bool reachable) {
+    for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
+      if (this->reachable_consumers_[i].owner == owner) {
+        if (this->reachable_consumers_[i].reachable != reachable) {
+          this->reachable_consumers_[i].reachable = reachable;
+          this->update_hms_count_sensor_();
+        }
+        return;
+      }
+    }
+  }
+
+  uint8_t get_registered_hms_count() const { return this->reachable_consumer_count_; }
+  uint8_t get_reachable_hms_count() const {
+    uint8_t n = 0;
+    for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
+      if (this->reachable_consumers_[i].reachable) n++;
+    }
+    return n;
+  }
+
   /// Permet à plusieurs composants coopérants de savoir si l'un d'eux a déjà fait
   /// l'initialisation radio complète (bancs de registres, FIFO fusionné, etc.),
   /// pour éviter de la refaire à chaque nouvelle instance qui démarre.
@@ -320,6 +360,19 @@ class CMT2300AComponent : public Component {
   uint32_t duty_window_start_ms_{0};
   bool external_radio_ready_{false};
   uint8_t external_radio_variant_{0xFF};
+
+  struct ReachableEntry {
+    const void *owner{nullptr};
+    bool reachable{false};
+  };
+  static const uint8_t MAX_REACHABLE_CONSUMERS = 8;
+  ReachableEntry reachable_consumers_[MAX_REACHABLE_CONSUMERS]{};
+  uint8_t reachable_consumer_count_{0};
+  sensor::Sensor *hms_count_sensor_{nullptr};
+
+  void update_hms_count_sensor_() {
+    if (this->hms_count_sensor_ != nullptr) this->hms_count_sensor_->publish_state(this->get_reachable_hms_count());
+  }
 
   CallbackManager<void(std::vector<uint8_t>)> packet_callback_{};
   CallbackManager<void()> tx_done_callback_{};

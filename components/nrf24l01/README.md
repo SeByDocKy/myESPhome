@@ -126,6 +126,25 @@ sensor:
 With a generic (non-`hm`) `nrf24l01:` usage, this always reads `0%` — the
 lock is only used by `external_mode` consumers.
 
+## `hm_count` sensor
+
+Number of `hm:` instances attached to this `nrf24l01:` that are currently
+**reachable** (see `hm`'s `reachable` binary_sensor) — out of however many
+are configured. Updated the instant any `hm:` instance's reachable state
+changes (event-driven, not polled). Same mechanism as [`cmt2300a`'s
+`hms_count` sensor](../cmt2300a/README.md#hms_count-sensor).
+
+```yaml
+sensor:
+  - platform: nrf24l01
+    nrf24l01_id: radio
+    hm_count:
+      name: "HM Reachable Count"
+```
+
+Compilation fails with a clear error if no `hm:` instance references this
+`nrf24l01_id` — without at least one, the count would always read `0`.
+
 ## Two-device example
 
 ```yaml

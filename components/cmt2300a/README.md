@@ -118,6 +118,25 @@ sensor:
 With a generic (non-`hms`) `cmt2300a:` usage, this always reads `0%` — the
 lock is only used by `external_mode` consumers.
 
+## `hms_count` sensor
+
+Number of `hms:` instances attached to this `cmt2300a:` that are currently
+**reachable** (see `hms`'s `reachable` binary_sensor) — out of however many
+are configured. Updated the instant any `hms:` instance's reachable state
+changes (event-driven, not polled).
+
+```yaml
+sensor:
+  - platform: cmt2300a
+    cmt2300a_id: cmt_radio
+    hms_count:
+      name: "HMS Reachable Count"
+```
+
+Compilation fails with a clear error if no `hms:` instance references this
+`cmt2300a_id` — without at least one, the count would always read `0`, which
+is almost certainly a configuration mistake rather than intent.
+
 ## Example 1 — generic usage (without `packet_transport`)
 
 Two devices exchanging raw messages, filtered by `node_id`.
