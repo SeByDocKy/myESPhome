@@ -34,7 +34,7 @@ _DUTY_CYCLE_SCHEMA = sensor.sensor_schema(
 _HMS_COUNT_SCHEMA = sensor.sensor_schema(
     accuracy_decimals=0,
     state_class=STATE_CLASS_MEASUREMENT,
-    icon="mdi:counter",
+    icon="mdi:numeric",
 )
 
 CONFIG_SCHEMA = cv.Schema(
