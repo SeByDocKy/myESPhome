@@ -94,12 +94,14 @@ class DUALPIDPCMComponent : public Component{
   void set_allow_discharging(bool enable) {this->current_allow_discharging_ = enable;}
   bool get_allow_discharging(void){return this->current_allow_discharging_;}
 
-  // Décharge réellement autorisée : verrou utilisateur ET absence de lockout
-  // sous-tension. La charge, elle, reste toujours permise — c'est le seul
-  // moyen de faire remonter la tension, donc de sortir du lockout.
-  // current_allow_discharging_ n'est jamais écrit ici : il est persisté en NVS
-  // par allow_discharging_switch, l'écraser corromprait le réglage utilisateur.
-  bool discharging_allowed(void){return this->current_allow_discharging_ && !this->undervoltage_lockout_;}
+  // Décharge réellement autorisée = intention utilisateur ET absence de lockout
+  // sous-tension. Fonction dérivée, en lecture seule : la régulation ne pilote
+  // PAS allow_discharging. current_allow_discharging_ appartient exclusivement
+  // à AllowDischargingSwitch (action utilisateur + restauration NVS) et n'est
+  // écrit que par lui ; l'algorithme se contente de le lire ici.
+  // La charge, elle, reste toujours permise — c'est le seul moyen de faire
+  // remonter la tension, donc de sortir du lockout.
+  bool discharge_gate(void){return this->current_allow_discharging_ && !this->undervoltage_lockout_;}
 
   void set_setpoint(float value) {this->current_setpoint_ = value;}
   float get_setpoint(void){return this->current_setpoint_;}
@@ -227,7 +229,7 @@ class DUALPIDPCMComponent : public Component{
   // Seuil bas de l'hystérésis de sous-tension : en dessous, on interdit la
   // décharge (undervoltage_lockout_ = true) ; il faut remonter au-dessus de
   // current_starting_battery_voltage_ pour relever le verrou.
-  // Le lockout n'inhibe QUE la décharge (cf. discharging_allowed()) : couper
+  // Le lockout n'inhibe QUE la décharge (cf. discharge_gate()) : couper
   // aussi la charge rendrait le seuil haut inatteignable et le verrou définitif.
   float current_stopping_battery_voltage_ = 49.5f;
   bool  undervoltage_lockout_ = false;
