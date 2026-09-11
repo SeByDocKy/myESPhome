@@ -779,28 +779,32 @@ void HMComponent::loop() {
     this->switch_rx_channel_();
   }
 
-  // 2. Réception -- uniquement pertinent quand on attend une réponse (voir la
-  // note d'optimisation apportée à hms : le protocole est requête/réponse pur)
-  if (this->op_state_ == OP_WAIT_RESPONSE && this->radio_->rx_available()) {
-    uint8_t raw[33];
-    uint8_t len = this->radio_->read_payload(raw, sizeof(raw));
-    this->radio_->write_register(nrf24l01::REG_STATUS, nrf24l01::STATUS_RX_DR);
+  // 2. Réception -- vide tout le FIFO RX à chaque tick (jusqu'à 3 paquets en
+  // attente côté puce), comme HoymilesRadio_NRF::loop() (while (_radio->available())).
+  // Lire un seul fragment par tick risquait de prendre du retard si plusieurs
+  // fragments d'une même réponse arrivent en rafale rapprochée.
+  if (this->op_state_ == OP_WAIT_RESPONSE) {
+    while (this->radio_->rx_available()) {
+      uint8_t raw[33];
+      uint8_t len = this->radio_->read_payload(raw, sizeof(raw));
+      this->radio_->write_register(nrf24l01::REG_STATUS, nrf24l01::STATUS_RX_DR);
 
-    if (len >= 12 && len <= 32) {
-      uint8_t crc = crc8(raw, len - 1);
-      if (crc == raw[len - 1]) {
-        this->add_rx_fragment_(raw, len);
-        if (this->rx_fragment_max_id_ != 0) {
-          bool complete = true;
-          for (uint8_t i = 0; i < this->rx_fragment_max_id_; i++) {
-            if (!this->rx_fragments_[i].wasReceived) {
-              complete = false;
-              break;
-            }
-          }
-          if (complete) this->cmd_deadline_ = millis();
+      if (len >= 12 && len <= 32) {
+        uint8_t crc = crc8(raw, len - 1);
+        if (crc == raw[len - 1]) {
+          this->add_rx_fragment_(raw, len);
         }
       }
+    }
+    if (this->rx_fragment_max_id_ != 0) {
+      bool complete = true;
+      for (uint8_t i = 0; i < this->rx_fragment_max_id_; i++) {
+        if (!this->rx_fragments_[i].wasReceived) {
+          complete = false;
+          break;
+        }
+      }
+      if (complete) this->cmd_deadline_ = millis();
     }
   }
 
