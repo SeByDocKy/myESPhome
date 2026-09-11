@@ -3,6 +3,7 @@
 import glob
 import logging
 import os
+import shutil
 import esphome.codegen as cg
 
 _LOGGER = logging.getLogger(__name__)
@@ -458,19 +459,30 @@ async def to_code(config):
     add_idf_sdkconfig_option("CONFIG_MDNS_PREDEF_NETIF_AP", False)
     add_idf_sdkconfig_option("CONFIG_MDNS_PREDEF_NETIF_ETH", False)
 
-    # Include path for esp_netif internal header (needed for mDNS netif wrapper).
-    # The esp_netif_lwip_internal.h header defines struct esp_netif_obj which we
-    # need to create a minimal wrapper around mmipal's raw LWIP netif.
+    # Access to esp_netif internal header (needed for mDNS netif wrapper).
+    # The esp_netif_lwip_internal.h header defines struct esp_netif_obj which
+    # we need to create a minimal wrapper around mmipal's raw LWIP netif.
     #
-    # ESPHome can source its ESP-IDF framework from two different places
-    # depending on the version/backend in use:
-    #   - Legacy PlatformIO-managed framework: ~/.platformio/packages/framework-espidf
-    #   - ESPHome's own managed IDF toolchain (no PlatformIO), cached under a
-    #     per-OS cache dir, e.g. on Windows:
-    #     %LOCALAPPDATA%\esphome\Cache\idf\frameworks\<idf_version>\
-    #     and on Linux/macOS under ~/.cache/esphome or ~/Library/Caches/esphome.
-    # We search all known locations instead of assuming one, and glob for the
-    # IDF version directory since it varies.
+    # IMPORTANT: cg.add_build_flag("-I...") does NOT work for this. ESPHome's
+    # native ESP-IDF build backend (no PlatformIO) only forwards "-D" and "-W"
+    # flags into the generated CMakeLists.txt (see
+    # esphome/framework_helpers.py: get_project_compile_flags) -- any "-I" we
+    # add is silently dropped. The merged "src" IDF component's INCLUDE_DIRS
+    # are also hardcoded to "." and "esphome" (esphome/build_gen/espidf.py:
+    # get_component_cmakelists), so there is no supported way to append an
+    # extra include directory to it directly.
+    #
+    # What DOES work -- and is exactly how mmipal.h / mmwlan.h etc. above
+    # already resolve -- is registering an ESP-IDF component via
+    # add_idf_component(). ESPHome writes every add_idf_component() entry
+    # into src's idf_component.yml as a dependency, and ESP-IDF's component
+    # manager automatically requires those dependencies for "src", exposing
+    # their public INCLUDE_DIRS to halow_component.cpp.
+    #
+    # So instead of injecting a raw compiler flag, we generate a tiny
+    # synthetic component that only exposes a *copy* of the private header
+    # (copying avoids any ambiguity with absolute vs. relative INCLUDE_DIRS
+    # in the generated CMakeLists.txt) and register it the same way.
     def _find_esp_netif_lwip_dir():
         candidates = []
 
@@ -484,7 +496,9 @@ async def to_code(config):
             "components", "esp_netif", "lwip",
         ))
 
-        # ESPHome-managed IDF toolchain cache (no PlatformIO)
+        # ESPHome-managed IDF toolchain cache (no PlatformIO), e.g. on
+        # Windows: %LOCALAPPDATA%\esphome\Cache\idf\frameworks\<version>\
+        # and on Linux/macOS under ~/.cache/esphome or ~/Library/Caches/esphome.
         cache_roots = []
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
@@ -501,10 +515,8 @@ async def to_code(config):
                 return path
         return None
 
-    esp_netif_internal = _find_esp_netif_lwip_dir()
-    if esp_netif_internal:
-        cg.add_build_flag(f"-I{esp_netif_internal}")
-    else:
+    esp_netif_internal_dir = _find_esp_netif_lwip_dir()
+    if esp_netif_internal_dir is None:
         raise cv.Invalid(
             "Could not locate esp_netif_lwip_internal.h in your ESP-IDF "
             "framework (checked IDF_PATH, PlatformIO's framework-espidf, and "
@@ -514,6 +526,16 @@ async def to_code(config):
             "ESP-IDF install and adjust _find_esp_netif_lwip_dir() in "
             "halow/__init__.py accordingly."
         )
+
+    shim_dir = os.path.expanduser("~/.esphome/halow_esp_netif_shim")
+    os.makedirs(shim_dir, exist_ok=True)
+    shutil.copy2(
+        os.path.join(esp_netif_internal_dir, "esp_netif_lwip_internal.h"),
+        os.path.join(shim_dir, "esp_netif_lwip_internal.h"),
+    )
+    with open(os.path.join(shim_dir, "CMakeLists.txt"), "w") as f:
+        f.write('idf_component_register(INCLUDE_DIRS ".")\n')
+    add_idf_component(name="halow_esp_netif_shim", path=shim_dir)
 
     # Wrap network utility functions so ESPHome's API/OTA components
     # recognize halow as a valid network provider. Without this,
