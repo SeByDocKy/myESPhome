@@ -1,5 +1,6 @@
 """ESPHome component for Wi-Fi HaLow (IEEE 802.11ah) via Morse Micro MM6108."""
 
+import glob
 import logging
 import os
 import esphome.codegen as cg
@@ -460,12 +461,59 @@ async def to_code(config):
     # Include path for esp_netif internal header (needed for mDNS netif wrapper).
     # The esp_netif_lwip_internal.h header defines struct esp_netif_obj which we
     # need to create a minimal wrapper around mmipal's raw LWIP netif.
-    esp_netif_internal = os.path.join(
-        os.path.expanduser("~/.platformio"), "packages", "framework-espidf",
-        "components", "esp_netif", "lwip"
-    )
-    if os.path.isdir(esp_netif_internal):
+    #
+    # ESPHome can source its ESP-IDF framework from two different places
+    # depending on the version/backend in use:
+    #   - Legacy PlatformIO-managed framework: ~/.platformio/packages/framework-espidf
+    #   - ESPHome's own managed IDF toolchain (no PlatformIO), cached under a
+    #     per-OS cache dir, e.g. on Windows:
+    #     %LOCALAPPDATA%\esphome\Cache\idf\frameworks\<idf_version>\
+    #     and on Linux/macOS under ~/.cache/esphome or ~/Library/Caches/esphome.
+    # We search all known locations instead of assuming one, and glob for the
+    # IDF version directory since it varies.
+    def _find_esp_netif_lwip_dir():
+        candidates = []
+
+        idf_path_env = os.environ.get("IDF_PATH")
+        if idf_path_env:
+            candidates.append(os.path.join(idf_path_env, "components", "esp_netif", "lwip"))
+
+        # Legacy PlatformIO-managed IDF framework
+        candidates.append(os.path.join(
+            os.path.expanduser("~/.platformio"), "packages", "framework-espidf",
+            "components", "esp_netif", "lwip",
+        ))
+
+        # ESPHome-managed IDF toolchain cache (no PlatformIO)
+        cache_roots = []
+        local_app_data = os.environ.get("LOCALAPPDATA")
+        if local_app_data:
+            cache_roots.append(os.path.join(local_app_data, "esphome", "Cache"))
+        cache_roots.append(os.path.expanduser("~/.cache/esphome"))
+        cache_roots.append(os.path.expanduser("~/Library/Caches/esphome"))
+
+        for root in cache_roots:
+            pattern = os.path.join(root, "idf", "frameworks", "*", "components", "esp_netif", "lwip")
+            candidates.extend(glob.glob(pattern))
+
+        for path in candidates:
+            if os.path.isfile(os.path.join(path, "esp_netif_lwip_internal.h")):
+                return path
+        return None
+
+    esp_netif_internal = _find_esp_netif_lwip_dir()
+    if esp_netif_internal:
         cg.add_build_flag(f"-I{esp_netif_internal}")
+    else:
+        raise cv.Invalid(
+            "Could not locate esp_netif_lwip_internal.h in your ESP-IDF "
+            "framework (checked IDF_PATH, PlatformIO's framework-espidf, and "
+            "ESPHome's managed IDF cache). halow_component.cpp needs this "
+            "private header to build its mDNS netif wrapper — please locate "
+            "'components/esp_netif/lwip/esp_netif_lwip_internal.h' in your "
+            "ESP-IDF install and adjust _find_esp_netif_lwip_dir() in "
+            "halow/__init__.py accordingly."
+        )
 
     # Wrap network utility functions so ESPHome's API/OTA components
     # recognize halow as a valid network provider. Without this,
