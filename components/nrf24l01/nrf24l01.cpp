@@ -186,8 +186,13 @@ void NRF24Component::open_reading_pipe_(uint8_t pipe, const uint8_t *addr) {
     this->write_register_(REG_RX_ADDR_P0 + pipe, addr, this->address_width_);
   } else {
     // Les pipes 2-5 partagent les 4 octets de poids fort de l'adresse de la pipe 1 --
-    // seul le dernier octet diffère (comportement matériel du chip).
-    this->write_register_(REG_RX_ADDR_P0 + pipe, &addr[this->address_width_ - 1], 1);
+    // seul l'octet de poids FAIBLE diffère (comportement matériel du chip). Vérifié
+    // contre RF24::openReadingPipe() : write_register(child_pipe[child],
+    // reinterpret_cast<const uint8_t*>(&address), 1) -- soit l'octet 0 du uint64_t
+    // (LSB), qui correspond à addr[0] dans notre convention (voir
+    // serial_to_radio_address côté hm). Écrire addr[address_width-1] (comme avant
+    // ce correctif) prenait l'octet de poids FORT par erreur.
+    this->write_register_(REG_RX_ADDR_P0 + pipe, &addr[0], 1);
   }
   this->write_register_(REG_RX_PW_P0 + pipe, this->payload_size_);
   uint8_t en_rxaddr = this->read_register_(REG_EN_RXADDR);
