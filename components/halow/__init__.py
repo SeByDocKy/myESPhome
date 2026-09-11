@@ -19,7 +19,11 @@ from esphome.const import (
     UNIT_DECIBEL_MILLIWATT,
 )
 from esphome.core import coroutine_with_priority, CORE
-from esphome.components.esp32 import add_idf_sdkconfig_option, add_idf_component
+from esphome.components.esp32 import (
+    add_idf_component,
+    add_idf_sdkconfig_option,
+    exclude_builtin_idf_component,
+)
 
 DEPENDENCIES = ["esp32"]
 AUTO_LOAD = ["network", "sensor", "text_sensor", "button"]
@@ -402,6 +406,16 @@ async def to_code(config):
         cg.add_define("USE_HALOW_REGDB")
     for name, subpath in components:
         add_idf_component(name=name, path=os.path.join(framework_path, subpath))
+
+    # morselib (statically linked with --whole-archive) provides its own
+    # copy of wpa_supplicant's wpabuf helpers, built with the same
+    # "mmint_"-prefixed symbol names as ESP-IDF's own "hostap" component
+    # (recent ESP-IDF versions ship native Wi-Fi HaLow / Morse Micro glue
+    # in hostap). With both linked in, the linker sees duplicate
+    # definitions of mmint_wpabuf_alloc/clear_free/put/alloc_copy and
+    # fails. We don't use ESP-IDF's own Wi-Fi/hostap stack here (this
+    # component replaces it entirely), so exclude hostap from the build.
+    exclude_builtin_idf_component("hostap")
 
     # Kconfig: Pins
     add_idf_sdkconfig_option("CONFIG_MM_RESET_N", config[CONF_RESET_PIN])
