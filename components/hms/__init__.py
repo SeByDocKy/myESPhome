@@ -18,6 +18,8 @@ CONF_SN = "sn"
 CONF_DTU_SERIAL = "dtu_serial"
 CONF_FREQUENCY_BAND = "frequency_band"
 CONF_POLL_INTERVAL = "poll_interval"
+CONF_REALTIME_TIMEOUT = "realtime_timeout"
+CONF_POWER_CONTROL_TIMEOUT = "power_control_timeout"
 
 FREQUENCY_BANDS = {
     "eu_860": 0,
@@ -48,6 +50,17 @@ CONFIG_SCHEMA = cv.Schema(
             FREQUENCY_BANDS, lower=True
         ),
         cv.Optional(CONF_POLL_INTERVAL, default="5s"): cv.positive_time_period_milliseconds,
+        # Délais avant abandon/retransmission -- par défaut identiques à ceux
+        # d'OpenDTU (RealTimeRunDataCommand::setTimeout(500),
+        # ActivePowerControlCommand::setTimeout(2000)). Optionnels : à ajuster
+        # seulement si une calibration réelle (ex. via le capteur duty_cycle)
+        # en montre l'intérêt sur ton installation.
+        cv.Optional(
+            CONF_REALTIME_TIMEOUT, default="500ms"
+        ): cv.positive_time_period_milliseconds,
+        cv.Optional(
+            CONF_POWER_CONTROL_TIMEOUT, default="2000ms"
+        ): cv.positive_time_period_milliseconds,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -69,3 +82,5 @@ async def to_code(config):
 
     cg.add(var.set_frequency_band(config[CONF_FREQUENCY_BAND]))
     cg.add(var.set_poll_interval(config[CONF_POLL_INTERVAL]))
+    cg.add(var.set_realtime_timeout(config[CONF_REALTIME_TIMEOUT]))
+    cg.add(var.set_power_control_timeout(config[CONF_POWER_CONTROL_TIMEOUT]))

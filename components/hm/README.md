@@ -69,6 +69,8 @@ hm:
     sn: "112183001234"        # INVERTER serial number (determines model / DC channel count)
     # dtu_serial: "1999812345"  # optional -- auto-derived from the ESP32 MAC if omitted
     poll_interval: 5s
+    # realtime_timeout: 500ms       # optional -- same default as OpenDTU's RealTimeRunDataCommand
+    # power_control_timeout: 2000ms # optional -- same default as OpenDTU's ActivePowerControlCommand
 
 sensor:
   - platform: hm

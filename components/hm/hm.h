@@ -82,6 +82,8 @@ class HMComponent : public Component {
   void set_inverter_serial(uint64_t serial) { this->inverter_serial_ = serial; }
   void set_dtu_serial(uint64_t serial) { this->dtu_serial_ = serial; }
   void set_poll_interval(uint32_t ms) { this->poll_interval_ms_ = ms; }
+  void set_realtime_timeout(uint32_t ms) { this->realtime_timeout_ms_ = ms; }
+  void set_power_control_timeout(uint32_t ms) { this->power_control_timeout_ms_ = ms; }
 
   void set_dc_power_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_power_[ch] = s; }
   void set_dc_current_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_current_[ch] = s; }
@@ -158,6 +160,10 @@ class HMComponent : public Component {
   uint64_t inverter_serial_{0};
   uint64_t dtu_serial_{0};
   uint32_t poll_interval_ms_{5000};
+  // Mêmes valeurs par défaut qu'OpenDTU (RealTimeRunDataCommand/ActivePowerControlCommand),
+  // exposées en YAML -- voir hms.h pour le même mécanisme.
+  uint32_t realtime_timeout_ms_{500};
+  uint32_t power_control_timeout_ms_{2000};
 
   uint8_t dc_channel_count_{0};
   std::string type_name_;

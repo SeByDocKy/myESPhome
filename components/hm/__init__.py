@@ -17,6 +17,8 @@ CONF_NRF24L01_ID = "nrf24l01_id"
 CONF_SN = "sn"
 CONF_DTU_SERIAL = "dtu_serial"
 CONF_POLL_INTERVAL = "poll_interval"
+CONF_REALTIME_TIMEOUT = "realtime_timeout"
+CONF_POWER_CONTROL_TIMEOUT = "power_control_timeout"
 
 _SERIAL_RE = re.compile(r"^[0-9A-Fa-f]{12}$")
 
@@ -39,6 +41,14 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Required(CONF_SN): _validate_serial,
         cv.Optional(CONF_DTU_SERIAL): _validate_serial,
         cv.Optional(CONF_POLL_INTERVAL, default="5s"): cv.positive_time_period_milliseconds,
+        # Délais avant abandon/retransmission -- mêmes valeurs par défaut
+        # qu'OpenDTU, optionnels (voir hms: pour la même logique).
+        cv.Optional(
+            CONF_REALTIME_TIMEOUT, default="500ms"
+        ): cv.positive_time_period_milliseconds,
+        cv.Optional(
+            CONF_POWER_CONTROL_TIMEOUT, default="2000ms"
+        ): cv.positive_time_period_milliseconds,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -59,3 +69,5 @@ async def to_code(config):
         cg.add(var.set_dtu_serial(int(config[CONF_DTU_SERIAL], 16)))
 
     cg.add(var.set_poll_interval(config[CONF_POLL_INTERVAL]))
+    cg.add(var.set_realtime_timeout(config[CONF_REALTIME_TIMEOUT]))
+    cg.add(var.set_power_control_timeout(config[CONF_POWER_CONTROL_TIMEOUT]))

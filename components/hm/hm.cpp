@@ -850,7 +850,7 @@ void HMComponent::loop() {
                                        this->power_limit_persistent_, out, &out_len);
     this->power_limit_pending_ = false;
     this->power_limit_persistent_ = false;
-    this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, 2000);
+    this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, this->power_control_timeout_ms_);
     this->last_poll_ = millis();
     return;
   }
@@ -864,7 +864,7 @@ void HMComponent::loop() {
 
     uint8_t out[32], out_len;
     this->build_realtime_data_request_(out, &out_len);
-    this->start_command_(CMD_REALTIME_DATA, out, out_len, 500);
+    this->start_command_(CMD_REALTIME_DATA, out, out_len, this->realtime_timeout_ms_);
   }
 }
 

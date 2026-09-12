@@ -80,6 +80,8 @@ hms:
     # dtu_serial: "1999812345"  # optional -- auto-derived from the ESP32 MAC if omitted
     frequency_band: eu_860      # eu_860 (868MHz) or us_900 (915MHz)
     poll_interval: 5s
+    # realtime_timeout: 500ms       # optional -- same default as OpenDTU's RealTimeRunDataCommand
+    # power_control_timeout: 2000ms # optional -- same default as OpenDTU's ActivePowerControlCommand
 ```
 
 ### `hms:` hub options
@@ -91,6 +93,8 @@ hms:
 | `dtu_serial` | no | auto (from MAC) | Your own DTU identity, 12 hex characters. Left unset, it's derived from the ESP32's MAC — every `hms:` instance sharing the same ESP32 gets the same value by default, matching how a single real DTU addresses several inverters |
 | `frequency_band` | no | `eu_860` | `eu_860` (868MHz) or `us_900` (915MHz). **Must be identical** across every `hms:` instance sharing the same `cmt2300a_id` |
 | `poll_interval` | no | `5s` | How often real-time data is requested from this inverter |
+| `realtime_timeout` | no | `500ms` | How long to wait for a telemetry response before giving up/retrying — same default as OpenDTU's `RealTimeRunDataCommand`. Optional, only worth changing with real calibration data (e.g. via the `duty_cycle` sensor) |
+| `power_control_timeout` | no | `2000ms` | Same, for `ActivePowerControlCommand` — same default as OpenDTU |
 
 `hms:` supports multiple instances (`MULTI_CONF`), see
 [Multiple inverters on one radio](#multiple-inverters-on-one-radio) below.

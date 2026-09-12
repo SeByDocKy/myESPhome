@@ -117,6 +117,8 @@ class HMSComponent : public Component {
   void set_dtu_serial(uint64_t serial) { this->dtu_serial_ = serial; }
   void set_frequency_band(uint8_t band) { this->frequency_band_ = static_cast<FrequencyBand>(band); }
   void set_poll_interval(uint32_t ms) { this->poll_interval_ms_ = ms; }
+  void set_realtime_timeout(uint32_t ms) { this->realtime_timeout_ms_ = ms; }
+  void set_power_control_timeout(uint32_t ms) { this->power_control_timeout_ms_ = ms; }
 
   // --- Capteurs DC (jusqu'à 4 canaux selon le modèle décodé depuis le SN) ---
   void set_dc_power_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_power_[ch] = s; }
@@ -214,6 +216,12 @@ class HMSComponent : public Component {
   uint64_t dtu_serial_{0};
   FrequencyBand frequency_band_{FrequencyBand::EU_860};
   uint32_t poll_interval_ms_{5000};
+  // Délais avant abandon/retransmission d'une commande -- valeurs par défaut
+  // identiques à celles d'OpenDTU (RealTimeRunDataCommand::setTimeout(500),
+  // ActivePowerControlCommand::setTimeout(2000)), exposées en YAML pour
+  // permettre une calibration future sans recompiler le composant.
+  uint32_t realtime_timeout_ms_{500};
+  uint32_t power_control_timeout_ms_{2000};
 
   uint8_t dc_channel_count_{0};
   std::string type_name_;
