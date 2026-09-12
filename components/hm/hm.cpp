@@ -254,6 +254,9 @@ bool HMComponent::init_radio_() {
   rf_setup &= ~0b00101000;
   rf_setup |= 0b00100000;
   this->radio_->write_register(nrf24l01::REG_RF_SETUP, rf_setup);
+  // Le délai post-écoute (stop_listening_()) doit correspondre au débit réel --
+  // 505us pour 250kbps (F_CPU>20MHz), porté de RF24::_data_rate_reg_value().
+  this->radio_->set_tx_delay_us(505);
 
   // CRC 16 bits (EN_CRC=1, CRCO=1) -- setCRCLength(RF24_CRC_16)
   uint8_t cfg = this->radio_->read_register(nrf24l01::REG_CONFIG);

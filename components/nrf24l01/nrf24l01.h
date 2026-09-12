@@ -223,6 +223,10 @@ class NRF24Component : public Component,
     this->write_register_(REG_SETUP_RETR, ((delay & 0x0F) << 4) | (count & 0x0F));
   }
   GPIOPin *get_ce_pin() { return this->ce_pin_; }
+  /// A appeler par un composant external_mode qui configure le débit radio
+  /// directement en registre (bypass apply_data_rate_()) -- garde le délai
+  /// post-écoute cohérent avec le vrai débit utilisé (voir stop_listening_()).
+  void set_tx_delay_us(uint32_t us) { this->tx_delay_us_ = us; }
 
   void setup() override;
 
@@ -292,6 +296,11 @@ class NRF24Component : public Component,
   uint32_t duty_lock_start_ms_{0};
   uint32_t duty_busy_accum_ms_{0};
   uint32_t duty_window_start_ms_{0};
+  // Délai après ce(LOW) dans stop_listening_(), avant de considérer la radio
+  // stabilisée hors écoute -- dépend du débit radio (voir apply_data_rate_()).
+  // Valeurs portées de RF24::_data_rate_reg_value() pour F_CPU > 20MHz, ce qui
+  // couvre l'ESP32 sans condition.
+  uint32_t tx_delay_us_{280};
 
   struct ReachableEntry {
     const void *owner{nullptr};

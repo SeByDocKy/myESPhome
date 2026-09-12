@@ -112,9 +112,15 @@ void NRF24Component::power_up_() {
 }
 
 void NRF24Component::apply_pa_level_() {
-  uint8_t setup = this->read_register_(REG_RF_SETUP);
-  setup &= ~0b00000110;  // bits [2:1] = RF_PWR
-  setup |= (static_cast<uint8_t>(this->pa_level_) << 1) & 0b00000110;
+  // Porté de RF24::setPALevel()/_pa_level_reg_value() : setup = (read & 0xF8) |
+  // (level << 1) | lnaEnable. lnaEnable vaut true par défaut dans la vraie
+  // bibliothèque -- sur puce nRF24L01+ authentique ce bit 0 est sans effet
+  // documenté, mais sur les clones SI24R1 (très répandus sur les modules bon
+  // marché), il change réellement le niveau de sortie (+3dBm à PA_MAX). On le
+  // positionne systématiquement à 1 pour matcher le comportement par défaut
+  // réel de la bibliothèque plutôt que de le laisser à 0 par omission.
+  uint8_t setup = this->read_register_(REG_RF_SETUP) & 0xF8;
+  setup |= ((static_cast<uint8_t>(this->pa_level_) << 1) & 0b00000110) | 0b00000001;
   this->write_register_(REG_RF_SETUP, setup);
 }
 
@@ -124,12 +130,15 @@ void NRF24Component::apply_data_rate_() {
   switch (this->data_rate_) {
     case RATE_250KBPS:
       setup |= (1 << 5);
+      this->tx_delay_us_ = 505;
       break;
     case RATE_2MBPS:
       setup |= (1 << 3);
+      this->tx_delay_us_ = 240;
       break;
     case RATE_1MBPS:
     default:
+      this->tx_delay_us_ = 280;
       break;  // les deux bits à 0 = 1Mbps
   }
   this->write_register_(REG_RF_SETUP, setup);
@@ -218,7 +227,7 @@ void NRF24Component::start_listening_() {
 
 void NRF24Component::stop_listening_() {
   this->ce_pin_->digital_write(false);
-  delayMicroseconds(130);
+  delayMicroseconds(this->tx_delay_us_);
   this->flush_tx_();
   uint8_t cfg = this->read_register_(REG_CONFIG);
   this->write_register_(REG_CONFIG, cfg & ~MASK_PRIM_RX);
@@ -286,11 +295,15 @@ void NRF24Component::setup() {
 
   this->power_up_();
 
-  uint8_t cfg_check = this->read_register_(REG_CONFIG);
-  if (cfg_check == 0xFF || cfg_check == 0x00) {
-    // 0xFF (bus non connecté) ou 0x00 (PWR_UP n'a pas pris, alors qu'on vient de
-    // l'activer) -- dans les deux cas, la puce ne répond pas correctement.
-    ESP_LOGE(TAG, "Puce NRF24 non détectée (CONFIG=0x%02X) -- vérifie le câblage SPI/CE", cfg_check);
+  // Porté de RF24::isChipConnected() : SETUP_AW doit valoir address_width-2,
+  // puisqu'on vient de l'écrire nous-mêmes via apply_address_width_() -- plus
+  // fiable qu'un heuristique sur CONFIG (0x00/0xFF), qui reste un bon indice
+  // mais pas la méthode que la vraie bibliothèque utilise.
+  uint8_t expected_aw = (this->address_width_ >= 2) ? (this->address_width_ - 2) : 0;
+  uint8_t aw_check = this->read_register_(REG_SETUP_AW);
+  if (aw_check != expected_aw) {
+    ESP_LOGE(TAG, "Puce NRF24 non détectée (SETUP_AW=0x%02X, attendu 0x%02X) -- vérifie le câblage SPI/CE",
+             aw_check, expected_aw);
     this->setup_failed_ = true;
     this->mark_failed();
     return;
