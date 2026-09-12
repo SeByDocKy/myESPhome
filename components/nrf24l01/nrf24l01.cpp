@@ -365,7 +365,7 @@ bool NRF24Component::send_packet(const std::vector<uint8_t> &data, uint32_t time
     ESP_LOGW(TAG, "Envoi échoué : nombre maximal de retransmissions atteint (pas d'accusé reçu)");
     this->flush_tx_();
   } else if (!done) {
-    ESP_LOGW(TAG, "Timeout Tx (%ums)", timeout_ms);
+    ESP_LOGW(TAG, "Timeout Tx (%ums)", static_cast<unsigned int>(timeout_ms));
     this->flush_tx_();
   }
   this->write_register_(REG_STATUS, STATUS_TX_DS | STATUS_MAX_RT);

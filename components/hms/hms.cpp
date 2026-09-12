@@ -378,7 +378,7 @@ void HMSComponent::process_tx_() {
   if (!done) {
     ESP_LOGW(TAG, "Timeout Tx (95ms)");
   } else {
-    ESP_LOGV(TAG, "TX terminée (%ums)", millis() - this->tx_start_);
+    ESP_LOGV(TAG, "TX terminée (%ums)", static_cast<unsigned int>(millis() - this->tx_start_));
   }
 
   this->radio_->clear_irq_flags();
@@ -940,8 +940,9 @@ void HMSComponent::loop() {
   // 2. Suivi de la commande en cours
   if (this->op_state_ == OP_WAIT_RESPONSE && millis() > this->cmd_deadline_) {
     uint8_t result = this->verify_all_fragments_();
-    ESP_LOGV(TAG, "verify_all_fragments_ -> %u (millis=%u, deadline=%u, last_id=%u, max_id=%u)", result, millis(),
-             this->cmd_deadline_, this->rx_fragment_last_id_, this->rx_fragment_max_id_);
+    ESP_LOGV(TAG, "verify_all_fragments_ -> %u (millis=%u, deadline=%u, last_id=%u, max_id=%u)", result,
+             static_cast<unsigned int>(millis()), static_cast<unsigned int>(this->cmd_deadline_),
+             this->rx_fragment_last_id_, this->rx_fragment_max_id_);
 
     if (result == FRAGMENT_OK) {
       this->op_state_ = OP_IDLE;
@@ -960,7 +961,7 @@ void HMSComponent::loop() {
       // Timeout définitif ou erreur de traitement
       this->rx_failure_count_++;
       ESP_LOGD(TAG, "Echec définitif du cycle de commande (résultat=%u) -- rx_failure_count_=%u", result,
-               this->rx_failure_count_);
+               static_cast<unsigned int>(this->rx_failure_count_));
       this->publish_reachable_();
       this->op_state_ = OP_IDLE;
       this->pending_cmd_ = CMD_NONE;
@@ -998,12 +999,14 @@ void HMSComponent::loop() {
       return;
     }
     this->last_poll_ = millis();
-    ESP_LOGV(TAG, "Cycle de polling (millis=%u, rx_failure_count_=%u)", millis(), this->rx_failure_count_);
+    ESP_LOGV(TAG, "Cycle de polling (millis=%u, rx_failure_count_=%u)", static_cast<unsigned int>(millis()),
+             static_cast<unsigned int>(this->rx_failure_count_));
 
     if (this->rx_failure_count_ > REACHABLE_THRESHOLD) {
       // Onduleur injoignable -> ChannelChangeCommand envoyée à la fréquence de boot,
       // comme HMS_Abstract::sendChangeChannelRequest() / HoymilesRadio_CMT::sendEsbPacket()
-      ESP_LOGW(TAG, "Onduleur injoignable (%u échecs) -- tentative de ChannelChangeCommand", this->rx_failure_count_);
+      ESP_LOGW(TAG, "Onduleur injoignable (%u échecs) -- tentative de ChannelChangeCommand",
+               static_cast<unsigned int>(this->rx_failure_count_));
       uint8_t out[16], out_len;
       uint32_t boot_freq = (this->frequency_band_ == FrequencyBand::US_900) ? 915000000UL : 868000000UL;
       uint8_t saved_channel = this->work_channel_;
@@ -1029,7 +1032,7 @@ void HMSComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  Numéro de série onduleur: 0x%012llX", static_cast<unsigned long long>(this->inverter_serial_));
   ESP_LOGCONFIG(TAG, "  Numéro de série DTU: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
   ESP_LOGCONFIG(TAG, "  Bande de fréquence: %s", this->frequency_band_ == FrequencyBand::US_900 ? "900MHz (US/BR)" : "860MHz (EU)");
-  ESP_LOGCONFIG(TAG, "  Intervalle de sondage: %ums", this->poll_interval_ms_);
+  ESP_LOGCONFIG(TAG, "  Intervalle de sondage: %ums", static_cast<unsigned int>(this->poll_interval_ms_));
   if (this->is_failed()) {
     ESP_LOGE(TAG, "  Setup a échoué");
   }

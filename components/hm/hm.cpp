@@ -830,7 +830,7 @@ void HMComponent::loop() {
     } else {
       this->rx_failure_count_++;
       ESP_LOGD(TAG, "Echec définitif du cycle de commande (résultat=%u) -- rx_failure_count_=%u", result,
-               this->rx_failure_count_);
+               static_cast<unsigned int>(this->rx_failure_count_));
       this->publish_reachable_();
       this->op_state_ = OP_IDLE;
       this->pending_cmd_ = CMD_NONE;
@@ -873,7 +873,7 @@ void HMComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  Modèle: %s", this->type_name_.c_str());
   ESP_LOGCONFIG(TAG, "  Numéro de série onduleur: 0x%012llX", static_cast<unsigned long long>(this->inverter_serial_));
   ESP_LOGCONFIG(TAG, "  Numéro de série DTU: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
-  ESP_LOGCONFIG(TAG, "  Intervalle de sondage: %ums", this->poll_interval_ms_);
+  ESP_LOGCONFIG(TAG, "  Intervalle de sondage: %ums", static_cast<unsigned int>(this->poll_interval_ms_));
   if (this->is_failed()) {
     ESP_LOGE(TAG, "  Setup a échoué");
   }
