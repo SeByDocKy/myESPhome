@@ -28,9 +28,9 @@ _DUTY_CYCLE_SCHEMA = sensor.sensor_schema(
     icon="mdi:radio-tower",
 ).extend(cv.polling_component_schema("60s"))
 
-# hms_count est un compteur événementiel (publié par cmt2300a: à chaque changement
-# d'état reachable d'un hms:, pas de scrutation) -- un sensor::Sensor de base suffit,
-# pas besoin d'une classe C++ dédiée comme pour duty_cycle.
+# hms_count is an event-driven counter (published by cmt2300a: on every reachable
+# state change of an hms:, not polled) -- a base sensor::Sensor is enough,
+# no dedicated C++ class needed like for duty_cycle.
 _HMS_COUNT_SCHEMA = sensor.sensor_schema(
     accuracy_decimals=0,
     state_class=STATE_CLASS_MEASUREMENT,
@@ -50,24 +50,24 @@ def _final_validate(config):
     if CONF_HMS_COUNT not in config:
         return config
 
-    # hms_count n'a de sens que s'il existe au moins un hms: rattaché à ce
-    # cmt2300a: -- sinon le compteur resterait toujours à 0, ce qui est plus
-    # probablement un oubli de configuration qu'une intention réelle.
+    # hms_count only makes sense if at least one hms: is attached to this
+    # cmt2300a: -- otherwise the counter would always stay at 0, which is more
+    # likely a config oversight than actual intent.
     try:
         full_conf = fv.full_config.get()
         hms_confs = full_conf.get("hms", [])
         if isinstance(hms_confs, dict):
             hms_confs = [hms_confs]
-    except Exception:  # noqa: BLE001 -- API interne potentiellement différente
-        # selon la version d'ESPHome ; on ne bloque pas la compilation pour autant.
+    except Exception:  # noqa: BLE001 -- internal API may differ across
+        # ESPHome versions; don't block compilation because of that.
         return config
 
     radio_id = config[CONF_CMT2300A_ID]
     if not any(hms_conf.get("cmt2300a_id") == radio_id for hms_conf in hms_confs):
         raise cv.Invalid(
-            f"'hms_count' nécessite qu'au moins un composant hms: soit rattaché à "
-            f"ce cmt2300a_id ('{radio_id}') -- sans hms:, ce compteur resterait "
-            f"toujours à 0."
+            f"'hms_count' requires at least one hms: component attached to "
+            f"this cmt2300a_id ('{radio_id}') -- without an hms:, this counter would "
+            f"always stay at 0."
         )
     return config
 

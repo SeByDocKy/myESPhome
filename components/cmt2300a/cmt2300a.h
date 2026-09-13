@@ -12,17 +12,17 @@ namespace esphome {
 namespace cmt2300a {
 
 // ---------------------------------------------------------------------------
-// Registres et masques portés 1:1 depuis cmt2300a_defs.h (anisyanka/cmt2300a)
+// Registers and masks ported 1:1 from cmt2300a_defs.h (anisyanka/cmt2300a)
 // ---------------------------------------------------------------------------
 static const uint8_t REG_CUS_SYS2 = 0x0D;
-static const uint8_t REG_CUS_PKT15 = 0x46;   // PAYLOAD_LENG (Tx et Rx)
+static const uint8_t REG_CUS_PKT15 = 0x46;   // PAYLOAD_LENG (Tx and Rx)
 static const uint8_t REG_CUS_PKT16 = 0x47;   // NODE_ERR_MASK, ...
-static const uint8_t REG_CUS_PKT17 = 0x48;   // NODE_VALUE[7:0] -- utilisé aussi pour is_chip_exist()
+static const uint8_t REG_CUS_PKT17 = 0x48;   // NODE_VALUE[7:0] -- also used for is_chip_exist()
 static const uint8_t REG_CUS_PKT29 = 0x54;   // FIFO_TH
 static const uint8_t REG_CUS_MODE_CTL = 0x60;
 static const uint8_t REG_CUS_MODE_STA = 0x61;
-static const uint8_t REG_CUS_FREQ_CHNL = 0x63;  // FH_CHANNEL -- registre de canal (hopping rapide)
-static const uint8_t REG_CUS_FREQ_OFS = 0x64;   // FH_OFFSET -- pas de canal (x 2.5kHz)
+static const uint8_t REG_CUS_FREQ_CHNL = 0x63;  // FH_CHANNEL -- channel register (fast hopping)
+static const uint8_t REG_CUS_FREQ_OFS = 0x64;   // FH_OFFSET -- channel step (x 2.5kHz)
 static const uint8_t REG_CUS_IO_SEL = 0x65;
 static const uint8_t REG_CUS_INT1_CTL = 0x66;
 static const uint8_t REG_CUS_INT2_CTL = 0x67;
@@ -40,7 +40,7 @@ static const uint8_t REG_NODE_ID_1 = 0x49;
 static const uint8_t REG_NODE_ID_2 = 0x4A;
 static const uint8_t REG_NODE_ID_3 = 0x4B;
 
-// Bancs de registres par défaut (config_reg_bank dans le driver de référence)
+// Default register banks (config_reg_bank in the reference driver)
 static const uint8_t BANK_CMT_ADDR = 0x00;
 static const uint8_t BANK_CMT_SIZE = 12;
 static const uint8_t BANK_SYSTEM_ADDR = 0x0C;
@@ -54,7 +54,7 @@ static const uint8_t BANK_BASEBAND_SIZE = 29;
 static const uint8_t BANK_TX_ADDR = 0x55;
 static const uint8_t BANK_TX_SIZE = 11;
 
-// Masques utiles
+// Useful masks
 static const uint8_t MASK_RSTN_IN_EN = 0x20;
 static const uint8_t MASK_CFG_RETAIN = 0x10;
 static const uint8_t MASK_CHIP_MODE_STA = 0x0F;
@@ -121,12 +121,12 @@ static const uint8_t STATE_RX = 5;
 static const uint8_t STATE_TX = 6;
 static const uint8_t STATE_INVALID = 0xFF;
 
-// GPIOx_SEL (cmt2300a_gpio_functions_t) -- uniquement ce qui nous sert (INT1/INT2 sur GPIO2/GPIO3)
+// GPIOx_SEL (cmt2300a_gpio_functions_t) -- only what we actually use (INT1/INT2 on GPIO2/GPIO3)
 static const uint32_t GPIO2_SEL_INT1 = 0x00;
 static const uint32_t GPIO2_SEL_INT2 = 0x04;
 static const uint32_t GPIO3_SEL_INT2 = 0x20;
 
-// cmt2300_gpio_irq_mappings_t (ce qui nous sert)
+// cmt2300_gpio_irq_mappings_t (what we actually use)
 static const uint8_t INT_SEL_PKT_OK = 0x07;
 static const uint8_t INT_SEL_TX_DONE = 0x0A;
 static const uint8_t INT_SEL_PKT_DONE = 0x19;
@@ -154,21 +154,21 @@ class CMT2300AComponent : public Component {
   void set_accept_any_node_id(bool accept) { this->accept_any_node_id_ = accept; }
   void set_fifo_threshold(uint8_t th) { this->fifo_threshold_ = th; }
 
-  /// Quand true : setup() se limite à l'init des pins + soft reset + détection puce.
-  /// Aucun banc de registres "générique", aucune init FIFO/IRQ, aucune boucle RX --
-  /// le composant appelant (ex. hms) pilote tout via l'API bas niveau ci-dessous.
-  /// Utilisé quand un protocole tiers (Hoymiles/HMS) a besoin de ses propres bancs
-  /// de registres et de sa propre cadence Tx/Rx, incompatibles avec le mode générique.
+  /// When true: setup() only does pin init + soft reset + chip detection.
+  /// No "generic" register bank, no FIFO/IRQ init, no RX loop --
+  /// the calling component (e.g. hms) drives everything via the low-level API below.
+  /// Used when a third-party protocol (Hoymiles/HMS) needs its own register
+  /// banks and its own Tx/Rx cadence, incompatible with generic mode.
   void set_external_mode(bool external) { this->external_mode_ = external; }
   bool get_external_mode() const { return this->external_mode_; }
 
   // ---------------------------------------------------------------------------
-  // Arbitrage pour plusieurs composants "external_mode" partageant la même puce
-  // (ex. plusieurs hms: sur un seul cmt2300a:). owner est un identifiant opaque
-  // (typiquement 'this' de l'appelant).
+  // Arbitration for several "external_mode" components sharing the same chip
+  // (e.g. several hms: on a single cmt2300a:). owner is an opaque identifier
+  // (typically the caller's 'this').
   // ---------------------------------------------------------------------------
-  /// Tente de prendre la main sur la puce. Retourne true si acquis (ou déjà détenu
-  /// par ce même owner) ; false si un autre composant l'utilise actuellement.
+  /// Tries to take ownership of the chip. Returns true if acquired (or already
+  /// held by this same owner); false if another component is currently using it.
   bool try_lock_external(const void *owner) {
     if (this->external_lock_owner_ == nullptr) {
       this->external_lock_owner_ = owner;
@@ -178,29 +178,29 @@ class CMT2300AComponent : public Component {
     if (this->external_lock_owner_ == owner) return true;
     return false;
   }
-  /// Relâche la main -- n'a d'effet que si 'owner' est bien le détenteur actuel.
+  /// Releases ownership -- only has an effect if 'owner' is indeed the current holder.
   void unlock_external(const void *owner) {
     if (this->external_lock_owner_ == owner) {
       this->duty_busy_accum_ms_ += millis() - this->duty_lock_start_ms_;
       this->external_lock_owner_ = nullptr;
     }
   }
-  /// True si un AUTRE composant que 'owner' détient actuellement la main sur la puce.
+  /// True if a component OTHER than 'owner' currently holds ownership of the chip.
   bool is_owned_by_other(const void *owner) const {
     return this->external_lock_owner_ != nullptr && this->external_lock_owner_ != owner;
   }
 
-  /// Taux d'occupation radio (% de temps passé verrou pris) depuis le dernier appel,
-  /// puis réinitialise la fenêtre de mesure. Prévu pour être appelé périodiquement
-  /// (ex. depuis un composant sensor), pas en continu.
+  /// Radio duty cycle (% of time spent with the lock held) since the last call,
+  /// then resets the measurement window. Meant to be called periodically
+  /// (e.g. from a sensor component), not continuously.
   float get_duty_cycle_percent_and_reset() {
     uint32_t now = millis();
     uint32_t window_ms = now - this->duty_window_start_ms_;
     uint32_t busy_ms = this->duty_busy_accum_ms_;
     if (this->external_lock_owner_ != nullptr) {
-      // Verrou actuellement pris : compter la portion de l'échange en cours qui
-      // tombe dans cette fenêtre, sinon on sous-estime le taux si la fenêtre se
-      // termine pendant un échange.
+      // Lock currently held: count the portion of the ongoing exchange that
+      // falls within this window, otherwise we'd underestimate the rate if the
+      // window ends mid-exchange.
       busy_ms += now - this->duty_lock_start_ms_;
       this->duty_lock_start_ms_ = now;
     }
@@ -211,9 +211,9 @@ class CMT2300AComponent : public Component {
   }
 
   // ---------------------------------------------------------------------------
-  // Suivi du nombre de composants "hms" rattachés à ce cmt2300a: et actuellement
-  // joignables (reachable). Chaque hms: s'enregistre une fois au démarrage puis
-  // remonte son état reachable à chaque changement.
+  // Tracking the number of "hms" components attached to this cmt2300a: that are
+  // currently reachable. Each hms: registers itself once at startup, then
+  // reports its reachable state on every change.
   // ---------------------------------------------------------------------------
   void set_hms_count_sensor(sensor::Sensor *s) { this->hms_count_sensor_ = s; }
 
@@ -249,33 +249,33 @@ class CMT2300AComponent : public Component {
     return n;
   }
 
-  /// Permet à plusieurs composants coopérants de savoir si l'un d'eux a déjà fait
-  /// l'initialisation radio complète (bancs de registres, FIFO fusionné, etc.),
-  /// pour éviter de la refaire à chaque nouvelle instance qui démarre.
+  /// Lets several cooperating components know whether one of them has already
+  /// done the full radio init (register banks, merged FIFO, etc.),
+  /// to avoid redoing it for every new instance that starts up.
   bool is_external_radio_ready() const { return this->external_radio_ready_; }
   void set_external_radio_ready(bool ready) { this->external_radio_ready_ = ready; }
 
-  /// Identifiant opaque (défini par le composant appelant, ex. la bande de
-  /// fréquence côté hms) de la "variante" avec laquelle la puce a été initialisée,
-  /// pour détecter un mismatch si une deuxième instance demande une config différente.
+  /// Opaque identifier (defined by the calling component, e.g. hms's frequency
+  /// band) of the "variant" the chip was initialized with, used to detect a
+  /// mismatch if a second instance requests a different config.
   uint8_t get_external_radio_variant() const { return this->external_radio_variant_; }
   void set_external_radio_variant(uint8_t variant) { this->external_radio_variant_ = variant; }
 
   void setup() override;
 
-  /// Reset matériel de la puce (commande soft reset du chip), sans reconfiguration
-  /// -- laisse la puce à l'état d'usine. En mode externe, à appeler suivi d'une
-  /// reconfiguration complète côté composant appelant (ex. hms::reset_radio()).
+  /// Hardware reset of the chip (chip soft reset command), without reconfiguration
+  /// -- leaves the chip in its factory state. In external mode, call this followed
+  /// by a full reconfiguration on the caller's side (e.g. hms::reset_radio()).
   bool reset_radio();
 
-  /// Puissance d'émission en dBm (-10 à +20), portée depuis CMT2300a::setPALevel()
-  /// (table de correspondance dBm -> registres CUS_TX8/CUS_TX9 + bit "double" de
-  /// CUS_CMT4, vérifiée directement dans le vrai code source OpenDTU/anisyanka).
-  /// Optionnel : si jamais appelée, le banc Tx figé porté depuis la config de
-  /// référence reste inchangé (comportement historique préservé).
+  /// Transmit power in dBm (-10 to +20), ported from CMT2300a::setPALevel()
+  /// (dBm -> CUS_TX8/CUS_TX9 register lookup table + "double" bit in
+  /// CUS_CMT4, verified directly against the real OpenDTU/anisyanka source).
+  /// Optional: if never called, the fixed Tx bank ported from the reference
+  /// config stays unchanged (historical behavior preserved).
   void set_pa_level(int8_t dbm);
-  /// Appelé par la génération de code YAML pour mémoriser la valeur désirée --
-  /// l'écriture registre effective se fait dans setup(), après le banc Tx figé.
+  /// Called by YAML codegen to store the desired value -- the actual register
+  /// write happens in setup(), after the fixed Tx bank.
   void configure_pa_level(int8_t dbm) {
     this->has_pa_level_ = true;
     this->pa_level_dbm_ = dbm;
@@ -285,8 +285,8 @@ class CMT2300AComponent : public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
 
-  /// Démarre une transmission non bloquante. Retourne false si le FIFO TX est trop petit
-  /// ou si le composant est occupé. Uniquement valide en mode générique (external_mode=false).
+  /// Starts a non-blocking transmission. Returns false if the TX FIFO is too small
+  /// or if the component is busy. Only valid in generic mode (external_mode=false).
   bool send_packet(const std::vector<uint8_t> &data, uint32_t timeout_ms = 200);
 
   void add_on_packet_received_callback(std::function<void(std::vector<uint8_t>)> cb) {
@@ -295,8 +295,8 @@ class CMT2300AComponent : public Component {
   void add_on_tx_done_callback(std::function<void()> cb) { this->tx_done_callback_.add(std::move(cb)); }
 
   // ---------------------------------------------------------------------------
-  // API bas niveau publique -- réservée aux composants coopérants (ex. hms) quand
-  // external_mode est actif. Accès direct aux registres/FIFO/état du CMT2300A.
+  // Public low-level API -- reserved for cooperating components (e.g. hms) when
+  // external_mode is active. Direct access to the CMT2300A's registers/FIFO/state.
   // ---------------------------------------------------------------------------
   void write_reg(uint8_t reg, uint8_t data) { this->write_reg_(reg, data); }
   uint8_t read_reg(uint8_t reg) { return this->read_reg_(reg); }
@@ -317,7 +317,7 @@ class CMT2300AComponent : public Component {
   InternalGPIOPin *get_gpio3_pin() { return this->gpio3_pin_; }
 
  protected:
-  // --- Bit-bang bas niveau (port de if_send_byte/if_read_byte) ---
+  // --- Low-level bit-bang (port of if_send_byte/if_read_byte) ---
   void if_send_byte_(uint8_t data8);
   uint8_t if_read_byte_();
   void write_reg_(uint8_t reg, uint8_t data);
@@ -330,7 +330,7 @@ class CMT2300AComponent : public Component {
   uint8_t fifo_clear_rx_();
   void config_reg_bank_(uint8_t base_addr, const uint8_t *bank, size_t len);
 
-  // --- Séquence haut niveau (port des fonctions cmt2300a_*) ---
+  // --- High-level sequence (port of the cmt2300a_*() functions) ---
   bool soft_reset_();
   bool go_state_(uint8_t go_state_mask, uint8_t desired_state);
   uint8_t get_state_();

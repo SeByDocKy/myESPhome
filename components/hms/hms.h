@@ -13,8 +13,8 @@ namespace esphome {
 namespace hms {
 
 // ---------------------------------------------------------------------------
-// Types portés depuis OpenDTU lib/Hoymiles/src/parser/StatisticsParser.h
-// (uniquement le sous-ensemble utilisé par les onduleurs HMS 1/2/4 canaux)
+// Types ported from OpenDTU lib/Hoymiles/src/parser/StatisticsParser.h
+// (only the subset used by HMS 1/2/4-channel inverters)
 // ---------------------------------------------------------------------------
 enum FieldId_t : uint8_t {
   FLD_UDC = 0,
@@ -37,7 +37,7 @@ enum FieldId_t : uint8_t {
 enum ChannelType_t : uint8_t { TYPE_AC = 0, TYPE_DC, TYPE_INV };
 enum ChannelNum_t : uint8_t { CH0 = 0, CH1, CH2, CH3 };
 
-// Indices des fonctions de calcul (quand div == CMD_CALC)
+// Calc function indices (when div == CMD_CALC)
 enum {
   CALC_TOTAL_YT = 0,
   CALC_TOTAL_YD,
@@ -51,32 +51,32 @@ struct byteAssign_t {
   ChannelType_t type;
   ChannelNum_t ch;
   FieldId_t fieldId;
-  uint8_t start;   // position du 1er octet dans le buffer (ou index calc si div==CMD_CALC)
-  uint8_t num;     // nombre d'octets (ou argument de la fonction calc)
-  uint16_t div;    // diviseur, ou CMD_CALC
+  uint8_t start;   // position of the 1st byte in the buffer (or calc index if div==CMD_CALC)
+  uint8_t num;     // number of bytes (or the calc function's argument)
+  uint16_t div;    // divisor, or CMD_CALC
   bool isSigned;
   uint8_t digits;
 };
 
-static const uint8_t STATISTIC_PACKET_SIZE = 7 * 16;  // 112 octets, comme OpenDTU
+static const uint8_t STATISTIC_PACKET_SIZE = 7 * 16;  // 112 bytes, same as OpenDTU
 
 // ---------------------------------------------------------------------------
-// Fréquence / pays -- porté depuis HoymilesRadio_CMT.h/cpp
+// Frequency / country -- ported from HoymilesRadio_CMT.h/cpp
 // ---------------------------------------------------------------------------
 enum class FrequencyBand : uint8_t { EU_860 = 0, US_900 };
 
 struct FreqDef {
-  uint32_t base_freq;      // Hz -- base de la bande (860 ou 900 MHz)
-  uint32_t freq_startup;   // Hz -- fréquence de "boot" de l'onduleur après coupure
-  uint32_t freq_default;   // Hz -- fréquence de travail par défaut du DTU
+  uint32_t base_freq;      // Hz -- band base (860 or 900 MHz)
+  uint32_t freq_startup;   // Hz -- inverter's "boot" frequency after a power loss
+  uint32_t freq_default;   // Hz -- DTU's default work frequency
 };
 
-static const uint32_t CMT_ONE_STEP_SIZE = 2500;  // Hz, un pas = 2.5 kHz
-static const uint8_t FH_OFFSET = 100;            // pas * FH_OFFSET = largeur de canal
+static const uint32_t CMT_ONE_STEP_SIZE = 2500;  // Hz, one step = 2.5 kHz
+static const uint8_t FH_OFFSET = 100;            // step * FH_OFFSET = channel width
 // getChannelWidth() = FH_OFFSET * CMT_ONE_STEP_SIZE = 250 kHz
 
 // ---------------------------------------------------------------------------
-// Fragment RF brut (32 octets max), porté depuis types.h
+// Raw RF fragment (32 bytes max), ported from types.h
 // ---------------------------------------------------------------------------
 struct fragment_t {
   uint8_t mainCmd{0};
@@ -85,10 +85,10 @@ struct fragment_t {
   bool wasReceived{false};
 };
 
-// OpenDTU utilise 13 pour couvrir tous ses types d'onduleurs (y compris les plus
-// gros HMT triphasés). Les modèles HMS n'ont jamais besoin de plus de 4-5 fragments
-// (observé 3 en test réel sur un HMS-2CH) -- on réduit ici pour économiser de la RAM
-// statique, avec une marge confortable.
+// OpenDTU uses 13 to cover all its inverter types (including the larger
+// three-phase HMT ones). HMS models never need more than 4-5 fragments
+// (observed 3 in a real test on an HMS-2CH) -- reduced here to save static
+// RAM, with a comfortable margin.
 static const uint8_t MAX_RF_FRAGMENT_COUNT = 6;
 
 enum RadioOpState : uint8_t {
@@ -96,8 +96,8 @@ enum RadioOpState : uint8_t {
   OP_WAIT_RESPONSE,
 };
 
-// Identifiant logique de la commande actuellement en vol (pour savoir comment
-// interpréter la réponse / quoi faire au timeout)
+// Logical identifier of the command currently in flight (to know how to
+// interpret the response / what to do on timeout)
 enum PendingCmd : uint8_t {
   CMD_NONE = 0,
   CMD_REALTIME_DATA,
@@ -120,7 +120,7 @@ class HMSComponent : public Component {
   void set_realtime_timeout(uint32_t ms) { this->realtime_timeout_ms_ = ms; }
   void set_power_control_timeout(uint32_t ms) { this->power_control_timeout_ms_ = ms; }
 
-  // --- Capteurs DC (jusqu'à 4 canaux selon le modèle décodé depuis le SN) ---
+  // --- DC sensors (up to 4 channels depending on the model decoded from the SN) ---
   void set_dc_power_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_power_[ch] = s; }
   void set_dc_current_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_current_[ch] = s; }
   void set_dc_voltage_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_voltage_[ch] = s; }
@@ -128,7 +128,7 @@ class HMSComponent : public Component {
   void set_dc_energy_total_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_energy_total_[ch] = s; }
   void set_dc_irradiation_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_irradiation_[ch] = s; }
 
-  // --- Capteurs AC (canal 0 unique, HMS = monophasé) ---
+  // --- AC sensors (single channel 0, HMS = single-phase) ---
   void set_ac_voltage_sensor(sensor::Sensor *s) { this->ac_voltage_ = s; }
   void set_ac_current_sensor(sensor::Sensor *s) { this->ac_current_ = s; }
   void set_ac_power_sensor(sensor::Sensor *s) { this->ac_power_ = s; }
@@ -136,7 +136,7 @@ class HMSComponent : public Component {
   void set_ac_power_factor_sensor(sensor::Sensor *s) { this->ac_power_factor_ = s; }
   void set_ac_reactive_power_sensor(sensor::Sensor *s) { this->ac_reactive_power_ = s; }
 
-  // --- Capteurs onduleur (agrégats) ---
+  // --- Inverter sensors (aggregates) ---
   void set_inv_temperature_sensor(sensor::Sensor *s) { this->inv_temperature_ = s; }
   void set_inv_power_sensor(sensor::Sensor *s) { this->inv_power_ = s; }
   void set_inv_energy_today_sensor(sensor::Sensor *s) { this->inv_energy_today_ = s; }
@@ -148,19 +148,19 @@ class HMSComponent : public Component {
 
   uint8_t get_dc_channel_count() const { return this->dc_channel_count_; }
 
-  /// Appelé par la plateforme number : limite de puissance en % (0-100, relatif, non persistant)
+  /// Called by the number platform: power limit in % (0-100, relative, non-persistent)
   void set_power_limit_percent(float percent);
-  /// Limite de puissance en Watts absolus (non persistant)
+  /// Power limit in absolute Watts (non-persistent)
   void set_power_limit_absolute(float watts);
-  /// Limite de puissance en % (0-100, relatif), écrite en PERSISTANT (mémorisée dans
-  /// l'EEPROM de l'onduleur, survit aux coupures secteur). A n'utiliser que
-  /// ponctuellement (usure de la flash) -- typiquement via les boutons
-  /// reset_to_output_min/reset_to_output_max, pas pour un pilotage fréquent.
+  /// Power limit in % (0-100, relative), written PERSISTENT (stored in
+  /// the inverter's EEPROM, survives power cycles). Only use
+  /// occasionally (flash wear) -- typically via the
+  /// reset_to_output_min/reset_to_output_max buttons, not for frequent control.
   void set_power_limit_percent_persistent(float percent);
 
-  /// Reset matériel de la puce + reconfiguration Hoymiles complète, sans reboot de
-  /// l'ESP32. Bloquant (jusqu'à ~400ms, similaire au setup() initial) -- action
-  /// manuelle rare, pas un chemin appelé en routine.
+  /// Hardware reset of the chip + full Hoymiles reconfiguration, without rebooting
+  /// the ESP32. Blocking (up to ~400ms, similar to the initial setup()) -- a rare
+  /// manual action, not a routine code path.
   void reset_radio();
 
   void setup() override;
@@ -169,25 +169,25 @@ class HMSComponent : public Component {
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
  protected:
-  // --- Décodage du numéro de série -> modèle / table d'octets ---
+  // --- Serial number decoding -> model / byte table ---
   bool decode_serial_();
   static uint64_t generate_dtu_serial_();
 
-  // --- Init radio spécifique Hoymiles (bancs 860/900MHz, FIFO fusionné, IRQ) ---
+  // --- Hoymiles-specific radio init (860/900MHz banks, merged FIFO, IRQ) ---
   bool init_radio_();
   void switch_to_frequency_(uint32_t freq_hz);
   void switch_to_channel_(uint8_t channel);
   uint32_t frequency_from_channel_(uint8_t channel) const;
   uint8_t channel_from_frequency_(uint32_t freq_hz) const;
 
-  // --- Emission/réception bas niveau (porté de cmt2300wrapper.cpp) ---
+  // --- Low-level Tx/Rx (ported from cmt2300wrapper.cpp) ---
   bool cmt_start_tx_(const uint8_t *buf, uint8_t len);
   void process_tx_();
   bool cmt_start_listening_();
   bool cmt_rx_packet_available_();
   uint8_t cmt_read_dynamic_payload_(uint8_t *buf, uint8_t maxlen);
 
-  // --- Construction de trames (porté de commands/*.cpp) ---
+  // --- Frame construction (ported from commands/*.cpp) ---
   void build_realtime_data_request_(uint8_t *out, uint8_t *out_len);
   void build_request_frame_(uint8_t frame_no, uint8_t *out, uint8_t *out_len);
   void build_active_power_control_(float limit, PowerLimitType type, bool persistent, uint8_t *out, uint8_t *out_len);
@@ -196,16 +196,16 @@ class HMSComponent : public Component {
   void send_current_command_();
   void start_command_(PendingCmd cmd, const uint8_t *payload, uint8_t len, uint32_t timeout_ms);
 
-  // --- Réassemblage / vérification des fragments (porté de InverterAbstract) ---
+  // --- Fragment reassembly / verification (ported from InverterAbstract) ---
   void clear_rx_fragment_buffer_();
   void add_rx_fragment_(const uint8_t *fragment, uint8_t len);
-  uint8_t verify_all_fragments_();  // FRAGMENT_OK(0) / id à retransmettre / codes d'erreur
+  uint8_t verify_all_fragments_();  // FRAGMENT_OK(0) / id to retransmit / error codes
   bool handle_realtime_response_();
   void apply_statistics_buffer_();
   void publish_sensors_();
   void publish_reachable_();
 
-  // --- Accès aux valeurs décodées (porté de StatisticsParser::getChannelFieldValue) ---
+  // --- Access to decoded values (ported from StatisticsParser::getChannelFieldValue) ---
   const byteAssign_t *find_assignment_(ChannelType_t type, ChannelNum_t ch, FieldId_t field) const;
   float get_field_value_(ChannelType_t type, ChannelNum_t ch, FieldId_t field) const;
   bool has_field_(ChannelType_t type, ChannelNum_t ch, FieldId_t field) const;
@@ -216,10 +216,10 @@ class HMSComponent : public Component {
   uint64_t dtu_serial_{0};
   FrequencyBand frequency_band_{FrequencyBand::EU_860};
   uint32_t poll_interval_ms_{5000};
-  // Délais avant abandon/retransmission d'une commande -- valeurs par défaut
-  // identiques à celles d'OpenDTU (RealTimeRunDataCommand::setTimeout(500),
-  // ActivePowerControlCommand::setTimeout(2000)), exposées en YAML pour
-  // permettre une calibration future sans recompiler le composant.
+  // Delays before giving up/retransmitting a command -- default values
+  // identical to OpenDTU's (RealTimeRunDataCommand::setTimeout(500),
+  // ActivePowerControlCommand::setTimeout(2000)), exposed in YAML to
+  // allow future calibration without recompiling the component.
   uint32_t realtime_timeout_ms_{500};
   uint32_t power_control_timeout_ms_{2000};
 
@@ -235,13 +235,13 @@ class HMSComponent : public Component {
   uint8_t stats_buf_[STATISTIC_PACKET_SIZE]{};
   bool has_valid_stats_{false};
 
-  // Réassemblage des fragments de la réponse en cours
+  // Reassembly of the current response's fragments
   fragment_t rx_fragments_[MAX_RF_FRAGMENT_COUNT]{};
   uint8_t rx_fragment_last_id_{0};
   uint8_t rx_fragment_max_id_{0};
   uint8_t rx_retransmit_count_{0};
 
-  // Commande actuellement en vol
+  // Command currently in flight
   PendingCmd pending_cmd_{CMD_NONE};
   RadioOpState op_state_{OP_IDLE};
   uint8_t tx_payload_[32]{};
@@ -249,19 +249,19 @@ class HMSComponent : public Component {
   uint8_t send_count_{0};
   uint32_t cmd_deadline_{0};
 
-  // Emission Tx non bloquante : le chip transmet en arrière-plan, process_tx_()
-  // (appelée à chaque tick de loop()) vérifie TX_DONE sans jamais attendre activement.
+  // Non-blocking Tx: the chip transmits in the background, process_tx_()
+  // (called on every loop() tick) checks TX_DONE without ever actively waiting.
   bool tx_sending_{false};
   uint32_t tx_start_{0};
   bool tx_restore_channel_{false};
   uint8_t tx_restore_channel_value_{0};
   bool tx_release_lock_after_{false};
 
-  // Fiabilité de la liaison (pour déclencher un ChannelChangeCommand)
+  // Link reliability (to trigger a ChannelChangeCommand)
   uint32_t rx_failure_count_{0};
   static const uint8_t REACHABLE_THRESHOLD = 3;
 
-  // Réglage de puissance en attente (envoyé dès que le canal radio est libre)
+  // Pending power setting (sent as soon as the radio channel is free)
   bool power_limit_pending_{false};
   float power_limit_value_{100.0f};
   PowerLimitType power_limit_type_{POWER_RELATIVE};

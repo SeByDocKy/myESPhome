@@ -9,7 +9,7 @@ namespace hm {
 static const char *const TAG = "hm";
 
 // ---------------------------------------------------------------------------
-// CRC -- identiques à hms (crc.cpp d'OpenDTU)
+// CRC -- identical to hms (OpenDTU's crc.cpp)
 // ---------------------------------------------------------------------------
 static uint8_t crc8(const uint8_t *buf, uint8_t len) {
   uint8_t crc = 0x00;
@@ -42,9 +42,9 @@ static const uint8_t MAX_RESEND_COUNT = 4;
 static const uint8_t MAX_RETRANSMIT_COUNT = 5;
 
 // ---------------------------------------------------------------------------
-// Tables d'octets -- portées 1:1 depuis inverters/HM_1CH.cpp, HM_2CH.cpp, HM_4CH.cpp
-// (FLD_IRR non porté, comme pour hms -- nécessite une config de puissance crête
-// par string non exposée en v1)
+// Byte tables -- ported 1:1 from inverters/HM_1CH.cpp, HM_2CH.cpp, HM_4CH.cpp
+// (FLD_IRR not ported, same as hms -- requires a per-string peak-power config
+// not exposed in v1)
 // ---------------------------------------------------------------------------
 static const byteAssign_t HM_1CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
@@ -140,10 +140,10 @@ static const byteAssign_t HM_4CH_TABLE[] = {
 };
 
 // ---------------------------------------------------------------------------
-// Adressage radio -- porté depuis HoymilesRadio::convertSerialToRadioId()
-// (HoymilesRadio.cpp, base commune CMT/NRF) : 5 octets, 0x01 suivi des 4 octets
-// de poids faible du numéro de série -- même dérivation que serial_to_packet_id
-// côté hms, avec un octet 0x01 en préfixe (adresse de pipe nRF24 complète).
+// Radio addressing -- ported from HoymilesRadio::convertSerialToRadioId()
+// (HoymilesRadio.cpp, common CMT/NRF base): 5 bytes, 0x01 followed by the 4
+// low-order bytes of the serial number -- same derivation as serial_to_packet_id
+// on the hms side, with a 0x01 byte prefix (full nRF24 pipe address).
 // ---------------------------------------------------------------------------
 static void serial_to_radio_address(uint8_t out5[5], uint64_t serial) {
   out5[0] = 0x01;
@@ -153,8 +153,8 @@ static void serial_to_radio_address(uint8_t out5[5], uint64_t serial) {
   out5[4] = static_cast<uint8_t>(serial >> 0);
 }
 
-// Même dérivation, mais seulement les 4 octets utilisés dans l'entête des trames
-// (adressage cible/source à 32 bits, comme CommandAbstract::convertSerialToPacketId).
+// Same derivation, but only the 4 bytes used in the frame header
+// (32-bit target/source addressing, like CommandAbstract::convertSerialToPacketId).
 static void serial_to_packet_id(uint8_t out4[4], uint64_t serial) {
   out4[0] = static_cast<uint8_t>(serial >> 24);
   out4[1] = static_cast<uint8_t>(serial >> 16);
@@ -163,10 +163,10 @@ static void serial_to_packet_id(uint8_t out4[4], uint64_t serial) {
 }
 
 // ---------------------------------------------------------------------------
-// Décodage du numéro de série -- porté depuis isValidSerial() de HM_1CH.cpp,
-// HM_2CH.cpp, HM_4CH.cpp. Contrairement à hms, ce n'est PAS une simple
-// comparaison de préfixe : formule bit à bit + cas particuliers, portée
-// littéralement (pas de simplification).
+// Serial number decoding -- ported from HM_1CH.cpp's, HM_2CH.cpp's,
+// HM_4CH.cpp's isValidSerial(). Unlike hms, this is NOT a simple
+// prefix comparison: bit-shift formula + special cases, ported
+// literally (no simplification).
 // ---------------------------------------------------------------------------
 static bool hm_1ch_valid(uint64_t serial) {
   uint8_t p0 = static_cast<uint8_t>(serial >> 40);
@@ -224,7 +224,7 @@ bool HMComponent::decode_serial_() {
   return true;
 }
 
-// Identique à hms (Utils::generateDtuSerial(), dérivé de la MAC ESP32)
+// Identical to hms (Utils::generateDtuSerial(), derived from the ESP32 MAC)
 uint64_t HMComponent::generate_dtu_serial_() {
   uint8_t mac[6];
   get_mac_address_raw(mac);
@@ -243,34 +243,34 @@ uint64_t HMComponent::generate_dtu_serial_() {
 }
 
 // ---------------------------------------------------------------------------
-// Init radio -- porté depuis HoymilesRadio_NRF::init(). Ces réglages sont
-// imposés par le protocole Hoymiles NRF (pas configurables par l'utilisateur
-// via le nrf24l01: générique, contrairement à un usage "classique" du composant).
+// Radio init -- ported from HoymilesRadio_NRF::init(). These settings are
+// imposed by the Hoymiles NRF protocol (not user-configurable via
+// generic nrf24l01:, unlike a "classic" use of the component).
 // ---------------------------------------------------------------------------
 bool HMComponent::init_radio_() {
-  // 250 kbps : RF_DR_LOW=1 (bit5), RF_DR_HIGH=0 (bit3) -- porté de
+  // 250 kbps: RF_DR_LOW=1 (bit5), RF_DR_HIGH=0 (bit3) -- ported from
   // HoymilesRadio_NRF::init() -> _radio->setDataRate(RF24_250KBPS)
   uint8_t rf_setup = this->radio_->read_register(nrf24l01::REG_RF_SETUP);
   rf_setup &= ~0b00101000;
   rf_setup |= 0b00100000;
   this->radio_->write_register(nrf24l01::REG_RF_SETUP, rf_setup);
-  // Le délai post-écoute (stop_listening_()) doit correspondre au débit réel --
-  // 505us pour 250kbps (F_CPU>20MHz), porté de RF24::_data_rate_reg_value().
+  // The post-listen delay (stop_listening_()) must match the real data rate --
+  // 505us for 250kbps (F_CPU>20MHz), ported from RF24::_data_rate_reg_value().
   this->radio_->set_tx_delay_us(505);
 
-  // CRC 16 bits (EN_CRC=1, CRCO=1) -- setCRCLength(RF24_CRC_16)
+  // 16-bit CRC (EN_CRC=1, CRCO=1) -- setCRCLength(RF24_CRC_16)
   uint8_t cfg = this->radio_->read_register(nrf24l01::REG_CONFIG);
   cfg |= (nrf24l01::MASK_EN_CRC | nrf24l01::MASK_CRCO);
   this->radio_->write_register(nrf24l01::REG_CONFIG, cfg);
 
-  // Largeur d'adresse 5 octets -- setAddressWidth(5) : SETUP_AW = width-2
+  // 5-byte address width -- setAddressWidth(5): SETUP_AW = width-2
   this->radio_->write_register(nrf24l01::REG_SETUP_AW, 0x03);
 
-  // Payloads dynamiques -- enableDynamicPayloads()
+  // Dynamic payloads -- enableDynamicPayloads()
   this->radio_->write_register(nrf24l01::REG_FEATURE, nrf24l01::FEATURE_EN_DPL);
   this->radio_->write_register(nrf24l01::REG_DYNPD, 0x3F);
 
-  // Retries désactivés au repos, activés ponctuellement pendant Tx (voir cmt_start_tx_)
+  // Retries disabled at rest, enabled briefly during Tx (see cmt_start_tx_)
   this->radio_->set_retries_reg(0, 0);
 
   this->open_reading_pipe_for_dtu_();
@@ -307,9 +307,9 @@ void HMComponent::switch_rx_channel_() {
 }
 
 // ---------------------------------------------------------------------------
-// Emission non bloquante -- porté de HoymilesRadio_NRF::sendEsbPacket(), avec
-// le même principe de scrutation étalée sur plusieurs ticks de loop() que hms
-// (voir process_tx_()) plutôt que le blocage synchrone de RF24::write().
+// Non-blocking transmission -- ported from HoymilesRadio_NRF::sendEsbPacket(), using
+// the same polling-spread-across-loop()-ticks principle as hms
+// (see process_tx_()) instead of RF24::write()'s synchronous blocking.
 // ---------------------------------------------------------------------------
 bool HMComponent::cmt_start_tx_(const uint8_t *buf, uint8_t len) {
   this->radio_->stop_listening();
@@ -320,7 +320,7 @@ bool HMComponent::cmt_start_tx_(const uint8_t *buf, uint8_t len) {
   this->radio_->flush_tx();
   this->radio_->write_payload(buf, len);
   this->radio_->get_ce_pin()->digital_write(true);
-  delayMicroseconds(15);  // impulsion minimale pour déclencher la Tx
+  delayMicroseconds(15);  // minimum pulse to trigger Tx
   this->radio_->get_ce_pin()->digital_write(false);
 
   this->tx_sending_ = true;
@@ -337,10 +337,10 @@ void HMComponent::process_tx_() {
   if (!done && !timed_out) return;
 
   if (status & nrf24l01::STATUS_MAX_RT) {
-    ESP_LOGW(TAG, "Envoi échoué : accusé de réception jamais reçu (MAX_RT)");
+    ESP_LOGW(TAG, "Send failed: no acknowledgment ever received (MAX_RT)");
     this->radio_->flush_tx();
   } else if (timed_out && !done) {
-    ESP_LOGW(TAG, "Timeout Tx");
+    ESP_LOGW(TAG, "Tx timeout");
     this->radio_->flush_tx();
   }
   this->radio_->write_register(nrf24l01::REG_STATUS, nrf24l01::STATUS_TX_DS | nrf24l01::STATUS_MAX_RT);
@@ -354,9 +354,9 @@ void HMComponent::process_tx_() {
 }
 
 // ---------------------------------------------------------------------------
-// Construction de trames -- identiques hms (même format Hoymiles), sauf les
-// valeurs de type persistant/non-persistant du contrôle de puissance (table
-// HmActivePowerControl, différente de HmsActivePowerControl -- vérifié dans
+// Frame construction -- identical to hms (same Hoymiles format), except the
+// persistent/non-persistent power control type values (HmActivePowerControl
+// table, different from HmsActivePowerControl -- verified in
 // ActivePowerControlCommand.cpp).
 // ---------------------------------------------------------------------------
 void HMComponent::build_realtime_data_request_(uint8_t *out, uint8_t *out_len) {
@@ -405,8 +405,8 @@ void HMComponent::build_active_power_control_(float limit, PowerLimitType type, 
   out[12] = static_cast<uint8_t>(l >> 8);
   out[13] = static_cast<uint8_t>(l);
 
-  // Table HmActivePowerControl (ActivePowerControlCommand.cpp) -- différente de
-  // HmsActivePowerControl utilisée par hms :
+  // HmActivePowerControl table (ActivePowerControlCommand.cpp) -- different from
+  // HmsActivePowerControl used by hms:
   //   AbsolutNonPersistent=0x0000, RelativNonPersistent=0x0001,
   //   AbsolutPersistent=0x0100, RelativPersistent=0x0101
   uint16_t type_value;
@@ -426,7 +426,7 @@ void HMComponent::build_active_power_control_(float limit, PowerLimitType type, 
 }
 
 // ---------------------------------------------------------------------------
-// Réassemblage des fragments -- identique à hms (InverterAbstract.cpp)
+// Fragment reassembly -- identical to hms (InverterAbstract.cpp)
 // ---------------------------------------------------------------------------
 void HMComponent::clear_rx_fragment_buffer_() {
   for (auto &f : this->rx_fragments_) {
@@ -497,7 +497,7 @@ bool HMComponent::handle_realtime_response_() {
 
   for (uint8_t i = 0; i < this->rx_fragment_max_id_; i++) {
     if (this->rx_fragments_[i].mainCmd != 0x95) {
-      ESP_LOGW(TAG, "Réponse RealTimeData : mainCmd inattendu (0x%02X)", this->rx_fragments_[i].mainCmd);
+      ESP_LOGW(TAG, "RealTimeData response: unexpected mainCmd (0x%02X)", this->rx_fragments_[i].mainCmd);
       return false;
     }
     total_len += this->rx_fragments_[i].len;
@@ -512,11 +512,11 @@ bool HMComponent::handle_realtime_response_() {
   }
 
   if (crc != crc_rcv) {
-    ESP_LOGW(TAG, "CRC16 invalide sur la réponse RealTimeData");
+    ESP_LOGW(TAG, "Invalid CRC16 on RealTimeData response");
     return false;
   }
   if (total_len < this->expected_byte_count_) {
-    ESP_LOGW(TAG, "Réponse trop courte (%u/%u octets attendus)", total_len, this->expected_byte_count_);
+    ESP_LOGW(TAG, "Response too short (%u/%u bytes expected)", total_len, this->expected_byte_count_);
     return false;
   }
 
@@ -537,7 +537,7 @@ bool HMComponent::handle_realtime_response_() {
 }
 
 // ---------------------------------------------------------------------------
-// Décodage des champs -- identique à hms, plus le cas CALC_CH_UDC
+// Field decoding -- identical to hms, plus the CALC_CH_UDC case
 // ---------------------------------------------------------------------------
 const byteAssign_t *HMComponent::find_assignment_(ChannelType_t type, ChannelNum_t ch, FieldId_t field) const {
   for (uint8_t i = 0; i < this->byte_assignment_size_; i++) {
@@ -594,7 +594,7 @@ float HMComponent::get_field_value_(ChannelType_t type, ChannelNum_t ch, FieldId
       return dc > 0 ? (ac / dc * 100.0f) : 0.0f;
     }
     case CALC_CH_UDC:
-      // arg (pos->num) = canal source dont on recopie la tension -- porté de
+      // arg (pos->num) = source channel whose voltage is copied -- ported from
       // StatisticsParser::calcChUdc()
       return this->get_field_value_(TYPE_DC, static_cast<ChannelNum_t>(pos->num), FLD_UDC);
     default:
@@ -620,7 +620,7 @@ void HMComponent::publish_sensors_() {
   if (this->ac_power_factor_ != nullptr) this->ac_power_factor_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_PF));
   if (this->ac_reactive_power_ != nullptr) this->ac_reactive_power_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_Q));
 
-  // isProducing() -- porté de InverterAbstract::isProducing() (totalAc > 0)
+  // isProducing() -- ported from InverterAbstract::isProducing() (totalAc > 0)
   if (this->producing_sensor_ != nullptr) this->producing_sensor_->publish_state(ac_power_value > 0.0f);
 
   if (this->inv_temperature_ != nullptr) this->inv_temperature_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_T));
@@ -630,7 +630,7 @@ void HMComponent::publish_sensors_() {
   if (this->inv_efficiency_ != nullptr) this->inv_efficiency_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_EFF));
 }
 
-// isReachable() -- porté de InverterAbstract::isReachable() (rxFailureCount <= reachableThreshold)
+// isReachable() -- ported from InverterAbstract::isReachable() (rxFailureCount <= reachableThreshold)
 void HMComponent::publish_reachable_() {
   bool reachable = this->rx_failure_count_ <= REACHABLE_THRESHOLD;
   if (this->reachable_sensor_ != nullptr) {
@@ -659,7 +659,7 @@ void HMComponent::set_power_limit_absolute(float watts) {
 }
 
 void HMComponent::set_power_limit_percent_persistent(float percent) {
-  ESP_LOGI(TAG, "Limite persistante demandée : %.1f%% (écriture EEPROM côté onduleur)", percent);
+  ESP_LOGI(TAG, "Persistent limit requested: %.1f%% (EEPROM write on inverter side)", percent);
   this->power_limit_value_ = percent;
   this->power_limit_type_ = POWER_RELATIVE;
   this->power_limit_persistent_ = true;
@@ -668,10 +668,10 @@ void HMComponent::set_power_limit_percent_persistent(float percent) {
 
 void HMComponent::reset_radio() {
   if (this->radio_ == nullptr) return;
-  ESP_LOGW(TAG, "Réinitialisation manuelle de la radio (reset_radio)");
+  ESP_LOGW(TAG, "Manual radio reset (reset_radio)");
 
   if (this->radio_->is_owned_by_other(this)) {
-    ESP_LOGW(TAG, "Une autre instance hm: utilise actuellement la radio -- reset différé");
+    ESP_LOGW(TAG, "Another hm: instance is currently using the radio -- reset deferred");
     return;
   }
   this->radio_->try_lock_external(this);
@@ -685,7 +685,7 @@ void HMComponent::reset_radio() {
     return;
   }
   if (!this->init_radio_()) {
-    ESP_LOGE(TAG, "Reconfiguration Hoymiles NRF après reset échouée");
+    ESP_LOGE(TAG, "Hoymiles NRF reconfiguration after reset failed");
     this->radio_->unlock_external(this);
     return;
   }
@@ -696,15 +696,15 @@ void HMComponent::reset_radio() {
   this->rx_failure_count_ = 0;
   this->publish_reachable_();
   this->radio_->unlock_external(this);
-  ESP_LOGI(TAG, "Radio réinitialisée et reconfigurée");
+  ESP_LOGI(TAG, "Radio reset and reconfigured");
 }
 
 // ---------------------------------------------------------------------------
-// send_current_command_ / start_command_ -- identiques à hms
+// send_current_command_ / start_command_ -- identical to hms
 // ---------------------------------------------------------------------------
 void HMComponent::send_current_command_() {
   this->send_count_++;
-  ESP_LOGV(TAG, "send_current_command_ : tentative n°%u (cmd=%u, len=%u)", this->send_count_, this->pending_cmd_,
+  ESP_LOGV(TAG, "send_current_command_: attempt #%u (cmd=%u, len=%u)", this->send_count_, this->pending_cmd_,
            this->tx_payload_len_);
   this->clear_rx_fragment_buffer_();
   this->cmt_start_tx_(this->tx_payload_, this->tx_payload_len_);
@@ -727,37 +727,37 @@ void HMComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up HM...");
 
   if (this->radio_ == nullptr) {
-    ESP_LOGE(TAG, "Aucun radio nrf24l01 associé");
+    ESP_LOGE(TAG, "No nrf24l01 radio associated");
     this->mark_failed();
     return;
   }
   if (this->radio_->is_failed()) {
-    ESP_LOGE(TAG, "Le composant nrf24l01 est en échec, HM ne peut pas démarrer");
+    ESP_LOGE(TAG, "The nrf24l01 component has failed, HM cannot start");
     this->mark_failed();
     return;
   }
   this->radio_->register_reachable_consumer(this);
 
   if (!this->decode_serial_()) {
-    ESP_LOGE(TAG, "Numéro de série 0x%012llX non reconnu (préfixe HM inconnu)",
+    ESP_LOGE(TAG, "Serial number 0x%012llX not recognized (unknown HM prefix)",
               static_cast<unsigned long long>(this->inverter_serial_));
     this->mark_failed();
     return;
   }
-  ESP_LOGCONFIG(TAG, "Modèle détecté : %s (%u canal/canaux DC)", this->type_name_.c_str(), this->dc_channel_count_);
+  ESP_LOGCONFIG(TAG, "Model detected: %s (%u DC channel(s))", this->type_name_.c_str(), this->dc_channel_count_);
 
   if (this->dtu_serial_ == 0) {
     this->dtu_serial_ = HMComponent::generate_dtu_serial_();
   }
-  ESP_LOGCONFIG(TAG, "DTU serial : 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
+  ESP_LOGCONFIG(TAG, "DTU serial: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
 
   if (!this->init_radio_()) {
-    ESP_LOGE(TAG, "Init radio Hoymiles NRF échouée");
+    ESP_LOGE(TAG, "Hoymiles NRF radio init failed");
     this->mark_failed();
     return;
   }
 
-  ESP_LOGCONFIG(TAG, "HM prêt, hop de canal actif (%u/%u/%u/%u/%u)", this->rx_ch_list_[0], this->rx_ch_list_[1],
+  ESP_LOGCONFIG(TAG, "HM ready, channel hopping active (%u/%u/%u/%u/%u)", this->rx_ch_list_[0], this->rx_ch_list_[1],
                 this->rx_ch_list_[2], this->rx_ch_list_[3], this->rx_ch_list_[4]);
   this->publish_reachable_();
 }
@@ -765,8 +765,8 @@ void HMComponent::setup() {
 void HMComponent::loop() {
   if (this->is_failed() || this->radio_ == nullptr) return;
 
-  // Une autre instance hm: (même nrf24l01: partagé) est en train d'utiliser la
-  // radio -- on ne touche à aucun registre tant qu'elle n'a pas rendu la main.
+  // Another hm: instance (sharing the same nrf24l01:) is currently using the
+  // radio -- we don't touch any register until it releases ownership.
   if (this->radio_->is_owned_by_other(this)) return;
 
   // 0. Emission Tx en cours -- non bloquant, comme hms
@@ -775,17 +775,17 @@ void HMComponent::loop() {
     return;
   }
 
-  // 1. Hop de canal RX -- toutes les 4ms, porté de HoymilesRadio_NRF::loop()
+  // 1. RX channel hopping -- every 4ms, ported from HoymilesRadio_NRF::loop()
   // (EVERY_N_MILLIS(4) { switchRxCh(); })
   if (millis() - this->last_rx_switch_ms_ >= 4) {
     this->last_rx_switch_ms_ = millis();
     this->switch_rx_channel_();
   }
 
-  // 2. Réception -- vide tout le FIFO RX à chaque tick (jusqu'à 3 paquets en
-  // attente côté puce), comme HoymilesRadio_NRF::loop() (while (_radio->available())).
+  // 2. Reception -- drains the whole RX FIFO on every tick (up to 3 packets
+  // pending on the chip), like HoymilesRadio_NRF::loop() (while (_radio->available())).
   // Lire un seul fragment par tick risquait de prendre du retard si plusieurs
-  // fragments d'une même réponse arrivent en rafale rapprochée.
+  // fragments of the same response arrive in a tight burst.
   if (this->op_state_ == OP_WAIT_RESPONSE) {
     while (this->radio_->rx_available()) {
       uint8_t raw[33];
@@ -829,7 +829,7 @@ void HMComponent::loop() {
       this->cmd_deadline_ = millis() + 500;
     } else {
       this->rx_failure_count_++;
-      ESP_LOGD(TAG, "Echec définitif du cycle de commande (résultat=%u) -- rx_failure_count_=%u", result,
+      ESP_LOGD(TAG, "Definitive command cycle failure (result=%u) -- rx_failure_count_=%u", result,
                static_cast<unsigned int>(this->rx_failure_count_));
       this->publish_reachable_();
       this->op_state_ = OP_IDLE;
@@ -838,9 +838,9 @@ void HMComponent::loop() {
     }
   }
 
-  // 4. Commande de limite de puissance en attente -- traitée en PRIORITÉ, dès que
-  // le canal radio est libre, sans attendre le prochain créneau de poll_interval
-  // (voir la même correction apportée à hms -- crucial pour un pilotage réactif).
+  // 4. Pending power limit command -- handled with PRIORITY, as soon as
+  // the radio channel is free, without waiting for the next poll_interval slot
+  // (see the same fix applied to hms -- crucial for reactive control).
   if (this->op_state_ == OP_IDLE && this->power_limit_pending_) {
     if (!this->radio_->try_lock_external(this)) {
       return;  // radio prise par une autre instance -- on retente au tick suivant
@@ -855,7 +855,7 @@ void HMComponent::loop() {
     return;
   }
 
-  // 5. Cadence de polling (télémétrie)
+  // 5. Poll cadence (telemetry)
   if (this->op_state_ == OP_IDLE && millis() - this->last_poll_ > this->poll_interval_ms_) {
     if (!this->radio_->try_lock_external(this)) {
       return;
@@ -870,20 +870,20 @@ void HMComponent::loop() {
 
 void HMComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "HM:");
-  ESP_LOGCONFIG(TAG, "  Modèle: %s", this->type_name_.c_str());
-  ESP_LOGCONFIG(TAG, "  Numéro de série onduleur: 0x%012llX", static_cast<unsigned long long>(this->inverter_serial_));
-  ESP_LOGCONFIG(TAG, "  Numéro de série DTU: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
-  ESP_LOGCONFIG(TAG, "  Intervalle de sondage: %ums", static_cast<unsigned int>(this->poll_interval_ms_));
-  // Valeurs radio réellement configurées par hm: (imposées par le protocole
-  // Hoymiles NRF, pas par la config générique nrf24l01: -- voir sa propre note
+  ESP_LOGCONFIG(TAG, "  Model: %s", this->type_name_.c_str());
+  ESP_LOGCONFIG(TAG, "  Inverter serial number: 0x%012llX", static_cast<unsigned long long>(this->inverter_serial_));
+  ESP_LOGCONFIG(TAG, "  DTU serial number: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
+  ESP_LOGCONFIG(TAG, "  Poll interval: %ums", static_cast<unsigned int>(this->poll_interval_ms_));
+  // Radio values actually configured by hm: (imposed by the Hoymiles NRF
+  // protocol, not by the generic nrf24l01: config -- see its own note
   // dans dump_config() en mode externe).
-  ESP_LOGCONFIG(TAG, "  Débit radio: 250kbps (fixe, imposé par le protocole)");
-  ESP_LOGCONFIG(TAG, "  CRC: 16bit, largeur d'adresse: 5 octets, payloads dynamiques (fixes)");
-  ESP_LOGCONFIG(TAG, "  Hop de canal: %u/%u/%u/%u/%u MHz (continu, 4ms)", 2400 + this->rx_ch_list_[0],
+  ESP_LOGCONFIG(TAG, "  Radio data rate: 250kbps (fixed, protocol-imposed)");
+  ESP_LOGCONFIG(TAG, "  CRC: 16bit, address width: 5 bytes, dynamic payloads (fixed)");
+  ESP_LOGCONFIG(TAG, "  Channel hopping: %u/%u/%u/%u/%u MHz (continuous, 4ms)", 2400 + this->rx_ch_list_[0],
                 2400 + this->rx_ch_list_[1], 2400 + this->rx_ch_list_[2], 2400 + this->rx_ch_list_[3],
                 2400 + this->rx_ch_list_[4]);
   if (this->is_failed()) {
-    ESP_LOGE(TAG, "  Setup a échoué");
+    ESP_LOGE(TAG, "  Setup failed");
   }
 }
 

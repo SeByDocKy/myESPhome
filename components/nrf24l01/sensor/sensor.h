@@ -7,10 +7,10 @@
 namespace esphome {
 namespace nrf24l01 {
 
-/// Publie le taux d'occupation radio (% de temps verrouillé par un composant
-/// external_mode, ex. hm:) sur la fenêtre écoulée depuis la dernière publication
-/// (gouvernée par update_interval). Non pertinent si nrf24l01: est utilisé en
-/// mode générique (jamais verrouillé) -- publie alors toujours 0%.
+/// Publishes the radio duty cycle (% of time locked by an external_mode
+/// component, e.g. hm:) over the window elapsed since the last publish
+/// (governed by update_interval). Not meaningful if nrf24l01: is used in
+/// generic mode (never locked) -- then it always publishes 0%.
 class NRF24DutyCycleSensor : public sensor::Sensor, public PollingComponent {
  public:
   void set_parent(NRF24Component *parent) { this->parent_ = parent; }

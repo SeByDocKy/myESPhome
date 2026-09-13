@@ -6,8 +6,8 @@
 namespace esphome {
 namespace nrf24l01 {
 
-/// Réglage du niveau PA (min/low/high/max) à la volée, sans reset -- même
-/// principe que cmt2300a::CMT2300APALevelNumber, adapté ici en select puisque
+/// Runtime PA level adjustment (min/low/high/max), no reset -- same
+/// principle as cmt2300a::CMT2300APALevelNumber, adapted here as a select since
 /// le nRF24L01 n'a que 4 niveaux discrets (pas une plage continue en dBm).
 class NRF24PALevelSelect : public select::Select {
  public:

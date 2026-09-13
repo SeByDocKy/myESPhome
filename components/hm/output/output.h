@@ -6,9 +6,9 @@
 namespace esphome {
 namespace hm {
 
-/// Sortie float standard ESPHome (0.0 - 1.0) pilotant la limite de puissance
-/// relative du HM. Permet de contrôler l'onduleur depuis n'importe quel
-/// composant produisant un output float (PID, template, light, etc.).
+/// Standard ESPHome float output (0.0 - 1.0) driving the HM's relative
+/// power limit. Lets you control the inverter from any component
+/// that produces a float output (PID, template, light, etc.).
 class HMPowerLimitPercentOutput : public output::FloatOutput {
  public:
   void set_parent(HMComponent *parent) { this->parent_ = parent; }

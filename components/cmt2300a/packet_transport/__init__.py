@@ -24,25 +24,25 @@ CONFIG_SCHEMA = packet_transport.transport_schema(CMT2300ATransport).extend(
 
 
 def _final_validate(config):
-    # Un cmt2300a: piloté par un hms: (external_mode) ne peut pas aussi servir de
-    # medium packet_transport générique -- même vérification/message que côté
-    # runtime (CMT2300ATransport::setup()), mais détectée dès la compilation.
+    # A cmt2300a: driven by an hms: (external_mode) cannot also serve as a
+    # generic packet_transport medium -- same check/message as the runtime one
+    # (CMT2300ATransport::setup()), but caught at compile time here.
     try:
         full_conf = fv.full_config.get()
         hms_confs = full_conf.get("hms", [])
         if isinstance(hms_confs, dict):
             hms_confs = [hms_confs]
-    except Exception:  # noqa: BLE001 -- API interne potentiellement différente
-        # selon la version d'ESPHome ; on ne bloque pas la compilation pour autant.
+    except Exception:  # noqa: BLE001 -- internal API may differ across
+        # ESPHome versions; don't block compilation because of that.
         return config
 
     radio_id = config[CONF_CMT2300A_ID]
     for hms_conf in hms_confs:
         if hms_conf.get("cmt2300a_id") == radio_id:
             raise cv.Invalid(
-                f"Ce cmt2300a_id ('{radio_id}') est déjà utilisé par un bloc hms: "
-                f"(mode externe, bancs de registres Hoymiles) -- packet_transport ne "
-                f"peut pas partager la même puce. Utilise un cmt2300a: dédié."
+                f"This cmt2300a_id ('{radio_id}') is already used by an hms: block "
+                f"(external mode, Hoymiles register banks) -- packet_transport cannot "
+                f"share the same chip. Use a dedicated cmt2300a: instead."
             )
     return config
 

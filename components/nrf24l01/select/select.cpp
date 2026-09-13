@@ -17,7 +17,7 @@ void NRF24PALevelSelect::control(const std::string &value) {
     level = 3;  // "max"
   }
 
-  // apply_pa_level_runtime() republie déjà l'état exact sur ce select --
+  // apply_pa_level_runtime() already republishes the exact state on this select --
   // pas besoin de publish_state() ici en plus.
   this->parent_->apply_pa_level_runtime(level);
 }

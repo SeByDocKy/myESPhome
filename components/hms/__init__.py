@@ -33,7 +33,7 @@ def _validate_serial(value):
     value = cv.string_strict(value)
     if not _SERIAL_RE.match(value):
         raise cv.Invalid(
-            "Le numéro de série doit être composé de 12 caractères hexadécimaux (ex. '1410A011xxxx')"
+            "The serial number must be 12 hexadecimal characters (e.g. '1410A011xxxx')"
         )
     return value
 
@@ -50,11 +50,11 @@ CONFIG_SCHEMA = cv.Schema(
             FREQUENCY_BANDS, lower=True
         ),
         cv.Optional(CONF_POLL_INTERVAL, default="5s"): cv.positive_time_period_milliseconds,
-        # Délais avant abandon/retransmission -- par défaut identiques à ceux
-        # d'OpenDTU (RealTimeRunDataCommand::setTimeout(500),
-        # ActivePowerControlCommand::setTimeout(2000)). Optionnels : à ajuster
-        # seulement si une calibration réelle (ex. via le capteur duty_cycle)
-        # en montre l'intérêt sur ton installation.
+        # Delays before giving up/retransmitting -- default identical to
+        # OpenDTU's (RealTimeRunDataCommand::setTimeout(500),
+        # ActivePowerControlCommand::setTimeout(2000)). Optional: only adjust
+        # if real calibration (e.g. via the duty_cycle sensor) shows a benefit
+        # for your installation.
         cv.Optional(
             CONF_REALTIME_TIMEOUT, default="500ms"
         ): cv.positive_time_period_milliseconds,
@@ -70,9 +70,9 @@ async def to_code(config):
     await cg.register_component(var, config)
 
     radio = await cg.get_variable(config[CONF_CMT2300A_ID])
-    # Le hub prend le contrôle total du CMT2300A : bancs de registres, FIFO,
-    # cadence Tx/Rx spécifiques au protocole Hoymiles (incompatibles avec le
-    # mode générique du composant cmt2300a).
+    # The hub takes full control of the CMT2300A: register banks, FIFO,
+    # Tx/Rx cadence specific to the Hoymiles protocol (incompatible with the
+    # cmt2300a component's generic mode).
     cg.add(radio.set_external_mode(True))
     cg.add(var.set_radio(radio))
 

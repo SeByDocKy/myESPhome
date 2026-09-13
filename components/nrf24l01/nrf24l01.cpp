@@ -7,8 +7,8 @@ namespace nrf24l01 {
 static const char *const TAG = "nrf24l01";
 
 // ---------------------------------------------------------------------------
-// Accès registres bas niveau -- port de RF24::read_register()/write_register()
-// (RF24.cpp), sur du vrai SPI matériel via le mixin spi::SPIDevice.
+// Low-level register access -- port of RF24::read_register()/write_register()
+// (RF24.cpp), over real hardware SPI via the spi::SPIDevice mixin.
 // ---------------------------------------------------------------------------
 uint8_t NRF24Component::read_register_(uint8_t reg) {
   this->enable();
@@ -65,9 +65,9 @@ bool NRF24Component::write_payload_(const uint8_t *buf, uint8_t len) {
   this->enable();
   this->transfer_byte(CMD_W_TX_PAYLOAD);
   for (uint8_t i = 0; i < len; i++) this->transfer_byte(buf[i]);
-  // Complète jusqu'à payload_size en mode paquets fixes (comme RF24::write_payload()
-  // quand dynamic_payloads_enabled est faux) -- l'onduleur/le pair d'en face attend
-  // toujours payload_size octets dans ce mode.
+  // Pad up to payload_size in fixed-packet mode (like RF24::write_payload()
+  // when dynamic_payloads_enabled is false) -- the inverter/peer on the other end
+  // always expects payload_size bytes in this mode.
   if (!this->dynamic_payloads_) {
     for (uint8_t i = len; i < this->payload_size_; i++) this->transfer_byte(0);
   }
@@ -83,8 +83,8 @@ uint8_t NRF24Component::read_payload_(uint8_t *buf, uint8_t maxlen) {
     len = this->transfer_byte(CMD_NOP);
     this->disable();
     if (len > 32) {
-      // Paquet corrompu (largeur invalide) -- comme RF24::read(), on vide le FIFO
-      // plutôt que de lire des données invalides.
+      // Corrupted packet (invalid width) -- like RF24::read(), flush the FIFO
+      // instead of reading invalid data.
       this->flush_rx_();
       return 0;
     }
@@ -99,7 +99,7 @@ uint8_t NRF24Component::read_payload_(uint8_t *buf, uint8_t maxlen) {
 }
 
 // ---------------------------------------------------------------------------
-// Séquence haut niveau -- portée de RF24::begin()/setPALevel()/setDataRate()/
+// High-level sequence -- ported from RF24::begin()/setPALevel()/setDataRate()/
 // setCRCLength()/setRetries()/setAddressWidth()/openWritingPipe()/
 // openReadingPipe()/startListening()/stopListening() (RF24.cpp)
 // ---------------------------------------------------------------------------
@@ -107,18 +107,18 @@ void NRF24Component::power_up_() {
   uint8_t cfg = this->read_register_(REG_CONFIG);
   if (!(cfg & MASK_PWR_UP)) {
     this->write_register_(REG_CONFIG, cfg | MASK_PWR_UP);
-    delay(5);  // NOLINT -- Tpd2stby du datasheet (montée en régime de l'oscillateur)
+    delay(5);  // NOLINT -- datasheet's Tpd2stby (oscillator settling)
   }
 }
 
 void NRF24Component::apply_pa_level_() {
-  // Porté de RF24::setPALevel()/_pa_level_reg_value() : setup = (read & 0xF8) |
-  // (level << 1) | lnaEnable. lnaEnable vaut true par défaut dans la vraie
-  // bibliothèque -- sur puce nRF24L01+ authentique ce bit 0 est sans effet
-  // documenté, mais sur les clones SI24R1 (très répandus sur les modules bon
-  // marché), il change réellement le niveau de sortie (+3dBm à PA_MAX). On le
-  // positionne systématiquement à 1 pour matcher le comportement par défaut
-  // réel de la bibliothèque plutôt que de le laisser à 0 par omission.
+  // Ported from RF24::setPALevel()/_pa_level_reg_value(): setup = (read & 0xF8) |
+  // (level << 1) | lnaEnable. lnaEnable defaults to true in the real
+  // library -- on a genuine nRF24L01+ chip this bit 0 has no documented
+  // effect, but on SI24R1 clones (very common on cheap modules), it genuinely
+  // changes the output level (+3dBm at PA_MAX). We set it unconditionally
+  // to 1 to match the library's real default behavior rather than leaving it
+  // at 0 by omission.
   uint8_t setup = this->read_register_(REG_RF_SETUP) & 0xF8;
   setup |= ((static_cast<uint8_t>(this->pa_level_) << 1) & 0b00000110) | 0b00000001;
   this->write_register_(REG_RF_SETUP, setup);
@@ -139,7 +139,7 @@ void NRF24Component::apply_data_rate_() {
     case RATE_1MBPS:
     default:
       this->tx_delay_us_ = 280;
-      break;  // les deux bits à 0 = 1Mbps
+      break;  // both bits at 0 = 1Mbps
   }
   this->write_register_(REG_RF_SETUP, setup);
 }
@@ -149,12 +149,12 @@ void NRF24Component::apply_crc_length_() {
   cfg &= ~(MASK_EN_CRC | MASK_CRCO);
   switch (this->crc_length_) {
     case CRC_DISABLED:
-      // Le CRC ne peut être désactivé que si l'auto-ack est désactivé sur toutes les
-      // pipes (contrainte matérielle du chip, comme RF24::disableCRC()).
+      // CRC can only be disabled if auto-ack is disabled on all
+      // pipes (hardware constraint of the chip, like RF24::disableCRC()).
       if (!this->auto_ack_) {
-        // rien à positionner : EN_CRC=0
+        // nothing to set: EN_CRC=0
       } else {
-        ESP_LOGW(TAG, "CRC non désactivé : auto_ack est actif (contrainte matérielle du nRF24L01+)");
+        ESP_LOGW(TAG, "CRC not disabled: auto_ack is active (hardware constraint of the nRF24L01+)");
         cfg |= MASK_EN_CRC | MASK_CRCO;
       }
       break;
@@ -182,8 +182,8 @@ void NRF24Component::apply_address_width_() {
 }
 
 void NRF24Component::open_writing_pipe_() {
-  // RX_ADDR_P0 doit correspondre à l'adresse Tx pour recevoir les accusés de
-  // réception matériels (auto-ack) -- comme RF24::openWritingPipe().
+  // RX_ADDR_P0 must match the Tx address to receive hardware
+  // acknowledgments (auto-ack) -- like RF24::openWritingPipe().
   this->write_register_(REG_RX_ADDR_P0, this->tx_address_, this->address_width_);
   this->write_register_(REG_TX_ADDR, this->tx_address_, this->address_width_);
   this->write_register_(REG_RX_PW_P0, this->payload_size_);
@@ -194,13 +194,13 @@ void NRF24Component::open_reading_pipe_(uint8_t pipe, const uint8_t *addr) {
   if (pipe < 2) {
     this->write_register_(REG_RX_ADDR_P0 + pipe, addr, this->address_width_);
   } else {
-    // Les pipes 2-5 partagent les 4 octets de poids fort de l'adresse de la pipe 1 --
-    // seul l'octet de poids FAIBLE diffère (comportement matériel du chip). Vérifié
-    // contre RF24::openReadingPipe() : write_register(child_pipe[child],
-    // reinterpret_cast<const uint8_t*>(&address), 1) -- soit l'octet 0 du uint64_t
-    // (LSB), qui correspond à addr[0] dans notre convention (voir
-    // serial_to_radio_address côté hm). Écrire addr[address_width-1] (comme avant
-    // ce correctif) prenait l'octet de poids FORT par erreur.
+    // Pipes 2-5 share the 4 high-order bytes of pipe 1's address --
+    // only the LOW-order byte differs (hardware behavior of the chip). Verified
+    // against RF24::openReadingPipe(): write_register(child_pipe[child],
+    // reinterpret_cast<const uint8_t*>(&address), 1) -- i.e. byte 0 of the uint64_t
+    // (LSB), which corresponds to addr[0] in our convention (see
+    // serial_to_radio_address on the hm side). Writing addr[address_width-1] (as
+    // before this fix) mistakenly took the high-order byte instead.
     this->write_register_(REG_RX_ADDR_P0 + pipe, &addr[0], 1);
   }
   this->write_register_(REG_RX_PW_P0 + pipe, this->payload_size_);
@@ -214,14 +214,14 @@ void NRF24Component::start_listening_() {
   this->write_register_(REG_CONFIG, cfg | MASK_PRIM_RX);
   this->write_register_(REG_STATUS, STATUS_RX_DR | STATUS_TX_DS | STATUS_MAX_RT);
 
-  // Restaure l'adresse de réception sur la pipe 0 (open_writing_pipe_() l'utilise
-  // temporairement pour l'auto-ack pendant les transmissions).
+  // Restore the receive address on pipe 0 (open_writing_pipe_() temporarily
+  // uses it for auto-ack during transmissions).
   this->write_register_(REG_RX_ADDR_P0, this->rx_address_, this->address_width_);
 
   this->flush_rx_();
   this->flush_tx_();
   this->ce_pin_->digital_write(true);
-  delayMicroseconds(130);  // Trx2tx du datasheet -- stabilisation avant écoute
+  delayMicroseconds(130);  // datasheet's Trx2tx -- settling before listening
   this->listening_ = true;
 }
 
@@ -243,7 +243,7 @@ bool NRF24Component::rx_available_() {
 // ESPHome : setup / loop / dump_config
 // ---------------------------------------------------------------------------
 bool NRF24Component::reset_radio() {
-  ESP_LOGW(TAG, "Reset radio matériel demandé");
+  ESP_LOGW(TAG, "Hardware radio reset requested");
   this->ce_pin_->digital_write(false);
   uint8_t cfg = this->read_register_(REG_CONFIG);
   this->write_register_(REG_CONFIG, cfg & ~MASK_PWR_UP);
@@ -254,7 +254,7 @@ bool NRF24Component::reset_radio() {
   delay(5);  // NOLINT -- Tpd2stby du datasheet
   uint8_t check = this->read_register_(REG_CONFIG);
   if (check == 0xFF) {
-    ESP_LOGE(TAG, "Reset radio : la puce ne répond pas");
+    ESP_LOGE(TAG, "Radio reset: chip is not responding");
     return false;
   }
   return true;
@@ -273,7 +273,7 @@ void NRF24Component::setup() {
   this->ce_pin_->digital_write(false);
   delay(5);  // NOLINT -- Tpor du datasheet (mise sous tension)
 
-  this->write_register_(REG_CONFIG, 0);  // PWR_UP=0, PRIM_RX=0 -- état connu de départ
+  this->write_register_(REG_CONFIG, 0);  // PWR_UP=0, PRIM_RX=0 -- known starting state
   this->log_reg_(REG_CONFIG, "CONFIG (reset)");
 
   this->apply_retries_();
@@ -296,7 +296,7 @@ void NRF24Component::setup() {
 
   this->write_register_(REG_EN_AA, this->auto_ack_ ? 0x3F : 0x00);
   this->log_reg_(REG_EN_AA, "EN_AA");
-  this->write_register_(REG_EN_RXADDR, 0);  // pipes désactivées, activées par open_reading_pipe_()
+  this->write_register_(REG_EN_RXADDR, 0);  // pipes disabled, enabled by open_reading_pipe_()
   this->log_reg_(REG_EN_RXADDR, "EN_RXADDR (reset)");
 
   if (this->dynamic_payloads_) {
@@ -317,14 +317,14 @@ void NRF24Component::setup() {
   this->power_up_();
   this->log_reg_(REG_CONFIG, "CONFIG (power up)");
 
-  // Porté de RF24::isChipConnected() : SETUP_AW doit valoir address_width-2,
-  // puisqu'on vient de l'écrire nous-mêmes via apply_address_width_() -- plus
+  // Ported from RF24::isChipConnected(): SETUP_AW must equal address_width-2,
+  // since we just wrote it ourselves via apply_address_width_() -- more
   // fiable qu'un heuristique sur CONFIG (0x00/0xFF), qui reste un bon indice
-  // mais pas la méthode que la vraie bibliothèque utilise.
+  // but not the method the real library actually uses.
   uint8_t expected_aw = (this->address_width_ >= 2) ? (this->address_width_ - 2) : 0;
   uint8_t aw_check = this->read_register_(REG_SETUP_AW);
   if (aw_check != expected_aw) {
-    ESP_LOGE(TAG, "Puce NRF24 non détectée (SETUP_AW=0x%02X, attendu 0x%02X) -- vérifie le câblage SPI/CE",
+    ESP_LOGE(TAG, "NRF24 chip not detected (SETUP_AW=0x%02X, expected 0x%02X) -- check SPI/CE wiring",
              aw_check, expected_aw);
     this->setup_failed_ = true;
     this->mark_failed();
@@ -332,7 +332,7 @@ void NRF24Component::setup() {
   }
 
   if (this->external_mode_) {
-    ESP_LOGCONFIG(TAG, "NRF24 prêt (mode externe -- piloté par un autre composant)");
+    ESP_LOGCONFIG(TAG, "NRF24 ready (external mode -- driven by another component)");
     ESP_LOGI(TAG, "nrf24l01 setup ok");
     return;
   }
@@ -341,7 +341,7 @@ void NRF24Component::setup() {
   this->open_reading_pipe_(1, this->rx_address_);
   this->start_listening_();
 
-  ESP_LOGCONFIG(TAG, "NRF24 prêt sur le canal %u", this->channel_);
+  ESP_LOGCONFIG(TAG, "NRF24 ready on channel %u", this->channel_);
   ESP_LOGI(TAG, "nrf24l01 setup ok");
 }
 
@@ -370,7 +370,7 @@ bool NRF24Component::send_packet(const std::vector<uint8_t> &data, uint32_t time
   this->write_payload_(data.data(), static_cast<uint8_t>(data.size()));
 
   this->ce_pin_->digital_write(true);
-  delayMicroseconds(15);  // impulsion minimale (>10us) pour déclencher la Tx
+  delayMicroseconds(15);  // minimum pulse (>10us) to trigger Tx
   this->ce_pin_->digital_write(false);
 
   uint32_t start = millis();
@@ -386,7 +386,7 @@ bool NRF24Component::send_packet(const std::vector<uint8_t> &data, uint32_t time
 
   bool success = done && (status & STATUS_TX_DS);
   if (status & STATUS_MAX_RT) {
-    ESP_LOGW(TAG, "Envoi échoué : nombre maximal de retransmissions atteint (pas d'accusé reçu)");
+    ESP_LOGW(TAG, "Send failed: maximum retransmissions reached (no acknowledgment received)");
     this->flush_tx_();
   } else if (!done) {
     ESP_LOGW(TAG, "Timeout Tx (%ums)", static_cast<unsigned int>(timeout_ms));
@@ -421,15 +421,15 @@ void NRF24Component::dump_config() {
   ESP_LOGCONFIG(TAG, "  Retries: delay=%u count=%u", this->retry_delay_, this->retry_count_);
   ESP_LOGCONFIG(TAG, "  Payload size: %u%s", this->payload_size_, this->dynamic_payloads_ ? " (dynamic)" : "");
   if (this->external_mode_) {
-    // Ce dump_config() s'exécute pendant le setup() générique, AVANT que hm:
-    // (priorité AFTER_WIFI, plus tardive) ne reconfigure channel/data_rate/CRC/
+    // This dump_config() runs during generic setup(), BEFORE hm:
+    // (later AFTER_WIFI priority) reconfigures channel/data_rate/CRC/
     // adresses pour le protocole Hoymiles NRF -- les valeurs ci-dessus (sauf
-    // pa_level, non touché par hm:) ne reflètent donc pas l'état final réel.
-    ESP_LOGCONFIG(TAG, "  Mode externe actif (hm:) -- channel/data rate/CRC/adresses ci-dessus");
-    ESP_LOGCONFIG(TAG, "  seront réécrits par hm: après ce point (voir ses propres logs)");
+    // pa_level, untouched by hm:) don't reflect the real final state yet.
+    ESP_LOGCONFIG(TAG, "  External mode active (hm:) -- channel/data rate/CRC/addresses above");
+    ESP_LOGCONFIG(TAG, "  will be overwritten by hm: after this point (see its own logs)");
   }
   if (this->is_failed()) {
-    ESP_LOGE(TAG, "  Setup a échoué -- puce non détectée ou câblage incorrect");
+    ESP_LOGE(TAG, "  Setup failed -- chip not detected or incorrect wiring");
   }
 }
 

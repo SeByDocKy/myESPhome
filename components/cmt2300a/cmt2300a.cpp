@@ -6,12 +6,12 @@ namespace cmt2300a {
 
 static const char *const TAG = "cmt2300a";
 
-// Délai entre chaque demi-bit du protocole (IF_DELAY_US = 1 dans le driver de référence)
+// Delay between each half-bit of the protocol (IF_DELAY_US = 1 in the reference driver)
 static const uint32_t IF_DELAY_US = 1;
 static const uint32_t LINK_ATTEMPTS = 20;
 
 // ---------------------------------------------------------------------------
-// Bancs de registres par défaut, portés 1:1 depuis cmt2300a_params.h
+// Default register banks, ported 1:1 from cmt2300a_params.h
 // ---------------------------------------------------------------------------
 static const uint8_t BANK_CMT[BANK_CMT_SIZE] = {
     0x00, 0x66, 0xEC, 0x1C, 0x70, 0x80, 0x14, 0x08, 0x91, 0x02, 0x02, 0xD0,
@@ -35,7 +35,7 @@ static const uint8_t BANK_TX[BANK_TX_SIZE] = {
 };
 
 // ---------------------------------------------------------------------------
-// Bit-bang bas niveau -- port direct de if_send_byte()/if_read_byte() du .c de référence
+// Low-level bit-bang -- direct port of if_send_byte()/if_read_byte() from the reference .c
 // ---------------------------------------------------------------------------
 void CMT2300AComponent::if_send_byte_(uint8_t data8) {
   for (int i = 0; i < 8; i++) {
@@ -77,7 +77,7 @@ void CMT2300AComponent::write_reg_(uint8_t reg, uint8_t data) {
   this->cs_pin_->digital_write(false);
   delayMicroseconds(2 * IF_DELAY_US);
 
-  this->if_send_byte_(reg & 0x7F);  // r/w = 0 (écriture)
+  this->if_send_byte_(reg & 0x7F);  // r/w = 0 (write)
   this->if_send_byte_(data);
 
   this->clk_pin_->digital_write(false);
@@ -96,9 +96,9 @@ uint8_t CMT2300AComponent::read_reg_(uint8_t reg) {
   this->cs_pin_->digital_write(false);
   delayMicroseconds(2 * IF_DELAY_US);
 
-  this->if_send_byte_(reg | 0x80);  // r/w = 1 (lecture)
+  this->if_send_byte_(reg | 0x80);  // r/w = 1 (read)
 
-  // Le SDIO doit passer en entrée avant le front descendant de SCL qui suit
+  // SDIO must switch to input before the following falling edge of SCL
   this->sdio_pin_->pin_mode(gpio::FLAG_INPUT);
   value = this->if_read_byte_();
   this->sdio_pin_->pin_mode(gpio::FLAG_OUTPUT);
@@ -182,22 +182,22 @@ void CMT2300AComponent::config_reg_bank_(uint8_t base_addr, const uint8_t *bank,
     this->write_reg_(reg, bank[i]);
     uint8_t readback = this->read_reg_(reg);
     if (readback == bank[i]) {
-      ESP_LOGV(TAG, "    reg 0x%02X = 0x%02X (vérifié par relecture)", reg, readback);
+      ESP_LOGV(TAG, "    reg 0x%02X = 0x%02X (verified by readback)", reg, readback);
     } else {
-      ESP_LOGW(TAG, "    reg 0x%02X : écrit 0x%02X mais relu 0x%02X -- non conforme", reg, bank[i], readback);
+      ESP_LOGW(TAG, "    reg 0x%02X: wrote 0x%02X but read back 0x%02X -- mismatch", reg, bank[i], readback);
     }
   }
 }
 
 // ---------------------------------------------------------------------------
-// Séquence haut niveau -- port des fonctions cmt2300a_*() du .c de référence
+// High-level sequence -- port of the cmt2300a_*() functions from the reference .c
 // ---------------------------------------------------------------------------
 bool CMT2300AComponent::soft_reset_() {
   int attempts = LINK_ATTEMPTS;
   uint8_t status = STATE_INVALID;
   this->write_reg_(0x7F, 0xFF);
   while (status != STATE_SLEEP && attempts > 0) {
-    delay(20);  // NOLINT -- équivalent du delay_us(20000) du driver de référence
+    delay(20);  // NOLINT -- equivalent of the reference driver's delay_us(20000)
     status = this->get_state_();
     attempts--;
   }
@@ -342,8 +342,8 @@ bool CMT2300AComponent::allow_receiving_any_nodeid_(bool allow) {
 // ---------------------------------------------------------------------------
 // ESPHome: setup / loop / dump_config
 // ---------------------------------------------------------------------------
-// Table dBm -> Tx_dBm_word portée fidèlement de CMT2300a::setPALevel()
-// (lib/CMT2300a/cmt2300wrapper.cpp, commit OpenDTU 098691a -- "First step
+// dBm -> Tx_dBm_word table ported faithfully from CMT2300a::setPALevel()
+// (lib/CMT2300a/cmt2300wrapper.cpp, OpenDTU commit 098691a -- "First step
 // towards a modular CMT2300 driver similar to the NRF24 one").
 void CMT2300AComponent::set_pa_level(int8_t dbm) {
   uint16_t tx_dbm_word;
@@ -375,13 +375,13 @@ void CMT2300AComponent::set_pa_level(int8_t dbm) {
     case 14:  tx_dbm_word = 0x5E0B; break;
     case 15:  tx_dbm_word = 0x6C0C; break;
     case 16:  tx_dbm_word = 0x7D0C; break;
-    // Les valeurs suivantes nécessitent le bit "double" (registre CUS_CMT4, bit0) :
+    // The following values require the "double" bit (register CUS_CMT4, bit0):
     case 17:  tx_dbm_word = 0x4A0C; break;
     case 18:  tx_dbm_word = 0x580F; break;
     case 19:  tx_dbm_word = 0x6B12; break;
     case 20:  tx_dbm_word = 0x8A18; break;
     default:
-      ESP_LOGE(TAG, "pa_level invalide (%d dBm) -- doit être entre -10 et 20", dbm);
+      ESP_LOGE(TAG, "invalid pa_level (%d dBm) -- must be between -10 and 20", dbm);
       return;
   }
 
@@ -389,7 +389,7 @@ void CMT2300AComponent::set_pa_level(int8_t dbm) {
   if (dbm > 16) {
     this->write_reg_(BANK_CMT_ADDR + 4, cmt4 | 0x01);   // set bit0 (double Tx)
   } else {
-    this->write_reg_(BANK_CMT_ADDR + 4, cmt4 & 0xFE);   // reset bit0
+    this->write_reg_(BANK_CMT_ADDR + 4, cmt4 & 0xFE);   // clear bit0
   }
   this->write_reg_(BANK_TX_ADDR + 8, static_cast<uint8_t>(tx_dbm_word >> 8));   // CUS_TX8
   this->write_reg_(BANK_TX_ADDR + 9, static_cast<uint8_t>(tx_dbm_word & 0xFF));  // CUS_TX9
@@ -400,13 +400,13 @@ void CMT2300AComponent::set_pa_level(int8_t dbm) {
     this->pa_level_number_->publish_state(dbm);
   }
 
-  ESP_LOGD(TAG, "PA level réglé à %d dBm (Tx_dBm_word=0x%04X)", dbm, tx_dbm_word);
+  ESP_LOGD(TAG, "PA level set to %d dBm (Tx_dBm_word=0x%04X)", dbm, tx_dbm_word);
 }
 
 bool CMT2300AComponent::reset_radio() {
-  ESP_LOGW(TAG, "Reset radio matériel demandé");
+  ESP_LOGW(TAG, "Hardware radio reset requested");
   if (!this->soft_reset_()) {
-    ESP_LOGE(TAG, "Reset radio : la puce ne répond pas");
+    ESP_LOGE(TAG, "Radio reset: chip is not responding");
     return false;
   }
   this->external_radio_ready_ = false;
@@ -431,136 +431,136 @@ void CMT2300AComponent::setup() {
   this->sdio_pin_->digital_write(true);
   this->fcs_pin_->digital_write(true);
   delayMicroseconds(20);
-  ESP_LOGV(TAG, "Pins configurées (CS=1, CLK=0, SDIO=1, FCS=1)");
+  ESP_LOGV(TAG, "Pins configured (CS=1, CLK=0, SDIO=1, FCS=1)");
 
   ESP_LOGD(TAG, "Soft reset...");
   if (!this->soft_reset_()) {
-    ESP_LOGE(TAG, "Soft reset failed -- vérifie le câblage CLK/SDIO/CS/FCS");
+    ESP_LOGE(TAG, "Soft reset failed -- check CLK/SDIO/CS/FCS wiring");
     this->mark_failed();
     return;
   }
-  ESP_LOGV(TAG, "Soft reset OK (état = SLEEP)");
+  ESP_LOGV(TAG, "Soft reset OK (state = SLEEP)");
 
-  ESP_LOGD(TAG, "Passage en STBY...");
+  ESP_LOGD(TAG, "Switching to STBY...");
   if (!this->go_state_(GO_STBY, STATE_STBY)) {
-    ESP_LOGE(TAG, "Impossible de passer en STBY");
+    ESP_LOGE(TAG, "Unable to switch to STBY");
     this->mark_failed();
     return;
   }
   ESP_LOGV(TAG, "STBY OK");
 
   if (this->external_mode_) {
-    ESP_LOGD(TAG, "Mode externe actif -- test de présence de la puce uniquement");
+    ESP_LOGD(TAG, "External mode active -- chip presence test only");
     if (!this->is_chip_exist_()) {
-      ESP_LOGE(TAG, "Puce CMT2300A non détectée (registre 0x48 illisible/incohérent)");
+      ESP_LOGE(TAG, "CMT2300A chip not detected (register 0x48 unreadable/inconsistent)");
       this->mark_failed();
       return;
     }
     if (!this->go_state_(GO_SLEEP, STATE_SLEEP)) {
-      ESP_LOGE(TAG, "Impossible de repasser en SLEEP après détection");
+      ESP_LOGE(TAG, "Unable to return to SLEEP after detection");
       this->mark_failed();
       return;
     }
-    ESP_LOGCONFIG(TAG, "CMT2300A prêt (mode externe -- piloté par un autre composant)");
+    ESP_LOGCONFIG(TAG, "CMT2300A ready (external mode -- driven by another component)");
     ESP_LOGI(TAG, "cmt2300a setup ok");
     return;
   }
 
-  ESP_LOGD(TAG, "Config des bancs de registres...");
+  ESP_LOGD(TAG, "Configuring register banks...");
   this->config_reg_bank_(BANK_CMT_ADDR, BANK_CMT, BANK_CMT_SIZE);
-  ESP_LOGV(TAG, "  Banc CMT écrit (base 0x%02X, %u octets)", BANK_CMT_ADDR, BANK_CMT_SIZE);
+  ESP_LOGV(TAG, "  CMT bank written (base 0x%02X, %u bytes)", BANK_CMT_ADDR, BANK_CMT_SIZE);
   this->config_reg_bank_(BANK_SYSTEM_ADDR, BANK_SYSTEM, BANK_SYSTEM_SIZE);
-  ESP_LOGV(TAG, "  Banc System écrit (base 0x%02X, %u octets)", BANK_SYSTEM_ADDR, BANK_SYSTEM_SIZE);
+  ESP_LOGV(TAG, "  System bank written (base 0x%02X, %u bytes)", BANK_SYSTEM_ADDR, BANK_SYSTEM_SIZE);
   this->config_reg_bank_(BANK_FREQUENCY_ADDR, BANK_FREQUENCY, BANK_FREQUENCY_SIZE);
-  ESP_LOGV(TAG, "  Banc Frequency écrit (base 0x%02X, %u octets)", BANK_FREQUENCY_ADDR, BANK_FREQUENCY_SIZE);
+  ESP_LOGV(TAG, "  Frequency bank written (base 0x%02X, %u bytes)", BANK_FREQUENCY_ADDR, BANK_FREQUENCY_SIZE);
   this->config_reg_bank_(BANK_DATA_RATE_ADDR, BANK_DATA_RATE, BANK_DATA_RATE_SIZE);
-  ESP_LOGV(TAG, "  Banc Data Rate écrit (base 0x%02X, %u octets)", BANK_DATA_RATE_ADDR, BANK_DATA_RATE_SIZE);
+  ESP_LOGV(TAG, "  Data Rate bank written (base 0x%02X, %u bytes)", BANK_DATA_RATE_ADDR, BANK_DATA_RATE_SIZE);
   this->config_reg_bank_(BANK_BASEBAND_ADDR, BANK_BASEBAND, BANK_BASEBAND_SIZE);
-  ESP_LOGV(TAG, "  Banc Baseband écrit (base 0x%02X, %u octets)", BANK_BASEBAND_ADDR, BANK_BASEBAND_SIZE);
+  ESP_LOGV(TAG, "  Baseband bank written (base 0x%02X, %u bytes)", BANK_BASEBAND_ADDR, BANK_BASEBAND_SIZE);
   this->config_reg_bank_(BANK_TX_ADDR, BANK_TX, BANK_TX_SIZE);
-  ESP_LOGV(TAG, "  Banc Tx écrit (base 0x%02X, %u octets)", BANK_TX_ADDR, BANK_TX_SIZE);
+  ESP_LOGV(TAG, "  Tx bank written (base 0x%02X, %u bytes)", BANK_TX_ADDR, BANK_TX_SIZE);
   if (this->has_pa_level_) {
     this->set_pa_level(this->pa_level_dbm_);
   }
 
-  // LFOSC désactivée (comme le driver de référence)
+  // LFOSC disabled (as in the reference driver)
   uint8_t sys2 = this->read_reg_(REG_CUS_SYS2);
   sys2 &= ~(MASK_LFOSC_RECAL_EN | MASK_LFOSC_CAL1_EN | MASK_LFOSC_CAL2_EN);
   this->write_reg_(REG_CUS_SYS2, sys2);
   uint8_t int2 = this->read_reg_(REG_CUS_INT2_CTL);
   int2 &= ~MASK_LFOSC_OUT_EN;
   this->write_reg_(REG_CUS_INT2_CTL, int2);
-  ESP_LOGV(TAG, "LFOSC désactivée (SYS2=0x%02X, INT2_CTL=0x%02X)", sys2, int2);
+  ESP_LOGV(TAG, "LFOSC disabled (SYS2=0x%02X, INT2_CTL=0x%02X)", sys2, int2);
 
-  // RSTN_IN désactivé, CFG_RETAIN activé
+  // RSTN_IN disabled, CFG_RETAIN enabled
   uint8_t sta = this->read_reg_(REG_CUS_MODE_STA);
   sta &= ~MASK_RSTN_IN_EN;
   sta |= MASK_CFG_RETAIN;
   this->write_reg_(REG_CUS_MODE_STA, sta);
-  ESP_LOGV(TAG, "RSTN_IN désactivé, CFG_RETAIN activé (MODE_STA=0x%02X)", sta);
+  ESP_LOGV(TAG, "RSTN_IN disabled, CFG_RETAIN enabled (MODE_STA=0x%02X)", sta);
 
   uint8_t irq0 = this->clear_irq_flags_();
-  ESP_LOGV(TAG, "Flags IRQ résiduels effacés (0x%02X)", irq0);
+  ESP_LOGV(TAG, "Residual IRQ flags cleared (0x%02X)", irq0);
 
-  ESP_LOGD(TAG, "Test de présence de la puce...");
+  ESP_LOGD(TAG, "Testing chip presence...");
   if (!this->is_chip_exist_()) {
-    ESP_LOGE(TAG, "Puce CMT2300A non détectée (registre 0x48 illisible/incohérent)");
+    ESP_LOGE(TAG, "CMT2300A chip not detected (register 0x48 unreadable/inconsistent)");
     this->mark_failed();
     return;
   }
-  ESP_LOGD(TAG, "Puce CMT2300A détectée");
+  ESP_LOGD(TAG, "CMT2300A chip detected");
 
   if (!this->go_state_(GO_SLEEP, STATE_SLEEP)) {
-    ESP_LOGE(TAG, "Impossible de repasser en SLEEP après config");
+    ESP_LOGE(TAG, "Unable to return to SLEEP after config");
     this->mark_failed();
     return;
   }
-  ESP_LOGV(TAG, "Retour en SLEEP OK");
+  ESP_LOGV(TAG, "Return to SLEEP OK");
 
-  // GPIO2 -> INT1 (TX_DONE), GPIO3 -> INT2 (PKT_DONE) si déclarés dans le YAML
+  // GPIO2 -> INT1 (TX_DONE), GPIO3 -> INT2 (PKT_DONE) if declared in YAML
   uint32_t gpio_mask = 0;
   if (this->gpio2_pin_ != nullptr) gpio_mask |= GPIO2_SEL_INT1;
   if (this->gpio3_pin_ != nullptr) gpio_mask |= GPIO3_SEL_INT2;
   if (gpio_mask != 0) {
     if (!this->select_gpio_pins_mode_(gpio_mask)) {
-      ESP_LOGW(TAG, "select_gpio_pins_mode a échoué");
+      ESP_LOGW(TAG, "select_gpio_pins_mode failed");
     } else {
       ESP_LOGV(TAG, "select_gpio_pins_mode OK (mask=0x%02X)", (unsigned) gpio_mask);
     }
   }
   if (!this->map_gpio_to_irq_(INT_SEL_TX_DONE, INT_SEL_PKT_DONE)) {
-    ESP_LOGW(TAG, "map_gpio_to_irq a échoué");
+    ESP_LOGW(TAG, "map_gpio_to_irq failed");
   } else {
     ESP_LOGV(TAG, "map_gpio_to_irq OK (INT1=TX_DONE, INT2=PKT_DONE)");
   }
   if (!this->set_irq_polar_(true)) {
-    ESP_LOGW(TAG, "set_irq_polar a échoué");
+    ESP_LOGW(TAG, "set_irq_polar failed");
   } else {
-    ESP_LOGV(TAG, "set_irq_polar OK (actif haut)");
+    ESP_LOGV(TAG, "set_irq_polar OK (active high)");
   }
   if (!this->enable_irq_(MASK_TX_DONE_EN | MASK_CRC_OK_EN | MASK_PKT_DONE_EN)) {
-    ESP_LOGW(TAG, "enable_irq a échoué");
+    ESP_LOGW(TAG, "enable_irq failed");
   } else {
     ESP_LOGV(TAG, "enable_irq OK (TX_DONE|CRC_OK|PKT_DONE)");
   }
   if (!this->set_merge_fifo_(false)) {
-    ESP_LOGW(TAG, "set_merge_fifo a échoué");
+    ESP_LOGW(TAG, "set_merge_fifo failed");
   } else {
-    ESP_LOGV(TAG, "set_merge_fifo OK (32/32 octets Tx/Rx)");
+    ESP_LOGV(TAG, "set_merge_fifo OK (32/32 bytes Tx/Rx)");
   }
   if (!this->set_fifo_threshold_reg_(this->fifo_threshold_)) {
-    ESP_LOGW(TAG, "set_fifo_threshold a échoué");
+    ESP_LOGW(TAG, "set_fifo_threshold failed");
   } else {
     ESP_LOGV(TAG, "set_fifo_threshold OK (%u)", this->fifo_threshold_);
   }
   if (!this->allow_receiving_any_nodeid_(this->accept_any_node_id_)) {
-    ESP_LOGW(TAG, "allow_receiving_any_nodeid a échoué");
+    ESP_LOGW(TAG, "allow_receiving_any_nodeid failed");
   } else {
     ESP_LOGV(TAG, "allow_receiving_any_nodeid OK (%s)", YESNO(this->accept_any_node_id_));
   }
   if (this->node_id_ != 0 || !this->accept_any_node_id_) {
     if (!this->set_node_id_reg_(this->node_id_)) {
-      ESP_LOGW(TAG, "set_node_id a échoué");
+      ESP_LOGW(TAG, "set_node_id failed");
     } else {
       ESP_LOGV(TAG, "set_node_id OK (0x%08X)", (unsigned) this->node_id_);
     }
@@ -569,20 +569,20 @@ void CMT2300AComponent::setup() {
   if (this->gpio2_pin_ != nullptr) {
     this->gpio2_pin_->setup();
     this->gpio2_pin_->attach_interrupt(&CMT2300AComponent::gpio2_isr_, this, gpio::INTERRUPT_RISING_EDGE);
-    ESP_LOGV(TAG, "Interruption GPIO2 attachée (front montant)");
+    ESP_LOGV(TAG, "GPIO2 interrupt attached (rising edge)");
   }
   if (this->gpio3_pin_ != nullptr) {
     this->gpio3_pin_->setup();
     this->gpio3_pin_->attach_interrupt(&CMT2300AComponent::gpio3_isr_, this, gpio::INTERRUPT_RISING_EDGE);
-    ESP_LOGV(TAG, "Interruption GPIO3 attachée (front montant)");
+    ESP_LOGV(TAG, "GPIO3 interrupt attached (rising edge)");
   }
 
-  ESP_LOGCONFIG(TAG, "CMT2300A prêt");
+  ESP_LOGCONFIG(TAG, "CMT2300A ready");
   ESP_LOGI(TAG, "cmt2300a setup ok");
   if (!this->start_receive_()) {
-    ESP_LOGW(TAG, "Premier démarrage de l'écoute RX en échec");
+    ESP_LOGW(TAG, "Initial RX listen start failed");
   } else {
-    ESP_LOGV(TAG, "Écoute RX démarrée");
+    ESP_LOGV(TAG, "RX listening started");
   }
 }
 
@@ -604,16 +604,16 @@ bool CMT2300AComponent::start_receive_() {
 bool CMT2300AComponent::send_packet(const std::vector<uint8_t> &data, uint32_t timeout_ms) {
   if (this->is_failed()) return false;
   if (data.empty() || data.size() > this->tx_fifo_size_) {
-    ESP_LOGW(TAG, "Paquet TX invalide (%u octets, max %u)", (unsigned) data.size(), this->tx_fifo_size_);
+    ESP_LOGW(TAG, "Invalid TX packet (%u bytes, max %u)", (unsigned) data.size(), this->tx_fifo_size_);
     return false;
   }
   if (this->state_ == RadioState::TX_WAIT) {
-    ESP_LOGW(TAG, "Transmission déjà en cours, envoi ignoré");
+    ESP_LOGW(TAG, "Transmission already in progress, send ignored");
     return false;
   }
 
   if (!this->go_state_(GO_STBY, STATE_STBY)) {
-    ESP_LOGW(TAG, "go_state(STBY) a échoué avant TX");
+    ESP_LOGW(TAG, "go_state(STBY) failed before TX");
     return false;
   }
   this->clear_irq_flags_();
@@ -625,7 +625,7 @@ bool CMT2300AComponent::send_packet(const std::vector<uint8_t> &data, uint32_t t
 
   this->tx_done_flag_ = false;
   if (!this->go_state_(GO_TX, STATE_TX)) {
-    ESP_LOGW(TAG, "go_state(TX) a échoué");
+    ESP_LOGW(TAG, "go_state(TX) failed");
     return false;
   }
 
@@ -647,7 +647,7 @@ void CMT2300AComponent::loop() {
         this->tx_done_callback_.call();
         this->start_receive_();
       } else if (millis() > this->state_deadline_) {
-        ESP_LOGW(TAG, "Timeout TX");
+        ESP_LOGW(TAG, "TX timeout");
         this->go_state_(GO_SLEEP, STATE_SLEEP);
         this->state_ = RadioState::IDLE;
         this->start_receive_();
@@ -667,11 +667,11 @@ void CMT2300AComponent::loop() {
           std::vector<uint8_t> data(this->rx_buf_, this->rx_buf_ + this->rx_fifo_size_);
           this->packet_callback_.call(data);
         } else {
-          ESP_LOGW(TAG, "Paquet reçu avec CRC invalide, ignoré");
+          ESP_LOGW(TAG, "Packet received with invalid CRC, ignored");
         }
         this->start_receive_();
       } else if (millis() > this->state_deadline_) {
-        // Pas de paquet reçu dans le délai : on relance simplement une écoute
+        // No packet received within the delay: simply restart listening
         this->go_state_(GO_SLEEP, STATE_SLEEP);
         this->state_ = RadioState::IDLE;
         this->start_receive_();
@@ -700,15 +700,14 @@ void CMT2300AComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  Accept any node ID: %s", YESNO(this->accept_any_node_id_));
   ESP_LOGCONFIG(TAG, "  FIFO threshold: %u", this->fifo_threshold_);
   if (this->external_mode_) {
-    // Contrairement à nrf24l01/hm, les registres que hms: reconfigure (bancs
-    // fréquence/débit) ne sont pas des champs de config générique affichés
-    // ci-dessus -- rien ici ne devient obsolète après le passage de hms:, mais
-    // la config radio effective (fréquence de travail, etc.) est entièrement
-    // définie par hms: -- voir ses propres logs pour ces valeurs.
-    ESP_LOGCONFIG(TAG, "  Mode externe actif (hms:) -- fréquence/débit gérés par hms:, voir ses logs");
+    // Unlike nrf24l01/hm, the registers hms: reconfigures (frequency/data rate
+    // banks) aren't generic config fields shown above -- nothing here becomes
+    // stale after hms: runs, but the effective radio config (work frequency,
+    // etc.) is entirely defined by hms: -- see its own logs for those values.
+    ESP_LOGCONFIG(TAG, "  External mode active (hms:) -- frequency/data rate managed by hms:, see its logs");
   }
   if (this->is_failed()) {
-    ESP_LOGE(TAG, "  Setup a échoué -- puce non détectée ou câblage incorrect");
+    ESP_LOGE(TAG, "  Setup failed -- chip not detected or incorrect wiring");
   }
 }
 

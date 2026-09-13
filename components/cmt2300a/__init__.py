@@ -42,10 +42,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_NODE_ID, default=0): cv.uint32_t,
         cv.Optional(CONF_ACCEPT_ANY_NODE_ID, default=False): cv.boolean,
         cv.Optional(CONF_FIFO_THRESHOLD, default=32): cv.int_range(min=1, max=64),
-        # Optionnel -- si absent, le banc Tx figé porté depuis la config de
-        # référence reste inchangé (comportement historique préservé). Table
-        # dBm -> registres vérifiée directement dans le vrai code source
-        # OpenDTU (CMT2300a::setPALevel()).
+        # Optional -- if absent, the fixed Tx bank ported from the reference
+        # config stays unchanged (historical behavior preserved). dBm ->
+        # register table verified directly against the real OpenDTU source
+        # (CMT2300a::setPALevel()).
         cv.Optional(CONF_PA_LEVEL, default=20): cv.int_range(min=-10, max=20),
         cv.Optional(CONF_ON_PACKET_RECEIVED): automation.validate_automation(
             {

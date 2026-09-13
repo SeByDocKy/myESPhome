@@ -13,9 +13,9 @@ namespace esphome {
 namespace hm {
 
 // ---------------------------------------------------------------------------
-// Types portés depuis OpenDTU lib/Hoymiles/src/parser/StatisticsParser.h
-// (identiques à hms -- même famille de protocole Hoymiles) + CALC_CH_UDC,
-// utilisé par les modèles HM 4 canaux (inverters/HM_4CH.cpp) mais pas par HMS.
+// Types ported from OpenDTU lib/Hoymiles/src/parser/StatisticsParser.h
+// (identical to hms -- same Hoymiles protocol family) + CALC_CH_UDC,
+// used by 4-channel HM models (inverters/HM_4CH.cpp) but not by HMS.
 // ---------------------------------------------------------------------------
 enum FieldId_t : uint8_t {
   FLD_UDC = 0,
@@ -61,7 +61,7 @@ struct byteAssign_t {
 static const uint8_t STATISTIC_PACKET_SIZE = 96;
 
 // ---------------------------------------------------------------------------
-// Fragment RF brut, porté depuis types.h (identique à hms)
+// Raw RF fragment, ported from types.h (identical to hms)
 // ---------------------------------------------------------------------------
 struct fragment_t {
   uint8_t mainCmd{0};
@@ -112,8 +112,8 @@ class HMComponent : public Component {
   void set_power_limit_absolute(float watts);
   void set_power_limit_percent_persistent(float percent);
 
-  /// Reset matériel de la puce + reconfiguration Hoymiles NRF complète, sans reboot
-  /// de l'ESP32. Bloquant (quelques ms) -- action manuelle rare.
+  /// Hardware reset of the chip + full Hoymiles NRF reconfiguration, without
+  /// rebooting the ESP32. Blocking (a few ms) -- a rare manual action.
   void reset_radio();
 
   void setup() override;
@@ -126,18 +126,18 @@ class HMComponent : public Component {
   static uint64_t generate_dtu_serial_();
   bool init_radio_();
 
-  // --- Hop de canal -- porté de HoymilesRadio_NRF.cpp ---
+  // --- Channel hopping -- ported from HoymilesRadio_NRF.cpp ---
   uint8_t next_rx_channel_();
   uint8_t next_tx_channel_();
   void switch_rx_channel_();
 
-  // --- Emission/réception bas niveau ---
-  bool cmt_start_tx_(const uint8_t *buf, uint8_t len);  // nom conservé par cohérence avec hms
+  // --- Low-level Tx/Rx ---
+  bool cmt_start_tx_(const uint8_t *buf, uint8_t len);  // name kept for consistency with hms
   void process_tx_();
   void open_reading_pipe_for_dtu_();
   void open_writing_pipe_for_inverter_();
 
-  // --- Construction de trames -- portées de commands/*.cpp (identiques hms) ---
+  // --- Frame construction -- ported from commands/*.cpp (identical to hms) ---
   void build_realtime_data_request_(uint8_t *out, uint8_t *out_len);
   void build_request_frame_(uint8_t frame_no, uint8_t *out, uint8_t *out_len);
   void build_active_power_control_(float limit, PowerLimitType type, bool persistent, uint8_t *out, uint8_t *out_len);
@@ -160,8 +160,8 @@ class HMComponent : public Component {
   uint64_t inverter_serial_{0};
   uint64_t dtu_serial_{0};
   uint32_t poll_interval_ms_{5000};
-  // Mêmes valeurs par défaut qu'OpenDTU (RealTimeRunDataCommand/ActivePowerControlCommand),
-  // exposées en YAML -- voir hms.h pour le même mécanisme.
+  // Same defaults as OpenDTU's (RealTimeRunDataCommand/ActivePowerControlCommand),
+  // exposed in YAML -- see hms.h for the same mechanism.
   uint32_t realtime_timeout_ms_{500};
   uint32_t power_control_timeout_ms_{2000};
 

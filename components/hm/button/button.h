@@ -6,9 +6,9 @@
 namespace esphome {
 namespace hm {
 
-/// Bouton générique : à l'appui, force la limite de puissance relative du HM à
-/// une valeur cible fixe (utilisé pour reset_to_output_min / reset_to_output_max),
-/// en écriture PERSISTANTE (EEPROM onduleur).
+/// Generic button: on press, forces the HM's relative power limit to
+/// a fixed target value (used for reset_to_output_min / reset_to_output_max),
+/// written PERSISTENT (inverter EEPROM).
 class HMResetPercentButton : public button::Button {
  public:
   void set_parent(HMComponent *parent) { this->parent_ = parent; }
@@ -20,8 +20,8 @@ class HMResetPercentButton : public button::Button {
   float target_percent_{100.0f};
 };
 
-/// A l'appui, reset matériel de la puce nRF24L01 (sans reboot de l'ESP32) suivi
-/// d'une reconfiguration Hoymiles NRF complète.
+/// On press, hardware resets the nRF24L01 chip (without rebooting the ESP32)
+/// followed by a full Hoymiles NRF reconfiguration.
 class HMResetHmButton : public button::Button {
  public:
   void set_parent(HMComponent *parent) { this->parent_ = parent; }

@@ -6,8 +6,8 @@
 namespace esphome {
 namespace hms {
 
-/// Bouton générique : à l'appui, force la limite de puissance relative du HMS à
-/// une valeur cible fixe (utilisé pour reset_to_output_min / reset_to_output_max).
+/// Generic button: on press, forces the HMS relative power limit to
+/// a fixed target value (used for reset_to_output_min / reset_to_output_max).
 class HMSResetPercentButton : public button::Button {
  public:
   void set_parent(HMSComponent *parent) { this->parent_ = parent; }
@@ -19,10 +19,10 @@ class HMSResetPercentButton : public button::Button {
   float target_percent_{100.0f};
 };
 
-/// A l'appui, reset matériel de la puce CMT2300A (sans reboot de l'ESP32) suivi
-/// d'une reconfiguration Hoymiles complète. Utilisé en secours si l'onduleur ne
-/// se laisse jamais joindre après un boot de l'ESP32 -- voir la doc pour une
-/// automatisation qui appuie dessus périodiquement tant que reachable est off.
+/// On press, hardware resets the CMT2300A chip (without rebooting the ESP32)
+/// followed by a full Hoymiles reconfiguration. Used as a fallback if the
+/// inverter never becomes reachable after an ESP32 boot -- see the docs for an
+/// automation that presses it periodically while reachable stays off.
 class HMSResetHmsButton : public button::Button {
  public:
   void set_parent(HMSComponent *parent) { this->parent_ = parent; }

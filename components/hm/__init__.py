@@ -41,8 +41,8 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Required(CONF_SN): _validate_serial,
         cv.Optional(CONF_DTU_SERIAL): _validate_serial,
         cv.Optional(CONF_POLL_INTERVAL, default="5s"): cv.positive_time_period_milliseconds,
-        # Délais avant abandon/retransmission -- mêmes valeurs par défaut
-        # qu'OpenDTU, optionnels (voir hms: pour la même logique).
+        # Delays before giving up/retransmitting -- same defaults as
+        # OpenDTU, optional (see hms: for the same logic).
         cv.Optional(
             CONF_REALTIME_TIMEOUT, default="500ms"
         ): cv.positive_time_period_milliseconds,
@@ -58,9 +58,9 @@ async def to_code(config):
     await cg.register_component(var, config)
 
     radio = await cg.get_variable(config[CONF_NRF24L01_ID])
-    # Le hub prend le contrôle total du nRF24 : data rate/CRC/largeur d'adresse
-    # fixes imposés par le protocole Hoymiles NRF, hop de canal continu --
-    # incompatible avec le mode générique du composant nrf24l01.
+    # The hub takes full control of the nRF24: fixed data rate/CRC/address
+    # width imposed by the Hoymiles NRF protocol, continuous channel hopping --
+    # incompatible with the nrf24l01 component's generic mode.
     cg.add(radio.set_external_mode(True))
     cg.add(var.set_radio(radio))
 

@@ -11,8 +11,8 @@ CONF_RESET_HMS = "reset_hms"
 
 DEPENDENCIES = ["hms"]
 
-# En dessous de ce seuil, le HMS arrête purement et simplement de produire (0% =
-# extinction) -- 2% est le minimum qui le laisse actif tout en écrêtant fortement.
+# Below this threshold, the HMS simply stops producing entirely (0% =
+# shutdown) -- 2% is the minimum that keeps it active while heavily clamping output.
 HMS_OUTPUT_MIN_PERCENT = 2.0
 HMS_OUTPUT_MAX_PERCENT = 100.0
 

@@ -28,8 +28,8 @@ _DUTY_CYCLE_SCHEMA = sensor.sensor_schema(
     icon="mdi:radio-tower",
 ).extend(cv.polling_component_schema("60s"))
 
-# hm_count est un compteur événementiel (publié par nrf24l01: à chaque changement
-# d'état reachable d'un hm:, pas de scrutation) -- un sensor::Sensor de base suffit.
+# hm_count is an event-driven counter (published by nrf24l01: on every reachable
+# state change of an hm:, not polled) -- a base sensor::Sensor is enough.
 _HM_COUNT_SCHEMA = sensor.sensor_schema(
     accuracy_decimals=0,
     state_class=STATE_CLASS_MEASUREMENT,
@@ -49,8 +49,8 @@ def _final_validate(config):
     if CONF_HM_COUNT not in config:
         return config
 
-    # hm_count n'a de sens que s'il existe au moins un hm: rattaché à ce
-    # nrf24l01: -- sinon le compteur resterait toujours à 0.
+    # hm_count only makes sense if at least one hm: is attached to this
+    # nrf24l01: -- otherwise the counter would always stay at 0.
     try:
         full_conf = fv.full_config.get()
         hm_confs = full_conf.get("hm", [])
@@ -62,9 +62,9 @@ def _final_validate(config):
     radio_id = config[CONF_NRF24L01_ID]
     if not any(hm_conf.get("nrf24l01_id") == radio_id for hm_conf in hm_confs):
         raise cv.Invalid(
-            f"'hm_count' nécessite qu'au moins un composant hm: soit rattaché à "
-            f"ce nrf24l01_id ('{radio_id}') -- sans hm:, ce compteur resterait "
-            f"toujours à 0."
+            f"'hm_count' requires at least one hm: component attached to "
+            f"this nrf24l01_id ('{radio_id}') -- without an hm:, this counter would "
+            f"always stay at 0."
         )
     return config
 

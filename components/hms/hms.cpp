@@ -9,7 +9,7 @@ namespace hms {
 static const char *const TAG = "hms";
 
 // ---------------------------------------------------------------------------
-// CRC -- porté 1:1 depuis OpenDTU lib/Hoymiles/src/crc.cpp
+// CRC -- ported 1:1 from OpenDTU lib/Hoymiles/src/crc.cpp
 // ---------------------------------------------------------------------------
 static uint8_t crc8(const uint8_t *buf, uint8_t len) {
   uint8_t crc = 0x00;
@@ -35,7 +35,7 @@ static uint16_t crc16(const uint8_t *buf, uint8_t len, uint16_t start = 0xffff) 
   return crc;
 }
 
-// Codes de vérification de fragments -- portés depuis inverters/InverterAbstract.h
+// Fragment verification codes -- ported from inverters/InverterAbstract.h
 static const uint8_t FRAGMENT_ALL_MISSING_RESEND = 255;
 static const uint8_t FRAGMENT_ALL_MISSING_TIMEOUT = 254;
 static const uint8_t FRAGMENT_RETRANSMIT_TIMEOUT = 253;
@@ -45,9 +45,9 @@ static const uint8_t MAX_RESEND_COUNT = 4;      // commands/CommandAbstract.h
 static const uint8_t MAX_RETRANSMIT_COUNT = 5;  // commands/CommandAbstract.h
 
 // ---------------------------------------------------------------------------
-// Tables d'octets -- portées 1:1 depuis inverters/HMS_1CH.cpp, HMS_2CH.cpp, HMS_4CH.cpp
-// (les champs FLD_IRR ne sont pas portés : nécessitent une config de puissance crête
-//  par string non exposée en v1 -- voir README)
+// Byte tables -- ported 1:1 from inverters/HMS_1CH.cpp, HMS_2CH.cpp, HMS_4CH.cpp
+// (FLD_IRR fields are not ported: they require a per-string peak-power config
+//  not exposed in v1 -- see README)
 // ---------------------------------------------------------------------------
 static const byteAssign_t HMS_1CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
@@ -72,10 +72,10 @@ static const byteAssign_t HMS_1CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
 };
 
-// Portée depuis inverters/HMS_1CHv2.cpp (HMS-450/500-1T v2, préfixes 0x1125 et
-// 0x1400) -- PAS le même format de trame que HMS_1CH malgré le même nombre de
-// canaux DC : offsets réellement différents, vérifiés depuis le vrai fichier
-// source (pas une simple extension de préfixe sur la table v1).
+// Ported from inverters/HMS_1CHv2.cpp (HMS-450/500-1T v2, prefixes 0x1125 and
+// 0x1400) -- NOT the same frame format as HMS_1CH despite the same DC channel
+// count: genuinely different offsets, verified against the real source file
+// (not just a wider prefix match on the v1 table).
 static const byteAssign_t HMS_1CHV2_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 6, 2, 100, false, 2},
@@ -170,8 +170,8 @@ static const byteAssign_t HMS_4CH_TABLE[] = {
 };
 
 // ---------------------------------------------------------------------------
-// Bancs de registres CMT2300A -- portés depuis lib/CMT2300a/cmt2300a_params_860.h
-// et cmt2300a_params_900.h (config Hoymiles, différente du banc générique 433MHz)
+// CMT2300A register banks -- ported from lib/CMT2300a/cmt2300a_params_860.h
+// and cmt2300a_params_900.h (Hoymiles config, different from the generic 433MHz bank)
 // ---------------------------------------------------------------------------
 static const uint8_t BANK_CMT_860[] = {0x00, 0x66, 0xEC, 0x1C, 0x70, 0x80, 0x14, 0x08, 0x11, 0x02, 0x02, 0x00};
 static const uint8_t BANK_SYSTEM_860[] = {0xAE, 0xE0, 0x35, 0x00, 0x00, 0xF4, 0x10, 0xE2, 0x42, 0x20, 0x0C, 0x81};
@@ -194,7 +194,7 @@ static const uint8_t BANK_BB_900[] = {0x12, 0x1E, 0x00, 0xAA, 0x06, 0x00, 0x00, 
 static const uint8_t BANK_TX_900[] = {0x70, 0x4D, 0x06, 0x00, 0x07, 0x50, 0x00, 0x53, 0x09, 0x3F, 0x7F};
 
 // ---------------------------------------------------------------------------
-// Adressage -- porté depuis commands/CommandAbstract.cpp (convertSerialToPacketId)
+// Addressing -- ported from commands/CommandAbstract.cpp (convertSerialToPacketId)
 // ---------------------------------------------------------------------------
 static void serial_to_packet_id(uint8_t out4[4], uint64_t serial) {
   out4[0] = static_cast<uint8_t>(serial >> 24);
@@ -204,8 +204,8 @@ static void serial_to_packet_id(uint8_t out4[4], uint64_t serial) {
 }
 
 // ---------------------------------------------------------------------------
-// Décodage du numéro de série -> modèle / nombre de canaux DC
-// Préfixes portés depuis inverters/HMS_1CH.cpp, HMS_2CH.cpp, HMS_4CH.cpp
+// Serial number decoding -> model / DC channel count
+// Prefixes ported from inverters/HMS_1CH.cpp, HMS_2CH.cpp, HMS_4CH.cpp
 // ---------------------------------------------------------------------------
 bool HMSComponent::decode_serial_() {
   uint16_t pre = static_cast<uint16_t>((this->inverter_serial_ >> 32) & 0xFFFF);
@@ -243,21 +243,21 @@ bool HMSComponent::decode_serial_() {
 }
 
 // ---------------------------------------------------------------------------
-// Génération du numéro de série DTU -- porté depuis src/Utils.cpp (generateDtuSerial)
+// DTU serial number generation -- ported from src/Utils.cpp (generateDtuSerial)
 // ---------------------------------------------------------------------------
 uint64_t HMSComponent::generate_dtu_serial_() {
   uint8_t mac[6];
   get_mac_address_raw(mac);
 
-  // Reconstruit un "chip id" 24 bits à partir des 3 premiers octets de la MAC,
-  // dans le même esprit que Utils::getChipId() (dérivé de l'eFuse MAC Arduino).
+  // Rebuilds a 24-bit "chip id" from the first 3 bytes of the MAC,
+  // in the same spirit as Utils::getChipId() (derived from Arduino's eFuse MAC).
   uint32_t chip_id = (static_cast<uint32_t>(mac[0])) | (static_cast<uint32_t>(mac[1]) << 8) |
                       (static_cast<uint32_t>(mac[2]) << 16);
 
   uint64_t dtu_id = 0;
-  dtu_id |= 0x199900000000ULL;  // Catégorie produit (1 = micro-onduleur)
-  dtu_id |= 0x80000000ULL;      // Année de prod (8 = 2022, valeur fixe comme OpenDTU)
-  dtu_id |= 0x0100000ULL;       // Semaine de prod (fixe = semaine 1)
+  dtu_id |= 0x199900000000ULL;  // Product category (1 = micro-inverter)
+  dtu_id |= 0x80000000ULL;      // Production year (8 = 2022, fixed value like OpenDTU)
+  dtu_id |= 0x0100000ULL;       // Production week (fixed = week 1)
 
   for (uint8_t i = 0; i < 5; i++) {
     dtu_id |= static_cast<uint64_t>(chip_id % 10) << (i * 4);
@@ -267,7 +267,7 @@ uint64_t HMSComponent::generate_dtu_serial_() {
 }
 
 // ---------------------------------------------------------------------------
-// Init radio Hoymiles -- porté depuis lib/CMT2300a/cmt2300wrapper.cpp (_init_radio)
+// Hoymiles radio init -- ported from lib/CMT2300a/cmt2300wrapper.cpp (_init_radio)
 // ---------------------------------------------------------------------------
 bool HMSComponent::init_radio_() {
   if (!this->radio_->go_state(cmt2300a::GO_STBY, cmt2300a::STATE_STBY)) return false;
@@ -296,28 +296,28 @@ bool HMSComponent::init_radio_() {
   this->radio_->config_reg_bank(cmt2300a::BANK_BASEBAND_ADDR, bb_bank, cmt2300a::BANK_BASEBAND_SIZE);
   this->radio_->config_reg_bank(cmt2300a::BANK_TX_ADDR, tx_bank, cmt2300a::BANK_TX_SIZE);
 
-  // CFG_RETAIN activé / RSTN_IN désactivé (CUS_MODE_STA, 0x61) -- fait par CMT2300A_Init()
-  // côté OpenDTU, mais absent du chemin external_mode de cmt2300a (qui ne fait que le
-  // strict minimum : reset + détection puce).
+  // CFG_RETAIN enabled / RSTN_IN disabled (CUS_MODE_STA, 0x61) -- done by CMT2300A_Init()
+  // on OpenDTU's side, but absent from cmt2300a's external_mode path (which only does
+  // the strict minimum: reset + chip detection).
   uint8_t mode_sta = this->radio_->read_reg(cmt2300a::REG_CUS_MODE_STA);
   mode_sta |= cmt2300a::MASK_CFG_RETAIN;
   mode_sta &= ~cmt2300a::MASK_RSTN_IN_EN;
   this->radio_->write_reg(cmt2300a::REG_CUS_MODE_STA, mode_sta);
 
-  // LOCKING_EN (CUS_EN_CTL, 0x62, bit 0x20) -- verrouillage du synthétiseur RF.
-  // Sans ce bit le PLL peut ne jamais se verrouiller correctement sur la fréquence
-  // configurée : c'était manquant dans la première version du portage.
+  // LOCKING_EN (CUS_EN_CTL, 0x62, bit 0x20) -- RF synthesizer lock.
+  // Without this bit the PLL may never correctly lock onto the configured
+  // frequency: this was missing in the first version of the port.
   uint8_t en_ctl = this->radio_->read_reg(0x62);
   en_ctl |= 0x20;
   this->radio_->write_reg(0x62, en_ctl);
 
-  // Note : CMT2300A_Init() désactive aussi LFOSC (registre SYS2, 0x0D) chez OpenDTU,
-  // mais cette étape s'exécute AVANT l'écriture du banc "System" -- qui réécrit ensuite
-  // ce même registre avec sa propre valeur (LFOSC Calibration = On selon le RFPDK). La
-  // désactivation explicite est donc sans effet dans le firmware réel ; on ne la reproduit
-  // pas ici pour ne pas diverger (le banc System_860/900 fait déjà foi).
+  // Note: CMT2300A_Init() also disables LFOSC (register SYS2, 0x0D) on OpenDTU's
+  // side, but that step runs BEFORE the "System" bank is written -- which then
+  // rewrites that same register with its own value (LFOSC Calibration = On per the
+  // RFPDK). The explicit disable is therefore a no-op in the real firmware; we don't
+  // reproduce it here to avoid diverging (the System_860/900 bank is authoritative).
 
-  // xosc_aac_code[2:0] = 2 (registre CUS_CMT10, adresse 0x09)
+  // xosc_aac_code[2:0] = 2 (register CUS_CMT10, address 0x09)
   uint8_t cmt10 = this->radio_->read_reg(0x09);
   this->radio_->write_reg(0x09, (cmt10 & ~0x07) | 0x02);
 
@@ -332,7 +332,7 @@ bool HMSComponent::init_radio_() {
 
   this->radio_->write_reg(cmt2300a::REG_CUS_FREQ_OFS, FH_OFFSET);
 
-  // FIFO fusionné 64 octets (obligatoire pour le protocole Hoymiles)
+  // 64-byte merged FIFO (mandatory for the Hoymiles protocol)
   uint8_t fifo_ctl = this->radio_->read_reg(cmt2300a::REG_CUS_FIFO_CTL);
   fifo_ctl |= cmt2300a::MASK_FIFO_MERGE_EN;
   this->radio_->write_reg(cmt2300a::REG_CUS_FIFO_CTL, fifo_ctl);
@@ -362,17 +362,17 @@ void HMSComponent::switch_to_channel_(uint8_t channel) {
 void HMSComponent::switch_to_frequency_(uint32_t freq_hz) { this->switch_to_channel_(this->channel_from_frequency_(freq_hz)); }
 
 // ---------------------------------------------------------------------------
-// Emission/réception bas niveau -- porté depuis lib/CMT2300a/cmt2300wrapper.cpp
+// Low-level Tx/Rx -- ported from lib/CMT2300a/cmt2300wrapper.cpp
 // ---------------------------------------------------------------------------
 bool HMSComponent::cmt_start_tx_(const uint8_t *buf, uint8_t len) {
   this->radio_->go_state(cmt2300a::GO_STBY, cmt2300a::STATE_STBY);
   this->radio_->clear_irq_flags();
 
-  // Equivalent de CMT2300A_EnableWriteFifo() : ces deux bits doivent être positionnés
-  // sans condition en FIFO fusionné -- on ne peut pas réutiliser radio_->fifo_write_enable()
-  // qui ne positionne FIFO_RX_TX_SEL que si le flag interne is_fifo_merged_ de cmt2300a est
-  // vrai, ce qui n'est jamais le cas ici puisque le FIFO_CTL est configuré directement par
-  // init_radio_() sans passer par cmt2300a::set_merge_fifo_().
+  // Equivalent of CMT2300A_EnableWriteFifo(): these two bits must be set
+  // unconditionally in merged-FIFO mode -- we can't reuse radio_->fifo_write_enable()
+  // since it only sets FIFO_RX_TX_SEL if cmt2300a's internal is_fifo_merged_ flag is
+  // true, which is never the case here since FIFO_CTL is configured directly by
+  // init_radio_() without going through cmt2300a::set_merge_fifo_().
   uint8_t fifo_ctl = this->radio_->read_reg(cmt2300a::REG_CUS_FIFO_CTL);
   fifo_ctl |= cmt2300a::MASK_SPI_FIFO_RD_WR_SEL;
   fifo_ctl |= cmt2300a::MASK_FIFO_RX_TX_SEL;
@@ -380,12 +380,12 @@ bool HMSComponent::cmt_start_tx_(const uint8_t *buf, uint8_t len) {
 
   this->radio_->fifo_clear_tx();
 
-  this->radio_->write_reg(cmt2300a::REG_CUS_PKT15, len);  // longueur Tx dynamique
+  this->radio_->write_reg(cmt2300a::REG_CUS_PKT15, len);  // dynamic Tx length
   this->radio_->write_fifo(buf, len);
 
   uint8_t fifo_flag = this->radio_->read_reg(cmt2300a::REG_CUS_FIFO_FLAG);
   if (!(fifo_flag & 0x02 /* TX_FIFO_NMTY_FLG */)) {
-    ESP_LOGW(TAG, "FIFO Tx vide après écriture -- abandon");
+    ESP_LOGW(TAG, "Tx FIFO empty after write -- aborting");
     return false;
   }
 
@@ -393,8 +393,8 @@ bool HMSComponent::cmt_start_tx_(const uint8_t *buf, uint8_t len) {
     return false;
   }
 
-  // Ne bloque plus ici : process_tx_() (appelée à chaque tick de loop()) surveille
-  // TX_DONE sans attente active, pour ne pas geler le reste d'ESPHome pendant l'émission.
+  // No longer blocks here: process_tx_() (called on every loop() tick) monitors
+  // TX_DONE without active waiting, so as not to freeze the rest of ESPHome during Tx.
   this->tx_sending_ = true;
   this->tx_start_ = millis();
   return true;
@@ -405,12 +405,12 @@ void HMSComponent::process_tx_() {
 
   bool done = (this->radio_->read_reg(cmt2300a::REG_CUS_INT_CLR1) & cmt2300a::MASK_TX_DONE_FLG) != 0;
   bool timed_out = millis() - this->tx_start_ > 95;
-  if (!done && !timed_out) return;  // toujours en cours -- on repasse la main à ESPHome
+  if (!done && !timed_out) return;  // still in progress -- yield back to ESPHome
 
   if (!done) {
-    ESP_LOGW(TAG, "Timeout Tx (95ms)");
+    ESP_LOGW(TAG, "Tx timeout (95ms)");
   } else {
-    ESP_LOGV(TAG, "TX terminée (%ums)", static_cast<unsigned int>(millis() - this->tx_start_));
+    ESP_LOGV(TAG, "TX completed (%ums)", static_cast<unsigned int>(millis() - this->tx_start_));
   }
 
   this->radio_->clear_irq_flags();
@@ -432,7 +432,7 @@ bool HMSComponent::cmt_start_listening_() {
   this->radio_->go_state(cmt2300a::GO_STBY, cmt2300a::STATE_STBY);
   this->radio_->clear_irq_flags();
 
-  // Equivalent de CMT2300A_EnableReadFifo() -- même remarque que ci-dessus.
+  // Equivalent of CMT2300A_EnableReadFifo() -- same remark as above.
   uint8_t fifo_ctl = this->radio_->read_reg(cmt2300a::REG_CUS_FIFO_CTL);
   fifo_ctl &= ~cmt2300a::MASK_SPI_FIFO_RD_WR_SEL;
   fifo_ctl &= ~cmt2300a::MASK_FIFO_RX_TX_SEL;
@@ -448,7 +448,7 @@ bool HMSComponent::cmt_rx_packet_available_() {
 
 uint8_t HMSComponent::cmt_read_dynamic_payload_(uint8_t *buf, uint8_t maxlen) {
   uint8_t len = 0;
-  this->radio_->read_fifo(&len, 1);  // 1er octet FIFO = longueur du paquet
+  this->radio_->read_fifo(&len, 1);  // 1st FIFO byte = packet length
   if (len > maxlen) len = maxlen;
   this->radio_->read_fifo(buf, len);
   this->last_rssi_dbm_ = static_cast<int8_t>(static_cast<int>(this->radio_->read_reg(cmt2300a::REG_CUS_RSSI_DBM)) - 128);
@@ -457,7 +457,7 @@ uint8_t HMSComponent::cmt_read_dynamic_payload_(uint8_t *buf, uint8_t maxlen) {
 }
 
 // ---------------------------------------------------------------------------
-// Construction de trames -- portées depuis commands/*.cpp
+// Frame construction -- ported from commands/*.cpp
 // ---------------------------------------------------------------------------
 void HMSComponent::build_realtime_data_request_(uint8_t *out, uint8_t *out_len) {
   memset(out, 0, 27);
@@ -473,7 +473,7 @@ void HMSComponent::build_realtime_data_request_(uint8_t *out, uint8_t *out_len) 
   out[13] = static_cast<uint8_t>(static_cast<uint32_t>(now) >> 16);
   out[14] = static_cast<uint8_t>(static_cast<uint32_t>(now) >> 8);
   out[15] = static_cast<uint8_t>(static_cast<uint32_t>(now));
-  // out[16..23] = gap + password, laissés à 0
+  // out[16..23] = gap + password, left at 0
 
   uint16_t crc = crc16(&out[10], 14);
   out[24] = static_cast<uint8_t>(crc >> 8);
@@ -548,7 +548,7 @@ void HMSComponent::build_channel_change_(uint8_t channel, uint8_t *out, uint8_t 
 }
 
 // ---------------------------------------------------------------------------
-// Réassemblage des fragments -- porté depuis inverters/InverterAbstract.cpp
+// Fragment reassembly -- ported from inverters/InverterAbstract.cpp
 // ---------------------------------------------------------------------------
 void HMSComponent::clear_rx_fragment_buffer_() {
   for (auto &f : this->rx_fragments_) {
@@ -621,7 +621,7 @@ bool HMSComponent::handle_realtime_response_() {
 
   for (uint8_t i = 0; i < this->rx_fragment_max_id_; i++) {
     if (this->rx_fragments_[i].mainCmd != 0x95) {  // 0x15 | 0x80
-      ESP_LOGW(TAG, "Réponse RealTimeData : mainCmd inattendu (0x%02X)", this->rx_fragments_[i].mainCmd);
+      ESP_LOGW(TAG, "RealTimeData response: unexpected mainCmd (0x%02X)", this->rx_fragments_[i].mainCmd);
       return false;
     }
     total_len += this->rx_fragments_[i].len;
@@ -636,11 +636,11 @@ bool HMSComponent::handle_realtime_response_() {
   }
 
   if (crc != crc_rcv) {
-    ESP_LOGW(TAG, "CRC16 invalide sur la réponse RealTimeData");
+    ESP_LOGW(TAG, "Invalid CRC16 on RealTimeData response");
     return false;
   }
   if (total_len < this->expected_byte_count_) {
-    ESP_LOGW(TAG, "Réponse trop courte (%u/%u octets attendus)", total_len, this->expected_byte_count_);
+    ESP_LOGW(TAG, "Response too short (%u/%u bytes expected)", total_len, this->expected_byte_count_);
     return false;
   }
 
@@ -661,7 +661,7 @@ bool HMSComponent::handle_realtime_response_() {
 }
 
 // ---------------------------------------------------------------------------
-// Décodage des champs -- porté depuis parser/StatisticsParser.cpp
+// Field decoding -- ported from parser/StatisticsParser.cpp
 // ---------------------------------------------------------------------------
 const byteAssign_t *HMSComponent::find_assignment_(ChannelType_t type, ChannelNum_t ch, FieldId_t field) const {
   for (uint8_t i = 0; i < this->byte_assignment_size_; i++) {
@@ -699,7 +699,7 @@ float HMSComponent::get_field_value_(ChannelType_t type, ChannelNum_t ch, FieldI
     return result / static_cast<float>(pos->div);
   }
 
-  // Champs calculés -- portés depuis les fonctions calc*() de StatisticsParser.cpp
+  // Calculated fields -- ported from StatisticsParser.cpp's calc*() functions
   switch (pos->start) {
     case CALC_TOTAL_YT: {
       float y = 0;
@@ -745,7 +745,7 @@ void HMSComponent::publish_sensors_() {
   if (this->ac_power_factor_ != nullptr) this->ac_power_factor_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_PF));
   if (this->ac_reactive_power_ != nullptr) this->ac_reactive_power_->publish_state(this->get_field_value_(TYPE_AC, CH0, FLD_Q));
 
-  // isProducing() -- porté de InverterAbstract::isProducing() (totalAc > 0)
+  // isProducing() -- ported from InverterAbstract::isProducing() (totalAc > 0)
   if (this->producing_sensor_ != nullptr) this->producing_sensor_->publish_state(ac_power_value > 0.0f);
 
   if (this->inv_temperature_ != nullptr) this->inv_temperature_->publish_state(this->get_field_value_(TYPE_INV, CH0, FLD_T));
@@ -756,7 +756,7 @@ void HMSComponent::publish_sensors_() {
   if (this->rssi_sensor_ != nullptr) this->rssi_sensor_->publish_state(this->last_rssi_dbm_);
 }
 
-// isReachable() -- porté de InverterAbstract::isReachable() (rxFailureCount <= reachableThreshold)
+// isReachable() -- ported from InverterAbstract::isReachable() (rxFailureCount <= reachableThreshold)
 void HMSComponent::publish_reachable_() {
   bool reachable = this->rx_failure_count_ <= REACHABLE_THRESHOLD;
   if (this->reachable_sensor_ != nullptr) {
@@ -768,7 +768,7 @@ void HMSComponent::publish_reachable_() {
 }
 
 // ---------------------------------------------------------------------------
-// Commandes de puissance -- exposées à la plateforme number
+// Power commands -- exposed to the number platform
 // ---------------------------------------------------------------------------
 void HMSComponent::set_power_limit_percent(float percent) {
   this->power_limit_value_ = percent;
@@ -785,7 +785,7 @@ void HMSComponent::set_power_limit_absolute(float watts) {
 }
 
 void HMSComponent::set_power_limit_percent_persistent(float percent) {
-  ESP_LOGI(TAG, "Limite persistante demandée : %.1f%% (écriture EEPROM côté onduleur)", percent);
+  ESP_LOGI(TAG, "Persistent limit requested: %.1f%% (EEPROM write on inverter side)", percent);
   this->power_limit_value_ = percent;
   this->power_limit_type_ = POWER_RELATIVE;
   this->power_limit_persistent_ = true;
@@ -794,15 +794,15 @@ void HMSComponent::set_power_limit_percent_persistent(float percent) {
 
 void HMSComponent::reset_radio() {
   if (this->radio_ == nullptr) return;
-  ESP_LOGW(TAG, "Réinitialisation manuelle de la radio (reset_radio)");
+  ESP_LOGW(TAG, "Manual radio reset (reset_radio)");
 
   if (this->radio_->is_owned_by_other(this)) {
-    ESP_LOGW(TAG, "Une autre instance hms: utilise actuellement la radio -- reset différé");
+    ESP_LOGW(TAG, "Another hms: instance is currently using the radio -- reset deferred");
     return;
   }
   this->radio_->try_lock_external(this);
 
-  // Abandonne un éventuel échange de cette instance qui serait en cours
+  // Abandon any exchange of this instance that might be in progress
   this->tx_sending_ = false;
   this->op_state_ = OP_IDLE;
   this->pending_cmd_ = CMD_NONE;
@@ -812,7 +812,7 @@ void HMSComponent::reset_radio() {
     return;
   }
   if (!this->init_radio_()) {
-    ESP_LOGE(TAG, "Reconfiguration Hoymiles après reset échouée");
+    ESP_LOGE(TAG, "Hoymiles reconfiguration after reset failed");
     this->radio_->unlock_external(this);
     return;
   }
@@ -826,12 +826,12 @@ void HMSComponent::reset_radio() {
   this->rx_failure_count_ = 0;
   this->publish_reachable_();
   this->radio_->unlock_external(this);
-  ESP_LOGI(TAG, "Radio réinitialisée et reconfigurée (canal %u)", this->work_channel_);
+  ESP_LOGI(TAG, "Radio reset and reconfigured (channel %u)", this->work_channel_);
 }
 
 // ---------------------------------------------------------------------------
-// Machine à état Tx/Rx + cadence de polling -- portée depuis HoymilesRadio.cpp
-// et Hoymiles.cpp (boucle principale)
+// Tx/Rx state machine + poll cadence -- ported from HoymilesRadio.cpp
+// and Hoymiles.cpp (main loop)
 // ---------------------------------------------------------------------------
 void HMSComponent::start_command_(PendingCmd cmd, const uint8_t *payload, uint8_t len, uint32_t timeout_ms) {
   this->pending_cmd_ = cmd;
@@ -845,61 +845,61 @@ void HMSComponent::start_command_(PendingCmd cmd, const uint8_t *payload, uint8_
 
 void HMSComponent::send_current_command_() {
   this->send_count_++;
-  ESP_LOGV(TAG, "send_current_command_ : tentative n°%u (cmd=%u, len=%u)", this->send_count_, this->pending_cmd_,
+  ESP_LOGV(TAG, "send_current_command_: attempt #%u (cmd=%u, len=%u)", this->send_count_, this->pending_cmd_,
            this->tx_payload_len_);
   this->clear_rx_fragment_buffer_();
   if (!this->cmt_start_tx_(this->tx_payload_, this->tx_payload_len_)) {
-    ESP_LOGW(TAG, "  cmt_start_tx_ a échoué immédiatement");
+    ESP_LOGW(TAG, "  cmt_start_tx_ failed immediately");
   }
-  // process_tx_() relance l'écoute une fois TX_DONE (ou timeout) constaté, de façon
-  // non bloquante -- voir loop().
+  // process_tx_() resumes listening once TX_DONE (or timeout) is observed, in a
+  // non-blocking way -- see loop().
 }
 
 void HMSComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up HMS...");
 
   if (this->radio_ == nullptr) {
-    ESP_LOGE(TAG, "Aucun radio cmt2300a associé");
+    ESP_LOGE(TAG, "No cmt2300a radio associated");
     this->mark_failed();
     return;
   }
   if (this->radio_->is_failed()) {
-    ESP_LOGE(TAG, "Le composant cmt2300a est en échec, HMS ne peut pas démarrer");
+    ESP_LOGE(TAG, "The cmt2300a component has failed, HMS cannot start");
     this->mark_failed();
     return;
   }
   this->radio_->register_reachable_consumer(this);
 
   if (!this->decode_serial_()) {
-    ESP_LOGE(TAG, "Numéro de série 0x%012llX non reconnu (préfixe HMS inconnu)",
+    ESP_LOGE(TAG, "Serial number 0x%012llX not recognized (unknown HMS prefix)",
               static_cast<unsigned long long>(this->inverter_serial_));
     this->mark_failed();
     return;
   }
-  ESP_LOGCONFIG(TAG, "Modèle détecté : %s (%u canal/canaux DC)", this->type_name_.c_str(), this->dc_channel_count_);
+  ESP_LOGCONFIG(TAG, "Model detected: %s (%u DC channel(s))", this->type_name_.c_str(), this->dc_channel_count_);
 
   if (this->dtu_serial_ == 0) {
     this->dtu_serial_ = HMSComponent::generate_dtu_serial_();
   }
-  ESP_LOGCONFIG(TAG, "DTU serial : 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
+  ESP_LOGCONFIG(TAG, "DTU serial: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
 
   uint8_t band_variant = static_cast<uint8_t>(this->frequency_band_);
   if (this->radio_->is_external_radio_ready()) {
-    // Une autre instance hms: partageant ce même cmt2300a: a déjà fait l'init radio
-    // (bancs de registres, FIFO fusionné) -- on ne la refait pas, mais on vérifie
-    // que la bande de fréquence demandée est bien la même, sinon la puce ne peut
-    // physiquement pas servir les deux à la fois.
+    // Another hms: instance sharing this same cmt2300a: has already done the radio
+    // init (register banks, merged FIFO) -- we don't redo it, but we check that
+    // the requested frequency band is indeed the same, otherwise the chip can't
+    // physically serve both at once.
     if (this->radio_->get_external_radio_variant() != band_variant) {
-      ESP_LOGE(TAG, "Bande de fréquence incohérente : une autre instance hms: a déjà initialisé "
-                    "ce cmt2300a: sur une bande différente. Toutes les instances hms: partageant "
-                    "le même cmt2300a_id doivent utiliser la même frequency_band.");
+      ESP_LOGE(TAG, "Inconsistent frequency band: another hms: instance already initialized "
+                    "this cmt2300a: on a different band. All hms: instances sharing "
+                    "the same cmt2300a_id must use the same frequency_band.");
       this->mark_failed();
       return;
     }
-    ESP_LOGD(TAG, "Radio déjà initialisée par une autre instance hms: -- réutilisation");
+    ESP_LOGD(TAG, "Radio already initialized by another hms: instance -- reusing");
   } else {
     if (!this->init_radio_()) {
-      ESP_LOGE(TAG, "Init radio Hoymiles échouée (bancs %s)",
+      ESP_LOGE(TAG, "Hoymiles radio init failed (banks %s)",
                 this->frequency_band_ == FrequencyBand::US_900 ? "900MHz" : "860MHz");
       this->mark_failed();
       return;
@@ -912,7 +912,7 @@ void HMSComponent::setup() {
   this->switch_to_frequency_(default_freq);
   this->cmt_start_listening_();
 
-  ESP_LOGCONFIG(TAG, "HMS prêt, écoute sur %.3f MHz (canal %u)",
+  ESP_LOGCONFIG(TAG, "HMS ready, listening on %.3f MHz (channel %u)",
                 this->frequency_from_channel_(this->work_channel_) / 1.0e6, this->work_channel_);
   this->publish_reachable_();
 }
@@ -920,23 +920,23 @@ void HMSComponent::setup() {
 void HMSComponent::loop() {
   if (this->is_failed() || this->radio_ == nullptr) return;
 
-  // Une autre instance hms: (même cmt2300a: partagé) est en train d'utiliser la
-  // radio -- on ne touche à aucun registre tant qu'elle n'a pas rendu la main.
+  // Another hms: instance (sharing the same cmt2300a:) is currently using the
+  // radio -- we don't touch any register until it releases ownership.
   if (this->radio_->is_owned_by_other(this)) return;
 
-  // 0. Emission Tx en cours : on ne fait rien d'autre tant qu'elle n'est pas
-  // terminée (ou en timeout) -- le chip est en mode TX, pas RX, pendant ce temps.
+  // 0. Tx transmission in progress: nothing else happens until it's
+  // done (or times out) -- the chip is in TX mode, not RX, during this time.
   if (this->tx_sending_) {
     this->process_tx_();
     return;
   }
 
-  // 1. Réception : un paquet est-il disponible dans le FIFO ? Uniquement pertinent
-  // quand on attend effectivement une réponse -- le protocole Hoymiles est
-  // requête/réponse pur, l'onduleur n'émet jamais spontanément. Scruter le registre
-  // hors de ce cas ne sert à rien et coûte une vraie transaction bit-bang à chaque
-  // tick de loop() (significatif cumulé sur un poll_interval de plusieurs secondes,
-  // et multiplié par le nombre d'onduleurs si plusieurs hms: partagent une radio).
+  // 1. Reception: is a packet available in the FIFO? Only relevant
+  // when actually expecting a response -- the Hoymiles protocol is pure
+  // request/response, the inverter never transmits spontaneously. Polling the register
+  // outside of that case is pointless and costs a real bit-bang transaction on every
+  // loop() tick (significant cumulatively over a multi-second poll_interval,
+  // and multiplied by the number of inverters if several hms: share a radio).
   if (this->op_state_ == OP_WAIT_RESPONSE && this->cmt_rx_packet_available_()) {
     uint8_t raw[33];
     uint8_t len = this->cmt_read_dynamic_payload_(raw, sizeof(raw));
@@ -947,13 +947,13 @@ void HMSComponent::loop() {
       if (crc == raw[len - 1]) {
         uint8_t source_id[4];
         serial_to_packet_id(source_id, this->dtu_serial_);
-        // Le CMT2300A ne filtre pas les paquets par adresse -- on le fait nous-mêmes,
-        // comme HoymilesRadio_CMT::loop() (memcmp sur l'adresse source du fragment).
+        // The CMT2300A doesn't filter packets by address -- we do it ourselves,
+        // like HoymilesRadio_CMT::loop() (memcmp on the fragment's source address).
         if (memcmp(&raw[5], source_id, 4) == 0) {
           this->add_rx_fragment_(raw, len);
-          // Si ce fragment complète la réponse, on traite immédiatement au tick
-          // suivant plutôt que d'attendre systématiquement l'échéance de 500ms --
-          // c'était une latence artificielle même quand la réponse arrivait vite.
+          // If this fragment completes the response, process it immediately on the
+          // next tick instead of always waiting for the 500ms deadline --
+          // that was an artificial latency even when the response arrived quickly.
           if (this->rx_fragment_max_id_ != 0) {
             bool complete = true;
             for (uint8_t i = 0; i < this->rx_fragment_max_id_; i++) {
@@ -969,7 +969,7 @@ void HMSComponent::loop() {
     }
   }
 
-  // 2. Suivi de la commande en cours
+  // 2. Tracking the ongoing command
   if (this->op_state_ == OP_WAIT_RESPONSE && millis() > this->cmd_deadline_) {
     uint8_t result = this->verify_all_fragments_();
     ESP_LOGV(TAG, "verify_all_fragments_ -> %u (millis=%u, deadline=%u, last_id=%u, max_id=%u)", result,
@@ -990,9 +990,9 @@ void HMSComponent::loop() {
       this->cmt_start_tx_(out, out_len);
       this->cmd_deadline_ = millis() + 500;
     } else {
-      // Timeout définitif ou erreur de traitement
+      // Definitive timeout or processing error
       this->rx_failure_count_++;
-      ESP_LOGD(TAG, "Echec définitif du cycle de commande (résultat=%u) -- rx_failure_count_=%u", result,
+      ESP_LOGD(TAG, "Definitive command cycle failure (result=%u) -- rx_failure_count_=%u", result,
                static_cast<unsigned int>(this->rx_failure_count_));
       this->publish_reachable_();
       this->op_state_ = OP_IDLE;
@@ -1002,42 +1002,42 @@ void HMSComponent::loop() {
     }
   }
 
-  // 3. Commande de limite de puissance en attente -- traitée en PRIORITÉ, dès que
-  // le canal radio est libre, sans attendre le prochain créneau de poll_interval.
-  // Crucial pour un pilotage réactif (zero-injection, PID, etc.) : sans ce
-  // découplage, un ordre envoyé par number:/output:/button: pouvait attendre
-  // jusqu'à poll_interval (5s par défaut) avant d'être seulement transmis.
+  // 3. Pending power limit command -- handled with PRIORITY, as soon as
+  // the radio channel is free, without waiting for the next poll_interval slot.
+  // Crucial for reactive control (zero-injection, PID, etc.): without this
+  // decoupling, a command sent via number:/output:/button: could wait
+  // up to poll_interval (5s by default) before even being transmitted.
   if (this->op_state_ == OP_IDLE && this->power_limit_pending_) {
     if (!this->radio_->try_lock_external(this)) {
-      return;  // radio prise par une autre instance -- on retente au tick suivant
+      return;  // radio held by another instance -- retry on the next tick
     }
     uint8_t out[24], out_len;
     this->build_active_power_control_(this->power_limit_value_, this->power_limit_type_,
                                        this->power_limit_persistent_, out, &out_len);
     this->power_limit_pending_ = false;
-    this->power_limit_persistent_ = false;  // ne concerne que cet envoi précis
+    this->power_limit_persistent_ = false;  // only applies to this specific send
     this->start_command_(CMD_ACTIVE_POWER_CONTROL, out, out_len, this->power_control_timeout_ms_);
-    this->last_poll_ = millis();  // évite un sondage télémétrie immédiatement après
+    this->last_poll_ = millis();  // avoids an immediate telemetry poll right after
     return;
   }
 
-  // 4. Cadence de polling (télémétrie / reachability / ChannelChangeCommand)
+  // 4. Poll cadence (telemetry / reachability / ChannelChangeCommand)
   if (this->op_state_ == OP_IDLE && millis() - this->last_poll_ > this->poll_interval_ms_) {
-    // Plusieurs hms: peuvent partager le même cmt2300a: -- on ne lance un nouvel
-    // échange que si on parvient à prendre la main sur la radio. Sinon on retente
-    // au prochain tick, sans décaler la fenêtre de poll (pas de mise à jour de
-    // last_poll_ tant que le jeton n'est pas obtenu).
+    // Several hms: may share the same cmt2300a: -- we only start a new
+    // exchange if we manage to take ownership of the radio. Otherwise we retry
+    // on the next tick, without shifting the poll window (no last_poll_ update
+    // until the token is obtained).
     if (!this->radio_->try_lock_external(this)) {
       return;
     }
     this->last_poll_ = millis();
-    ESP_LOGV(TAG, "Cycle de polling (millis=%u, rx_failure_count_=%u)", static_cast<unsigned int>(millis()),
+    ESP_LOGV(TAG, "Poll cycle (millis=%u, rx_failure_count_=%u)", static_cast<unsigned int>(millis()),
              static_cast<unsigned int>(this->rx_failure_count_));
 
     if (this->rx_failure_count_ > REACHABLE_THRESHOLD) {
-      // Onduleur injoignable -> ChannelChangeCommand envoyée à la fréquence de boot,
-      // comme HMS_Abstract::sendChangeChannelRequest() / HoymilesRadio_CMT::sendEsbPacket()
-      ESP_LOGW(TAG, "Onduleur injoignable (%u échecs) -- tentative de ChannelChangeCommand",
+      // Inverter unreachable -> ChannelChangeCommand sent at the boot frequency,
+      // like HMS_Abstract::sendChangeChannelRequest() / HoymilesRadio_CMT::sendEsbPacket()
+      ESP_LOGW(TAG, "Inverter unreachable (%u failures) -- attempting ChannelChangeCommand",
                static_cast<unsigned int>(this->rx_failure_count_));
       uint8_t out[16], out_len;
       uint32_t boot_freq = (this->frequency_band_ == FrequencyBand::US_900) ? 915000000UL : 868000000UL;
@@ -1046,10 +1046,10 @@ void HMSComponent::loop() {
       this->build_channel_change_(saved_channel, out, &out_len);
       this->tx_restore_channel_ = true;
       this->tx_restore_channel_value_ = saved_channel;
-      this->tx_release_lock_after_ = true;  // fire-and-forget -- rien n'attend de réponse
+      this->tx_release_lock_after_ = true;  // fire-and-forget -- nothing waits for a response
       this->cmt_start_tx_(out, out_len);
-      // process_tx_() restaure le canal de travail, relâche le jeton et relance
-      // l'écoute une fois la trame partie (ou en timeout), sans bloquer loop().
+      // process_tx_() restores the work channel, releases the token and resumes
+      // listening once the frame is sent (or times out), without blocking loop().
     } else {
       uint8_t out[32], out_len;
       this->build_realtime_data_request_(out, &out_len);
@@ -1060,13 +1060,13 @@ void HMSComponent::loop() {
 
 void HMSComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "HMS:");
-  ESP_LOGCONFIG(TAG, "  Modèle: %s", this->type_name_.c_str());
-  ESP_LOGCONFIG(TAG, "  Numéro de série onduleur: 0x%012llX", static_cast<unsigned long long>(this->inverter_serial_));
-  ESP_LOGCONFIG(TAG, "  Numéro de série DTU: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
-  ESP_LOGCONFIG(TAG, "  Bande de fréquence: %s", this->frequency_band_ == FrequencyBand::US_900 ? "900MHz (US/BR)" : "860MHz (EU)");
-  ESP_LOGCONFIG(TAG, "  Intervalle de sondage: %ums", static_cast<unsigned int>(this->poll_interval_ms_));
+  ESP_LOGCONFIG(TAG, "  Model: %s", this->type_name_.c_str());
+  ESP_LOGCONFIG(TAG, "  Inverter serial number: 0x%012llX", static_cast<unsigned long long>(this->inverter_serial_));
+  ESP_LOGCONFIG(TAG, "  DTU serial number: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
+  ESP_LOGCONFIG(TAG, "  Frequency band: %s", this->frequency_band_ == FrequencyBand::US_900 ? "900MHz (US/BR)" : "860MHz (EU)");
+  ESP_LOGCONFIG(TAG, "  Poll interval: %ums", static_cast<unsigned int>(this->poll_interval_ms_));
   if (this->is_failed()) {
-    ESP_LOGE(TAG, "  Setup a échoué");
+    ESP_LOGE(TAG, "  Setup failed");
   }
 }
 

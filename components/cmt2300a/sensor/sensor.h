@@ -7,10 +7,10 @@
 namespace esphome {
 namespace cmt2300a {
 
-/// Publie le taux d'occupation radio (% de temps verrouillé par un composant
-/// external_mode, ex. hms:) sur la fenêtre écoulée depuis la dernière publication
-/// (gouvernée par update_interval). Non pertinent si cmt2300a: est utilisé en
-/// mode générique (jamais verrouillé) -- publie alors toujours 0%.
+/// Publishes the radio duty cycle (% of time locked by an external_mode
+/// component, e.g. hms:) over the window elapsed since the last publish
+/// (governed by update_interval). Not meaningful if cmt2300a: is used in
+/// generic mode (never locked) -- then it always publishes 0%.
 class CMT2300ADutyCycleSensor : public sensor::Sensor, public PollingComponent {
  public:
   void set_parent(CMT2300AComponent *parent) { this->parent_ = parent; }

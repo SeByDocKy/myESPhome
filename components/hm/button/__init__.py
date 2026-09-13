@@ -11,7 +11,7 @@ CONF_RESET_HM = "reset_hm"
 
 DEPENDENCIES = ["hm"]
 
-# En dessous de ce seuil, l'onduleur arrête purement et simplement de produire
+# Below this threshold, the inverter simply stops producing entirely
 # (0% = extinction) -- 2% est le minimum qui le laisse actif.
 HM_OUTPUT_MIN_PERCENT = 2.0
 HM_OUTPUT_MAX_PERCENT = 100.0

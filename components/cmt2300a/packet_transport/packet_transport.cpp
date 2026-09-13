@@ -8,13 +8,13 @@ static const char *const TAG = "cmt2300a.packet_transport";
 
 void CMT2300ATransport::setup() {
   if (this->parent_->get_external_mode()) {
-    // Cette instance cmt2300a: est pilotée par un hms: (bancs de registres et
-    // cadence Tx/Rx spécifiques Hoymiles) -- incompatible avec le mode générique
-    // qu'utilise packet_transport. Erreur explicite plutôt qu'un comportement
-    // silencieusement cassé (les deux se marcheraient dessus sur la même puce).
-    ESP_LOGE(TAG, "Ce cmt2300a: est déjà utilisé en mode externe par un composant hms: -- "
-                  "packet_transport ne peut pas partager la même puce dans ce mode. "
-                  "Utilise un cmt2300a: dédié (autres broches) pour packet_transport.");
+    // This cmt2300a: instance is driven by an hms: (Hoymiles-specific register
+    // banks and Tx/Rx cadence) -- incompatible with the generic mode that
+    // packet_transport uses. Explicit error rather than silently broken
+    // behavior (both would step on each other on the same chip).
+    ESP_LOGE(TAG, "This cmt2300a: is already used in external mode by an hms: component -- "
+                  "packet_transport cannot share the same chip in this mode. "
+                  "Use a dedicated cmt2300a: (other pins) for packet_transport.");
     this->mark_failed();
     return;
   }

@@ -13,9 +13,9 @@ namespace esphome {
 namespace nrf24l01 {
 
 // ---------------------------------------------------------------------------
-// Registres et commandes portés depuis nRF24L01.h (Stefan Engelke / TMRh20
-// nRF24/RF24 -- carte mémoire du datasheet nRF24L01+, stable depuis 15+ ans,
-// recoupée sur plusieurs implémentations indépendantes).
+// Registers and commands ported from nRF24L01.h (Stefan Engelke / TMRh20
+// nRF24/RF24 -- nRF24L01+ datasheet register map, stable for 15+ years,
+// cross-checked against several independent implementations).
 // ---------------------------------------------------------------------------
 static const uint8_t REG_CONFIG = 0x00;
 static const uint8_t REG_EN_AA = 0x01;
@@ -93,9 +93,9 @@ class NRF24Component : public Component,
 
   void set_channel(uint8_t channel) { this->channel_ = channel; }
   void set_pa_level(uint8_t level) { this->pa_level_ = static_cast<PALevel>(level); }
-  /// Applique un niveau PA immédiatement (2-3 écritures registre, pas de reset) --
-  /// à la différence de set_pa_level() ci-dessus, utilisée à la config, appelable
-  /// à tout moment après setup(). Republie l'état sur le select associé si présent.
+  /// Applies a PA level immediately (2-3 register writes, no reset) --
+  /// unlike set_pa_level() above, used at config time, callable
+  /// at any time after setup(). Republishes the state on the associated select, if any.
   void apply_pa_level_runtime(uint8_t level) {
     this->pa_level_ = static_cast<PALevel>(level);
     this->apply_pa_level_();
@@ -120,19 +120,19 @@ class NRF24Component : public Component,
     for (uint8_t i = 0; i < 5 && i < addr.size(); i++) this->rx_address_[i] = addr[i];
   }
 
-  /// Quand true : setup() se limite à l'init SPI/CE + détection puce. Aucune config
-  /// registre "générique" (data rate/CRC/pipes/écoute), et loop() ne fait rien --
-  /// le composant appelant (ex. hm) pilote tout via l'API bas niveau ci-dessous.
-  /// Nécessaire pour le protocole Hoymiles NRF, qui fait du hop de canal continu
-  /// et impose ses propres data rate/CRC/largeur d'adresse/retries, incompatibles
-  /// avec la config statique du mode générique.
+  /// When true: setup() only does SPI/CE init + chip detection. No "generic"
+  /// register config (data rate/CRC/pipes/listening), and loop() does nothing --
+  /// the calling component (e.g. hm) drives everything via the low-level API below.
+  /// Required for the Hoymiles NRF protocol, which does continuous channel hopping
+  /// and imposes its own data rate/CRC/address width/retries, incompatible
+  /// with generic mode's static config.
   void set_external_mode(bool external) { this->external_mode_ = external; }
   bool get_external_mode() const { return this->external_mode_; }
 
   // ---------------------------------------------------------------------------
-  // Arbitrage pour plusieurs composants "external_mode" partageant la même puce
-  // (ex. plusieurs hm: sur un seul nrf24l01:). Même API que cmt2300a. owner est
-  // un identifiant opaque (typiquement 'this' de l'appelant).
+  // Arbitration for several "external_mode" components sharing the same chip
+  // (e.g. several hm: on a single nrf24l01:). Same API as cmt2300a. owner is
+  // an opaque identifier (typically the caller's 'this').
   // ---------------------------------------------------------------------------
   bool try_lock_external(const void *owner) {
     if (this->external_lock_owner_ == nullptr) {
@@ -153,8 +153,8 @@ class NRF24Component : public Component,
     return this->external_lock_owner_ != nullptr && this->external_lock_owner_ != owner;
   }
 
-  /// Taux d'occupation radio (% de temps verrou pris) depuis le dernier appel, puis
-  /// réinitialise la fenêtre de mesure -- même implémentation que cmt2300a.
+  /// Radio duty cycle (% of time the lock was held) since the last call, then
+  /// resets the measurement window -- same implementation as cmt2300a.
   float get_duty_cycle_percent_and_reset() {
     uint32_t now = millis();
     uint32_t window_ms = now - this->duty_window_start_ms_;
@@ -170,9 +170,9 @@ class NRF24Component : public Component,
   }
 
   // ---------------------------------------------------------------------------
-  // Suivi du nombre de composants "hm" rattachés à ce nrf24l01: et actuellement
-  // joignables (reachable). Même mécanisme que cmt2300a/hms : chaque hm: s'enregistre
-  // une fois au démarrage puis remonte son état reachable à chaque changement.
+  // Tracking the number of "hm" components attached to this nrf24l01: that are
+  // currently reachable. Same mechanism as cmt2300a/hms: each hm: registers
+  // itself once at startup, then reports its reachable state on every change.
   // ---------------------------------------------------------------------------
   void set_hm_count_sensor(sensor::Sensor *s) { this->hm_count_sensor_ = s; }
 
@@ -209,8 +209,8 @@ class NRF24Component : public Component,
   }
 
   // ---------------------------------------------------------------------------
-  // API bas niveau publique -- réservée aux composants coopérants (ex. hm) quand
-  // external_mode est actif.
+  // Public low-level API -- reserved for cooperating components (e.g. hm) when
+  // external_mode is active.
   // ---------------------------------------------------------------------------
   uint8_t read_register(uint8_t reg) { return this->read_register_(reg); }
   void read_register(uint8_t reg, uint8_t *buf, uint8_t len) { this->read_register_(reg, buf, len); }
@@ -236,25 +236,25 @@ class NRF24Component : public Component,
     this->write_register_(REG_SETUP_RETR, ((delay & 0x0F) << 4) | (count & 0x0F));
   }
   GPIOPin *get_ce_pin() { return this->ce_pin_; }
-  /// A appeler par un composant external_mode qui configure le débit radio
-  /// directement en registre (bypass apply_data_rate_()) -- garde le délai
-  /// post-écoute cohérent avec le vrai débit utilisé (voir stop_listening_()).
+  /// To be called by an external_mode component that configures the radio's
+  /// data rate directly via register (bypassing apply_data_rate_()) -- keeps
+  /// the post-listen delay consistent with the real data rate used (see stop_listening_()).
   void set_tx_delay_us(uint32_t us) { this->tx_delay_us_ = us; }
 
   void setup() override;
 
-  /// Reset matériel de la puce (cycle power-down/flush/power-up), sans
-  /// reconfiguration -- en mode externe, à appeler suivi d'une reconfiguration
-  /// complète côté composant appelant (ex. hm::reset_radio()).
+  /// Hardware reset of the chip (power-down/flush/power-up cycle), without
+  /// reconfiguration -- in external mode, call this followed by a full
+  /// reconfiguration on the caller's side (e.g. hm::reset_radio()).
   bool reset_radio();
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
 
-  /// Envoie un paquet (jusqu'à payload_size octets). Bloquant jusqu'à TX_DS/MAX_RT
-  /// ou timeout_ms -- une transmission nRF24 est de l'ordre de quelques centaines de
-  /// microsecondes à quelques millisecondes selon data_rate/retries, donc un court
-  /// blocage ici est sans commune mesure avec le CMT2300A bit-bangé.
+  /// Sends a packet (up to payload_size bytes). Blocking until TX_DS/MAX_RT
+  /// or timeout_ms -- an nRF24 transmission is on the order of a few hundred
+  /// microseconds to a few milliseconds depending on data_rate/retries, so a short
+  /// block here is nowhere near as costly as the CMT2300A's bit-banged one.
   bool send_packet(const std::vector<uint8_t> &data, uint32_t timeout_ms = 100);
 
   void add_on_packet_received_callback(std::function<void(std::vector<uint8_t>)> cb) {
@@ -262,7 +262,7 @@ class NRF24Component : public Component,
   }
 
  protected:
-  // --- Accès registres bas niveau -- port de RF24::read_register/write_register ---
+  // --- Low-level register access -- port of RF24::read_register/write_register ---
   uint8_t read_register_(uint8_t reg);
   void read_register_(uint8_t reg, uint8_t *buf, uint8_t len);
   uint8_t write_register_(uint8_t reg, uint8_t value);
@@ -271,11 +271,11 @@ class NRF24Component : public Component,
   void flush_rx_();
   void flush_tx_();
 
-  // --- Séquence haut niveau -- port de RF24::begin()/setXxx()/startListening()/... ---
+  // --- High-level sequence -- port of RF24::begin()/setXxx()/startListening()/... ---
   void power_up_();
   void apply_pa_level_();
-  /// Relit et journalise un registre en verbose (confirmation post-écriture) --
-  /// utilisé pendant setup() pour tracer chaque registre configuré.
+  /// Reads back and logs a register at verbose level (post-write confirmation) --
+  /// used during setup() to trace every register configured.
   void log_reg_(uint8_t reg, const char *label);
   void apply_data_rate_();
   void apply_crc_length_();
@@ -312,10 +312,10 @@ class NRF24Component : public Component,
   uint32_t duty_lock_start_ms_{0};
   uint32_t duty_busy_accum_ms_{0};
   uint32_t duty_window_start_ms_{0};
-  // Délai après ce(LOW) dans stop_listening_(), avant de considérer la radio
-  // stabilisée hors écoute -- dépend du débit radio (voir apply_data_rate_()).
-  // Valeurs portées de RF24::_data_rate_reg_value() pour F_CPU > 20MHz, ce qui
-  // couvre l'ESP32 sans condition.
+  // Delay after ce(LOW) in stop_listening_(), before considering the radio
+  // settled out of listening mode -- depends on the data rate (see apply_data_rate_()).
+  // Values ported from RF24::_data_rate_reg_value() for F_CPU > 20MHz, which
+  // unconditionally covers the ESP32.
   uint32_t tx_delay_us_{280};
 
   struct ReachableEntry {

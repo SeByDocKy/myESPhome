@@ -7,8 +7,8 @@
 namespace esphome {
 namespace nrf24l01 {
 
-// Même patron que cmt2300a::CMT2300ATransport / les sx126x, sx127x, udp
-// officiels : packet_transport::PacketTransport + Parented<T>.
+// Same pattern as cmt2300a::CMT2300ATransport / the official sx126x,
+// sx127x, udp: packet_transport::PacketTransport + Parented<T>.
 class NRF24L01Transport : public packet_transport::PacketTransport, public Parented<NRF24Component> {
  public:
   void setup() override;

@@ -36,14 +36,14 @@ async def to_code(config):
 
     if CONF_POWER_PERCENT in config:
         conf = config[CONF_POWER_PERCENT]
-        # min_value=2, pas 0 : à 0% le HMS arrête purement et simplement de
-        # produire (cohérent avec reset_to_output_min, voir button/__init__.py).
+        # min_value=2, not 0: at 0% the HMS simply stops
+        # producing entirely (consistent with reset_to_output_min, see button/__init__.py).
         n = await number.new_number(conf, min_value=2, max_value=100, step=1)
         cg.add(n.set_parent(hub))
 
     if CONF_POWER_ABSOLUTE in config:
         conf = config[CONF_POWER_ABSOLUTE]
-        # Plage large par défaut : l'onduleur applique de toute façon son propre
-        # plafond matériel. Ajuste max_value si tu veux une limite UI plus stricte.
+        # Wide default range: the inverter applies its own hardware ceiling
+        # anyway. Adjust max_value if you want a stricter UI limit.
         n = await number.new_number(conf, min_value=0, max_value=4000, step=1)
         cg.add(n.set_parent(hub))

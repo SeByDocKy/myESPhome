@@ -164,8 +164,8 @@ def _dc_channel_entry(value):
     value = cv.Schema({cv.string: DC_CHANNEL_SCHEMA})(value)
     if len(value) != 1:
         raise cv.Invalid(
-            "Chaque entrée de 'dc_channels' doit contenir exactement un nom de canal "
-            "(ex. 'pv0: {power: {name: ...}}')."
+            "Each 'dc_channels' entry must contain exactly one channel name "
+            "(e.g. 'pv0: {power: {name: ...}}')."
         )
     return value
 
@@ -179,8 +179,8 @@ def _validate_dc_channels_list(value):
         label = next(iter(entry))
         if label in seen:
             raise cv.Invalid(
-                f"Le nom de canal '{label}' est utilisé plusieurs fois dans "
-                f"'dc_channels' -- chaque canal doit avoir un nom unique (pv0, pv1, ...)."
+                f"Channel name '{label}' is used more than once in "
+                f"'dc_channels' -- each channel must have a unique name (pv0, pv1, ...)."
             )
         seen.add(label)
     return value
@@ -197,9 +197,9 @@ CONFIG_SCHEMA = cv.Schema(
 )
 
 
-# Duplique la table de décodage préfixe SN -> nombre de canaux DC de hms.cpp
-# (decode_serial_ / inverters/HMS_1CH.cpp, HMS_2CH.cpp, HMS_4CH.cpp) pour pouvoir
-# détecter un mismatch dès la validation YAML, avant même la compilation C++.
+# Duplicates hms.cpp's SN prefix -> DC channel count decoding table
+# (decode_serial_ / inverters/HMS_1CH.cpp, HMS_2CH.cpp, HMS_4CH.cpp) so we can
+# catch a mismatch at YAML validation time, before C++ compilation even happens.
 def _hms_prefix_channel_count(sn: str):
     prefix = int(sn[:4], 16)
     if prefix == 0x1124 or prefix in (0x1125, 0x1400):
@@ -208,7 +208,7 @@ def _hms_prefix_channel_count(sn: str):
         return 2
     if prefix in (0x1164, 0x1166, 0x1420):
         return 4
-    return None  # préfixe inconnu -- laissé à l'erreur runtime de decode_serial_()
+    return None  # unknown prefix -- left to decode_serial_()'s runtime error
 
 
 def _final_validate(config):
@@ -217,9 +217,9 @@ def _final_validate(config):
         hms_confs = full_conf.get("hms", [])
         if isinstance(hms_confs, dict):
             hms_confs = [hms_confs]
-    except Exception:  # noqa: BLE001 -- API interne fv.full_config potentiellement
-        # différente selon la version d'ESPHome ; on ne bloque pas la compilation
-        # pour autant, on saute juste la validation croisée dans ce cas.
+    except Exception:  # noqa: BLE001 -- fv.full_config's internal API may
+        # differ across ESPHome versions; we don't block compilation because of
+        # that, we just skip the cross-validation in that case.
         return config
 
     hms_id = config[CONF_HMS_ID]
@@ -233,15 +233,15 @@ def _final_validate(config):
 
         expected = _hms_prefix_channel_count(sn)
         if expected is None:
-            break  # préfixe inconnu -- le hub lèvera sa propre erreur au boot
+            break  # unknown prefix -- the hub will raise its own error at boot
 
         declared = len(config.get(CONF_DC_CHANNELS, []))
         if declared > expected:
             raise cv.Invalid(
-                f"Le numéro de série '{sn}' correspond à un onduleur à {expected} "
-                f"canal/canaux DC, mais {declared} entrée(s) 'dc_channels' sont "
-                f"déclarées ici -- les canaux excédentaires ne recevront jamais de "
-                f"valeur. Réduis 'dc_channels' à {expected} entrée(s)."
+                f"Serial number '{sn}' corresponds to a {expected}-DC-channel "
+                f"inverter, but {declared} 'dc_channels' entries are declared "
+                f"here -- the extra channels will never receive a value. "
+                f"Reduce 'dc_channels' to {expected} entries."
             )
         break
 
