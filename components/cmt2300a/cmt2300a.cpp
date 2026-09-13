@@ -178,7 +178,14 @@ uint8_t CMT2300AComponent::fifo_clear_rx_() {
 
 void CMT2300AComponent::config_reg_bank_(uint8_t base_addr, const uint8_t *bank, size_t len) {
   for (size_t i = 0; i < len; i++) {
-    this->write_reg_(i + base_addr, bank[i]);
+    uint8_t reg = static_cast<uint8_t>(i + base_addr);
+    this->write_reg_(reg, bank[i]);
+    uint8_t readback = this->read_reg_(reg);
+    if (readback == bank[i]) {
+      ESP_LOGV(TAG, "    reg 0x%02X = 0x%02X (vérifié par relecture)", reg, readback);
+    } else {
+      ESP_LOGW(TAG, "    reg 0x%02X : écrit 0x%02X mais relu 0x%02X -- non conforme", reg, bank[i], readback);
+    }
   }
 }
 
@@ -455,6 +462,7 @@ void CMT2300AComponent::setup() {
       return;
     }
     ESP_LOGCONFIG(TAG, "CMT2300A prêt (mode externe -- piloté par un autre composant)");
+    ESP_LOGI(TAG, "cmt2300a setup ok");
     return;
   }
 
@@ -570,6 +578,7 @@ void CMT2300AComponent::setup() {
   }
 
   ESP_LOGCONFIG(TAG, "CMT2300A prêt");
+  ESP_LOGI(TAG, "cmt2300a setup ok");
   if (!this->start_receive_()) {
     ESP_LOGW(TAG, "Premier démarrage de l'écoute RX en échec");
   } else {
@@ -690,6 +699,14 @@ void CMT2300AComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  Node ID: 0x%08X", (unsigned) this->node_id_);
   ESP_LOGCONFIG(TAG, "  Accept any node ID: %s", YESNO(this->accept_any_node_id_));
   ESP_LOGCONFIG(TAG, "  FIFO threshold: %u", this->fifo_threshold_);
+  if (this->external_mode_) {
+    // Contrairement à nrf24l01/hm, les registres que hms: reconfigure (bancs
+    // fréquence/débit) ne sont pas des champs de config générique affichés
+    // ci-dessus -- rien ici ne devient obsolète après le passage de hms:, mais
+    // la config radio effective (fréquence de travail, etc.) est entièrement
+    // définie par hms: -- voir ses propres logs pour ces valeurs.
+    ESP_LOGCONFIG(TAG, "  Mode externe actif (hms:) -- fréquence/débit gérés par hms:, voir ses logs");
+  }
   if (this->is_failed()) {
     ESP_LOGE(TAG, "  Setup a échoué -- puce non détectée ou câblage incorrect");
   }

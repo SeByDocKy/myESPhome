@@ -260,6 +260,10 @@ bool NRF24Component::reset_radio() {
   return true;
 }
 
+void NRF24Component::log_reg_(uint8_t reg, const char *label) {
+  ESP_LOGV(TAG, "    %s (reg 0x%02X) = 0x%02X", label, reg, this->read_register_(reg));
+}
+
 void NRF24Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up NRF24...");
   this->spi_setup();
@@ -270,13 +274,20 @@ void NRF24Component::setup() {
   delay(5);  // NOLINT -- Tpor du datasheet (mise sous tension)
 
   this->write_register_(REG_CONFIG, 0);  // PWR_UP=0, PRIM_RX=0 -- état connu de départ
+  this->log_reg_(REG_CONFIG, "CONFIG (reset)");
 
   this->apply_retries_();
+  this->log_reg_(REG_SETUP_RETR, "SETUP_RETR");
   this->apply_data_rate_();
+  this->log_reg_(REG_RF_SETUP, "RF_SETUP (data rate)");
   this->apply_crc_length_();
+  this->log_reg_(REG_CONFIG, "CONFIG (CRC)");
   this->apply_address_width_();
+  this->log_reg_(REG_SETUP_AW, "SETUP_AW");
   this->write_register_(REG_RF_CH, this->channel_ > 125 ? 125 : this->channel_);
+  this->log_reg_(REG_RF_CH, "RF_CH");
   this->apply_pa_level_();
+  this->log_reg_(REG_RF_SETUP, "RF_SETUP (PA level)");
   if (this->pa_level_select_ != nullptr) {
     static const char *const kLevels[4] = {"min", "low", "high", "max"};
     uint8_t lvl = static_cast<uint8_t>(this->pa_level_);
@@ -284,7 +295,9 @@ void NRF24Component::setup() {
   }
 
   this->write_register_(REG_EN_AA, this->auto_ack_ ? 0x3F : 0x00);
+  this->log_reg_(REG_EN_AA, "EN_AA");
   this->write_register_(REG_EN_RXADDR, 0);  // pipes désactivées, activées par open_reading_pipe_()
+  this->log_reg_(REG_EN_RXADDR, "EN_RXADDR (reset)");
 
   if (this->dynamic_payloads_) {
     this->write_register_(REG_FEATURE, FEATURE_EN_DPL);
@@ -293,12 +306,16 @@ void NRF24Component::setup() {
     this->write_register_(REG_FEATURE, 0);
     this->write_register_(REG_DYNPD, 0);
   }
+  this->log_reg_(REG_FEATURE, "FEATURE");
+  this->log_reg_(REG_DYNPD, "DYNPD");
 
   this->flush_rx_();
   this->flush_tx_();
   this->write_register_(REG_STATUS, STATUS_RX_DR | STATUS_TX_DS | STATUS_MAX_RT);
+  this->log_reg_(REG_STATUS, "STATUS (clear)");
 
   this->power_up_();
+  this->log_reg_(REG_CONFIG, "CONFIG (power up)");
 
   // Porté de RF24::isChipConnected() : SETUP_AW doit valoir address_width-2,
   // puisqu'on vient de l'écrire nous-mêmes via apply_address_width_() -- plus
@@ -316,6 +333,7 @@ void NRF24Component::setup() {
 
   if (this->external_mode_) {
     ESP_LOGCONFIG(TAG, "NRF24 prêt (mode externe -- piloté par un autre composant)");
+    ESP_LOGI(TAG, "nrf24l01 setup ok");
     return;
   }
 
@@ -324,6 +342,7 @@ void NRF24Component::setup() {
   this->start_listening_();
 
   ESP_LOGCONFIG(TAG, "NRF24 prêt sur le canal %u", this->channel_);
+  ESP_LOGI(TAG, "nrf24l01 setup ok");
 }
 
 void NRF24Component::loop() {
@@ -380,19 +399,35 @@ bool NRF24Component::send_packet(const std::vector<uint8_t> &data, uint32_t time
 }
 
 void NRF24Component::dump_config() {
+  static const char *const kPaLevels[4] = {"min", "low", "high", "max"};
+  static const char *const kDataRates[3] = {"1mbps", "2mbps", "250kbps"};
+  static const char *const kCrcLengths[3] = {"disabled", "8bit", "16bit"};
+
+  uint8_t pa = static_cast<uint8_t>(this->pa_level_);
+  uint8_t dr = static_cast<uint8_t>(this->data_rate_);
+  uint8_t crc = static_cast<uint8_t>(this->crc_length_);
+
   ESP_LOGCONFIG(TAG, "NRF24:");
   LOG_PIN("  CE Pin: ", this->ce_pin_);
   if (this->irq_pin_ != nullptr) {
     LOG_PIN("  IRQ Pin: ", this->irq_pin_);
   }
   ESP_LOGCONFIG(TAG, "  Channel: %u (%u MHz)", this->channel_, 2400 + this->channel_);
-  ESP_LOGCONFIG(TAG, "  PA level: %u", this->pa_level_);
-  ESP_LOGCONFIG(TAG, "  Data rate: %u", this->data_rate_);
-  ESP_LOGCONFIG(TAG, "  CRC length: %u", this->crc_length_);
+  ESP_LOGCONFIG(TAG, "  PA level: %s", pa < 4 ? kPaLevels[pa] : "?");
+  ESP_LOGCONFIG(TAG, "  Data rate: %s", dr < 3 ? kDataRates[dr] : "?");
+  ESP_LOGCONFIG(TAG, "  CRC length: %s", crc < 3 ? kCrcLengths[crc] : "?");
   ESP_LOGCONFIG(TAG, "  Address width: %u", this->address_width_);
   ESP_LOGCONFIG(TAG, "  Auto ack: %s", YESNO(this->auto_ack_));
   ESP_LOGCONFIG(TAG, "  Retries: delay=%u count=%u", this->retry_delay_, this->retry_count_);
   ESP_LOGCONFIG(TAG, "  Payload size: %u%s", this->payload_size_, this->dynamic_payloads_ ? " (dynamic)" : "");
+  if (this->external_mode_) {
+    // Ce dump_config() s'exécute pendant le setup() générique, AVANT que hm:
+    // (priorité AFTER_WIFI, plus tardive) ne reconfigure channel/data_rate/CRC/
+    // adresses pour le protocole Hoymiles NRF -- les valeurs ci-dessus (sauf
+    // pa_level, non touché par hm:) ne reflètent donc pas l'état final réel.
+    ESP_LOGCONFIG(TAG, "  Mode externe actif (hm:) -- channel/data rate/CRC/adresses ci-dessus");
+    ESP_LOGCONFIG(TAG, "  seront réécrits par hm: après ce point (voir ses propres logs)");
+  }
   if (this->is_failed()) {
     ESP_LOGE(TAG, "  Setup a échoué -- puce non détectée ou câblage incorrect");
   }

@@ -874,6 +874,14 @@ void HMComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  Numéro de série onduleur: 0x%012llX", static_cast<unsigned long long>(this->inverter_serial_));
   ESP_LOGCONFIG(TAG, "  Numéro de série DTU: 0x%012llX", static_cast<unsigned long long>(this->dtu_serial_));
   ESP_LOGCONFIG(TAG, "  Intervalle de sondage: %ums", static_cast<unsigned int>(this->poll_interval_ms_));
+  // Valeurs radio réellement configurées par hm: (imposées par le protocole
+  // Hoymiles NRF, pas par la config générique nrf24l01: -- voir sa propre note
+  // dans dump_config() en mode externe).
+  ESP_LOGCONFIG(TAG, "  Débit radio: 250kbps (fixe, imposé par le protocole)");
+  ESP_LOGCONFIG(TAG, "  CRC: 16bit, largeur d'adresse: 5 octets, payloads dynamiques (fixes)");
+  ESP_LOGCONFIG(TAG, "  Hop de canal: %u/%u/%u/%u/%u MHz (continu, 4ms)", 2400 + this->rx_ch_list_[0],
+                2400 + this->rx_ch_list_[1], 2400 + this->rx_ch_list_[2], 2400 + this->rx_ch_list_[3],
+                2400 + this->rx_ch_list_[4]);
   if (this->is_failed()) {
     ESP_LOGE(TAG, "  Setup a échoué");
   }

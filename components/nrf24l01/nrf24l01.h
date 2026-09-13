@@ -274,6 +274,9 @@ class NRF24Component : public Component,
   // --- Séquence haut niveau -- port de RF24::begin()/setXxx()/startListening()/... ---
   void power_up_();
   void apply_pa_level_();
+  /// Relit et journalise un registre en verbose (confirmation post-écriture) --
+  /// utilisé pendant setup() pour tracer chaque registre configuré.
+  void log_reg_(uint8_t reg, const char *label);
   void apply_data_rate_();
   void apply_crc_length_();
   void apply_retries_();
