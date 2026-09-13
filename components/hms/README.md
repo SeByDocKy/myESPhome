@@ -380,6 +380,10 @@ figures, so re-measure with the sensor rather than trusting the table blindly.
   but failed the whole-frame checksum — usually weak signal or interference,
   not a config issue.
 - **Model shows as unrecognized at boot**: `sn`'s first 4 hex digits didn't
-  match any known HMS prefix table (`1124`, `1143`/`1144`/`1410`/`114a`,
-  `1164`/`1166`/`1420`) — double-check the serial printed on the inverter's
-  label.
+  match any known HMS prefix table (`1124`/`1125`/`1400` for 1-channel,
+  `1143`/`1144`/`1410`/`114a` for 2-channel, `1164`/`1166`/`1420` for
+  4-channel) — double-check the serial printed on the inverter's label.
+  Note: `1125`/`1400` (HMS-450/500-1T "v2") use a **different byte layout**
+  from `1124` (older 1-channel units) — same DC channel count, but genuinely
+  different field offsets in the response frame, ported from OpenDTU's
+  `HMS_1CHv2.cpp` (not just a wider prefix match on the same table).

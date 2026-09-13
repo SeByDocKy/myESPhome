@@ -202,7 +202,7 @@ CONFIG_SCHEMA = cv.Schema(
 # détecter un mismatch dès la validation YAML, avant même la compilation C++.
 def _hms_prefix_channel_count(sn: str):
     prefix = int(sn[:4], 16)
-    if prefix == 0x1124:
+    if prefix == 0x1124 or prefix in (0x1125, 0x1400):
         return 1
     if prefix in (0x1143, 0x1144, 0x1410, 0x114A):
         return 2

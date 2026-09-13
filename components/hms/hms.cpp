@@ -72,6 +72,33 @@ static const byteAssign_t HMS_1CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
 };
 
+// Portée depuis inverters/HMS_1CHv2.cpp (HMS-450/500-1T v2, préfixes 0x1125 et
+// 0x1400) -- PAS le même format de trame que HMS_1CH malgré le même nombre de
+// canaux DC : offsets réellement différents, vérifiés depuis le vrai fichier
+// source (pas une simple extension de préfixe sur la table v1).
+static const byteAssign_t HMS_1CHV2_TABLE[] = {
+    {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
+    {TYPE_DC, CH0, FLD_IDC, 6, 2, 100, false, 2},
+    {TYPE_DC, CH0, FLD_PDC, 10, 2, 10, false, 1},
+    {TYPE_DC, CH0, FLD_YD, 22, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YT, 14, 4, 1000, false, 3},
+
+    {TYPE_AC, CH0, FLD_UAC, 26, 2, 10, false, 1},
+    {TYPE_AC, CH0, FLD_IAC, 34, 2, 100, false, 2},
+    {TYPE_AC, CH0, FLD_PAC, 30, 2, 10, false, 1},
+    {TYPE_AC, CH0, FLD_Q, 20, 2, 10, true, 1},
+    {TYPE_AC, CH0, FLD_F, 28, 2, 100, false, 2},
+    {TYPE_AC, CH0, FLD_PF, 36, 2, 1000, false, 3},
+
+    {TYPE_INV, CH0, FLD_T, 38, 2, 10, true, 1},
+    {TYPE_INV, CH0, FLD_EVT_LOG, 18, 2, 1, false, 0},
+
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
+    {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
+    {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
+};
+
 static const byteAssign_t HMS_2CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 6, 2, 100, false, 2},
@@ -187,6 +214,11 @@ bool HMSComponent::decode_serial_() {
     this->byte_assignment_ = HMS_1CH_TABLE;
     this->byte_assignment_size_ = sizeof(HMS_1CH_TABLE) / sizeof(HMS_1CH_TABLE[0]);
     this->type_name_ = "HMS-300/350/400/450/500-1T";
+  } else if (pre == 0x1125 || pre == 0x1400) {
+    this->dc_channel_count_ = 1;
+    this->byte_assignment_ = HMS_1CHV2_TABLE;
+    this->byte_assignment_size_ = sizeof(HMS_1CHV2_TABLE) / sizeof(HMS_1CHV2_TABLE[0]);
+    this->type_name_ = "HMS-450/500-1T v2";
   } else if (pre == 0x1143 || pre == 0x1144 || pre == 0x1410 || pre == 0x114a) {
     this->dc_channel_count_ = 2;
     this->byte_assignment_ = HMS_2CH_TABLE;
