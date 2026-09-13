@@ -277,6 +277,11 @@ void NRF24Component::setup() {
   this->apply_address_width_();
   this->write_register_(REG_RF_CH, this->channel_ > 125 ? 125 : this->channel_);
   this->apply_pa_level_();
+  if (this->pa_level_select_ != nullptr) {
+    static const char *const kLevels[4] = {"min", "low", "high", "max"};
+    uint8_t lvl = static_cast<uint8_t>(this->pa_level_);
+    this->pa_level_select_->publish_state(kLevels[lvl > 3 ? 3 : lvl]);
+  }
 
   this->write_register_(REG_EN_AA, this->auto_ack_ ? 0x3F : 0x00);
   this->write_register_(REG_EN_RXADDR, 0);  // pipes désactivées, activées par open_reading_pipe_()

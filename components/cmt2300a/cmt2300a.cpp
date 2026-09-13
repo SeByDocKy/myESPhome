@@ -335,6 +335,67 @@ bool CMT2300AComponent::allow_receiving_any_nodeid_(bool allow) {
 // ---------------------------------------------------------------------------
 // ESPHome: setup / loop / dump_config
 // ---------------------------------------------------------------------------
+// Table dBm -> Tx_dBm_word portée fidèlement de CMT2300a::setPALevel()
+// (lib/CMT2300a/cmt2300wrapper.cpp, commit OpenDTU 098691a -- "First step
+// towards a modular CMT2300 driver similar to the NRF24 one").
+void CMT2300AComponent::set_pa_level(int8_t dbm) {
+  uint16_t tx_dbm_word;
+  switch (dbm) {
+    case -10: tx_dbm_word = 0x0501; break;
+    case -9:  tx_dbm_word = 0x0601; break;
+    case -8:  tx_dbm_word = 0x0701; break;
+    case -7:  tx_dbm_word = 0x0801; break;
+    case -6:  tx_dbm_word = 0x0901; break;
+    case -5:  tx_dbm_word = 0x0A01; break;
+    case -4:  tx_dbm_word = 0x0B01; break;
+    case -3:  tx_dbm_word = 0x0C01; break;
+    case -2:  tx_dbm_word = 0x0D01; break;
+    case -1:  tx_dbm_word = 0x0E01; break;
+    case 0:   tx_dbm_word = 0x1002; break;
+    case 1:   tx_dbm_word = 0x1302; break;
+    case 2:   tx_dbm_word = 0x1602; break;
+    case 3:   tx_dbm_word = 0x1902; break;
+    case 4:   tx_dbm_word = 0x1C02; break;
+    case 5:   tx_dbm_word = 0x1F03; break;
+    case 6:   tx_dbm_word = 0x2403; break;
+    case 7:   tx_dbm_word = 0x2804; break;
+    case 8:   tx_dbm_word = 0x2D04; break;
+    case 9:   tx_dbm_word = 0x3305; break;
+    case 10:  tx_dbm_word = 0x3906; break;
+    case 11:  tx_dbm_word = 0x4107; break;
+    case 12:  tx_dbm_word = 0x4908; break;
+    case 13:  tx_dbm_word = 0x5309; break;
+    case 14:  tx_dbm_word = 0x5E0B; break;
+    case 15:  tx_dbm_word = 0x6C0C; break;
+    case 16:  tx_dbm_word = 0x7D0C; break;
+    // Les valeurs suivantes nécessitent le bit "double" (registre CUS_CMT4, bit0) :
+    case 17:  tx_dbm_word = 0x4A0C; break;
+    case 18:  tx_dbm_word = 0x580F; break;
+    case 19:  tx_dbm_word = 0x6B12; break;
+    case 20:  tx_dbm_word = 0x8A18; break;
+    default:
+      ESP_LOGE(TAG, "pa_level invalide (%d dBm) -- doit être entre -10 et 20", dbm);
+      return;
+  }
+
+  uint8_t cmt4 = this->read_reg_(BANK_CMT_ADDR + 4);  // CMT2300A_CUS_CMT4
+  if (dbm > 16) {
+    this->write_reg_(BANK_CMT_ADDR + 4, cmt4 | 0x01);   // set bit0 (double Tx)
+  } else {
+    this->write_reg_(BANK_CMT_ADDR + 4, cmt4 & 0xFE);   // reset bit0
+  }
+  this->write_reg_(BANK_TX_ADDR + 8, static_cast<uint8_t>(tx_dbm_word >> 8));   // CUS_TX8
+  this->write_reg_(BANK_TX_ADDR + 9, static_cast<uint8_t>(tx_dbm_word & 0xFF));  // CUS_TX9
+
+  this->pa_level_dbm_ = dbm;
+  this->has_pa_level_ = true;
+  if (this->pa_level_number_ != nullptr) {
+    this->pa_level_number_->publish_state(dbm);
+  }
+
+  ESP_LOGD(TAG, "PA level réglé à %d dBm (Tx_dBm_word=0x%04X)", dbm, tx_dbm_word);
+}
+
 bool CMT2300AComponent::reset_radio() {
   ESP_LOGW(TAG, "Reset radio matériel demandé");
   if (!this->soft_reset_()) {
@@ -410,6 +471,9 @@ void CMT2300AComponent::setup() {
   ESP_LOGV(TAG, "  Banc Baseband écrit (base 0x%02X, %u octets)", BANK_BASEBAND_ADDR, BANK_BASEBAND_SIZE);
   this->config_reg_bank_(BANK_TX_ADDR, BANK_TX, BANK_TX_SIZE);
   ESP_LOGV(TAG, "  Banc Tx écrit (base 0x%02X, %u octets)", BANK_TX_ADDR, BANK_TX_SIZE);
+  if (this->has_pa_level_) {
+    this->set_pa_level(this->pa_level_dbm_);
+  }
 
   // LFOSC désactivée (comme le driver de référence)
   uint8_t sys2 = this->read_reg_(REG_CUS_SYS2);

@@ -6,6 +6,7 @@
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/number/number.h"
 
 namespace esphome {
 namespace cmt2300a {
@@ -266,6 +267,20 @@ class CMT2300AComponent : public Component {
   /// -- laisse la puce à l'état d'usine. En mode externe, à appeler suivi d'une
   /// reconfiguration complète côté composant appelant (ex. hms::reset_radio()).
   bool reset_radio();
+
+  /// Puissance d'émission en dBm (-10 à +20), portée depuis CMT2300a::setPALevel()
+  /// (table de correspondance dBm -> registres CUS_TX8/CUS_TX9 + bit "double" de
+  /// CUS_CMT4, vérifiée directement dans le vrai code source OpenDTU/anisyanka).
+  /// Optionnel : si jamais appelée, le banc Tx figé porté depuis la config de
+  /// référence reste inchangé (comportement historique préservé).
+  void set_pa_level(int8_t dbm);
+  /// Appelé par la génération de code YAML pour mémoriser la valeur désirée --
+  /// l'écriture registre effective se fait dans setup(), après le banc Tx figé.
+  void configure_pa_level(int8_t dbm) {
+    this->has_pa_level_ = true;
+    this->pa_level_dbm_ = dbm;
+  }
+  void set_pa_level_number(number::Number *n) { this->pa_level_number_ = n; }
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
@@ -359,6 +374,9 @@ class CMT2300AComponent : public Component {
 
   bool setup_failed_{false};
   bool external_mode_{false};
+  bool has_pa_level_{false};
+  int8_t pa_level_dbm_{0};
+  number::Number *pa_level_number_{nullptr};
   const void *external_lock_owner_{nullptr};
   uint32_t duty_lock_start_ms_{0};
   uint32_t duty_busy_accum_ms_{0};

@@ -57,6 +57,7 @@ cmt2300a:
   node_id: 0x00000001       # optional, hardware address filter (default 0)
   accept_any_node_id: false # optional, default false
   fifo_threshold: 32        # optional, 1-64, default 32
+  pa_level: 20              # optional, -10 to +20 dBm, default 20 -- see below
   on_packet_received:
     - logger.log:
         format: "Packet received (%u bytes)"
@@ -78,8 +79,42 @@ cmt2300a:
 | `node_id` | no | `0` | Node address for the CMT2300A's hardware address filtering (NODE_ID register) |
 | `accept_any_node_id` | no | `false` | If `true`, disables address filtering — every received packet fires `on_packet_received` |
 | `fifo_threshold` | no | `32` | FIFO threshold (1-64) |
+| `pa_level` | no | `20` | Transmit power in dBm, `-10` to `+20`. Applied at boot; use the `number: platform: cmt2300a` entity below to change it at runtime without a reboot |
 | `on_packet_received` | no | — | Automation; the `x` variable is the received packet as `std::vector<uint8_t>` |
 | `on_tx_done` | no | — | Automation fired when a transmission completes |
+
+### `pa_level` — transmit power
+
+Ported from `CMT2300a::setPALevel()` (a later addition to OpenDTU's CMT2300A
+driver, verified directly against its source) — a dBm value from `-10` to
+`+20`, mapped to a lookup table that writes two registers in the Tx bank
+(`CUS_TX8`/`CUS_TX9`) plus a "double power" bit in `CUS_CMT4` for levels
+above 16 dBm. Defaults to `20` (maximum) — this **overrides** the fixed
+`BANK_TX` array this component ships with by default; if you need the exact
+factory-bank power level instead, you'd need to determine what dBm it
+actually encodes (not independently verified) and set `pa_level` to match,
+or fork the component to skip the override entirely.
+
+With `hms:` sharing this radio, this applies to it too — `hms:` never
+touches transmit power itself, so `pa_level` set here is the only lever for
+adjusting HMS transmit power.
+
+### `number` platform — change transmit power at runtime
+
+```yaml
+number:
+  - platform: cmt2300a
+    cmt2300a_id: cmt_radio
+    pa_level:
+      name: "CMT2300A TX Power"
+```
+
+Lets you change `pa_level` (-10 to +20 dBm) live, from Home Assistant or an
+automation, without recompiling or rebooting the ESP32. `set_pa_level()` only
+writes 2-3 registers directly (no chip reset, no FIFO/state-machine
+interaction) — safe to call at any moment, including while `hms:` is mid
+telemetry exchange on the same radio. The entity's initial state reflects
+whatever `pa_level` (or its default) was configured on `cmt2300a:`.
 
 ### `cmt2300a.send` action
 

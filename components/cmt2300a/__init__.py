@@ -26,6 +26,7 @@ CONF_GPIO3_PIN = "gpio3_pin"
 CONF_NODE_ID = "node_id"
 CONF_ACCEPT_ANY_NODE_ID = "accept_any_node_id"
 CONF_FIFO_THRESHOLD = "fifo_threshold"
+CONF_PA_LEVEL = "pa_level"
 CONF_ON_PACKET_RECEIVED = "on_packet_received"
 CONF_ON_TX_DONE = "on_tx_done"
 
@@ -41,6 +42,11 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_NODE_ID, default=0): cv.uint32_t,
         cv.Optional(CONF_ACCEPT_ANY_NODE_ID, default=False): cv.boolean,
         cv.Optional(CONF_FIFO_THRESHOLD, default=32): cv.int_range(min=1, max=64),
+        # Optionnel -- si absent, le banc Tx figé porté depuis la config de
+        # référence reste inchangé (comportement historique préservé). Table
+        # dBm -> registres vérifiée directement dans le vrai code source
+        # OpenDTU (CMT2300a::setPALevel()).
+        cv.Optional(CONF_PA_LEVEL, default=20): cv.int_range(min=-10, max=20),
         cv.Optional(CONF_ON_PACKET_RECEIVED): automation.validate_automation(
             {
                 cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
@@ -80,6 +86,7 @@ async def to_code(config):
     cg.add(var.set_node_id(config[CONF_NODE_ID]))
     cg.add(var.set_accept_any_node_id(config[CONF_ACCEPT_ANY_NODE_ID]))
     cg.add(var.set_fifo_threshold(config[CONF_FIFO_THRESHOLD]))
+    cg.add(var.configure_pa_level(config[CONF_PA_LEVEL]))
 
     for conf in config.get(CONF_ON_PACKET_RECEIVED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)

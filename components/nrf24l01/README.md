@@ -84,6 +84,24 @@ nrf24l01:
 | `rx_address` | no | `E7E7E7E7E7` | 10 hex characters (5 bytes) — this device's reading pipe 1 address |
 | `on_packet_received` | no | — | Automation; `x` is the received payload as `std::vector<uint8_t>` |
 
+### `select` platform — change PA level at runtime
+
+```yaml
+select:
+  - platform: nrf24l01
+    nrf24l01_id: radio
+    pa_level:
+      name: "NRF24 TX Power"
+```
+
+Same idea as `cmt2300a`'s `number: pa_level`, but as a `select` here since the
+nRF24L01 only has 4 discrete levels (`min`/`low`/`high`/`max`), not a
+continuous dBm range — this just re-applies the same register write
+`apply_pa_level_()` already does at boot, so it's safe to call at any time
+(no reset, no FIFO/state-machine interaction), including while `hm:` is mid
+exchange on the same radio. The entity's initial state reflects whatever
+`pa_level` (or its default `max`) was configured on `nrf24l01:`.
+
 ### `nrf24l01.send` action
 
 ```yaml

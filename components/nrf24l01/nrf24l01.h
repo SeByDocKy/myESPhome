@@ -6,6 +6,7 @@
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/select/select.h"
 #include "esphome/components/spi/spi.h"
 
 namespace esphome {
@@ -92,6 +93,18 @@ class NRF24Component : public Component,
 
   void set_channel(uint8_t channel) { this->channel_ = channel; }
   void set_pa_level(uint8_t level) { this->pa_level_ = static_cast<PALevel>(level); }
+  /// Applique un niveau PA immédiatement (2-3 écritures registre, pas de reset) --
+  /// à la différence de set_pa_level() ci-dessus, utilisée à la config, appelable
+  /// à tout moment après setup(). Republie l'état sur le select associé si présent.
+  void apply_pa_level_runtime(uint8_t level) {
+    this->pa_level_ = static_cast<PALevel>(level);
+    this->apply_pa_level_();
+    if (this->pa_level_select_ != nullptr) {
+      static const char *const kLevels[4] = {"min", "low", "high", "max"};
+      this->pa_level_select_->publish_state(kLevels[level > 3 ? 3 : level]);
+    }
+  }
+  void set_pa_level_select(select::Select *s) { this->pa_level_select_ = s; }
   void set_data_rate(uint8_t rate) { this->data_rate_ = static_cast<DataRate>(rate); }
   void set_crc_length(uint8_t len) { this->crc_length_ = static_cast<CRCLength>(len); }
   void set_address_width(uint8_t width) { this->address_width_ = width; }
@@ -310,6 +323,7 @@ class NRF24Component : public Component,
   ReachableEntry reachable_consumers_[MAX_REACHABLE_CONSUMERS]{};
   uint8_t reachable_consumer_count_{0};
   sensor::Sensor *hm_count_sensor_{nullptr};
+  select::Select *pa_level_select_{nullptr};
 
   void update_hm_count_sensor_() {
     if (this->hm_count_sensor_ != nullptr) this->hm_count_sensor_->publish_state(this->get_reachable_hm_count());
