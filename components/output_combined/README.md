@@ -30,6 +30,22 @@ output:
   `std::vector`.
 - Scales to any number of outputs without duplicating YAML blocks.
 
+## File layout
+
+`output_combined` is a **platform-only** component: it does not define a
+new top-level YAML key, only a new `platform:` under the existing
+`output:` domain. ESPHome requires the config schema / codegen for a
+domain platform to live in a file named after that domain — hence
+`output.py`, not `__init__.py`:
+
+```
+components/output_combined/
+├── __init__.py          # CODEOWNERS only
+├── output.py             # CONFIG_SCHEMA + to_code (the "output" platform)
+├── output_combined.h
+└── output_combined.cpp
+```
+
 ## Installation
 
 Copy the `components/output_combined` folder into your ESPHome
@@ -40,6 +56,15 @@ external_components:
   - source:
       type: local
       path: components
+```
+
+Or straight from GitHub:
+
+```yaml
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [output_combined]
+    refresh: 10s
 ```
 
 ## Usage
