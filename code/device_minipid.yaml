@@ -17,6 +17,7 @@ sensor:
       accuracy_decimals: 1
     output: 
       name: ${name}_${minipid_name}_output
+      id: ${minipid_name}_output
       unit_of_measurement: '%'
       accuracy_decimals: 1
     target:
