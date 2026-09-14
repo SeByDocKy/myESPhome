@@ -1,0 +1,160 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [hms]
+    refresh: 10s 
+
+globals:
+  - id: ${hms_name}_energy_yesterday_global
+    type: float
+    restore_value: yes
+    
+time:
+  - platform: sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:  
+          - globals.set:
+              id: ${hms_name}_energy_yesterday_global
+              value: !lambda return ( id(${hms_name}_energy_yesterday_global) =  float( id(${hms_name}_energy_today).state) );
+            
+fan:
+  - platform: speed
+    id: ${hms_name}_command
+    name: ${name}_${hms_name}_command
+    output: ${hms_name}_percent_output
+
+
+hms:
+  - id: ${hms_id}
+    cmt2300a_id: ${hms_cmt2300a_id}
+    sn: ${hms_sn}
+    frequency_band: eu_860     # eu_860 (868MHz) ou us_900 (915MHz)
+    poll_interval: ${hms_poll_interval}
+
+
+
+sensor:
+  
+  - platform: cmt2300a
+    cmt2300a_id: ${hms_cmt2300a_id}
+    duty_cycle:
+      name: ${name}_${hms_name}_duty_cycle
+      update_interval: 15s  
+
+  - platform: cmt2300a
+    cmt2300a_id: ${hms_cmt2300a_id}
+    hms_count:
+      name: ${name}_${hms_name}_reachable_hms
+
+  - platform: hms
+    hms_id: ${hms_id}
+    dc_channels:
+      - pv0:
+          power: 
+            name: ${name}_${hms_name}_pv0_power
+          current: 
+            name: ${name}_${hms_name}_pv0_current
+          voltage: 
+            name: ${name}_${hms_name}_pv0_voltage
+          energy_today: 
+            name: ${name}_${hms_name}_pv0_energy_today
+          energy_total: 
+            name: ${name}_${hms_name}_pv0_energy_total
+    ac:
+      voltage: 
+        name: ${name}_${hms_name}_ac_voltage
+      current: 
+        name: ${name}_${hms_name}_ac_current
+      power: 
+        name: ${name}_${hms_name}_ac_power
+      frequency: 
+        name: ${name}_${hms_name}_ac_frequency
+      power_factor: 
+        name: ${name}_${hms_name}_ac_power_factor
+      reactive_power: 
+        name: ${name}_${hms_name}_ac_reactive_power
+    inverter:
+      temperature: 
+        name: ${name}_${hms_name}_inverter_temperature
+      power: 
+        name: ${name}_${hms_name}_inverter_dc_power
+      energy_today: 
+        name: ${name}_${hms_name}_inverter_energy_today
+      energy_total: 
+        name: ${name}_${hms_name}_inverter_energy_total
+      efficiency: 
+        name: ${name}_${hms_name}_inverter_efficiency
+    rssi: 
+      name: ${name}_${hms_name}_rssi
+
+  - platform: total_daily_energy
+    name: ${name}_${hms_name}_energy_today
+    id: ${hms_name}_energy_today
+    power_id: ${hms_name}_inverter_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: right
+    restore: true
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${hms_name}_energy_yesterday
+    id: ${hms_name}_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    # update_interval: ${hms_inverter_template_update}
+    lambda: |-
+      return (id(${hms_name}_energy_yesterday).state = id(${hms_name}_energy_yesterday_global));
+      
+            
+binary_sensor:
+
+  - platform: hms
+    hms_id: ${hms_id}
+    reachable:
+      name: ${name}_${hms_name}_reachable
+      id: ${hms_name}_reachable
+    producing:
+      name: ${name}_${hms_name}_producing
+      id: ${hms_name}_producing      
+      
+      
+number:
+  - platform: hms
+    hms_id: ${hms_id}
+    power_percent: 
+      name: ${name}_${hms_name}_power_limit_percent
+    power_absolute: 
+      name: ${name}_${hms_name}_power_limit_w
+      
+      
+output:
+  - platform: hms
+    hms_id: ${hms_id}
+    power_limit_percent:
+      id: ${hms_name}_power_limit_percent_output
+
+fan:
+  - platform: speed
+    id: ${hms_name}_output_command
+    name: ${name}_${hms_name}_output_command
+    output: ${hms_name}_power_limit_percent_output     
+    
+     
+button:
+  - platform: hms
+    hms_id: ${hms_id}
+    reset_to_output_min:
+      name: ${name}_${hms_name}_reset_to_output_min
+    reset_to_output_max:
+      name: ${name}_${hms_name}_reset_to_output_max
+    reset_hms:
+      name: ${name}_${hms_name}_reset_hms
+      id: ${hms_name}_reset    
