@@ -1,7 +1,9 @@
+
 external_components:
   - source: "github://SeByDocKy/myESPhome/"
     components: [hms]
     refresh: 10s 
+
 
 globals:
   - id: ${hms_name}_energy_yesterday_global
@@ -20,21 +22,12 @@ time:
               id: ${hms_name}_energy_yesterday_global
               value: !lambda return ( id(${hms_name}_energy_yesterday_global) =  float( id(${hms_name}_energy_today).state) );
             
-fan:
-  - platform: speed
-    id: ${hms_name}_command
-    name: ${name}_${hms_name}_command
-    output: ${hms_name}_percent_output
-
-
 hms:
   - id: ${hms_id}
     cmt2300a_id: ${hms_cmt2300a_id}
     sn: ${hms_sn}
     frequency_band: eu_860     # eu_860 (868MHz) ou us_900 (915MHz)
     poll_interval: ${hms_poll_interval}
-
-
 
 sensor:
   
@@ -80,7 +73,8 @@ sensor:
       temperature: 
         name: ${name}_${hms_name}_inverter_temperature
       power: 
-        name: ${name}_${hms_name}_inverter_dc_power
+        name: ${name}_${hms_name}_inverter_power
+        id: ${hms_name}_inverter_power
       energy_today: 
         name: ${name}_${hms_name}_inverter_energy_today
       energy_total: 
@@ -113,7 +107,8 @@ sensor:
     lambda: |-
       return (id(${hms_name}_energy_yesterday).state = id(${hms_name}_energy_yesterday_global));
       
-            
+      
+      
 binary_sensor:
 
   - platform: hms
@@ -157,4 +152,4 @@ button:
       name: ${name}_${hms_name}_reset_to_output_max
     reset_hms:
       name: ${name}_${hms_name}_reset_hms
-      id: ${hms_name}_reset    
+      id: ${hms_name}_reset      
