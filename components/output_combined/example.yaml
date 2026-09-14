@@ -1,0 +1,12 @@
+external_components:
+  - source:
+      type: local
+      path: components
+
+output:
+  - platform: output_combined
+    id: output_combined
+    outputs:
+      - hms1_power_limit_percent_output
+      - hms2_power_limit_percent_output
+      # - hms3_power_limit_percent_output  # add as many as needed
