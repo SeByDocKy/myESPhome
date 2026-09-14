@@ -98,7 +98,7 @@ sensor:
   - platform: total_daily_energy
     name: ${name}_${hms_name}_energy_today
     id: ${hms_name}_energy_today
-    power_id: ${hms_name}_power
+    power_id: ${hms_name}_inverter_power
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     method: right
