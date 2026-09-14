@@ -1,0 +1,144 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [modbustcp, modbustcp_controller]
+    refresh: 10s 
+
+modbustcp:
+  - id: modbus_tcp
+    host: ${shelly_ip_address}
+    port: ${shelly_ip_port}
+    send_wait_time: ${shelly_send_wait_time}  
+  
+modbustcp_controller:
+  - id: modbus_device_tcp
+    modbustcp_id: modbus_tcp
+    address: ${shelly_modbus_address}
+    update_interval: ${shelly_update_interval}   #default 60sec
+    
+select:
+  - platform: template
+    name: ${name}_phase_select
+    id: phase_select
+    icon: mdi:power
+    optimistic: true #true
+    restore_value: true
+    initial_option: 'p1'
+    options:
+      - 'p1+p2+p3'
+      - 'p1'
+      - 'p2'
+      - 'p3'
+    # set_action:
+    on_value:
+      then:
+        - globals.set:
+           id: phase_choice
+           value: !lambda |- 
+             auto index = id(phase_select).active_index();
+             if (index.has_value()) {
+               return (int(index.value())+1);
+             }
+     
+             
+        - lambda: |-
+            id(active_power).update();
+            id(select_index).publish_state(int(id(phase_choice)));
+            ESP_LOGI("phase_choice", "#: %d", id(phase_choice));
+            
+            
+sensor:
+
+  - platform: template
+    id: select_index
+    name: ${shelly_name}_select_index
+    state_class: 'measurement'
+    
+
+  - platform: template
+    id: active_power
+    name: ${shelly_name}_active_power
+    accuracy_decimals: 1
+    device_class: power
+    state_class: measurement
+    icon: mdi:power
+    unit_of_measurement: 'W'
+    update_interval: ${shelly_update_interval}
+    lambda: |-
+      uint16_t reg_address;
+      switch (id(phase_choice)) {
+        case 2: reg_address = 1025; break;  // p1
+        case 3: reg_address = 1045; break;  // p2
+        case 4: reg_address = 1065; break;  // p3
+        default: reg_address = 1014; break; // p1+p2+p3 (total)
+      }
+      auto *controller = id(modbus_device_tcp);
+
+      auto command = esphome::modbustcp_controller::ModbusCommandItem::create_read_command(
+          controller,
+          esphome::modbustcp_controller::ModbusRegisterType::READ,
+          reg_address,
+          2,  // FP32 = 2 registres 16 bits
+          [](esphome::modbustcp_controller::ModbusRegisterType register_type,
+             uint16_t start_address,
+             const std::vector<uint8_t> &data) {
+            if (data.size() < 4) return;
+            uint32_t raw = (uint32_t(data[0]) << 24) | (uint32_t(data[1]) << 16) |
+                           (uint32_t(data[2]) << 8)  |  uint32_t(data[3]);
+            float value;
+            memcpy(&value, &raw, sizeof(value));
+            id(active_power).publish_state(value);
+          });
+      controller->queue_command(command);
+      return {};       
+
+
+text:
+  - platform: template
+    name: ${shelly_name}_ha_shelly_ip_address
+    id: ha_shelly_ip_address
+    mode: text # ou 'password' pour masquer la saisie
+    min_length: 0
+    max_length: 24
+    optimistic: true # Met à jour la valeur immédiatement à la saisie
+    restore_value: yes # Conserve la valeur au redémarrage
+    initial_value: ${shelly_ip_address}
+    
+    # Action exécutée à chaque fois que la valeur change
+    on_value:
+      then:
+        - lambda: |-
+           
+            // Ignore la vérification si la chaîne est vide (évite une boucle infinie lors de l'effacement)
+            if (x.empty()) {
+              return;
+            }
+            // Validation du format IPv4 sans bibliothèque externe
+            int a, b, c, d;
+            char dummy;
+            bool isValid = (sscanf(x.c_str(), "%d.%d.%d.%d%c", &a, &b, &c, &d, &dummy) == 4) &&
+                           (a >= 0 && a <= 255) &&
+                           (b >= 0 && b <= 255) &&
+                           (c >= 0 && c <= 255) &&
+                           (d >= 0 && d <= 255);
+                           
+            if (isValid) {
+              ESP_LOGI("ip_validation", "Valid IP address: %s", x.c_str());
+              
+              esphome::modbustcp::ModbusTCP *controller = id(modbus_tcp);
+              controller->set_host_and_reconnect(x);
+              id(shelly_ip_address_global) = x;
+              id(current_shelly_ip_address).publish_state(x);
+            } 
+            else {
+              // Si le format est invalide, on efface le champ de saisie
+              ESP_LOGW("ip_validation", "Invalid IP address : %s (réinitialisation)", x.c_str());
+              id(ha_shelly_ip_address).publish_state("");
+
+
+text_sensor:
+
+  - platform: template
+    name: ${shelly_name}_current_shelly_ip_address
+    id: current_shelly_ip_address
+    icon: "mdi:text-box-outline"
+  
