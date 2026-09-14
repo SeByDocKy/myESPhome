@@ -14,15 +14,14 @@ cmt2300a:
   
  
 sensor:
-  
   - platform: cmt2300a
     cmt2300a_id: ${cmt2300a_id}
     duty_cycle:
       name: ${name}_${cmt2300a_name}_duty_cycle
       update_interval: 15s  
   
-number:
-  - platform: cmt2300a
-    cmt2300a_id: {cmt2300a_id}
-    pa_level:
-      name: ${name}_${cmt2300a_name}_tx_power  
+# number:
+#   - platform: cmt2300a
+#     cmt2300a_id: {cmt2300a_id}
+#     pa_level:
+#       name: ${name}_${cmt2300a_name}_tx_power  
