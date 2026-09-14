@@ -22,6 +22,6 @@ sensor:
       
 number:
   - platform: cmt2300a
-    cmt2300a_id: {cmt2300a_id}
+    cmt2300a_id: ${cmt2300a_id}
     pa_level:
       name: ${name}_${cmt2300a_name}_tx_power  
