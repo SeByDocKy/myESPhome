@@ -143,6 +143,7 @@ text:
               // Si le format est invalide, on efface le champ de saisie
               ESP_LOGW("ip_validation", "Invalid IP address : %s (réinitialisation)", x.c_str());
               id(ha_shelly_ip_address).publish_state("");
+            }
 
 
 text_sensor:
