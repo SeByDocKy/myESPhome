@@ -22,12 +22,6 @@ time:
               id: ${hms_name}_energy_yesterday_global
               value: !lambda return ( id(${hms_name}_energy_yesterday_global) =  float( id(${hms_name}_energy_today).state) );
             
-fan:
-  - platform: speed
-    id: ${hms_name}_command
-    name: ${name}_${hms_name}_command
-    output: ${hms_name}_percent_output
-
 hms:
   - id: ${hms_id}
     cmt2300a_id: ${hms_cmt2300a_id}
