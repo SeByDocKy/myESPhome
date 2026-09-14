@@ -1,0 +1,28 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [cmt2300a]
+    refresh: 10s
+    
+    
+cmt2300a:
+  id: ${cmt2300a_id}
+  clk_pin: ${cmt2300a_clk_pin}
+  sdio_pin: ${cmt2300a_sdio_pin}    
+  cs_pin: ${cmt2300a_cs_pin}
+  fcs_pin: ${cmt2300a_fcs_pin}
+  pa_level: 20    
+  
+ 
+sensor:
+  
+  - platform: cmt2300a
+    cmt2300a_id: ${cmt2300a_id}
+    duty_cycle:
+      name: ${name}_${cmt2300a_name}_duty_cycle
+      update_interval: 15s  
+  
+number:
+  - platform: cmt2300a
+    cmt2300a_id: {cmt2300a_id}
+    pa_level:
+      name: ${name}_${cmt2300a_name}_tx_power  
