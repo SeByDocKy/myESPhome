@@ -91,8 +91,8 @@ sensor:
         name: ${name}_${hm_name}_inverter_energy_total
       efficiency: 
         name: ${name}_${hm_name}_inverter_efficiency
-    rssi: 
-      name: ${name}_${hm_name}_rssi
+    # rssi: 
+    #   name: ${name}_${hm_name}_rssi
 
   - platform: total_daily_energy
     name: ${name}_${hm_name}_energy_today
