@@ -3,6 +3,20 @@ external_components:
     components: [modbustcp, modbustcp_controller]
     refresh: 10s 
 
+
+globals:
+  - id: phase_choice
+    type: int
+    restore_value: yes
+    initial_value: '1'
+
+  - id: shelly_ip_address_global
+    type: std::string
+    restore_value: yes
+    initial_value: '"${shelly_ip_address}"'
+    max_restore_data_length: 24
+
+
 modbustcp:
   - id: modbus_tcp
     host: ${shelly_ip_address}
