@@ -3,7 +3,6 @@ external_components:
     components: [modbustcp, modbustcp_controller]
     refresh: 10s 
 
-
 globals:
   - id: phase_choice
     type: int
@@ -15,7 +14,6 @@ globals:
     restore_value: yes
     initial_value: '"${shelly_ip_address}"'
     max_restore_data_length: 24
-
 
 modbustcp:
   - id: modbus_tcp
@@ -31,7 +29,7 @@ modbustcp_controller:
     
 select:
   - platform: template
-    name: ${name}_phase_select
+    name: ${shelly_name}_phase_select
     id: phase_select
     icon: mdi:power
     optimistic: true #true
@@ -52,13 +50,11 @@ select:
              if (index.has_value()) {
                return (int(index.value())+1);
              }
-     
              
         - lambda: |-
             id(active_power).update();
             id(select_index).publish_state(int(id(phase_choice)));
             ESP_LOGI("phase_choice", "#: %d", id(phase_choice));
-            
             
 sensor:
 
