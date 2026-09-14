@@ -31,13 +31,13 @@ hm:
 sensor:
   
   - platform: nrf24l01
-    nrf24l01_id: ${hms_nrf24l01_id}
+    nrf24l01_id: ${hm_nrf24l01_id}
     duty_cycle:
       name: ${name}_${hm_name}_duty_cycle
       update_interval: 15s  
 
   - platform: nrf24l01
-    nrf24l01_id: ${hms_nrf24l01_id}
+    nrf24l01_id: ${hm_nrf24l01_id}
     hm_count:
       name: ${name}_${hm_name}_reachable_hms
 
