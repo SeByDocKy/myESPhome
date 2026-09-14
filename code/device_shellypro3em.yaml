@@ -65,7 +65,7 @@ sensor:
     
 
   - platform: template
-    id: active_power
+    id: ${shelly_active_power_id}
     name: ${name}_${shelly_name}_active_power
     accuracy_decimals: 1
     device_class: power
