@@ -19,11 +19,11 @@ time:
         hours: ${my_hours}
         then:  
           - globals.set:
-              id: ${hms_name}_energy_yesterday_global
+              id: ${hm_name}_energy_yesterday_global
               value: !lambda return ( id(${hm_name}_energy_yesterday_global) =  float( id(${hm_name}_energy_today).state) );
             
 hm:
-  - id: ${hms_id}
+  - id: ${hm_id}
     nrf24l01_id: ${hm_nrf24l01_id}
     sn: ${hm_sn}
     poll_interval: ${hm_poll_interval}
@@ -39,7 +39,7 @@ sensor:
   - platform: nrf24l01
     nrf24l01_id: ${hm_nrf24l01_id}
     hm_count:
-      name: ${name}_${hm_name}_reachable_hms
+      name: ${name}_${hm_name}_reachable_hm
 
   - platform: hm
     hm_id: ${hm_id}
@@ -113,7 +113,7 @@ sensor:
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     icon: mdi:counter
-    # update_interval: ${hms_inverter_template_update}
+    # update_interval: ${hm_inverter_template_update}
     lambda: |-
       return (id(${hm_name}_energy_yesterday).state = id(${hm_name}_energy_yesterday_global));
          
@@ -151,11 +151,11 @@ fan:
     
 button:
   - platform: hm
-    hm_id: ${hms_id}
+    hm_id: ${hm_id}
     reset_to_output_min:
       name: ${name}_${hm_name}_reset_to_output_min
     reset_to_output_max:
       name: ${name}_${hm_name}_reset_to_output_max
-    reset_hms:
-      name: ${name}_${hm_name}_reset_hms
+    reset_hm:
+      name: ${name}_${hm_name}_reset_hm
       id: ${hm_name}_reset      
