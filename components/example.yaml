@@ -1,0 +1,24 @@
+external_components:
+  - source:
+      type: local
+      path: components
+
+sensor:
+  - platform: template
+    id: temp1
+    # ...
+
+  - platform: template
+    id: temp2
+    # ...
+
+  - platform: sensor_combined
+    id: my_sensor_combined
+    name: "Average temperature"
+    unit_of_measurement: "°C"
+    operation: mean  # sum / mean / prod
+    propagate_nan: false  # default: skip NaN sources instead of invalidating the result
+    sensors:
+      - temp1
+      - temp2
+      # - temp3  # add as many as needed
