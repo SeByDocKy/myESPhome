@@ -29,7 +29,7 @@ modbustcp_controller:
     
 select:
   - platform: template
-    name: ${shelly_name}_phase_select
+    name: ${name}_${shelly_name}_phase_select
     id: phase_select
     icon: mdi:power
     optimistic: true #true
@@ -60,13 +60,13 @@ sensor:
 
   - platform: template
     id: select_index
-    name: ${shelly_name}_select_index
+    name: ${name}_${shelly_name}_select_index
     state_class: 'measurement'
     
 
   - platform: template
     id: active_power
-    name: ${shelly_name}_active_power
+    name: ${name}_${shelly_name}_active_power
     accuracy_decimals: 1
     device_class: power
     state_class: measurement
@@ -104,7 +104,7 @@ sensor:
 
 text:
   - platform: template
-    name: ${shelly_name}_ha_shelly_ip_address
+    name: ${name}_${shelly_name}_ha_shelly_ip_address
     id: ha_shelly_ip_address
     mode: text # ou 'password' pour masquer la saisie
     min_length: 0
@@ -149,7 +149,7 @@ text:
 text_sensor:
 
   - platform: template
-    name: ${shelly_name}_current_shelly_ip_address
+    name: ${name}_${shelly_name}_current_shelly_ip_address
     id: current_shelly_ip_address
     icon: "mdi:text-box-outline"
   
