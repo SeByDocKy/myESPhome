@@ -84,7 +84,8 @@ sensor:
       temperature: 
         name: ${name}_${hms_name}_inverter_temperature
       power: 
-        name: ${name}_${hms_name}_inverter_dc_power
+        name: ${name}_${hms_name}_inverter_power
+        id: ${hms_name}_inverter_power
       energy_today: 
         name: ${name}_${hms_name}_inverter_energy_today
       energy_total: 
@@ -97,7 +98,7 @@ sensor:
   - platform: total_daily_energy
     name: ${name}_${hms_name}_energy_today
     id: ${hms_name}_energy_today
-    power_id: ${hms_name}_inverter_power
+    power_id: ${hms_name}_power
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     method: right
