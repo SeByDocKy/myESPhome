@@ -1,0 +1,33 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [nrf24l01]
+    refresh: 10s
+    
+spi:
+  id: spi_nrf24l01
+  clk_pin: ${nrf24l01_clk_pin}
+  mosi_pin: ${nrf24l01_mosi_pin}    
+  miso_pin: ${nrf24l01_miso_pin}
+  
+    
+nrf24l01:
+  id: ${nrf24l01_id}
+  spi_id: spi_nrf24l01
+  cs_pin: ${nrf24l01_cs_pin}
+  ce_pin: ${nrf24l01_ce_pin}
+  # irq_pin: ${nrf24l01_irq_pin}
+  pa_level: 'max'    
+  
+ 
+sensor:
+  - platform: nrf24l01
+    nrf24l01_id: ${nrf24l01_id}
+    duty_cycle:
+      name: ${name}_${nrf24l01_name}_duty_cycle
+      update_interval: 15s  
+  
+number:
+  - platform: nrf24l01
+    nrf24l01_id: ${nrf24l01_id}
+    pa_level:
+      name: ${name}_${nrf24l01_name}_tx_power  
