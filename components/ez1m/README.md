@@ -75,23 +75,29 @@ standard ESPHome `sensor:` options (`name`, `id`, `filters`, `web_server`,
 `entity_category`, etc.) on top of the pre-set `unit_of_measurement`,
 `device_class`, `state_class` and `accuracy_decimals` shown below.
 
-| Key                     | Unit | Device class | State class        | Accuracy | Notes |
-|--------------------------|------|---------------|---------------------|----------|-------|
-| `ch1_dc_voltage`         | V    | voltage       | measurement         | 1        | CH1 PV string DC voltage. |
-| `ch2_dc_voltage`         | V    | voltage       | measurement         | 1        | CH2 PV string DC voltage. |
-| `ch1_dc_current`         | A    | current       | measurement         | 2        | CH1 PV string DC current. |
-| `ch2_dc_current`         | A    | current       | measurement         | 2        | CH2 PV string DC current. |
-| `ch1_dc_power`           | W    | power         | measurement         | 0        | Computed as CH1 voltage × current. |
-| `ch2_dc_power`           | W    | power         | measurement         | 0        | Computed as CH2 voltage × current. |
-| `total_dc_power`         | W    | power         | measurement         | 0        | CH1 + CH2 DC power. |
-| `ac_power`               | W    | power         | measurement         | 0        | AC power delivered to the grid. |
-| `grid_frequency`         | Hz   | frequency     | measurement         | 2        | Rejected (not published) outside the 45–55 Hz sanity range, or if the raw field reads `0xFFFF`. |
-| `temperature`            | °C   | temperature   | measurement         | 0        | Inverter internal temperature. Rejected if raw value is 0 or ≥ 200. |
-| `daily_energy`           | kWh  | energy        | total_increasing    | 3        | CH1 + CH2 session energy; resets each morning when the DSP restarts its internal counter. |
-| `ch1_session_energy`     | kWh  | energy        | total_increasing    | 3        | CH1 energy since the day's DSP boot. |
-| `ch2_session_energy`     | kWh  | energy        | total_increasing    | 3        | CH2 energy since the day's DSP boot. |
-| `lifetime_energy`        | kWh  | energy        | total_increasing    | 3        | RAM-accumulated lifetime total (see [Lifetime energy persistence](#lifetime-energy-persistence) below). Icon: `mdi:lightning-bolt`. |
-| `inverter_uptime`        | s    | —             | —                   | 0        | Inverter uptime since DSP boot. `entity_category: diagnostic`. |
+Icons follow the same conventions as the [`hms`](../hms) component so that
+similarly-typed entities look consistent across both: `mdi:power` for power,
+`mdi:current-dc` for DC current, `mdi:sine-wave` for voltage,
+`mdi:metronome` for frequency, `mdi:thermometer` for temperature, and
+`mdi:counter` for energy.
+
+| Key                     | Unit | Device class | State class        | Accuracy | Icon | Notes |
+|--------------------------|------|---------------|---------------------|----------|------|-------|
+| `ch1_dc_voltage`         | V    | voltage       | measurement         | 1        | `mdi:sine-wave` | CH1 PV string DC voltage. |
+| `ch2_dc_voltage`         | V    | voltage       | measurement         | 1        | `mdi:sine-wave` | CH2 PV string DC voltage. |
+| `ch1_dc_current`         | A    | current       | measurement         | 2        | `mdi:current-dc` | CH1 PV string DC current. |
+| `ch2_dc_current`         | A    | current       | measurement         | 2        | `mdi:current-dc` | CH2 PV string DC current. |
+| `ch1_dc_power`           | W    | power         | measurement         | 0        | `mdi:power` | Computed as CH1 voltage × current. |
+| `ch2_dc_power`           | W    | power         | measurement         | 0        | `mdi:power` | Computed as CH2 voltage × current. |
+| `total_dc_power`         | W    | power         | measurement         | 0        | `mdi:power` | CH1 + CH2 DC power. |
+| `ac_power`               | W    | power         | measurement         | 0        | `mdi:power` | AC power delivered to the grid. |
+| `grid_frequency`         | Hz   | frequency     | measurement         | 2        | `mdi:metronome` | Rejected (not published) outside the 45–55 Hz sanity range, or if the raw field reads `0xFFFF`. |
+| `temperature`            | °C   | temperature   | measurement         | 0        | `mdi:thermometer` | Inverter internal temperature. Rejected if raw value is 0 or ≥ 200. |
+| `daily_energy`           | kWh  | energy        | total_increasing    | 3        | `mdi:counter` | CH1 + CH2 session energy; resets each morning when the DSP restarts its internal counter. |
+| `ch1_session_energy`     | kWh  | energy        | total_increasing    | 3        | `mdi:counter` | CH1 energy since the day's DSP boot. |
+| `ch2_session_energy`     | kWh  | energy        | total_increasing    | 3        | `mdi:counter` | CH2 energy since the day's DSP boot. |
+| `lifetime_energy`        | kWh  | energy        | total_increasing    | 3        | `mdi:counter` | RAM-accumulated lifetime total (see [Lifetime energy persistence](#lifetime-energy-persistence) below). |
+| `inverter_uptime`        | s    | —             | —                   | 0        | — | Inverter uptime since DSP boot. `entity_category: diagnostic`. |
 
 ## `text_sensor:` platform
 
@@ -122,10 +128,10 @@ number:
       name: "Total Energy"
 ```
 
-| Key             | Range (default)     | Step (default) | Optimistic | Notes |
-|------------------|----------------------|------------------|------------|-------|
-| `power_limit`    | `min_value` 30 – `max_value` 800 W | 1   | No  | Sends an output power-limit command to the inverter. The displayed value only updates once the inverter echoes the new limit back in a subsequent status frame — it is **not** set optimistically. |
-| `total_energy`   | `min_value` 0 – `max_value` 999999 kWh | 0.001 | Yes | Manual override/reset of the lifetime energy accumulator. `entity_category: config`, icon `mdi:lightning-bolt`. |
+| Key             | Range (default)     | Step (default) | Optimistic | Icon | Notes |
+|------------------|----------------------|------------------|------------|------|-------|
+| `power_limit`    | `min_value` 30 – `max_value` 800 W | 1   | No  | `mdi:flash` | Sends an output power-limit command to the inverter. The displayed value only updates once the inverter echoes the new limit back in a subsequent status frame — it is **not** set optimistically. Icon matches `hms`'s `power_percent`/`power_absolute` numbers. |
+| `total_energy`   | `min_value` 0 – `max_value` 999999 kWh | 0.001 | Yes | `mdi:counter` | Manual override/reset of the lifetime energy accumulator. `entity_category: config`. |
 
 Both `min_value`, `max_value` and `step` can be overridden per-entity in YAML
 if you want a narrower range, e.g.:

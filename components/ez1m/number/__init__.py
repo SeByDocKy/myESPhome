@@ -12,8 +12,10 @@ EZ1MNumberType = ez1m_ns.enum("EZ1MNumberType", is_class=True)
 CONF_POWER_LIMIT = "power_limit"
 CONF_TOTAL_ENERGY = "total_energy"
 
+# Icon conventions kept in sync with hms's number/__init__.py (mdi:flash for
+# power-limit controls) and sensor/__init__.py (mdi:counter for energy).
 NUMBER_TYPES = {
-    CONF_POWER_LIMIT: number.number_schema(EZ1MNumber).extend(
+    CONF_POWER_LIMIT: number.number_schema(EZ1MNumber, icon="mdi:flash").extend(
         {
             cv.Optional(CONF_MIN_VALUE, default=30): cv.float_,
             cv.Optional(CONF_MAX_VALUE, default=800): cv.float_,
@@ -23,7 +25,7 @@ NUMBER_TYPES = {
     CONF_TOTAL_ENERGY: number.number_schema(
         EZ1MNumber,
         entity_category=ENTITY_CATEGORY_CONFIG,
-        icon="mdi:lightning-bolt",
+        icon="mdi:counter",
     ).extend(
         {
             cv.Optional(CONF_MIN_VALUE, default=0): cv.float_,

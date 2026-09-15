@@ -42,6 +42,10 @@ CONF_CH2_SESSION_ENERGY = "ch2_session_energy"
 CONF_LIFETIME_ENERGY = "lifetime_energy"
 CONF_INVERTER_UPTIME = "inverter_uptime"
 
+# Icon conventions below are kept in sync with the `hms` component's
+# sensor/__init__.py so that similarly-typed entities look the same across
+# both components: mdi:power (W), mdi:current-dc (A), mdi:sine-wave (V),
+# mdi:metronome (Hz), mdi:thermometer (deg C), mdi:counter (energy).
 SENSOR_TYPES = {
     CONF_CH1_DC_VOLTAGE: sensor.sensor_schema(
         EZ1MSensor,
@@ -49,6 +53,7 @@ SENSOR_TYPES = {
         accuracy_decimals=1,
         device_class=DEVICE_CLASS_VOLTAGE,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:sine-wave",
     ),
     CONF_CH2_DC_VOLTAGE: sensor.sensor_schema(
         EZ1MSensor,
@@ -56,6 +61,7 @@ SENSOR_TYPES = {
         accuracy_decimals=1,
         device_class=DEVICE_CLASS_VOLTAGE,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:sine-wave",
     ),
     CONF_CH1_DC_CURRENT: sensor.sensor_schema(
         EZ1MSensor,
@@ -63,6 +69,7 @@ SENSOR_TYPES = {
         accuracy_decimals=2,
         device_class=DEVICE_CLASS_CURRENT,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:current-dc",
     ),
     CONF_CH2_DC_CURRENT: sensor.sensor_schema(
         EZ1MSensor,
@@ -70,6 +77,7 @@ SENSOR_TYPES = {
         accuracy_decimals=2,
         device_class=DEVICE_CLASS_CURRENT,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:current-dc",
     ),
     CONF_CH1_DC_POWER: sensor.sensor_schema(
         EZ1MSensor,
@@ -77,6 +85,7 @@ SENSOR_TYPES = {
         accuracy_decimals=0,
         device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:power",
     ),
     CONF_CH2_DC_POWER: sensor.sensor_schema(
         EZ1MSensor,
@@ -84,6 +93,7 @@ SENSOR_TYPES = {
         accuracy_decimals=0,
         device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:power",
     ),
     CONF_TOTAL_DC_POWER: sensor.sensor_schema(
         EZ1MSensor,
@@ -91,6 +101,7 @@ SENSOR_TYPES = {
         accuracy_decimals=0,
         device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:power",
     ),
     CONF_AC_POWER: sensor.sensor_schema(
         EZ1MSensor,
@@ -98,6 +109,7 @@ SENSOR_TYPES = {
         accuracy_decimals=0,
         device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:power",
     ),
     CONF_GRID_FREQUENCY: sensor.sensor_schema(
         EZ1MSensor,
@@ -105,6 +117,7 @@ SENSOR_TYPES = {
         accuracy_decimals=2,
         device_class=DEVICE_CLASS_FREQUENCY,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:metronome",
     ),
     CONF_TEMPERATURE: sensor.sensor_schema(
         EZ1MSensor,
@@ -112,6 +125,7 @@ SENSOR_TYPES = {
         accuracy_decimals=0,
         device_class=DEVICE_CLASS_TEMPERATURE,
         state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:thermometer",
     ),
     CONF_DAILY_ENERGY: sensor.sensor_schema(
         EZ1MSensor,
@@ -119,6 +133,7 @@ SENSOR_TYPES = {
         accuracy_decimals=3,
         device_class=DEVICE_CLASS_ENERGY,
         state_class=STATE_CLASS_TOTAL_INCREASING,
+        icon="mdi:counter",
     ),
     CONF_CH1_SESSION_ENERGY: sensor.sensor_schema(
         EZ1MSensor,
@@ -126,6 +141,7 @@ SENSOR_TYPES = {
         accuracy_decimals=3,
         device_class=DEVICE_CLASS_ENERGY,
         state_class=STATE_CLASS_TOTAL_INCREASING,
+        icon="mdi:counter",
     ),
     CONF_CH2_SESSION_ENERGY: sensor.sensor_schema(
         EZ1MSensor,
@@ -133,6 +149,7 @@ SENSOR_TYPES = {
         accuracy_decimals=3,
         device_class=DEVICE_CLASS_ENERGY,
         state_class=STATE_CLASS_TOTAL_INCREASING,
+        icon="mdi:counter",
     ),
     CONF_LIFETIME_ENERGY: sensor.sensor_schema(
         EZ1MSensor,
@@ -140,7 +157,7 @@ SENSOR_TYPES = {
         accuracy_decimals=3,
         device_class=DEVICE_CLASS_ENERGY,
         state_class=STATE_CLASS_TOTAL_INCREASING,
-        icon="mdi:lightning-bolt",
+        icon="mdi:counter",
     ),
     CONF_INVERTER_UPTIME: sensor.sensor_schema(
         EZ1MSensor,
