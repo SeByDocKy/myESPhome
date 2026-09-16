@@ -319,9 +319,14 @@ bool HMComponent::cmt_start_tx_(const uint8_t *buf, uint8_t len) {
 
   this->radio_->flush_tx();
   this->radio_->write_payload(buf, len);
+  // CE stays HIGH until process_tx_() observes TX_DS/MAX_RT (or times out) --
+  // matches real RF24::write(), which only pulls CE low after the whole
+  // transmission (including the configured hardware retries) completes. A
+  // brief pulse (as used before this fix) is nowhere near enough: at 250kbps
+  // a 27-byte payload alone takes ~864us to shift out, before even counting
+  // preamble/address/CRC or any retry -- pulling CE low after 15us cut the
+  // transmission short before it could ever complete, let alone retry.
   this->radio_->get_ce_pin()->digital_write(true);
-  delayMicroseconds(15);  // minimum pulse to trigger Tx
-  this->radio_->get_ce_pin()->digital_write(false);
 
   this->tx_sending_ = true;
   this->tx_start_ = millis();
@@ -335,6 +340,8 @@ void HMComponent::process_tx_() {
   bool done = (status & (nrf24l01::STATUS_TX_DS | nrf24l01::STATUS_MAX_RT)) != 0;
   bool timed_out = millis() - this->tx_start_ > 50;
   if (!done && !timed_out) return;
+
+  this->radio_->get_ce_pin()->digital_write(false);
 
   if (status & nrf24l01::STATUS_MAX_RT) {
     ESP_LOGW(TAG, "Send failed: no acknowledgment ever received (MAX_RT)");
