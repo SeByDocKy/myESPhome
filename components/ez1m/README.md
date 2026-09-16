@@ -142,6 +142,37 @@ if you want a narrower range, e.g.:
       max_value: 600
 ```
 
+## `output:` platform
+
+```yaml
+output:
+  - platform: ez1m
+    ez1m_id: ez1m_hub
+    power_output:
+      id: ez1m_power_output
+      max_power: 800
+```
+
+| Key             | Type   | Default | Notes |
+|------------------|--------|---------|-------|
+| `power_output`   | `output::FloatOutput` | — | A standard ESPHome float output, `0.0`–`1.0`. `1.0` maps to `max_power` watts, `0.0` turns the inverter off. |
+| `max_power`      | float  | `800`   | Watts corresponding to `state == 1.0`. Defaults to the EZ1-M's hardware ceiling; lower it if you want to cap the output at less than full power. |
+
+`write_state()` computes `watts = state * max_power`, then:
+- if `watts <= 0`, sends the inverter's off command (same as the `switch`'s `turn_off`);
+- otherwise, sends `watts` (capped at `max_power`, no lower clamp) as a
+  power-limit command, exactly like the `power_limit` number. There is no
+  30 W floor enforced here — if you drive this output from a PID/regulation
+  component, set its own `output_min` there; below the EZ1-M's real
+  minimum (~30 W) the inverter will simply stop producing.
+
+This is meant for use cases like a `light`/`fan` output template, a PID
+climate-style controller, or any other component in ESPHome that expects a
+plain `output::FloatOutput` rather than a `number`. It shares the same
+underlying command as `power_limit` and `inverter_onoff` — driving one will
+be reflected back on the others via the hub's status-frame readback (for
+`power_limit`) or state sync (for `inverter_onoff`).
+
 ## `switch:` platform
 
 ```yaml
