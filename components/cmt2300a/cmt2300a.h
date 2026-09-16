@@ -5,8 +5,12 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
+#ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
+#endif
+#ifdef USE_NUMBER
 #include "esphome/components/number/number.h"
+#endif
 
 namespace esphome {
 namespace cmt2300a {
@@ -215,7 +219,9 @@ class CMT2300AComponent : public Component {
   // currently reachable. Each hms: registers itself once at startup, then
   // reports its reachable state on every change.
   // ---------------------------------------------------------------------------
+#ifdef USE_SENSOR
   void set_hms_count_sensor(sensor::Sensor *s) { this->hms_count_sensor_ = s; }
+#endif
 
   void register_reachable_consumer(const void *owner) {
     for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
@@ -280,7 +286,9 @@ class CMT2300AComponent : public Component {
     this->has_pa_level_ = true;
     this->pa_level_dbm_ = dbm;
   }
+#ifdef USE_NUMBER
   void set_pa_level_number(number::Number *n) { this->pa_level_number_ = n; }
+#endif
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
@@ -376,7 +384,9 @@ class CMT2300AComponent : public Component {
   bool external_mode_{false};
   bool has_pa_level_{false};
   int8_t pa_level_dbm_{0};
+#ifdef USE_NUMBER
   number::Number *pa_level_number_{nullptr};
+#endif
   const void *external_lock_owner_{nullptr};
   uint32_t duty_lock_start_ms_{0};
   uint32_t duty_busy_accum_ms_{0};
@@ -391,10 +401,14 @@ class CMT2300AComponent : public Component {
   static const uint8_t MAX_REACHABLE_CONSUMERS = 8;
   ReachableEntry reachable_consumers_[MAX_REACHABLE_CONSUMERS]{};
   uint8_t reachable_consumer_count_{0};
+#ifdef USE_SENSOR
   sensor::Sensor *hms_count_sensor_{nullptr};
+#endif
 
   void update_hms_count_sensor_() {
+#ifdef USE_SENSOR
     if (this->hms_count_sensor_ != nullptr) this->hms_count_sensor_->publish_state(this->get_reachable_hms_count());
+#endif
   }
 
   CallbackManager<void(std::vector<uint8_t>)> packet_callback_{};

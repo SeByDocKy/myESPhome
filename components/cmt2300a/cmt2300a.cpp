@@ -396,9 +396,11 @@ void CMT2300AComponent::set_pa_level(int8_t dbm) {
 
   this->pa_level_dbm_ = dbm;
   this->has_pa_level_ = true;
+#ifdef USE_NUMBER
   if (this->pa_level_number_ != nullptr) {
     this->pa_level_number_->publish_state(dbm);
   }
+#endif
 
   ESP_LOGD(TAG, "PA level set to %d dBm (Tx_dBm_word=0x%04X)", dbm, tx_dbm_word);
 }

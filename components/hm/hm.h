@@ -6,8 +6,12 @@
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/nrf24l01/nrf24l01.h"
+#ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
+#endif
+#ifdef USE_BINARY_SENSOR
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#endif
 
 namespace esphome {
 namespace hm {
@@ -85,6 +89,7 @@ class HMComponent : public Component {
   void set_realtime_timeout(uint32_t ms) { this->realtime_timeout_ms_ = ms; }
   void set_power_control_timeout(uint32_t ms) { this->power_control_timeout_ms_ = ms; }
 
+#ifdef USE_SENSOR
   void set_dc_power_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_power_[ch] = s; }
   void set_dc_current_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_current_[ch] = s; }
   void set_dc_voltage_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_voltage_[ch] = s; }
@@ -103,8 +108,11 @@ class HMComponent : public Component {
   void set_inv_energy_today_sensor(sensor::Sensor *s) { this->inv_energy_today_ = s; }
   void set_inv_energy_total_sensor(sensor::Sensor *s) { this->inv_energy_total_ = s; }
   void set_inv_efficiency_sensor(sensor::Sensor *s) { this->inv_efficiency_ = s; }
+#endif
+#ifdef USE_BINARY_SENSOR
   void set_reachable_sensor(binary_sensor::BinarySensor *s) { this->reachable_sensor_ = s; }
   void set_producing_sensor(binary_sensor::BinarySensor *s) { this->producing_sensor_ = s; }
+#endif
 
   uint8_t get_dc_channel_count() const { return this->dc_channel_count_; }
 
@@ -205,6 +213,7 @@ class HMComponent : public Component {
 
   uint32_t last_poll_{0};
 
+#ifdef USE_SENSOR
   sensor::Sensor *dc_power_[4]{};
   sensor::Sensor *dc_current_[4]{};
   sensor::Sensor *dc_voltage_[4]{};
@@ -223,8 +232,11 @@ class HMComponent : public Component {
   sensor::Sensor *inv_energy_today_{nullptr};
   sensor::Sensor *inv_energy_total_{nullptr};
   sensor::Sensor *inv_efficiency_{nullptr};
+#endif
+#ifdef USE_BINARY_SENSOR
   binary_sensor::BinarySensor *reachable_sensor_{nullptr};
   binary_sensor::BinarySensor *producing_sensor_{nullptr};
+#endif
 };
 
 }  // namespace hm

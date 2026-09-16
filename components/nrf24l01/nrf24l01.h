@@ -5,8 +5,12 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
+#ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
+#endif
+#ifdef USE_SELECT
 #include "esphome/components/select/select.h"
+#endif
 #include "esphome/components/spi/spi.h"
 
 namespace esphome {
@@ -99,12 +103,16 @@ class NRF24Component : public Component,
   void apply_pa_level_runtime(uint8_t level) {
     this->pa_level_ = static_cast<PALevel>(level);
     this->apply_pa_level_();
+#ifdef USE_SELECT
     if (this->pa_level_select_ != nullptr) {
       static const char *const kLevels[4] = {"min", "low", "high", "max"};
       this->pa_level_select_->publish_state(kLevels[level > 3 ? 3 : level]);
     }
+#endif
   }
+#ifdef USE_SELECT
   void set_pa_level_select(select::Select *s) { this->pa_level_select_ = s; }
+#endif
   void set_data_rate(uint8_t rate) { this->data_rate_ = static_cast<DataRate>(rate); }
   void set_crc_length(uint8_t len) { this->crc_length_ = static_cast<CRCLength>(len); }
   void set_address_width(uint8_t width) { this->address_width_ = width; }
@@ -174,7 +182,9 @@ class NRF24Component : public Component,
   // currently reachable. Same mechanism as cmt2300a/hms: each hm: registers
   // itself once at startup, then reports its reachable state on every change.
   // ---------------------------------------------------------------------------
+#ifdef USE_SENSOR
   void set_hm_count_sensor(sensor::Sensor *s) { this->hm_count_sensor_ = s; }
+#endif
 
   void register_reachable_consumer(const void *owner) {
     for (uint8_t i = 0; i < this->reachable_consumer_count_; i++) {
@@ -325,11 +335,17 @@ class NRF24Component : public Component,
   static const uint8_t MAX_REACHABLE_CONSUMERS = 8;
   ReachableEntry reachable_consumers_[MAX_REACHABLE_CONSUMERS]{};
   uint8_t reachable_consumer_count_{0};
+#ifdef USE_SENSOR
   sensor::Sensor *hm_count_sensor_{nullptr};
+#endif
+#ifdef USE_SELECT
   select::Select *pa_level_select_{nullptr};
+#endif
 
   void update_hm_count_sensor_() {
+#ifdef USE_SENSOR
     if (this->hm_count_sensor_ != nullptr) this->hm_count_sensor_->publish_state(this->get_reachable_hm_count());
+#endif
   }
 
   CallbackManager<void(std::vector<uint8_t>)> packet_callback_{};

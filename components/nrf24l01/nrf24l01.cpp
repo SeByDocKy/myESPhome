@@ -288,11 +288,13 @@ void NRF24Component::setup() {
   this->log_reg_(REG_RF_CH, "RF_CH");
   this->apply_pa_level_();
   this->log_reg_(REG_RF_SETUP, "RF_SETUP (PA level)");
+#ifdef USE_SELECT
   if (this->pa_level_select_ != nullptr) {
     static const char *const kLevels[4] = {"min", "low", "high", "max"};
     uint8_t lvl = static_cast<uint8_t>(this->pa_level_);
     this->pa_level_select_->publish_state(kLevels[lvl > 3 ? 3 : lvl]);
   }
+#endif
 
   this->write_register_(REG_EN_AA, this->auto_ack_ ? 0x3F : 0x00);
   this->log_reg_(REG_EN_AA, "EN_AA");
