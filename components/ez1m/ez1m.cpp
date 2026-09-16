@@ -1,8 +1,16 @@
 #include "ez1m.h"
+#ifdef USE_SENSOR
 #include "sensor/ez1m_sensor.h"
+#endif
+#ifdef USE_TEXT_SENSOR
 #include "text_sensor/ez1m_text_sensor.h"
+#endif
+#ifdef USE_NUMBER
 #include "number/ez1m_number.h"
+#endif
+#ifdef USE_SWITCH
 #include "switch/ez1m_switch.h"
+#endif
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"
 #include <cmath>
@@ -16,8 +24,10 @@ static const uint32_t LIFETIME_ENERGY_SAVE_INTERVAL_MS = 3600000;  // 1h, mirror
 
 void EZ1MComponent::setup() {
   this->load_lifetime_energy_();
+#ifdef USE_NUMBER
   if (this->total_energy_number_ != nullptr)
     this->total_energy_number_->publish_state(this->total_kwh_);
+#endif
 
   this->set_interval("ez1m_save_energy", LIFETIME_ENERGY_SAVE_INTERVAL_MS,
                       [this]() { this->save_lifetime_energy_(); });
@@ -75,28 +85,32 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
 
   const uint8_t *p = &bytes[4];
 
+#ifdef USE_TEXT_SENSOR
   // DSP firmware version
   char ver[16];
   snprintf(ver, sizeof(ver), "%d.%d", p[2], p[3]);
   this->publish_text_sensor_(EZ1MTextSensorType::DSP_VERSION, ver);
+#endif
 
   // v1, v2 - DC voltage per channel
   uint16_t ch1_v_raw = (p[16] << 8) | p[17];
   uint16_t ch2_v_raw = (p[18] << 8) | p[19];
   float ch1_v = ch1_v_raw / this->dc_voltage_divisor_;
   float ch2_v = ch2_v_raw / this->dc_voltage_divisor_;
-  this->publish_sensor_(EZ1MSensorType::CH1_DC_VOLTAGE, ch1_v);
-  this->publish_sensor_(EZ1MSensorType::CH2_DC_VOLTAGE, ch2_v);
 
   // c1, c2 - DC current per channel
   float ch1_i = ((p[20] << 8) | p[21]) / this->dc_current_divisor_;
   float ch2_i = ((p[22] << 8) | p[23]) / this->dc_current_divisor_;
-  this->publish_sensor_(EZ1MSensorType::CH1_DC_CURRENT, ch1_i);
-  this->publish_sensor_(EZ1MSensorType::CH2_DC_CURRENT, ch2_i);
 
   // p1, p2 - DC power per channel (V x I)
   float ch1_p = ch1_i * ch1_v;
   float ch2_p = ch2_i * ch2_v;
+
+#ifdef USE_SENSOR
+  this->publish_sensor_(EZ1MSensorType::CH1_DC_VOLTAGE, ch1_v);
+  this->publish_sensor_(EZ1MSensorType::CH2_DC_VOLTAGE, ch2_v);
+  this->publish_sensor_(EZ1MSensorType::CH1_DC_CURRENT, ch1_i);
+  this->publish_sensor_(EZ1MSensorType::CH2_DC_CURRENT, ch2_i);
   this->publish_sensor_(EZ1MSensorType::CH1_DC_POWER, ch1_p);
   this->publish_sensor_(EZ1MSensorType::CH2_DC_POWER, ch2_p);
   this->publish_sensor_(EZ1MSensorType::TOTAL_DC_POWER, ch1_p + ch2_p);
@@ -119,17 +133,22 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
     if (freq > 45.0f && freq < 55.0f)
       this->publish_sensor_(EZ1MSensorType::GRID_FREQUENCY, freq);
   }
+#endif
 
-  // e1, e2 - session energy per channel (resets each morning)
+  // e1, e2 - session energy per channel (resets each morning). Computed
+  // unconditionally: lifetime_energy tracking below needs it regardless of
+  // whether any sensor entity was declared for it.
   uint32_t e_ch1 = ((uint32_t) p[40] << 24) | ((uint32_t) p[41] << 16) | (p[42] << 8) | p[43];
   uint32_t e_ch2 = ((uint32_t) p[44] << 24) | ((uint32_t) p[45] << 16) | (p[46] << 8) | p[47];
   float ch1_session = e_ch1 / 65536.0f / 1000.0f;
   float ch2_session = e_ch2 / 65536.0f / 1000.0f;
+  float daily = ch1_session + ch2_session;
+
+#ifdef USE_SENSOR
   this->publish_sensor_(EZ1MSensorType::CH1_SESSION_ENERGY, ch1_session);
   this->publish_sensor_(EZ1MSensorType::CH2_SESSION_ENERGY, ch2_session);
-
-  float daily = ch1_session + ch2_session;
   this->publish_sensor_(EZ1MSensorType::DAILY_ENERGY, daily);
+#endif
 
   // Lifetime energy: accumulate the delta in RAM, persisted hourly (and on manual edit)
   if (this->prev_daily_ < 0) {
@@ -141,11 +160,18 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
     this->total_kwh_ += daily - this->prev_daily_;
   }
   this->prev_daily_ = daily;
+#ifdef USE_SENSOR
   this->publish_sensor_(EZ1MSensorType::LIFETIME_ENERGY, this->total_kwh_);
+#endif
+#ifdef USE_NUMBER
   if (this->total_energy_number_ != nullptr)
     this->total_energy_number_->publish_state(this->total_kwh_);
+#endif
 
-  // Inverter state
+#if defined(USE_TEXT_SENSOR) || defined(USE_SWITCH)
+  // Inverter state byte, needed by the text_sensor and/or the on/off switch
+  // (to keep the switch's UI in sync with what the hardware actually reports).
+#ifdef USE_TEXT_SENSOR
   std::string state;
   switch (p[48]) {
     case 0x00:
@@ -164,10 +190,14 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
     }
   }
   this->publish_text_sensor_(EZ1MTextSensorType::INVERTER_STATE, state);
-  // Keep the on/off switch's UI in sync with what the hardware actually reports
+#endif
+#ifdef USE_SWITCH
   if (this->onoff_switch_ != nullptr)
     this->onoff_switch_->publish_state(p[48] != 0x02);
+#endif
+#endif  // USE_TEXT_SENSOR || USE_SWITCH
 
+#ifdef USE_NUMBER
   // Power limit readback
   uint16_t mp_raw = (p[50] << 8) | p[51];
   if (mp_raw > 0 && this->power_limit_number_ != nullptr) {
@@ -176,6 +206,7 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
     watts = fmaxf(30.0f, fminf(800.0f, watts));
     this->power_limit_number_->publish_state(watts);
   }
+#endif
 }
 
 uint16_t EZ1MComponent::watts_to_raw_(float watts) const {
@@ -206,9 +237,13 @@ void EZ1MComponent::turn_off() {
 }
 
 float EZ1MComponent::get_power_limit_value() const {
+#ifdef USE_NUMBER
   if (this->power_limit_number_ == nullptr)
     return NAN;
   return this->power_limit_number_->state;
+#else
+  return NAN;
+#endif
 }
 
 void EZ1MComponent::set_lifetime_energy(float kwh) {
@@ -225,12 +260,9 @@ void EZ1MComponent::load_lifetime_energy_() {
     this->total_kwh_ = loaded;
 }
 
+#ifdef USE_SENSOR
 void EZ1MComponent::register_sensor(EZ1MSensor *sensor, EZ1MSensorType type) {
   this->sensors_.emplace_back(type, sensor);
-}
-
-void EZ1MComponent::register_text_sensor(EZ1MTextSensor *sensor, EZ1MTextSensorType type) {
-  this->text_sensors_.emplace_back(type, sensor);
 }
 
 void EZ1MComponent::publish_sensor_(EZ1MSensorType type, float value) {
@@ -239,6 +271,12 @@ void EZ1MComponent::publish_sensor_(EZ1MSensorType type, float value) {
       pr.second->publish_state(value);
   }
 }
+#endif
+
+#ifdef USE_TEXT_SENSOR
+void EZ1MComponent::register_text_sensor(EZ1MTextSensor *sensor, EZ1MTextSensorType type) {
+  this->text_sensors_.emplace_back(type, sensor);
+}
 
 void EZ1MComponent::publish_text_sensor_(EZ1MTextSensorType type, const std::string &value) {
   for (auto &pr : this->text_sensors_) {
@@ -246,6 +284,7 @@ void EZ1MComponent::publish_text_sensor_(EZ1MTextSensorType type, const std::str
       pr.second->publish_state(value);
   }
 }
+#endif
 
 void EZ1MComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "APsystems EZ1-M:");

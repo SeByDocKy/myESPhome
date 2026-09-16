@@ -10,6 +10,7 @@
 namespace esphome {
 namespace ez1m {
 
+#ifdef USE_SENSOR
 enum class EZ1MSensorType {
   CH1_DC_VOLTAGE,
   CH2_DC_VOLTAGE,
@@ -27,22 +28,28 @@ enum class EZ1MSensorType {
   LIFETIME_ENERGY,
   INVERTER_UPTIME,
 };
+class EZ1MSensor;
+#endif
 
+#ifdef USE_TEXT_SENSOR
 enum class EZ1MTextSensorType {
   INVERTER_STATE,
   DSP_VERSION,
 };
+class EZ1MTextSensor;
+#endif
 
+#ifdef USE_NUMBER
 enum class EZ1MNumberType {
   POWER_LIMIT,
   TOTAL_ENERGY,
 };
-
-// Forward declarations - concrete headers are only included in ez1m.cpp
-class EZ1MSensor;
-class EZ1MTextSensor;
 class EZ1MNumber;
+#endif
+
+#ifdef USE_SWITCH
 class EZ1MSwitch;
+#endif
 
 class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
  public:
@@ -57,14 +64,26 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   void set_dc_current_divisor(float d) { this->dc_current_divisor_ = d; }
   void set_grid_frequency_divisor(float d) { this->grid_frequency_divisor_ = d; }
 
-  // --- Entity registration (called from each platform's to_code) ---
+  // --- Entity registration (called from each platform's to_code, only
+  //     compiled when that platform is actually used somewhere in the
+  //     config -- hence the USE_xxx guards) ---
+#ifdef USE_SENSOR
   void register_sensor(EZ1MSensor *sensor, EZ1MSensorType type);
+#endif
+#ifdef USE_TEXT_SENSOR
   void register_text_sensor(EZ1MTextSensor *sensor, EZ1MTextSensorType type);
+#endif
+#ifdef USE_NUMBER
   void set_power_limit_number(EZ1MNumber *number) { this->power_limit_number_ = number; }
   void set_total_energy_number(EZ1MNumber *number) { this->total_energy_number_ = number; }
+#endif
+#ifdef USE_SWITCH
   void set_onoff_switch(EZ1MSwitch *sw) { this->onoff_switch_ = sw; }
+#endif
 
-  // --- Commands (called by EZ1MNumber / EZ1MSwitch) ---
+  // --- Commands: always available. Called by EZ1MNumber / EZ1MSwitch /
+  //     EZ1MOutput -- none of which need the *other* optional platforms to
+  //     be present, so these stay outside any USE_xxx guard. ---
   void set_power_limit(float watts);
   void turn_on(float watts);
   void turn_off();
@@ -75,8 +94,12 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   float get_lifetime_energy() const { return this->total_kwh_; }
 
  protected:
+#ifdef USE_SENSOR
   void publish_sensor_(EZ1MSensorType type, float value);
+#endif
+#ifdef USE_TEXT_SENSOR
   void publish_text_sensor_(EZ1MTextSensorType type, const std::string &value);
+#endif
   void send_poll_request_();
   void handle_frame_(const uint8_t *bytes, size_t frame_len);
   uint16_t watts_to_raw_(float watts) const;
@@ -84,11 +107,19 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   void load_lifetime_energy_();
 
   std::vector<uint8_t> rx_buffer_;
+#ifdef USE_SENSOR
   std::vector<std::pair<EZ1MSensorType, EZ1MSensor *>> sensors_;
+#endif
+#ifdef USE_TEXT_SENSOR
   std::vector<std::pair<EZ1MTextSensorType, EZ1MTextSensor *>> text_sensors_;
+#endif
+#ifdef USE_NUMBER
   EZ1MNumber *power_limit_number_{nullptr};
   EZ1MNumber *total_energy_number_{nullptr};
+#endif
+#ifdef USE_SWITCH
   EZ1MSwitch *onoff_switch_{nullptr};
+#endif
 
   float dc_voltage_divisor_{50.0f};
   float dc_current_divisor_{88.0f};
