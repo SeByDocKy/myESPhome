@@ -319,6 +319,19 @@ bool HMComponent::cmt_start_tx_(const uint8_t *buf, uint8_t len) {
 
   this->radio_->flush_tx();
   this->radio_->write_payload(buf, len);
+
+  // Live readback right before this exact transmission -- confirms what is
+  // *actually* in the registers on real hardware, not just what the address
+  // derivation computes on paper.
+  uint8_t tx_addr[5], rx_p0[5];
+  this->radio_->read_register(nrf24l01::REG_TX_ADDR, tx_addr, 5);
+  this->radio_->read_register(nrf24l01::REG_RX_ADDR_P0, rx_p0, 5);
+  uint8_t ch = this->radio_->read_register(nrf24l01::REG_RF_CH);
+  uint8_t en_rxaddr = this->radio_->read_register(nrf24l01::REG_EN_RXADDR);
+  ESP_LOGV(TAG, "TX about to fire: channel=%u EN_RXADDR=0x%02X TX_ADDR=%02X %02X %02X %02X %02X RX_ADDR_P0=%02X %02X %02X %02X %02X",
+           ch, en_rxaddr, tx_addr[0], tx_addr[1], tx_addr[2], tx_addr[3], tx_addr[4], rx_p0[0], rx_p0[1], rx_p0[2],
+           rx_p0[3], rx_p0[4]);
+
   // CE stays HIGH until process_tx_() observes TX_DS/MAX_RT (or times out) --
   // matches real RF24::write(), which only pulls CE low after the whole
   // transmission (including the configured hardware retries) completes. A
