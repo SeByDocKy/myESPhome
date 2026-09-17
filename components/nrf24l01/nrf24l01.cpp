@@ -231,6 +231,14 @@ void NRF24Component::stop_listening_() {
   this->flush_tx_();
   uint8_t cfg = this->read_register_(REG_CONFIG);
   this->write_register_(REG_CONFIG, cfg & ~MASK_PRIM_RX);
+  // Ported from RF24::stopListening(): re-enable pipe 0's receive-address bit
+  // on every switch to TX mode. Without this, EN_RXADDR (zeroed at boot, only
+  // pipe 1's bit ever set by open_reading_pipe_()) never has bit 0 set, so the
+  // pipe that receives the hardware auto-ACK after a transmission is never
+  // actually enabled -- verified against the real, working HoymilesRadio_NRF
+  // source, which does this unconditionally before every send.
+  uint8_t en_rxaddr = this->read_register_(REG_EN_RXADDR);
+  this->write_register_(REG_EN_RXADDR, en_rxaddr | 0x01);
   this->listening_ = false;
 }
 
