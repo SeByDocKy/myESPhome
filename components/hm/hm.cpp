@@ -744,6 +744,7 @@ void HMComponent::send_current_command_() {
 }
 
 void HMComponent::start_command_(PendingCmd cmd, const uint8_t *payload, uint8_t len, uint32_t timeout_ms) {
+  this->rpd_seen_ = false;
   this->pending_cmd_ = cmd;
   memcpy(this->tx_payload_, payload, len);
   this->tx_payload_len_ = len;
@@ -820,6 +821,11 @@ void HMComponent::loop() {
   // Lire un seul fragment par tick risquait de prendre du retard si plusieurs
   // fragments of the same response arrive in a tight burst.
   if (this->op_state_ == OP_WAIT_RESPONSE) {
+    if (!this->rpd_seen_ && (this->radio_->read_register(nrf24l01::REG_RPD) & 0x01)) {
+      this->rpd_seen_ = true;
+      ESP_LOGV(TAG, "RPD: RF energy detected on channel %u during listen window",
+               this->radio_->read_register(nrf24l01::REG_RF_CH));
+    }
     while (this->radio_->rx_available()) {
       uint8_t raw[33];
       uint8_t len = this->radio_->read_payload(raw, sizeof(raw));
@@ -869,8 +875,8 @@ void HMComponent::loop() {
       this->cmd_deadline_ = millis() + 500;
     } else {
       this->rx_failure_count_++;
-      ESP_LOGD(TAG, "Definitive command cycle failure (result=%u) -- rx_failure_count_=%u", result,
-               static_cast<unsigned int>(this->rx_failure_count_));
+      ESP_LOGD(TAG, "Definitive command cycle failure (result=%u) -- rx_failure_count_=%u -- RF energy detected during listen: %s",
+               result, static_cast<unsigned int>(this->rx_failure_count_), this->rpd_seen_ ? "YES" : "NO");
       this->publish_reachable_();
       this->op_state_ = OP_IDLE;
       this->pending_cmd_ = CMD_NONE;

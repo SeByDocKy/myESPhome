@@ -204,6 +204,10 @@ class HMComponent : public Component {
   uint32_t tx_start_{0};
 
   uint32_t rx_failure_count_{0};
+  // Diagnostic: was any RF energy (RPD bit) ever detected during this
+  // command's listening window? Helps tell apart "nothing physically
+  // arrives" from "something arrives but our RX path rejects it".
+  bool rpd_seen_{false};
   static const uint8_t REACHABLE_THRESHOLD = 3;
 
   bool power_limit_pending_{false};
