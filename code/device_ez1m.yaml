@@ -80,13 +80,4 @@ switch:
     inverter_onoff:
       name: ${name}_${ez1m_name}_inverter_on_off
 
-
-text_sensor:
-  - platform: ez1m
-    ez1m_id: ${ez1m_id}
-    inverter_state:
-      name: ${name}_${ez1m_name}_inverter_state
-    dsp_version:
-      name: ${name}_${ez1m_name}_dsp_version
-
       
