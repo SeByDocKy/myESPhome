@@ -218,8 +218,6 @@ void NRF24Component::start_listening_() {
   // uses it for auto-ack during transmissions).
   this->write_register_(REG_RX_ADDR_P0, this->rx_address_, this->address_width_);
 
-  this->flush_rx_();
-  this->flush_tx_();
   this->ce_pin_->digital_write(true);
   delayMicroseconds(130);  // datasheet's Trx2tx -- settling before listening
   this->listening_ = true;
