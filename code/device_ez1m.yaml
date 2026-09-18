@@ -73,7 +73,7 @@ output:
 
 fan:
   - platform: speed
-    id: power_output_command
+    id: ${ez1m_name}_power_output_command
     name: ${name}_${ez1m_name}_power_output_command
     output: ${ez1m_name}_power_output      
 
