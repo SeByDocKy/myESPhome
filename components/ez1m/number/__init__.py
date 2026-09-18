@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import number
-from esphome.const import CONF_MAX_VALUE, CONF_MIN_VALUE, CONF_STEP, ENTITY_CATEGORY_CONFIG
+from esphome.const import CONF_MAX_VALUE, CONF_MIN_VALUE, CONF_STEP, ENTITY_CATEGORY_CONFIG, UNIT_WATT
 from .. import ez1m_ns, EZ1MComponent, CONF_EZ1M_ID
 
 DEPENDENCIES = ["ez1m"]
@@ -12,10 +12,14 @@ EZ1MNumberType = ez1m_ns.enum("EZ1MNumberType", is_class=True)
 CONF_POWER_LIMIT = "power_limit"
 CONF_TOTAL_ENERGY = "total_energy"
 
-# Icon conventions kept in sync with hms's number/__init__.py (mdi:flash for
-# power-limit controls) and sensor/__init__.py (mdi:counter for energy).
+# power_limit: unit_of_measurement=W, icon mdi:power (matches the hub's own
+# power sensors -- ac_power/ch1_dc_power/etc -- rather than hms's mdi:flash,
+# per explicit override). total_energy: mdi:counter, in line with the energy
+# sensors in sensor/__init__.py.
 NUMBER_TYPES = {
-    CONF_POWER_LIMIT: number.number_schema(EZ1MNumber, icon="mdi:flash").extend(
+    CONF_POWER_LIMIT: number.number_schema(
+        EZ1MNumber, unit_of_measurement=UNIT_WATT, icon="mdi:power"
+    ).extend(
         {
             cv.Optional(CONF_MIN_VALUE, default=30): cv.float_,
             cv.Optional(CONF_MAX_VALUE, default=800): cv.float_,
