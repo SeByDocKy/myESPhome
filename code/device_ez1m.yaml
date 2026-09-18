@@ -14,9 +14,7 @@ ez1m:
   uart_id: uart_inverter
   update_interval: ${ez1m_update_interval}
   
-  
 sensor:
-
   - platform: ez1m
     ez1m_id: ${ez1m_id}
     ch1_dc_voltage:
@@ -58,7 +56,6 @@ text_sensor:
     dsp_version:
       name: ${name}_${ez1m_name}_dsp_version 
 
-
 number:
   - platform: ez1m
     ez1m_id: ${ez1m_id}
@@ -73,6 +70,12 @@ output:
     power_output:
       id: ${ez1m_name}_power_output
       max_power: 800
+
+fan:
+  - platform: speed
+    id: power_output_command
+    name: ${name}_${ez1m_name}_power_output_command
+    output: ${ez1m_name}_power_output      
 
 switch:
   - platform: ez1m
