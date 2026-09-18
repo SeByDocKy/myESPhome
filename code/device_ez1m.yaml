@@ -12,7 +12,7 @@ uart:
 ez1m:
   id: ${ez1m_id}
   uart_id: uart_inverter
-  update_interval: {ez1m_update_interval}
+  update_interval: ${ez1m_update_interval}
   
   
 sensor:
