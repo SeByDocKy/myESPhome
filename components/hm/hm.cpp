@@ -362,6 +362,8 @@ void HMComponent::process_tx_() {
   } else if (timed_out && !done) {
     ESP_LOGW(TAG, "Tx timeout");
     this->radio_->flush_tx();
+  } else {
+    ESP_LOGV(TAG, "TX acknowledged (TX_DS) -- switching to listen for the response");
   }
   this->radio_->write_register(nrf24l01::REG_STATUS, nrf24l01::STATUS_TX_DS | nrf24l01::STATUS_MAX_RT);
   this->tx_sending_ = false;
@@ -823,11 +825,18 @@ void HMComponent::loop() {
       uint8_t len = this->radio_->read_payload(raw, sizeof(raw));
       this->radio_->write_register(nrf24l01::REG_STATUS, nrf24l01::STATUS_RX_DR);
 
+      ESP_LOGV(TAG, "RX fragment: len=%u data=%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X...", len, raw[0],
+               raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7], raw[8], raw[9]);
+
       if (len >= 12 && len <= 32) {
         uint8_t crc = crc8(raw, len - 1);
         if (crc == raw[len - 1]) {
           this->add_rx_fragment_(raw, len);
+        } else {
+          ESP_LOGV(TAG, "  -> CRC8 mismatch (computed 0x%02X, expected 0x%02X)", crc, raw[len - 1]);
         }
+      } else {
+        ESP_LOGV(TAG, "  -> length out of range, discarded");
       }
     }
     if (this->rx_fragment_max_id_ != 0) {
