@@ -282,6 +282,14 @@ void HMComponent::open_reading_pipe_for_dtu_() {
   uint8_t addr[5];
   serial_to_radio_address(addr, this->dtu_serial_);
   this->radio_->open_reading_pipe(1, addr);
+
+  // Live readback -- confirms what is *actually* programmed into RX_ADDR_P1
+  // (the DTU listening pipe), not just what the address derivation computes
+  // on paper. Same principle as the TX-side readback in cmt_start_tx_().
+  uint8_t rx_p1[5];
+  this->radio_->read_register(nrf24l01::REG_RX_ADDR_P1, rx_p1, 5);
+  ESP_LOGV(TAG, "RX_ADDR_P1 (DTU pipe): computed=%02X %02X %02X %02X %02X actual=%02X %02X %02X %02X %02X", addr[0],
+           addr[1], addr[2], addr[3], addr[4], rx_p1[0], rx_p1[1], rx_p1[2], rx_p1[3], rx_p1[4]);
 }
 
 void HMComponent::open_writing_pipe_for_inverter_() {
@@ -371,7 +379,14 @@ void HMComponent::process_tx_() {
   this->radio_->set_retries_reg(0, 0);
   this->radio_->stop_listening();
   this->open_reading_pipe_for_dtu_();
-  this->radio_->set_channel_reg(this->next_rx_channel_());
+  // Listen for the response on the SAME channel we just transmitted the
+  // command on -- RF_CH is left untouched here, still holding the TX
+  // channel set by cmt_start_tx_()'s next_tx_channel_() call. The inverter
+  // replies on that same channel; the previous next_rx_channel_() call here
+  // pulled from rx_ch_idx_, a counter that advances independently (and much
+  // faster, every 4ms) via the idle hop in loop() -- so it almost never
+  // matched the channel actually used for this transmission.
+  this->last_rx_switch_ms_ = millis();
   this->radio_->start_listening();
 }
 
@@ -809,9 +824,15 @@ void HMComponent::loop() {
     return;
   }
 
-  // 1. RX channel hopping -- every 4ms, ported from HoymilesRadio_NRF::loop()
-  // (EVERY_N_MILLIS(4) { switchRxCh(); })
-  if (millis() - this->last_rx_switch_ms_ >= 4) {
+  // 1. RX channel hopping -- every 4ms while idle, ported from
+  // HoymilesRadio_NRF::loop() (EVERY_N_MILLIS(4) { switchRxCh(); }).
+  // Only allowed to run while OP_IDLE: hopping during OP_WAIT_RESPONSE would
+  // yank the radio off the channel the inverter is actually replying on
+  // (see process_tx_(), which now listens on that exact same channel)
+  // before the response has any chance to arrive -- this was the root cause
+  // found for "TX acknowledged but zero response fragments ever received /
+  // RF energy detected during listen: NO" on real hardware.
+  if (this->op_state_ == OP_IDLE && millis() - this->last_rx_switch_ms_ >= 4) {
     this->last_rx_switch_ms_ = millis();
     this->switch_rx_channel_();
   }
