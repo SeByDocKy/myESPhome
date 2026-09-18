@@ -1,0 +1,81 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [ez1m]
+    refresh: 10s
+    
+uart:
+  id: uart_inverter
+  tx_pin: GPIO2
+  rx_pin: GPIO1
+  baud_rate: 57600
+
+ez1m:
+  id: ${ez1m_id}
+  uart_id: uart_inverter
+  update_interval: {ez1m_update_interval}
+  
+  
+sensor:
+
+  - platform: ez1m
+    ez1m_id: ${ez1m_id}
+    ch1_dc_voltage:
+      name: ${name}_${ez1m_name}_pv1_dc_voltage
+    ch2_dc_voltage:
+      name: ${name}_${ez1m_name}_pv2_dc_voltage
+    ch1_dc_current:
+      name: ${name}_${ez1m_name}_pv1_dc_current
+    ch2_dc_current:
+      name: ${name}_${ez1m_name}_pv2_dc_current
+    ch1_dc_power:
+      name: ${name}_${ez1m_name}_pv1_dc_power
+    ch2_dc_power:
+      name: ${name}_${ez1m_name}_pv2_dc_power
+    total_dc_power:
+      name: ${name}_${ez1m_name}_total_dc_power
+    ac_power:
+      name: ${name}_${ez1m_name}_ac_power
+    grid_frequency:
+      name: ${name}_${ez1m_name}_grid_frequency
+    temperature:
+      name: ${name}_${ez1m_name}_temperature
+    daily_energy:
+      name: ${name}_${ez1m_name}_energy_today
+    ch1_session_energy:
+      name: ${name}_${ez1m_name}_pv1_energy_today
+    ch2_session_energy:
+      name: ${name}_${ez1m_name}_pv2_energy_today
+    lifetime_energy:
+      name: ${name}_${ez1m_name}_energy_total
+    inverter_uptime:
+      name: ${name}_${ez1m_name}_inverter_uptime
+      
+text_sensor:
+  - platform: ez1m
+    ez1m_id: ${ez1m_id}
+    inverter_state:
+      name: ${name}_${ez1m_name}_inverter_state
+    dsp_version:
+      name: ${name}_${ez1m_name}_dsp_version 
+
+
+number:
+  - platform: ez1m
+    ez1m_id: ${ez1m_id}
+    power_limit:
+      name: ${name}_${ez1m_name}_power_limit
+    total_energy:
+      name: ${name}_${ez1m_name}_energy_total
+
+output:
+  - platform: ez1m
+    ez1m_id: ${ez1m_id}
+    power_output:
+      id: ${ez1m_name}_power_output
+      max_power: 800
+
+switch:
+  - platform: ez1m
+    ez1m_id: ${ez1m_id}
+    inverter_onoff:
+      name: ${name}_${ez1m_name}_inverter_on/off      
