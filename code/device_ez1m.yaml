@@ -78,7 +78,7 @@ switch:
   - platform: ez1m
     ez1m_id: ${ez1m_id}
     inverter_onoff:
-      name: ${name}_${ez1m_name}_inverter_on/off
+      name: ${name}_${ez1m_name}_inverter_on_off
 
 
 text_sensor:
