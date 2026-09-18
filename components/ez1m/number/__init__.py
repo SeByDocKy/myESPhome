@@ -60,7 +60,7 @@ async def to_code(config):
         if key == CONF_POWER_LIMIT:
             # Forced (not user-configurable): a 30-800 W control range is far
             # more usable as a slider than a text box in the frontend.
-            cg.add(var.set_mode(number.NUMBER_MODES["SLIDER"]))
+            cg.add(var.traits.set_mode(number.NUMBER_MODES["SLIDER"]))
             cg.add(hub.set_power_limit_number(var))
         else:
             cg.add(hub.set_total_energy_number(var))
