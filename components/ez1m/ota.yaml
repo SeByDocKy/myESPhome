@@ -38,7 +38,7 @@ debug:
   update_interval: 5s
 
 
-############## BE AWARE CURRENTLY time component make crashing the ESP32-C2 nand enter into safe mode ######
+############## BE AWARE CURRENTLY time component with sntp platform makes crashing the ESP32-C2 nand enter into safe mode ######
 ############# so don't use  it unntil it's fixed by ESPhome #############"
 # time:
 #   - platform: sntp
