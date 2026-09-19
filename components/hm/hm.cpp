@@ -892,7 +892,24 @@ void HMComponent::loop() {
           break;
         }
       }
-      if (complete) this->cmd_deadline_ = millis();
+      // IMPORTANT: NOT "= millis()". This block runs on every single tick
+      // while op_state_ == OP_WAIT_RESPONSE, and once all expected fragments
+      // have arrived, `complete` stays true forever (the fragment buffer is
+      // only cleared by the *next* send_current_command_()). Setting the
+      // deadline to the CURRENT millis() every tick created a livelock: the
+      // very next statement (section 3, below) checks `millis() >
+      // this->cmd_deadline_", and on a 240MHz ESP32 the two millis() calls
+      // almost always land in the same millisecond, making that comparison
+      // false (equal, not greater) -- so the deadline got silently pushed
+      // back to "now" again on the following tick, forever. The cycle would
+      // then only resolve by pure luck, whenever scheduler jitter happened
+      // to separate the two calls by >=1ms -- which matches the erratic
+      // 30s-200+s stalls observed on real hardware (confirmed via the
+      // heartbeat diagnostic: op_state_ stuck at WAIT_RESPONSE indefinitely,
+      // zero further TX/log activity). Setting the deadline into the past
+      // makes `millis() > cmd_deadline_` unconditionally true on the very
+      // next check, regardless of same-millisecond timing.
+      if (complete) this->cmd_deadline_ = millis() - 1;
     }
   }
 
