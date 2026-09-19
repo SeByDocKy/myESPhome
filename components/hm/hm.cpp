@@ -269,6 +269,20 @@ bool HMComponent::init_radio_() {
   // Dynamic payloads -- enableDynamicPayloads()
   this->radio_->write_register(nrf24l01::REG_FEATURE, nrf24l01::FEATURE_EN_DPL);
   this->radio_->write_register(nrf24l01::REG_DYNPD, 0x3F);
+  // IMPORTANT: the two register writes above only change what the *chip*
+  // does on air. They do NOT change NRF24Component::dynamic_payloads_, the
+  // C++-side flag that read_payload_() actually branches on to decide HOW
+  // to read a received packet. Without this call, dynamic_payloads_ stays
+  // false (its YAML default), so read_payload_() skips the R_RX_PL_WID
+  // query and blindly clocks out a fixed 32 bytes on every RX -- even
+  // though the hardware is now in dynamic-payload mode and the Hoymiles
+  // inverter's actual response frames are shorter (~10-27 bytes). The
+  // result: garbage/zero-padded 32-byte "fragments" that fail length/CRC8
+  // checks, exactly matching the corrupted RX fragments seen on real
+  // hardware. Ported from HoymilesRadio_NRF::init() -> _radio->enableDynamicPayloads(),
+  // which (via the real RF24 library) updates both the chip registers AND
+  // the library's own dynamic_payloads_enabled flag together.
+  this->radio_->set_dynamic_payloads(true);
 
   // Retries disabled at rest, enabled briefly during Tx (see cmt_start_tx_)
   this->radio_->set_retries_reg(0, 0);
