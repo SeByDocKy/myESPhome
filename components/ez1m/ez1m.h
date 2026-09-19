@@ -27,6 +27,7 @@ enum class EZ1MSensorType {
   CH2_SESSION_ENERGY,
   LIFETIME_ENERGY,
   INVERTER_UPTIME,
+  POWER_LIMIT_READBACK,
 };
 class EZ1MSensor;
 #endif

@@ -41,6 +41,7 @@ CONF_CH1_SESSION_ENERGY = "ch1_session_energy"
 CONF_CH2_SESSION_ENERGY = "ch2_session_energy"
 CONF_LIFETIME_ENERGY = "lifetime_energy"
 CONF_INVERTER_UPTIME = "inverter_uptime"
+CONF_POWER_LIMIT_READBACK = "power_limit_readback"
 
 # Icon conventions below are kept in sync with the `hms` component's
 # sensor/__init__.py so that similarly-typed entities look the same across
@@ -163,6 +164,21 @@ SENSOR_TYPES = {
         EZ1MSensor,
         unit_of_measurement=UNIT_SECOND,
         accuracy_decimals=0,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+    ),
+    # The inverter's own confirmation of the power limit it actually applied,
+    # decoded from the same status-frame field that drives the power_limit
+    # number's non-optimistic readback (see ez1m.cpp). Exposed as its own
+    # sensor so history/graphing works the same way as any other sensor --
+    # a number entity's state isn't recorded to the HA history/logbook the
+    # same way. Same unit/device_class/icon as the other power sensors above.
+    CONF_POWER_LIMIT_READBACK: sensor.sensor_schema(
+        EZ1MSensor,
+        unit_of_measurement=UNIT_WATT,
+        accuracy_decimals=0,
+        device_class=DEVICE_CLASS_POWER,
+        state_class=STATE_CLASS_MEASUREMENT,
+        icon="mdi:power",
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
 }

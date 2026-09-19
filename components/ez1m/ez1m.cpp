@@ -197,14 +197,25 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
 #endif
 #endif  // USE_TEXT_SENSOR || USE_SWITCH
 
-#ifdef USE_NUMBER
-  // Power limit readback
+#if defined(USE_NUMBER) || defined(USE_SENSOR)
+  // Power limit readback -- the inverter's own confirmation of the power
+  // limit it actually applied (not just what we last asked for). Computed
+  // once here and fanned out to both the power_limit number (so its UI
+  // reflects hardware truth, per the non-optimistic design) and the
+  // dedicated power_limit_readback sensor (for history/graphing, since a
+  // number entity's state isn't recorded the same way a sensor's is).
   uint16_t mp_raw = (p[50] << 8) | p[51];
-  if (mp_raw > 0 && this->power_limit_number_ != nullptr) {
+  if (mp_raw > 0) {
     float disc = 275.6728f + ((float) mp_raw - 300.0f) / 300.0f;
     float watts = roundf((-16.6034f + sqrtf(disc)) * 600.0f);
     watts = fmaxf(30.0f, fminf(800.0f, watts));
-    this->power_limit_number_->publish_state(watts);
+#ifdef USE_NUMBER
+    if (this->power_limit_number_ != nullptr)
+      this->power_limit_number_->publish_state(watts);
+#endif
+#ifdef USE_SENSOR
+    this->publish_sensor_(EZ1MSensorType::POWER_LIMIT_READBACK, watts);
+#endif
   }
 #endif
 }
