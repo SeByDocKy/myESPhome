@@ -813,6 +813,27 @@ void HMComponent::setup() {
 void HMComponent::loop() {
   if (this->is_failed() || this->radio_ == nullptr) return;
 
+  // --------------------------------------------------------------------
+  // DIAGNOSTIC HEARTBEAT -- temporary, to track down the multi-second/
+  // multi-minute stalls seen between telemetry polls on real hardware
+  // even though every individual radio operation in this file is bounded
+  // (<=500ms). Logged unconditionally, every ~2s, BEFORE any early return,
+  // so the next real-hardware log will show unambiguously whether loop()
+  // keeps ticking during a stall and, if so, which gate is stuck: radio
+  // ownership (is_owned_by_other), op_state_ (stuck in OP_WAIT_RESPONSE
+  // without progressing), or poll cadence (op_state_ IDLE but the
+  // poll_interval_ms_ condition or try_lock_external() not firing).
+  // Safe to remove once the root cause is found.
+  if (millis() - this->last_heartbeat_ms_ >= 2000) {
+    this->last_heartbeat_ms_ = millis();
+    ESP_LOGV(TAG, "heartbeat: op_state_=%s pending_cmd_=%u owned_by_other=%s tx_sending_=%s "
+                  "since_last_poll=%ums poll_interval=%ums power_limit_pending=%s",
+             this->op_state_ == OP_IDLE ? "IDLE" : "WAIT_RESPONSE", this->pending_cmd_,
+             this->radio_->is_owned_by_other(this) ? "YES" : "NO", this->tx_sending_ ? "YES" : "NO",
+             static_cast<unsigned int>(millis() - this->last_poll_), static_cast<unsigned int>(this->poll_interval_ms_),
+             this->power_limit_pending_ ? "YES" : "NO");
+  }
+
   // Another hm: instance (sharing the same nrf24l01:) is currently using the
   // radio -- we don't touch any register until it releases ownership.
   if (this->radio_->is_owned_by_other(this)) return;

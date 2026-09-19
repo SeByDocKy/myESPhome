@@ -210,6 +210,15 @@ class HMComponent : public Component {
   bool rpd_seen_{false};
   static const uint8_t REACHABLE_THRESHOLD = 3;
 
+  // Diagnostic: timestamp of the last periodic "heartbeat" log line (see
+  // loop()). Used to track down a real-hardware symptom where telemetry
+  // polls stall for 30s-200+s at a time despite every individual radio
+  // operation being bounded (<=500ms) in the code -- the heartbeat proves
+  // whether loop() is still being called at all during the stall, and if
+  // so, exactly which gate (radio ownership, op_state_, poll cadence) is
+  // stuck.
+  uint32_t last_heartbeat_ms_{0};
+
   bool power_limit_pending_{false};
   float power_limit_value_{100.0f};
   PowerLimitType power_limit_type_{POWER_RELATIVE};
