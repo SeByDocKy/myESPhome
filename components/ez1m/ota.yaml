@@ -36,10 +36,13 @@ captive_portal:
 
 debug:
   update_interval: 5s
-  
-time:
-  - platform: sntp
-    id: my_time  
+
+
+############## BE AWARE CURRENTLY time component make crashing the ESP32-C2 nand enter into safe mode ######
+############# so don't use  it unntil it's fixed by ESPhome #############"
+# time:
+#   - platform: sntp
+#     id: my_time  
   
 sensor:
 
