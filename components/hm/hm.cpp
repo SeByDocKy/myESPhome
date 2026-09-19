@@ -826,7 +826,7 @@ void HMComponent::loop() {
   // Safe to remove once the root cause is found.
   if (millis() - this->last_heartbeat_ms_ >= 2000) {
     this->last_heartbeat_ms_ = millis();
-    ESP_LOGV(TAG, "heartbeat: op_state_=%s pending_cmd_=%u owned_by_other=%s tx_sending_=%s "
+    ESP_LOGVV(TAG, "heartbeat: op_state_=%s pending_cmd_=%u owned_by_other=%s tx_sending_=%s "
                   "since_last_poll=%ums poll_interval=%ums power_limit_pending=%s",
              this->op_state_ == OP_IDLE ? "IDLE" : "WAIT_RESPONSE", this->pending_cmd_,
              this->radio_->is_owned_by_other(this) ? "YES" : "NO", this->tx_sending_ ? "YES" : "NO",
