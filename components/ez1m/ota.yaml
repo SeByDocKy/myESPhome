@@ -107,6 +107,7 @@ packages:
           ez1m_id: 'ez1'
           ez1m_name: 'ez1m1'
           ez1m_update_interval: '1500ms'
+          ez1m_model: 'ez1m'
           
           
   # shellypro3em:
