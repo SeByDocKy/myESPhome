@@ -208,7 +208,7 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
   if (mp_raw > 0) {
     float disc = 275.6728f + ((float) mp_raw - 300.0f) / 300.0f;
     float watts = roundf((-16.6034f + sqrtf(disc)) * 600.0f);
-    watts = fmaxf(30.0f, fminf(800.0f, watts));
+    watts = fmaxf(30.0f, fminf(this->max_power_, watts));
 #ifdef USE_NUMBER
     if (this->power_limit_number_ != nullptr)
       this->power_limit_number_->publish_state(watts);
@@ -236,7 +236,7 @@ void EZ1MComponent::set_power_limit(float watts) {
 
 void EZ1MComponent::turn_on(float watts) {
   if (std::isnan(watts) || watts < 30.0f)
-    watts = 800.0f;
+    watts = this->max_power_;
   this->set_power_limit(watts);
 }
 
@@ -255,6 +255,22 @@ float EZ1MComponent::get_power_limit_value() const {
 #else
   return NAN;
 #endif
+}
+
+void EZ1MComponent::set_model(EZ1MModel model) {
+  this->model_ = model;
+  switch (model) {
+    case EZ1MModel::EZ1H:
+      this->max_power_ = 960.0f;
+      break;
+    case EZ1MModel::EZ1D:
+      this->max_power_ = 1800.0f;
+      break;
+    case EZ1MModel::EZ1M:
+    default:
+      this->max_power_ = 800.0f;
+      break;
+  }
 }
 
 void EZ1MComponent::set_lifetime_energy(float kwh) {
@@ -299,6 +315,12 @@ void EZ1MComponent::publish_text_sensor_(EZ1MTextSensorType type, const std::str
 
 void EZ1MComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "APsystems EZ1-M:");
+  const char *model_str = "EZ1-M";
+  if (this->model_ == EZ1MModel::EZ1H)
+    model_str = "EZ1-H";
+  else if (this->model_ == EZ1MModel::EZ1D)
+    model_str = "EZ1-D";
+  ESP_LOGCONFIG(TAG, "  Model: %s (max power: %.0f W)", model_str, this->max_power_);
   ESP_LOGCONFIG(TAG, "  DC voltage divisor: %.2f", this->dc_voltage_divisor_);
   ESP_LOGCONFIG(TAG, "  DC current divisor: %.2f", this->dc_current_divisor_);
   ESP_LOGCONFIG(TAG, "  Grid frequency divisor: %.2f", this->grid_frequency_divisor_);

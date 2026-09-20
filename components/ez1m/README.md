@@ -40,6 +40,7 @@ uart:
 ez1m:
   id: ez1m_hub
   uart_id: uart_inverter
+  model: ez1m
   update_interval: 5s
   dc_voltage_divisor: 50.0
   dc_current_divisor: 88.0
@@ -50,6 +51,7 @@ ez1m:
 |-----------------------------|----------|---------|----------|-------------|
 | `id`                        | ID       | auto    | No       | ID of the hub, referenced by every sub-platform as `ez1m_id`. |
 | `uart_id`                   | ID       | —       | Yes (inherited from `uart.UART_DEVICE_SCHEMA`) | The `uart:` bus the EZ1-M is wired to. |
+| `model`                     | string   | `ez1m`  | No       | One of `ez1m`, `ez1h`, `ez1d`. Sets the hardware's maximum output power: 800 W / 960 W / 1800 W respectively. Drives both the ceiling enforced by `set_power_limit()`/`turn_on()` in the hub and the default upper bound (`max_value`) of the `power_limit` number below. |
 | `update_interval`           | time     | `5s`    | No       | How often the hub sends the status poll request to the inverter (standard `PollingComponent` option). |
 | `dc_voltage_divisor`        | float    | `50.0`  | No       | Raw-value divisor used to compute CH1/CH2 DC voltage. Adjust against a known-good meter if your unit reads slightly off. |
 | `dc_current_divisor`        | float    | `88.0`  | No       | Raw-value divisor used to compute CH1/CH2 DC current. Same calibration note as above. |
@@ -98,6 +100,7 @@ similarly-typed entities look consistent across both: `mdi:power` for power,
 | `ch2_session_energy`     | kWh  | energy        | total_increasing    | 3        | `mdi:counter` | CH2 energy since the day's DSP boot. |
 | `lifetime_energy`        | kWh  | energy        | total_increasing    | 3        | `mdi:counter` | RAM-accumulated lifetime total (see [Lifetime energy persistence](#lifetime-energy-persistence) below). |
 | `inverter_uptime`        | s    | —             | —                   | 0        | — | Inverter uptime since DSP boot. `entity_category: diagnostic`. |
+| `power_limit_readback`   | W    | power         | measurement         | 0        | `mdi:power` | The inverter's own confirmation of the power limit it actually applied, decoded from the same status-frame field that drives the `power_limit` number's readback (see below). Unlike the number, this is a plain sensor, so it gets normal history/graphing. `entity_category: diagnostic`. |
 
 ## `text_sensor:` platform
 
@@ -128,10 +131,17 @@ number:
       name: "Total Energy"
 ```
 
-| Key             | Range (default)     | Step (default) | Optimistic | Icon | Notes |
-|------------------|----------------------|------------------|------------|------|-------|
-| `power_limit`    | `min_value` 30 – `max_value` 800 W | 1   | No  | `mdi:flash` | Sends an output power-limit command to the inverter. The displayed value only updates once the inverter echoes the new limit back in a subsequent status frame — it is **not** set optimistically. Icon matches `hms`'s `power_percent`/`power_absolute` numbers. |
-| `total_energy`   | `min_value` 0 – `max_value` 999999 kWh | 0.001 | Yes | `mdi:counter` | Manual override/reset of the lifetime energy accumulator. `entity_category: config`. |
+| Key             | Range (default)     | Step (default) | Optimistic | Icon | Mode | Notes |
+|------------------|----------------------|------------------|------------|------|------|-------|
+| `power_limit`    | `min_value` 30 – `max_value` *model-dependent* (800/960/1800 W) | 1   | No  | `mdi:power`, unit W | **slider** (forced, not configurable) | Sends an output power-limit command to the inverter. The displayed value only updates once the inverter echoes the new limit back in a subsequent status frame — it is **not** set optimistically. |
+| `total_energy`   | `min_value` 0 – `max_value` 999999 kWh | 0.001 | Yes | `mdi:counter` | `auto` (default) | Manual override/reset of the lifetime energy accumulator. `entity_category: config`. |
+
+`power_limit`'s default `max_value` is derived from the hub's `model` option
+(800 W for `ez1m`, 960 W for `ez1h`, 1800 W for `ez1d`) — no need to set it
+yourself unless you want a narrower range than your model's ceiling.
+
+See also the `power_limit_readback` sensor (in `sensor:` platform above), which
+exposes the same hardware-confirmed value as a plain sensor for history/graphing.
 
 Both `min_value`, `max_value` and `step` can be overridden per-entity in YAML
 if you want a narrower range, e.g.:
@@ -223,6 +233,18 @@ persisted to flash:
   survive a reboot;
 - immediately, whenever the `total_energy` number is written to (manual
   correction or reset).
+
+## Optional platforms
+
+None of `sensor:`, `text_sensor:`, `number:`, `switch:` or `output:` are
+required — declare only the ones you actually need. The hub's code that
+references each platform's concrete type is wrapped in `#ifdef USE_SENSOR` /
+`USE_TEXT_SENSOR` / `USE_NUMBER` / `USE_SWITCH` guards, so a config that
+only uses `sensor:` (for example) compiles fine without ever pulling in the
+`number`/`switch`/`text_sensor` headers — no dummy/unused block needed.
+`output:` needs no such guard on the hub side: `EZ1MOutput` only calls the
+hub's already-public `set_power_limit()`/`turn_off()`, it doesn't require
+the hub to know about it.
 
 ## Frame protocol notes
 

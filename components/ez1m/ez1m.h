@@ -10,6 +10,17 @@
 namespace esphome {
 namespace ez1m {
 
+// Hardware model, set via the hub's optional `model:` YAML key. Drives the
+// maximum output power accepted by set_power_limit()/turn_on() and the
+// default upper bound of the `power_limit` number (see number/__init__.py).
+// Always available (not guarded by any USE_xxx) since the hub itself always
+// exists.
+enum class EZ1MModel {
+  EZ1M,  // 800 W
+  EZ1H,  // 960 W
+  EZ1D,  // 1800 W
+};
+
 #ifdef USE_SENSOR
 enum class EZ1MSensorType {
   CH1_DC_VOLTAGE,
@@ -61,6 +72,9 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   float get_setup_priority() const override { return setup_priority::DATA; }
 
   // --- Config setters (codegen) ---
+  void set_model(EZ1MModel model);
+  EZ1MModel get_model() const { return this->model_; }
+  float get_max_power() const { return this->max_power_; }
   void set_dc_voltage_divisor(float d) { this->dc_voltage_divisor_ = d; }
   void set_dc_current_divisor(float d) { this->dc_current_divisor_ = d; }
   void set_grid_frequency_divisor(float d) { this->grid_frequency_divisor_ = d; }
@@ -121,6 +135,9 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
 #ifdef USE_SWITCH
   EZ1MSwitch *onoff_switch_{nullptr};
 #endif
+
+  EZ1MModel model_{EZ1MModel::EZ1M};
+  float max_power_{800.0f};
 
   float dc_voltage_divisor_{50.0f};
   float dc_current_divisor_{88.0f};

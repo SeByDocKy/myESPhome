@@ -1,8 +1,16 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
+import esphome.final_validate as fv
 from esphome.components import number
-from esphome.const import CONF_MAX_VALUE, CONF_MIN_VALUE, CONF_STEP, ENTITY_CATEGORY_CONFIG, UNIT_WATT
-from .. import ez1m_ns, EZ1MComponent, CONF_EZ1M_ID
+from esphome.const import (
+    CONF_MAX_VALUE,
+    CONF_MIN_VALUE,
+    CONF_MODEL,
+    CONF_STEP,
+    ENTITY_CATEGORY_CONFIG,
+    UNIT_WATT,
+)
+from .. import ez1m_ns, EZ1MComponent, CONF_EZ1M_ID, MODEL_MAX_WATTS
 
 DEPENDENCIES = ["ez1m"]
 
@@ -22,7 +30,11 @@ NUMBER_TYPES = {
     ).extend(
         {
             cv.Optional(CONF_MIN_VALUE, default=30): cv.float_,
-            cv.Optional(CONF_MAX_VALUE, default=800): cv.float_,
+            # No static default: the real default is the hub's model-dependent
+            # max power (800/960/1800 W for ez1m/ez1h/ez1d), filled in by
+            # _final_validate below once the referenced hub's `model` is
+            # known. Set this explicitly in YAML to override either way.
+            cv.Optional(CONF_MAX_VALUE): cv.float_,
             cv.Optional(CONF_STEP, default=1): cv.float_,
         }
     ),
@@ -45,6 +57,26 @@ CONFIG_SCHEMA = cv.Schema(
         **{cv.Optional(key): schema for key, schema in NUMBER_TYPES.items()},
     }
 )
+
+
+def _final_validate(config):
+    # Fill in power_limit's max_value from the referenced hub's `model`,
+    # unless the user already set it explicitly in YAML.
+    if CONF_POWER_LIMIT not in config:
+        return config
+    pl_conf = config[CONF_POWER_LIMIT]
+    if CONF_MAX_VALUE in pl_conf:
+        return config
+
+    fconf = fv.full_config.get()
+    hub_path = fconf.get_path_for_id(config[CONF_EZ1M_ID])[:-1]
+    hub_conf = fconf.get_config_for_path(hub_path)
+    model = hub_conf.get(CONF_MODEL, "ez1m")
+    pl_conf[CONF_MAX_VALUE] = MODEL_MAX_WATTS[model]
+    return config
+
+
+FINAL_VALIDATE_SCHEMA = _final_validate
 
 
 async def to_code(config):
