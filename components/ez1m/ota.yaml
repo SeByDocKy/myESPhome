@@ -31,7 +31,7 @@ wifi:
   password: !secret wifi_password
   ap:
     ssid: "APsystems-EZ1-Fallback"
-    password: 'e-2-nomy'
+    password: 'yourpassword'
 
 captive_portal:
 
@@ -39,11 +39,9 @@ debug:
   update_interval: 5s
 
 
-############## BE AWARE CURRENTLY time component with sntp platform makes crashing the ESP32-C2 nand enter into safe mode ######
-############# so don't use  it unntil it's fixed by ESPhome #############"
-# time:
-#   - platform: sntp
-#     id: my_time  
+time:
+  - platform: sntp
+    id: my_time  
   
 sensor:
 
