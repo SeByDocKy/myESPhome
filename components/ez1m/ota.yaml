@@ -14,6 +14,7 @@ esp32:
     version: 'dev'
     sdkconfig_options:
       CONFIG_XTAL_FREQ_26: "y"
+      CONFIG_LIBC_NEWLIB_NANO_FORMAT: "n"
 
 logger:
 
