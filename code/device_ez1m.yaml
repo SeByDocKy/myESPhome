@@ -13,6 +13,7 @@ ez1m:
   id: ${ez1m_id}
   uart_id: uart_inverter
   update_interval: ${ez1m_update_interval}
+  model: ${ez1m_model}
   
 sensor:
   - platform: ez1m
