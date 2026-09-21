@@ -36,7 +36,15 @@ void EZ1MComponent::setup() {
   // fixes the inverter coming back up "off" after an unexpected power loss
   // (e.g. overnight or during low sun), since it never gets a fresh command
   // otherwise.
+  //
+  // This first attempt can be sent before the inverter's own UART receiver
+  // has finished its own power-on sequence and get silently ignored -- so
+  // it isn't the only attempt: startup_limit_pending_ makes update() keep
+  // resending it on the first few poll cycles until the hardware readback
+  // in handle_frame_() actually confirms it was applied.
   this->load_startup_power_limit_();
+  this->startup_limit_pending_ = true;
+  this->startup_limit_retries_ = 0;
   this->set_power_limit(this->startup_power_limit_);
 #ifdef USE_NUMBER
   if (this->power_limit_number_ != nullptr)
@@ -47,7 +55,21 @@ void EZ1MComponent::setup() {
                       [this]() { this->save_lifetime_energy_(); });
 }
 
-void EZ1MComponent::update() { this->send_poll_request_(); }
+void EZ1MComponent::update() {
+  static const uint8_t MAX_STARTUP_LIMIT_RETRIES = 5;
+  if (this->startup_limit_pending_ && this->startup_limit_retries_ < MAX_STARTUP_LIMIT_RETRIES) {
+    ESP_LOGD(TAG, "Re-sending startup power limit (%.0f W), attempt %u/%u", this->startup_power_limit_,
+             this->startup_limit_retries_ + 1, MAX_STARTUP_LIMIT_RETRIES);
+    this->set_power_limit(this->startup_power_limit_);
+    this->startup_limit_retries_++;
+  } else if (this->startup_limit_pending_) {
+    // Gave up after MAX_STARTUP_LIMIT_RETRIES polls without a confirming
+    // readback -- stop clobbering whatever the number/switch/output/an
+    // automation may have set in the meantime.
+    this->startup_limit_pending_ = false;
+  }
+  this->send_poll_request_();
+}
 
 void EZ1MComponent::send_poll_request_() {
   uint8_t frame[] = {0xFB, 0xFB, 0x06, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC1, 0xFE, 0xFE};
@@ -211,13 +233,14 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
 #endif
 #endif  // USE_TEXT_SENSOR || USE_SWITCH
 
-#if defined(USE_NUMBER) || defined(USE_SENSOR)
   // Power limit readback -- the inverter's own confirmation of the power
   // limit it actually applied (not just what we last asked for). Computed
   // once here and fanned out to both the power_limit number (so its UI
-  // reflects hardware truth, per the non-optimistic design) and the
-  // dedicated power_limit_readback sensor (for history/graphing, since a
-  // number entity's state isn't recorded the same way a sensor's is).
+  // reflects hardware truth, per the non-optimistic design), the dedicated
+  // power_limit_readback sensor (for history/graphing, since a number
+  // entity's state isn't recorded the same way a sensor's is), and the
+  // startup-power-limit retry logic in update() -- which needs this
+  // regardless of whether any number/sensor entity is declared.
   uint16_t mp_raw = (p[50] << 8) | p[51];
   if (mp_raw > 0) {
     float disc = 275.6728f + ((float) mp_raw - 300.0f) / 300.0f;
@@ -230,8 +253,11 @@ void EZ1MComponent::handle_frame_(const uint8_t *bytes, size_t frame_len) {
 #ifdef USE_SENSOR
     this->publish_sensor_(EZ1MSensorType::POWER_LIMIT_READBACK, watts);
 #endif
+    if (this->startup_limit_pending_ && watts == roundf(this->startup_power_limit_)) {
+      ESP_LOGI(TAG, "Startup power limit confirmed applied by the inverter: %.0f W", watts);
+      this->startup_limit_pending_ = false;
+    }
   }
-#endif
 }
 
 uint16_t EZ1MComponent::watts_to_raw_(float watts) const {
@@ -304,6 +330,10 @@ void EZ1MComponent::load_lifetime_energy_() {
 void EZ1MComponent::set_startup_power_limit(float watts) {
   this->startup_power_limit_ = watts;
   this->save_startup_power_limit_();
+  // A manual button press takes priority over the boot-time retry logic in
+  // update()/handle_frame_() -- don't let a still-pending retry from setup()
+  // clobber this later.
+  this->startup_limit_pending_ = false;
   // Apply immediately too -- pressing set_power_min/set_power_max is a live
   // command, not just a preference for the next boot.
   this->set_power_limit(watts);

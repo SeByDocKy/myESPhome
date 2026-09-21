@@ -163,6 +163,16 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   // it with the saved value, or with this model's max power on first boot.
   float startup_power_limit_{-1.0f};
   ESPPreferenceObject startup_power_limit_pref_;
+
+  // The very first set_power_limit() sent from setup() can be sent before
+  // the inverter's own UART receiver has finished its own power-on sequence
+  // and gets silently ignored -- confirmed by the real hardware readback
+  // still showing the inverter's own power-on default right after boot. So
+  // instead of a single fire-and-forget command, the startup limit is
+  // resent on the first few poll cycles (see update()/handle_frame_()) until
+  // the hardware readback actually confirms it took effect.
+  bool startup_limit_pending_{false};
+  uint8_t startup_limit_retries_{0};
 };
 
 }  // namespace ez1m
