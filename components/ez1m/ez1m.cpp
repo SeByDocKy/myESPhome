@@ -314,27 +314,35 @@ void EZ1MComponent::set_startup_power_limit(float watts) {
 }
 
 void EZ1MComponent::save_startup_power_limit_() {
-  this->startup_power_limit_pref_.save(&this->startup_power_limit_);
+  bool queued = this->startup_power_limit_pref_.save(&this->startup_power_limit_);
   // ESPPreferenceObject::save() only queues the write in RAM -- ESPHome's
   // preferences syncer only flushes it to real NVS flash every 60 s (or on a
   // clean shutdown/OTA reboot). A hard/manual reset within that window would
   // otherwise lose the value, defeating the whole point of this button, so
   // force an immediate flash commit here instead of waiting for the next
   // periodic sync.
-  global_preferences->sync();
+  bool synced = global_preferences->sync();
+  ESP_LOGI(TAG, "Startup power limit saved: %.0f W (queued=%s, flash sync=%s)", this->startup_power_limit_,
+           queued ? "yes" : "no", synced ? "ok" : "FAILED");
 }
 
 void EZ1MComponent::load_startup_power_limit_() {
   this->startup_power_limit_pref_ =
       global_preferences->make_preference<float>(fnv1_hash("ez1m_startup_power_limit"));
   float loaded = 0.0f;
-  if (this->startup_power_limit_pref_.load(&loaded) && loaded > 0.0f) {
+  bool found = this->startup_power_limit_pref_.load(&loaded);
+  if (found && loaded > 0.0f) {
     this->startup_power_limit_ = loaded;
+    ESP_LOGI(TAG, "Startup power limit restored from flash: %.0f W", loaded);
   } else {
     // First boot ever (or erased/corrupt NVS): default to this model's max
     // power rather than the button's 30 W floor, so a fresh install starts
     // producing at full power instead of throttled to the minimum.
     this->startup_power_limit_ = this->max_power_;
+    ESP_LOGI(TAG,
+             "No valid startup power limit found in flash (load_ok=%s, raw_value=%.0f) -- defaulting to model max: "
+             "%.0f W",
+             found ? "yes" : "no", loaded, this->max_power_);
   }
 }
 
