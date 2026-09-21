@@ -169,10 +169,17 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   // and gets silently ignored -- confirmed by the real hardware readback
   // still showing the inverter's own power-on default right after boot. So
   // instead of a single fire-and-forget command, the startup limit is
-  // resent on the first few poll cycles (see update()/handle_frame_()) until
-  // the hardware readback actually confirms it took effect.
+  // resent on every poll cycle (see update()/handle_frame_()) until the
+  // hardware readback actually confirms it took effect.
+  //
+  // This is gated by a wall-clock deadline (millis()) rather than a fixed
+  // retry count: it's the inverter's own boot time that's variable (a cold
+  // boot after a real power-cycle can take noticeably longer to come up
+  // than a soft ESP restart), and it's entirely decoupled from the ESP32's
+  // WiFi/API connection state, which runs in parallel and never gates the
+  // UART traffic to the inverter.
   bool startup_limit_pending_{false};
-  uint8_t startup_limit_retries_{0};
+  uint32_t startup_limit_deadline_{0};
 };
 
 }  // namespace ez1m

@@ -44,7 +44,10 @@ void EZ1MComponent::setup() {
   // in handle_frame_() actually confirms it was applied.
   this->load_startup_power_limit_();
   this->startup_limit_pending_ = true;
-  this->startup_limit_retries_ = 0;
+  // 30s window for the inverter to actually apply and confirm it -- generous
+  // enough to cover a slow cold boot after a real power-cycle, while still
+  // giving up eventually so a later manual override isn't fought forever.
+  this->startup_limit_deadline_ = millis() + 30000;
   this->set_power_limit(this->startup_power_limit_);
 #ifdef USE_NUMBER
   if (this->power_limit_number_ != nullptr)
@@ -56,17 +59,18 @@ void EZ1MComponent::setup() {
 }
 
 void EZ1MComponent::update() {
-  static const uint8_t MAX_STARTUP_LIMIT_RETRIES = 5;
-  if (this->startup_limit_pending_ && this->startup_limit_retries_ < MAX_STARTUP_LIMIT_RETRIES) {
-    ESP_LOGD(TAG, "Re-sending startup power limit (%.0f W), attempt %u/%u", this->startup_power_limit_,
-             this->startup_limit_retries_ + 1, MAX_STARTUP_LIMIT_RETRIES);
-    this->set_power_limit(this->startup_power_limit_);
-    this->startup_limit_retries_++;
-  } else if (this->startup_limit_pending_) {
-    // Gave up after MAX_STARTUP_LIMIT_RETRIES polls without a confirming
-    // readback -- stop clobbering whatever the number/switch/output/an
-    // automation may have set in the meantime.
-    this->startup_limit_pending_ = false;
+  if (this->startup_limit_pending_) {
+    if ((int32_t) (millis() - this->startup_limit_deadline_) < 0) {
+      ESP_LOGD(TAG, "Re-sending startup power limit (%.0f W), %.1fs left before giving up",
+               this->startup_power_limit_, (this->startup_limit_deadline_ - millis()) / 1000.0f);
+      this->set_power_limit(this->startup_power_limit_);
+    } else {
+      // Gave up after the deadline without a confirming readback -- stop
+      // clobbering whatever the number/switch/output/an automation may have
+      // set in the meantime.
+      ESP_LOGW(TAG, "Startup power limit never confirmed by the inverter after 30s, giving up");
+      this->startup_limit_pending_ = false;
+    }
   }
   this->send_poll_request_();
 }
