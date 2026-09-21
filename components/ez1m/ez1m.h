@@ -108,6 +108,16 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   void set_lifetime_energy(float kwh);
   float get_lifetime_energy() const { return this->total_kwh_; }
 
+  // --- Startup power limit (persisted to flash, applied at setup()) ---
+  // Set by pressing one of the `button` platform's set_power_min/
+  // set_power_max entities; applied automatically every time the hub
+  // (re)boots, so the inverter always comes back up at a known power limit
+  // instead of 0 W/undefined -- e.g. after an unexpected power loss
+  // overnight or during low sun. Also applies the new value to the
+  // inverter immediately, not just on the next boot.
+  void set_startup_power_limit(float watts);
+  float get_startup_power_limit() const { return this->startup_power_limit_; }
+
  protected:
 #ifdef USE_SENSOR
   void publish_sensor_(EZ1MSensorType type, float value);
@@ -120,6 +130,8 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   uint16_t watts_to_raw_(float watts) const;
   void save_lifetime_energy_();
   void load_lifetime_energy_();
+  void save_startup_power_limit_();
+  void load_startup_power_limit_();
 
   std::vector<uint8_t> rx_buffer_;
 #ifdef USE_SENSOR
@@ -146,6 +158,11 @@ class EZ1MComponent : public PollingComponent, public uart::UARTDevice {
   float total_kwh_{0.0f};
   float prev_daily_{-1.0f};
   ESPPreferenceObject pref_;
+
+  // -1 == "not yet loaded/never saved"; load_startup_power_limit_() replaces
+  // it with the saved value, or with this model's max power on first boot.
+  float startup_power_limit_{-1.0f};
+  ESPPreferenceObject startup_power_limit_pref_;
 };
 
 }  // namespace ez1m

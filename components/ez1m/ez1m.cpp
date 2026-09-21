@@ -29,6 +29,20 @@ void EZ1MComponent::setup() {
     this->total_energy_number_->publish_state(this->total_kwh_);
 #endif
 
+  // Apply the persisted startup power limit right away, so the inverter is
+  // always commanded to a known power limit as soon as the hub boots --
+  // instead of staying at 0 W/undefined until something else (the switch,
+  // the number, an automation) happens to send a command. This is what
+  // fixes the inverter coming back up "off" after an unexpected power loss
+  // (e.g. overnight or during low sun), since it never gets a fresh command
+  // otherwise.
+  this->load_startup_power_limit_();
+  this->set_power_limit(this->startup_power_limit_);
+#ifdef USE_NUMBER
+  if (this->power_limit_number_ != nullptr)
+    this->power_limit_number_->publish_state(this->startup_power_limit_);
+#endif
+
   this->set_interval("ez1m_save_energy", LIFETIME_ENERGY_SAVE_INTERVAL_MS,
                       [this]() { this->save_lifetime_energy_(); });
 }
@@ -287,6 +301,36 @@ void EZ1MComponent::load_lifetime_energy_() {
     this->total_kwh_ = loaded;
 }
 
+void EZ1MComponent::set_startup_power_limit(float watts) {
+  this->startup_power_limit_ = watts;
+  this->save_startup_power_limit_();
+  // Apply immediately too -- pressing set_power_min/set_power_max is a live
+  // command, not just a preference for the next boot.
+  this->set_power_limit(watts);
+#ifdef USE_NUMBER
+  if (this->power_limit_number_ != nullptr)
+    this->power_limit_number_->publish_state(watts);
+#endif
+}
+
+void EZ1MComponent::save_startup_power_limit_() {
+  this->startup_power_limit_pref_.save(&this->startup_power_limit_);
+}
+
+void EZ1MComponent::load_startup_power_limit_() {
+  this->startup_power_limit_pref_ =
+      global_preferences->make_preference<float>(fnv1_hash("ez1m_startup_power_limit"));
+  float loaded = 0.0f;
+  if (this->startup_power_limit_pref_.load(&loaded) && loaded > 0.0f) {
+    this->startup_power_limit_ = loaded;
+  } else {
+    // First boot ever (or erased/corrupt NVS): default to this model's max
+    // power rather than the button's 30 W floor, so a fresh install starts
+    // producing at full power instead of throttled to the minimum.
+    this->startup_power_limit_ = this->max_power_;
+  }
+}
+
 #ifdef USE_SENSOR
 void EZ1MComponent::register_sensor(EZ1MSensor *sensor, EZ1MSensorType type) {
   this->sensors_.emplace_back(type, sensor);
@@ -325,6 +369,7 @@ void EZ1MComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  DC current divisor: %.2f", this->dc_current_divisor_);
   ESP_LOGCONFIG(TAG, "  Grid frequency divisor: %.2f", this->grid_frequency_divisor_);
   ESP_LOGCONFIG(TAG, "  Lifetime energy: %.3f kWh", this->total_kwh_);
+  ESP_LOGCONFIG(TAG, "  Startup power limit: %.0f W", this->startup_power_limit_);
   this->check_uart_settings(57600);
 }
 

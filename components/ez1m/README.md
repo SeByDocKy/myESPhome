@@ -2,10 +2,10 @@
 
 Native ESPHome integration for the **APsystems EZ1-M** microinverter over UART.
 It replaces a YAML-only `uart:` + `lambda:` integration with a proper hub
-component (`EZ1MComponent`, a `PollingComponent` + `UARTDevice`) plus four
-sub-platforms (`sensor`, `text_sensor`, `number`, `switch`), all parented to
-the hub via `Parented<EZ1MComponent>` — the same pattern used in
-[`pcm3k6w`](../pcm3k6w).
+component (`EZ1MComponent`, a `PollingComponent` + `UARTDevice`) plus six
+sub-platforms (`sensor`, `text_sensor`, `number`, `switch`, `output`,
+`button`), all parented to the hub via `Parented<EZ1MComponent>` — the same
+pattern used in [`pcm3k6w`](../pcm3k6w).
 
 The hub polls the inverter every `update_interval`, parses the checksummed
 response frame, and dispatches the decoded values to whichever entities were
@@ -183,6 +183,42 @@ underlying command as `power_limit` and `inverter_onoff` — driving one will
 be reflected back on the others via the hub's status-frame readback (for
 `power_limit`) or state sync (for `inverter_onoff`).
 
+## `button:` platform
+
+```yaml
+button:
+  - platform: ez1m
+    ez1m_id: ez1m_hub
+    set_power_min:
+      name: "Set Power Min"
+    set_power_max:
+      name: "Set Power Max"
+```
+
+| Key             | Icon | Notes |
+|------------------|------|-------|
+| `set_power_min`  | `mdi:arrow-collapse-down` | Sets the persisted **startup power limit** to 30 W (the inverter's real floor) and applies it to the inverter immediately. `entity_category: config`. |
+| `set_power_max`  | `mdi:arrow-collapse-up`   | Sets the startup power limit to this hub's `model`-dependent ceiling (800/960/1800 W) and applies it immediately. `entity_category: config`. |
+
+### Startup power limit
+
+These two buttons exist to solve a real failure mode: if the EZ1-M (and its
+companion ESP32) loses power entirely — e.g. overnight or during a period of
+low sun — it comes back up with no power limit command in effect, so the
+inverter can stay off/at 0 W until something explicitly commands it again.
+
+The chosen value (30 W or the model's max, whichever button was last
+pressed) is persisted to flash and automatically re-applied — sent straight
+to the inverter — every time the hub's `setup()` runs, i.e. on every boot,
+before anything else (the switch, the number, an automation) has a chance
+to act. On the very first boot ever (nothing saved yet), it defaults to this
+model's max power rather than 30 W, so a fresh install starts at full power.
+
+If a `power_limit` number is declared, its displayed value is also
+optimistically updated to match at boot (and whenever a button is pressed);
+it will be corrected by the real hardware readback as soon as the next
+status frame arrives, per its normal non-optimistic behavior.
+
 ## `switch:` platform
 
 ```yaml
@@ -236,15 +272,16 @@ persisted to flash:
 
 ## Optional platforms
 
-None of `sensor:`, `text_sensor:`, `number:`, `switch:` or `output:` are
-required — declare only the ones you actually need. The hub's code that
-references each platform's concrete type is wrapped in `#ifdef USE_SENSOR` /
-`USE_TEXT_SENSOR` / `USE_NUMBER` / `USE_SWITCH` guards, so a config that
-only uses `sensor:` (for example) compiles fine without ever pulling in the
-`number`/`switch`/`text_sensor` headers — no dummy/unused block needed.
-`output:` needs no such guard on the hub side: `EZ1MOutput` only calls the
-hub's already-public `set_power_limit()`/`turn_off()`, it doesn't require
-the hub to know about it.
+None of `sensor:`, `text_sensor:`, `number:`, `switch:`, `output:` or
+`button:` are required — declare only the ones you actually need. The hub's
+code that references each platform's concrete type is wrapped in
+`#ifdef USE_SENSOR` / `USE_TEXT_SENSOR` / `USE_NUMBER` / `USE_SWITCH`
+guards, so a config that only uses `sensor:` (for example) compiles fine
+without ever pulling in the `number`/`switch`/`text_sensor` headers — no
+dummy/unused block needed. `output:` and `button:` need no such guard on the
+hub side: `EZ1MOutput` and `EZ1MButton` only call the hub's already-public
+`set_power_limit()`/`turn_off()`/`set_startup_power_limit()`, they don't
+require the hub to know about them.
 
 ## Frame protocol notes
 
