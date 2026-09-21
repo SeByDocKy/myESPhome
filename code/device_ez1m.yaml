@@ -50,6 +50,7 @@ sensor:
       name: ${name}_${ez1m_name}_inverter_uptime
     power_limit_readback:
       name: ${name}_${ez1m_name}_power_limit_readback
+      id: ${ez1m_name}_power_limit_readback
       
 text_sensor:
   - platform: ez1m
