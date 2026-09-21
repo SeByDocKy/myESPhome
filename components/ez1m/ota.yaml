@@ -40,7 +40,6 @@ captive_portal:
 debug:
   update_interval: 5s
 
-
 time:
   - platform: sntp
     id: my_time  
@@ -106,7 +105,7 @@ packages:
         vars:
           ez1m_id: 'ez1'
           ez1m_name: 'ez1m1'
-          ez1m_update_interval: '1500ms'
+          ez1m_update_interval: '2000ms'
           ez1m_model: 'ez1m'
           
           
