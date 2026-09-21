@@ -74,7 +74,7 @@ output:
     ez1m_id: ${ez1m_id}
     power_output:
       id: ${ez1m_name}_power_output
-      max_power: 800
+      # max_power: 800
 
 fan:
   - platform: speed
