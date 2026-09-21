@@ -65,6 +65,7 @@ number:
     ez1m_id: ${ez1m_id}
     power_limit:
       name: ${name}_${ez1m_name}_power_limit
+      id: ${ez1m_name}_power_limit
     total_energy:
       name: ${name}_${ez1m_name}_energy_total
 
