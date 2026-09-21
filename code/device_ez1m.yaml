@@ -78,7 +78,8 @@ fan:
   - platform: speed
     id: ${ez1m_name}_power_output_command
     name: ${name}_${ez1m_name}_power_output_command
-    output: ${ez1m_name}_power_output      
+    output: ${ez1m_name}_power_output
+    restore_mode: NO_RESTORE
 
 switch:
   - platform: ez1m
