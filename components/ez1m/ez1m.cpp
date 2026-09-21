@@ -279,8 +279,17 @@ void EZ1MComponent::set_power_limit(float watts) {
 }
 
 void EZ1MComponent::turn_on(float watts) {
-  if (std::isnan(watts) || watts < 30.0f)
-    watts = this->max_power_;
+  if (std::isnan(watts) || watts < 30.0f) {
+    // No usable wattage was passed -- typically the switch being turned on
+    // (e.g. by a Home Assistant automation, or a manual toggle) before the
+    // power_limit number has ever received a valid hardware readback, so its
+    // state is still NAN. Falling back to this model's max power here used
+    // to blast the inverter to full output in exactly the boot window this
+    // component otherwise works hard to keep at a safe, known limit -- so
+    // fall back to the persisted startup limit instead, and only to max
+    // power if that, too, is unknown (e.g. very first boot ever).
+    watts = this->startup_power_limit_ > 0.0f ? this->startup_power_limit_ : this->max_power_;
+  }
   this->set_power_limit(watts);
 }
 
