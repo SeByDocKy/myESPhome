@@ -315,6 +315,13 @@ void EZ1MComponent::set_startup_power_limit(float watts) {
 
 void EZ1MComponent::save_startup_power_limit_() {
   this->startup_power_limit_pref_.save(&this->startup_power_limit_);
+  // ESPPreferenceObject::save() only queues the write in RAM -- ESPHome's
+  // preferences syncer only flushes it to real NVS flash every 60 s (or on a
+  // clean shutdown/OTA reboot). A hard/manual reset within that window would
+  // otherwise lose the value, defeating the whole point of this button, so
+  // force an immediate flash commit here instead of waiting for the next
+  // periodic sync.
+  global_preferences->sync();
 }
 
 void EZ1MComponent::load_startup_power_limit_() {
