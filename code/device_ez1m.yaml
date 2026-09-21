@@ -85,5 +85,14 @@ switch:
     ez1m_id: ${ez1m_id}
     inverter_onoff:
       name: ${name}_${ez1m_name}_inverter_on_off
+      
+button:
+  - platform: ez1m
+    ez1m_id: ${ez1m_id}
+    set_power_min:
+      name: ${name}_${ez1m_name}_set_power_min
+    set_power_max:
+      name: ${name}_${ez1m_name}_set_power_max
+      
 
       
