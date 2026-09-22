@@ -91,7 +91,8 @@ void JSY193::on_modbus_data(const std::vector<uint8_t> &data) {
       this->power_factor2_sensor_->publish_state(power_factor2);  
   }
   else if(this->read_data_ == 2){ // read 0x04 register
-   if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
+   // if ( (data[0]>=1) & (data[0] <= 255) & (data[1]>=3) & (data[0] <= 8)){
+   if ((data.size() >= 2) && (data[0] >= 1) && (data[1] >= 3) && (data[1] <= 8)){   
 	  this->current_address_ = data[0];
 	  this->current_baudrate_= data[1];
 	  ESP_LOGD(TAG, "JSY193: Read 0x04 register with address=%d, baudrate = %d", this->current_address_, this->current_baudrate_);
