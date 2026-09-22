@@ -188,7 +188,7 @@ void JSY194::read_register04() {
   cmd.push_back(JSY194_REGISTER_SETTINGS_COUNT);
   ESP_LOGD(TAG, "JSY194: reading values from 0x04 register"); 
   #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-  this->send_pdu(cmd);	
+  this->queue_pdu(cmd);	
   #else
   this->send_raw(cmd);
   #endif	
@@ -211,7 +211,7 @@ void JSY194::write_register04(uint8_t new_address , uint8_t new_baudrate) {
     cmd.push_back(new_baudrate);
     ESP_LOGD(TAG, "JSY194: writing values into 0x04 register: address=%d, baudrate = %d", new_address_, new_baudrate); 
     #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 8, 0)
-    this->send_pdu(cmd);	
+    this->queue_pdu(cmd);	
     #else
     this->send_raw(cmd);
     #endif
