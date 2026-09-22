@@ -48,7 +48,7 @@ void VictronSmartShuntComponent::dump_config() {
   // LOG_SENSOR("  ", "Depth of the last discharge", depth_of_the_last_discharge_sensor_);
   // LOG_SENSOR("  ", "Amount of discharged energy", amount_of_discharged_energy_sensor_);
 
-  check_uart_settings(19200);
+  // check_uart_settings(19200);
 }
 
 void VictronSmartShuntComponent::loop() {
