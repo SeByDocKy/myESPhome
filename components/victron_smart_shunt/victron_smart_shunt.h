@@ -4,6 +4,7 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/uart/uart.h"
+#include "esphome/core/version.h"
 
 namespace esphome {
 namespace victron_smart_shunt {
