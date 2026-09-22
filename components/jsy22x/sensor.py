@@ -275,8 +275,8 @@ async def reset_energy_to_code(config, action_id, template_arg, args):
 async def writecommunicationsetting_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg , parent)	
-    template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, int)
-    template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, int)
+    template_address = await cg.templatable(config[CONF_NEW_ADDRESS], args, cg.uint8)
+    template_baudrate = await cg.templatable(config[CONF_NEW_BAUDRATE], args, cg.uint8)
     cg.add(var.set_new_address(template_address))
     cg.add(var.set_new_baudrate(template_baudrate))
     return var
