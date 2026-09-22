@@ -9,7 +9,6 @@
 #include <vector>
 
 namespace esphome::jsy194 {
-// namespace jsy194 {
 
 class JSY194 : public PollingComponent, public modbus::ModbusDevice {
  public:
@@ -116,10 +115,9 @@ class WriteCommunicationSettingAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(uint8_t, new_address)
   TEMPLATABLE_VALUE(uint8_t, new_baudrate)
   void play(Ts... x) override { this->parent_->write_register04(this->new_address_.value(x...) , this->new_baudrate_.value(x...)); }
-  
+   
   protected:
     JSY194 *parent_;
 };
 
-// }  // namespace jsy194
 }  // namespace esphome::jsy194
