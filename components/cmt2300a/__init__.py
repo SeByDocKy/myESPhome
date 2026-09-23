@@ -108,7 +108,7 @@ CMT2300A_SEND_ACTION_SCHEMA = cv.Schema(
 
 
 @automation.register_action(
-    "cmt2300a.send", CMT2300ASendAction, CMT2300A_SEND_ACTION_SCHEMA
+    "cmt2300a.send", CMT2300ASendAction, CMT2300A_SEND_ACTION_SCHEMA, synchronous=False
 )
 async def cmt2300a_send_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])

@@ -123,7 +123,7 @@ NRF24_SEND_ACTION_SCHEMA = cv.Schema(
 
 
 @automation.register_action(
-    "nrf24l01.send", NRF24SendAction, NRF24_SEND_ACTION_SCHEMA
+    "nrf24l01.send", NRF24SendAction, NRF24_SEND_ACTION_SCHEMA, synchronous=False
 )
 async def nrf24l01_send_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[CONF_ID])
