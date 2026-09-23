@@ -314,6 +314,19 @@ same physical quantities, different source message on the wire.
 
 ## Configuration example
 
+Pulled straight from [SeByDocKy/myESPhome](https://github.com/SeByDocKy/myESPhome)
+on every build (`refresh: 10s` -- drop it, or set it much longer, once
+you're not actively iterating on the component itself):
+
+```yaml
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [hmsw]
+    refresh: 10s
+```
+
+Or, for local development against a working copy of the repo instead:
+
 ```yaml
 external_components:
   - source:
