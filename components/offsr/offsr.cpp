@@ -2,7 +2,6 @@
 #include "esphome/core/log.h"
 
 namespace esphome::offsr {
-// namespace offsr {
 
 static const char *const TAG = "offsr";
 static const float coeffP = 0.001f;
@@ -180,7 +179,6 @@ void OFFSRComponent::pid_update() {
 #endif  
   
  }
- // }  // namespace offsr
 }  // namespace esphome::offsr
 
 
