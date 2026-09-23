@@ -973,7 +973,18 @@ void HMSComponent::loop() {
                 break;
               }
             }
-            if (complete) this->cmd_deadline_ = millis();
+            // Same fix as hm.cpp: NOT "= millis()". A fresh fragment can complete
+            // the response and this tick's millis() can land on the exact same
+            // millisecond as section 2's `millis() > cmd_deadline_` check just
+            // below, silently deferring completion by one tick. In hm.cpp this
+            // was a full livelock because that check ran every tick regardless of
+            // new data; here it's rarer (this block only runs when a fresh packet
+            // arrives), but once all fragments are in, no more packets will ever
+            // arrive to re-trigger it -- so an unlucky same-millisecond hit here
+            // would stall the cycle until realtime_timeout_ms_ forces a resend.
+            // Setting the deadline into the past makes the very next check fire
+            // unconditionally, regardless of same-millisecond timing.
+            if (complete) this->cmd_deadline_ = millis() - 1;
           }
         }
       }
