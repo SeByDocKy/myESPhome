@@ -378,6 +378,127 @@ text_sensor:
       name: "Firmware Version"
 ```
 
+## Configuration example -- `data_source: real_data_new`
+
+Same layout as above, with `data_source: real_data_new` set on the hub and
+the extra entities (`energy_daily`, `power_limit`, `warning_number`,
+`link_status`, `firmware_version`) wired up. `ac:`/`dc_channels:
+.../temperature`/`rssi` stay exactly as they are above -- see the note
+under "Entity reference" on which fields keep working and which don't
+(`rssi` is `real_data`-only) once you switch. Remember this is **not yet
+tested against real hardware** (see the `RealDataNew` section above).
+
+```yaml
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [hmsw]
+    refresh: 10s
+
+hmsw:
+  id: my_hmsw
+  host: 192.168.1.50
+  poll_interval: 30s
+  heartbeat_interval: 20s
+  data_source: real_data_new
+
+sensor:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    dc_channels:
+      - pv0:
+          power:
+            name: "PV0 Power"
+          voltage:
+            name: "PV0 Voltage"
+          current:
+            name: "PV0 Current"
+          energy_total:
+            name: "PV0 Energy Total"
+          energy_daily:
+            name: "PV0 Energy Today"
+    ac:
+      voltage:
+        name: "AC Voltage"
+      power:
+        name: "AC Power"
+      frequency:
+        name: "AC Frequency"
+    power_limit:
+      name: "Power Limit (inverter readback)"
+    warning_number:
+      name: "Warning Number"
+    link_status:
+      name: "Link Status"
+
+binary_sensor:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    reachable:
+      name: "HMSW Reachable"
+
+text_sensor:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    firmware_version:
+      name: "Firmware Version"
+```
+
+## Configuration example -- two HMS-XXXXW inverters
+
+Thanks to `MULTI_CONF`, one ESP32 can poll several HMS-XXXXW units at once
+-- one `hmsw:` entry per inverter (a YAML list, each with its own `id:` and
+`host:`), and every platform entry (`sensor:`/`binary_sensor:`/etc.) points
+back at the right hub via its own `hmsw_id:`. No serial number is needed
+for either unit -- the IP address alone routes each TCP connection (see
+"Architecture" above); each hub also gets its own independent
+`poll_interval`/`data_source` if you want them to differ.
+
+```yaml
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [hmsw]
+    refresh: 10s
+
+hmsw:
+  - id: hmsw_roof
+    host: 192.168.1.50   # first inverter
+    poll_interval: 30s
+  - id: hmsw_garage
+    host: 192.168.1.51   # second inverter
+    poll_interval: 30s
+
+sensor:
+  - platform: hmsw
+    hmsw_id: hmsw_roof
+    dc_channels:
+      - pv0:
+          power:
+            name: "Roof PV0 Power"
+    ac:
+      power:
+        name: "Roof AC Power"
+
+  - platform: hmsw
+    hmsw_id: hmsw_garage
+    dc_channels:
+      - pv0:
+          power:
+            name: "Garage PV0 Power"
+    ac:
+      power:
+        name: "Garage AC Power"
+
+binary_sensor:
+  - platform: hmsw
+    hmsw_id: hmsw_roof
+    reachable:
+      name: "HMSW Roof Reachable"
+  - platform: hmsw
+    hmsw_id: hmsw_garage
+    reachable:
+      name: "HMSW Garage Reachable"
+```
+
 ## Status
 
 First working cut, built from protocol documentation and a verified
