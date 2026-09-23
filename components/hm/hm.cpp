@@ -913,6 +913,28 @@ void HMComponent::loop() {
     }
   }
 
+  // 2.5. Preemption -- a pending power-limit command (from a number/output
+  // write) takes priority over an in-flight, non-critical telemetry poll.
+  // Without this, a power-limit change arriving while a CMD_REALTIME_DATA
+  // poll is mid-cycle has to wait for that poll's whole retry ladder to
+  // finish naturally -- up to ~2.5s in the worst case (5 resend attempts at
+  // 500ms each, see MAX_RESEND_COUNT/MAX_RETRANSMIT_COUNT), before section
+  // 4 below even gets a chance to see power_limit_pending_. Telemetry is
+  // re-polled every poll_interval_ms_ anyway, so losing this one in-flight
+  // attempt costs nothing; aborting it immediately lets the power command
+  // go out on this very tick instead, which matters for anything doing
+  // closed-loop power regulation (PID-driven zero-injection, etc.) where
+  // every extra second of latency directly widens the control error.
+  // Only preempts CMD_REALTIME_DATA -- an in-flight CMD_ACTIVE_POWER_CONTROL
+  // (e.g. a previous power command still being confirmed) is left alone.
+  if (this->op_state_ == OP_WAIT_RESPONSE && this->pending_cmd_ == CMD_REALTIME_DATA &&
+      this->power_limit_pending_) {
+    ESP_LOGD(TAG, "Pending power limit command -- aborting in-flight telemetry poll early to send it sooner");
+    this->op_state_ = OP_IDLE;
+    this->pending_cmd_ = CMD_NONE;
+    this->radio_->unlock_external(this);
+  }
+
   // 3. Suivi de la commande en cours
   if (this->op_state_ == OP_WAIT_RESPONSE && millis() > this->cmd_deadline_) {
     uint8_t result = this->verify_all_fragments_();
