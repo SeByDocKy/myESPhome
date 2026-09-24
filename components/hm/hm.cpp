@@ -50,7 +50,7 @@ static const byteAssign_t HM_1CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 4, 2, 100, false, 2},
     {TYPE_DC, CH0, FLD_PDC, 6, 2, 10, false, 1},
-    {TYPE_DC, CH0, FLD_YD, 12, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YD, 12, 2, 1000, false, 3},
     {TYPE_DC, CH0, FLD_YT, 8, 4, 1000, false, 3},
 
     {TYPE_AC, CH0, FLD_UAC, 14, 2, 10, false, 1},
@@ -63,7 +63,7 @@ static const byteAssign_t HM_1CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_T, 26, 2, 10, true, 1},
     {TYPE_INV, CH0, FLD_EVT_LOG, 28, 2, 1, false, 0},
 
-    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
@@ -73,13 +73,13 @@ static const byteAssign_t HM_2CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 4, 2, 100, false, 2},
     {TYPE_DC, CH0, FLD_PDC, 6, 2, 10, false, 1},
-    {TYPE_DC, CH0, FLD_YD, 22, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YD, 22, 2, 1000, false, 3},
     {TYPE_DC, CH0, FLD_YT, 14, 4, 1000, false, 3},
 
     {TYPE_DC, CH1, FLD_UDC, 8, 2, 10, false, 1},
     {TYPE_DC, CH1, FLD_IDC, 10, 2, 100, false, 2},
     {TYPE_DC, CH1, FLD_PDC, 12, 2, 10, false, 1},
-    {TYPE_DC, CH1, FLD_YD, 24, 2, 1, false, 0},
+    {TYPE_DC, CH1, FLD_YD, 24, 2, 1000, false, 3},
     {TYPE_DC, CH1, FLD_YT, 18, 4, 1000, false, 3},
 
     {TYPE_AC, CH0, FLD_UAC, 26, 2, 10, false, 1},
@@ -92,7 +92,7 @@ static const byteAssign_t HM_2CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_T, 38, 2, 10, true, 1},
     {TYPE_INV, CH0, FLD_EVT_LOG, 40, 2, 1, false, 0},
 
-    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
@@ -102,25 +102,25 @@ static const byteAssign_t HM_4CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 4, 2, 100, false, 2},
     {TYPE_DC, CH0, FLD_PDC, 8, 2, 10, false, 1},
-    {TYPE_DC, CH0, FLD_YD, 20, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YD, 20, 2, 1000, false, 3},
     {TYPE_DC, CH0, FLD_YT, 12, 4, 1000, false, 3},
 
     {TYPE_DC, CH1, FLD_UDC, CALC_CH_UDC, CH0, CMD_CALC, false, 1},  // == tension CH0
     {TYPE_DC, CH1, FLD_IDC, 6, 2, 100, false, 2},
     {TYPE_DC, CH1, FLD_PDC, 10, 2, 10, false, 1},
-    {TYPE_DC, CH1, FLD_YD, 22, 2, 1, false, 0},
+    {TYPE_DC, CH1, FLD_YD, 22, 2, 1000, false, 3},
     {TYPE_DC, CH1, FLD_YT, 16, 4, 1000, false, 3},
 
     {TYPE_DC, CH2, FLD_UDC, 24, 2, 10, false, 1},
     {TYPE_DC, CH2, FLD_IDC, 26, 2, 100, false, 2},
     {TYPE_DC, CH2, FLD_PDC, 30, 2, 10, false, 1},
-    {TYPE_DC, CH2, FLD_YD, 42, 2, 1, false, 0},
+    {TYPE_DC, CH2, FLD_YD, 42, 2, 1000, false, 3},
     {TYPE_DC, CH2, FLD_YT, 34, 4, 1000, false, 3},
 
     {TYPE_DC, CH3, FLD_UDC, CALC_CH_UDC, CH2, CMD_CALC, false, 1},  // == tension CH2
     {TYPE_DC, CH3, FLD_IDC, 28, 2, 100, false, 2},
     {TYPE_DC, CH3, FLD_PDC, 32, 2, 10, false, 1},
-    {TYPE_DC, CH3, FLD_YD, 44, 2, 1, false, 0},
+    {TYPE_DC, CH3, FLD_YD, 44, 2, 1000, false, 3},
     {TYPE_DC, CH3, FLD_YT, 38, 4, 1000, false, 3},
 
     {TYPE_AC, CH0, FLD_UAC, 46, 2, 10, false, 1},
@@ -133,7 +133,7 @@ static const byteAssign_t HM_4CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_T, 58, 2, 10, true, 1},
     {TYPE_INV, CH0, FLD_EVT_LOG, 60, 2, 1, false, 0},
 
-    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},

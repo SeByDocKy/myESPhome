@@ -53,7 +53,7 @@ static const byteAssign_t HMS_1CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 4, 2, 100, false, 2},
     {TYPE_DC, CH0, FLD_PDC, 6, 2, 10, false, 1},
-    {TYPE_DC, CH0, FLD_YD, 12, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YD, 12, 2, 1000, false, 3},
     {TYPE_DC, CH0, FLD_YT, 8, 4, 1000, false, 3},
 
     {TYPE_AC, CH0, FLD_UAC, 14, 2, 10, false, 1},
@@ -66,7 +66,7 @@ static const byteAssign_t HMS_1CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_T, 26, 2, 10, true, 1},
     {TYPE_INV, CH0, FLD_EVT_LOG, 28, 2, 1, false, 0},
 
-    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
@@ -80,7 +80,7 @@ static const byteAssign_t HMS_1CHV2_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 6, 2, 100, false, 2},
     {TYPE_DC, CH0, FLD_PDC, 10, 2, 10, false, 1},
-    {TYPE_DC, CH0, FLD_YD, 22, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YD, 22, 2, 1000, false, 3},
     {TYPE_DC, CH0, FLD_YT, 14, 4, 1000, false, 3},
 
     {TYPE_AC, CH0, FLD_UAC, 26, 2, 10, false, 1},
@@ -93,7 +93,7 @@ static const byteAssign_t HMS_1CHV2_TABLE[] = {
     {TYPE_INV, CH0, FLD_T, 38, 2, 10, true, 1},
     {TYPE_INV, CH0, FLD_EVT_LOG, 18, 2, 1, false, 0},
 
-    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
@@ -104,13 +104,13 @@ static const byteAssign_t HMS_2CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_IDC, 6, 2, 100, false, 2},
     {TYPE_DC, CH0, FLD_PDC, 10, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_YT, 14, 4, 1000, false, 3},
-    {TYPE_DC, CH0, FLD_YD, 22, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YD, 22, 2, 1000, false, 3},
 
     {TYPE_DC, CH1, FLD_UDC, 4, 2, 10, false, 1},
     {TYPE_DC, CH1, FLD_IDC, 8, 2, 100, false, 2},
     {TYPE_DC, CH1, FLD_PDC, 12, 2, 10, false, 1},
     {TYPE_DC, CH1, FLD_YT, 18, 4, 1000, false, 3},
-    {TYPE_DC, CH1, FLD_YD, 24, 2, 1, false, 0},
+    {TYPE_DC, CH1, FLD_YD, 24, 2, 1000, false, 3},
 
     {TYPE_AC, CH0, FLD_UAC, 26, 2, 10, false, 1},
     {TYPE_AC, CH0, FLD_IAC, 34, 2, 100, false, 2},
@@ -122,7 +122,7 @@ static const byteAssign_t HMS_2CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_T, 38, 2, 10, true, 1},
     {TYPE_INV, CH0, FLD_EVT_LOG, 40, 2, 1, false, 0},
 
-    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},
@@ -132,25 +132,25 @@ static const byteAssign_t HMS_4CH_TABLE[] = {
     {TYPE_DC, CH0, FLD_UDC, 2, 2, 10, false, 1},
     {TYPE_DC, CH0, FLD_IDC, 6, 2, 100, false, 2},
     {TYPE_DC, CH0, FLD_PDC, 10, 2, 10, false, 1},
-    {TYPE_DC, CH0, FLD_YD, 22, 2, 1, false, 0},
+    {TYPE_DC, CH0, FLD_YD, 22, 2, 1000, false, 3},
     {TYPE_DC, CH0, FLD_YT, 14, 4, 1000, false, 3},
 
     {TYPE_DC, CH1, FLD_UDC, 4, 2, 10, false, 1},
     {TYPE_DC, CH1, FLD_IDC, 8, 2, 100, false, 2},
     {TYPE_DC, CH1, FLD_PDC, 12, 2, 10, false, 1},
-    {TYPE_DC, CH1, FLD_YD, 24, 2, 1, false, 0},
+    {TYPE_DC, CH1, FLD_YD, 24, 2, 1000, false, 3},
     {TYPE_DC, CH1, FLD_YT, 18, 4, 1000, false, 3},
 
     {TYPE_DC, CH2, FLD_UDC, 26, 2, 10, false, 1},
     {TYPE_DC, CH2, FLD_IDC, 30, 2, 100, false, 2},
     {TYPE_DC, CH2, FLD_PDC, 34, 2, 10, false, 1},
-    {TYPE_DC, CH2, FLD_YD, 46, 2, 1, false, 0},
+    {TYPE_DC, CH2, FLD_YD, 46, 2, 1000, false, 3},
     {TYPE_DC, CH2, FLD_YT, 38, 4, 1000, false, 3},
 
     {TYPE_DC, CH3, FLD_UDC, 28, 2, 10, false, 1},
     {TYPE_DC, CH3, FLD_IDC, 32, 2, 100, false, 2},
     {TYPE_DC, CH3, FLD_PDC, 36, 2, 10, false, 1},
-    {TYPE_DC, CH3, FLD_YD, 48, 2, 1, false, 0},
+    {TYPE_DC, CH3, FLD_YD, 48, 2, 1000, false, 3},
     {TYPE_DC, CH3, FLD_YT, 42, 4, 1000, false, 3},
 
     {TYPE_AC, CH0, FLD_UAC, 50, 2, 10, false, 1},
@@ -163,7 +163,7 @@ static const byteAssign_t HMS_4CH_TABLE[] = {
     {TYPE_INV, CH0, FLD_T, 62, 2, 10, true, 1},
     {TYPE_INV, CH0, FLD_EVT_LOG, 64, 2, 1, false, 0},
 
-    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 0},
+    {TYPE_INV, CH0, FLD_YD, CALC_TOTAL_YD, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_YT, CALC_TOTAL_YT, 0, CMD_CALC, false, 3},
     {TYPE_INV, CH0, FLD_PDC, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1},
     {TYPE_INV, CH0, FLD_EFF, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3},

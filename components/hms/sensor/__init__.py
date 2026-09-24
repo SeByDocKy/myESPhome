@@ -28,7 +28,6 @@ from esphome.const import (
     UNIT_VOLT,
     UNIT_VOLT_AMPS_REACTIVE,
     UNIT_WATT,
-    UNIT_WATT_HOURS,
 )
 
 from .. import HMSComponent, CONF_SN
@@ -75,10 +74,10 @@ _VOLTAGE_SCHEMA = sensor.sensor_schema(
     icon="mdi:sine-wave",
 )
 _ENERGY_TODAY_SCHEMA = sensor.sensor_schema(
-    unit_of_measurement=UNIT_WATT_HOURS,
+    unit_of_measurement=UNIT_KILOWATT_HOURS,
     device_class=DEVICE_CLASS_ENERGY,
     state_class=STATE_CLASS_TOTAL_INCREASING,
-    accuracy_decimals=0,
+    accuracy_decimals=3,
     icon="mdi:counter",
 )
 _ENERGY_TOTAL_SCHEMA = sensor.sensor_schema(

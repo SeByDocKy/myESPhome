@@ -110,14 +110,14 @@ sensor:
           power: {name: "PV0 Power"}
           current: {name: "PV0 Current"}
           voltage: {name: "PV0 Voltage"}
-          energy_today: {name: "PV0 Energy Today"}
-          energy_total: {name: "PV0 Energy Total"}
+          energy_today: {name: "PV0 Energy Today"}  # kWh
+          energy_total: {name: "PV0 Energy Total"}  # kWh
       - pv1:
           power: {name: "PV1 Power"}
           current: {name: "PV1 Current"}
           voltage: {name: "PV1 Voltage"}
-          energy_today: {name: "PV1 Energy Today"}
-          energy_total: {name: "PV1 Energy Total"}
+          energy_today: {name: "PV1 Energy Today"}  # kWh
+          energy_total: {name: "PV1 Energy Total"}  # kWh
     ac:
       voltage: {name: "AC Voltage"}
       current: {name: "AC Current"}
@@ -128,8 +128,8 @@ sensor:
     inverter:
       temperature: {name: "Inverter Temperature"}
       power: {name: "Inverter DC Power"}          # sum of all DC channels
-      energy_today: {name: "Inverter Energy Today"}
-      energy_total: {name: "Inverter Energy Total"}
+      energy_today: {name: "Inverter Energy Today"}  # kWh
+      energy_total: {name: "Inverter Energy Total"}  # kWh
       efficiency: {name: "Inverter Efficiency"}     # AC power / total DC power
     rssi: {name: "HMS RSSI"}
 ```

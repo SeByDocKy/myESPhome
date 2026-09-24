@@ -80,8 +80,8 @@ sensor:
           power: {name: "PV0 Power"}
           current: {name: "PV0 Current"}
           voltage: {name: "PV0 Voltage"}
-          energy_today: {name: "PV0 Energy Today"}
-          energy_total: {name: "PV0 Energy Total"}
+          energy_today: {name: "PV0 Energy Today"}  # kWh
+          energy_total: {name: "PV0 Energy Total"}  # kWh
     ac:
       voltage: {name: "AC Voltage"}
       current: {name: "AC Current"}
@@ -92,8 +92,8 @@ sensor:
     inverter:
       temperature: {name: "Inverter Temperature"}
       power: {name: "Inverter DC Power"}
-      energy_today: {name: "Inverter Energy Today"}
-      energy_total: {name: "Inverter Energy Total"}
+      energy_today: {name: "Inverter Energy Today"}  # kWh
+      energy_total: {name: "Inverter Energy Total"}  # kWh
       efficiency: {name: "Inverter Efficiency"}
 
 number:
