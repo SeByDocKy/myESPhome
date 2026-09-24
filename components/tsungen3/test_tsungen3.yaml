@@ -45,14 +45,17 @@ debug:
 
 
 tsungen3:
-  # NOTE: contrairement à hmsw, ce composant ne supporte pas encore MULTI_CONF
-  # (pas de syntaxe en liste "- id: ...") -- v1 scope, un seul onduleur.
-  id: tsungen3_1
-  host: 192.168.1.50   # adresse IP fixe de l'onduleur MX1000
-  port: 8899            # port client_mode (TCP clair)
-  modbus_address: 1
-  # logger_serial: 2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
-  update_interval: 30s
+  - id: tsungen3_1
+    host: 192.168.1.50   # adresse IP fixe de l'onduleur MX1000
+    port: 8899            # port client_mode (TCP clair)
+    poll_interval: 30s
+    modbus_address: 1
+    # logger_serial: 2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
+
+  # Deuxième onduleur GEN3 PLUS sur le même ESP (MULTI_CONF) :
+  # - id: tsungen3_2
+  #   host: 192.168.1.51
+  #   poll_interval: 30s
 
 
 sensor:

@@ -13,10 +13,18 @@ this author's other Hoymiles/TSUN-adjacent components (hm, hms, hmsw, pcm3k6w).
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import network
-from esphome.const import CONF_ID, CONF_PORT, CONF_UPDATE_INTERVAL
+from esphome.const import CONF_ID, CONF_PORT
 
 CODEOWNERS = ["@SeByDocKy"]
 DEPENDENCIES = ["network"]
+# Allows several `tsungen3:` blocks (one per inverter), same as this author's
+# hmsw component -- e.g.:
+#   tsungen3:
+#     - id: tsungen3_1
+#       host: 192.168.1.50
+#     - id: tsungen3_2
+#       host: 192.168.1.51
+MULTI_CONF = True
 
 tsungen3_ns = cg.esphome_ns.namespace("tsungen3")
 TSunGen3Component = tsungen3_ns.class_("TSunGen3Component", cg.PollingComponent)
@@ -25,6 +33,9 @@ CONF_TSUNGEN3_ID = "tsungen3_id"
 CONF_HOST = "host"
 CONF_MODBUS_ADDRESS = "modbus_address"
 CONF_LOGGER_SERIAL = "logger_serial"
+# Named "poll_interval" (not "update_interval") to match this author's hmsw
+# component's naming.
+CONF_POLL_INTERVAL = "poll_interval"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -41,7 +52,7 @@ CONFIG_SCHEMA = cv.Schema(
         # printed on the inverter's sticker. Left at 0 by default -- set it explicitly
         # if the inverter never answers.
         cv.Optional(CONF_LOGGER_SERIAL, default=0): cv.uint32_t,
-        cv.Optional(CONF_UPDATE_INTERVAL, default="30s"): cv.update_interval,
+        cv.Optional(CONF_POLL_INTERVAL, default="30s"): cv.update_interval,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -54,3 +65,7 @@ async def to_code(config):
     cg.add(var.set_port(config[CONF_PORT]))
     cg.add(var.set_modbus_address(config[CONF_MODBUS_ADDRESS]))
     cg.add(var.set_logger_serial(config[CONF_LOGGER_SERIAL]))
+    # register_component() only auto-wires PollingComponent's interval when the
+    # config key is literally "update_interval" -- ours is "poll_interval", so
+    # it's set explicitly here.
+    cg.add(var.set_update_interval(config[CONF_POLL_INTERVAL]))

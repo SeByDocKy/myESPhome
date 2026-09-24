@@ -38,7 +38,9 @@ References:
   `hmsw`, `pcm3k6w`): read-only first, controls added once the read path is
   verified against real hardware.
 - One TCP connection is opened, used, and closed per poll cycle (no
-  persistent connection / no MULTI_CONF yet).
+  persistent connection).
+- `MULTI_CONF` is supported: several `tsungen3:` blocks (one per inverter,
+  each with its own IP) can coexist on the same ESP, same as `hmsw`.
 
 ### Unverified assumptions — please report back if your inverter disagrees
 
@@ -60,12 +62,17 @@ external_components:
     components: [tsungen3]
 
 tsungen3:
-  id: mx1000
-  host: 192.168.1.50        # fixed IP of the inverter
-  port: 8899                 # client-mode plain-TCP port
-  modbus_address: 1
-  # logger_serial: 2093984xxx  # uncomment if the inverter never responds with 0
-  update_interval: 30s
+  - id: mx1000
+    host: 192.168.1.50        # fixed IP of the inverter
+    port: 8899                 # client-mode plain-TCP port
+    modbus_address: 1
+    # logger_serial: 2093984xxx  # uncomment if the inverter never responds with 0
+    poll_interval: 30s
+
+  # Second GEN3 PLUS inverter on the same ESP (MULTI_CONF):
+  # - id: mx1000_b
+  #   host: 192.168.1.51
+  #   poll_interval: 30s
 
 sensor:
   - platform: tsungen3

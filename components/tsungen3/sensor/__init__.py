@@ -2,7 +2,6 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
-    CONF_ID,
     CONF_TEMPERATURE,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
@@ -10,10 +9,8 @@ from esphome.const import (
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_VOLTAGE,
-    ICON_FLASH,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
-    UNIT_AMPERE,
     UNIT_CELSIUS,
     UNIT_HERTZ,
     UNIT_KILOWATT_HOURS,
@@ -21,7 +18,7 @@ from esphome.const import (
     UNIT_WATT,
 )
 
-from .. import CONF_TSUNGEN3_ID, TSunGen3Component, tsungen3_ns
+from .. import CONF_TSUNGEN3_ID, TSunGen3Component
 
 DEPENDENCIES = ["tsungen3"]
 
@@ -46,72 +43,85 @@ CONF_PV4_VOLTAGE = "pv4_voltage"
 CONF_PV4_CURRENT = "pv4_current"
 CONF_PV4_POWER = "pv4_power"
 
-# icon conventions aligned with this author's hm/hms/hmsw/pcm3k6w components
-_VOLTAGE_SCHEMA = sensor.sensor_schema(
-    unit_of_measurement=UNIT_VOLT,
-    accuracy_decimals=1,
-    device_class=DEVICE_CLASS_VOLTAGE,
-    state_class=STATE_CLASS_MEASUREMENT,
-)
-_CURRENT_SCHEMA = sensor.sensor_schema(
-    unit_of_measurement=UNIT_AMPERE,
-    accuracy_decimals=2,
-    device_class=DEVICE_CLASS_CURRENT,
-    state_class=STATE_CLASS_MEASUREMENT,
-)
+# Icon/accuracy conventions match this author's `hms` component
+# (sensor/__init__.py: _POWER_SCHEMA, _DC_CURRENT_SCHEMA, _AC_CURRENT_SCHEMA,
+# _VOLTAGE_SCHEMA, _ENERGY_TODAY_SCHEMA/_ENERGY_TOTAL_SCHEMA, _FREQUENCY_SCHEMA,
+# _TEMPERATURE_SCHEMA) -- same icon strings and accuracy_decimals values.
 _POWER_SCHEMA = sensor.sensor_schema(
     unit_of_measurement=UNIT_WATT,
-    accuracy_decimals=1,
     device_class=DEVICE_CLASS_POWER,
     state_class=STATE_CLASS_MEASUREMENT,
+    accuracy_decimals=1,
+    icon="mdi:power",
 )
-_DAILY_ENERGY_SCHEMA = sensor.sensor_schema(
-    unit_of_measurement=UNIT_KILOWATT_HOURS,
+# Grid-side (AC) current
+_AC_CURRENT_SCHEMA = sensor.sensor_schema(
+    unit_of_measurement="A",
+    device_class=DEVICE_CLASS_CURRENT,
+    state_class=STATE_CLASS_MEASUREMENT,
     accuracy_decimals=2,
+    icon="mdi:current-ac",
+)
+# PV-side (DC) current
+_DC_CURRENT_SCHEMA = sensor.sensor_schema(
+    unit_of_measurement="A",
+    device_class=DEVICE_CLASS_CURRENT,
+    state_class=STATE_CLASS_MEASUREMENT,
+    accuracy_decimals=2,
+    icon="mdi:current-dc",
+)
+# Shared by grid (AC) and PV (DC) voltage, same as hms's single _VOLTAGE_SCHEMA
+_VOLTAGE_SCHEMA = sensor.sensor_schema(
+    unit_of_measurement=UNIT_VOLT,
+    device_class=DEVICE_CLASS_VOLTAGE,
+    state_class=STATE_CLASS_MEASUREMENT,
+    accuracy_decimals=1,
+    icon="mdi:sine-wave",
+)
+_ENERGY_SCHEMA = sensor.sensor_schema(
+    unit_of_measurement=UNIT_KILOWATT_HOURS,
     device_class=DEVICE_CLASS_ENERGY,
     state_class=STATE_CLASS_TOTAL_INCREASING,
-    icon=ICON_FLASH,
+    accuracy_decimals=3,
+    icon="mdi:counter",
 )
-_TOTAL_ENERGY_SCHEMA = sensor.sensor_schema(
-    unit_of_measurement=UNIT_KILOWATT_HOURS,
+_FREQUENCY_SCHEMA = sensor.sensor_schema(
+    unit_of_measurement=UNIT_HERTZ,
+    device_class=DEVICE_CLASS_FREQUENCY,
+    state_class=STATE_CLASS_MEASUREMENT,
     accuracy_decimals=2,
-    device_class=DEVICE_CLASS_ENERGY,
-    state_class=STATE_CLASS_TOTAL_INCREASING,
-    icon=ICON_FLASH,
+    icon="mdi:metronome",
+)
+_TEMPERATURE_SCHEMA = sensor.sensor_schema(
+    unit_of_measurement=UNIT_CELSIUS,
+    device_class=DEVICE_CLASS_TEMPERATURE,
+    state_class=STATE_CLASS_MEASUREMENT,
+    accuracy_decimals=1,
+    icon="mdi:thermometer",
 )
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_TSUNGEN3_ID): cv.use_id(TSunGen3Component),
         cv.Optional(CONF_GRID_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_GRID_CURRENT): _CURRENT_SCHEMA,
-        cv.Optional(CONF_GRID_FREQUENCY): sensor.sensor_schema(
-            unit_of_measurement=UNIT_HERTZ,
-            accuracy_decimals=2,
-            device_class=DEVICE_CLASS_FREQUENCY,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_TEMPERATURE): sensor.sensor_schema(
-            unit_of_measurement=UNIT_CELSIUS,
-            accuracy_decimals=0,
-            device_class=DEVICE_CLASS_TEMPERATURE,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
+        cv.Optional(CONF_GRID_CURRENT): _AC_CURRENT_SCHEMA,
+        cv.Optional(CONF_GRID_FREQUENCY): _FREQUENCY_SCHEMA,
+        cv.Optional(CONF_TEMPERATURE): _TEMPERATURE_SCHEMA,
         cv.Optional(CONF_RATED_POWER): _POWER_SCHEMA,
         cv.Optional(CONF_CURRENT_POWER): _POWER_SCHEMA,
-        cv.Optional(CONF_AC_DAILY_ENERGY): _DAILY_ENERGY_SCHEMA,
-        cv.Optional(CONF_AC_TOTAL_ENERGY): _TOTAL_ENERGY_SCHEMA,
+        cv.Optional(CONF_AC_DAILY_ENERGY): _ENERGY_SCHEMA,
+        cv.Optional(CONF_AC_TOTAL_ENERGY): _ENERGY_SCHEMA,
         cv.Optional(CONF_PV1_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV1_CURRENT): _CURRENT_SCHEMA,
+        cv.Optional(CONF_PV1_CURRENT): _DC_CURRENT_SCHEMA,
         cv.Optional(CONF_PV1_POWER): _POWER_SCHEMA,
         cv.Optional(CONF_PV2_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV2_CURRENT): _CURRENT_SCHEMA,
+        cv.Optional(CONF_PV2_CURRENT): _DC_CURRENT_SCHEMA,
         cv.Optional(CONF_PV2_POWER): _POWER_SCHEMA,
         cv.Optional(CONF_PV3_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV3_CURRENT): _CURRENT_SCHEMA,
+        cv.Optional(CONF_PV3_CURRENT): _DC_CURRENT_SCHEMA,
         cv.Optional(CONF_PV3_POWER): _POWER_SCHEMA,
         cv.Optional(CONF_PV4_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV4_CURRENT): _CURRENT_SCHEMA,
+        cv.Optional(CONF_PV4_CURRENT): _DC_CURRENT_SCHEMA,
         cv.Optional(CONF_PV4_POWER): _POWER_SCHEMA,
     }
 )
