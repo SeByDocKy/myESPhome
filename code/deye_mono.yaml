@@ -85,7 +85,8 @@ packages:
         vars:
           modbus_id: 'modbus_id'
           modbus_uart_id: uart_0
-          modbus_send_wait_time: '100ms'          
+          modbus_send_wait_time: '100ms'
+          modbus_turnaround_time: '100ms'
           
   deye_main:
     url: https://github.com/SeByDocKy/pvbrain2/
