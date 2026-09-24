@@ -1,0 +1,126 @@
+substitutions:
+  name: "test_tsungen3"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  #board: esp32-s3-devkitc-1
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  # toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [tsungen3]
+    refresh: 10s
+
+  # - source:
+      # type: local
+      # path: components
+
+
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+   level: verbose #debug
+
+debug:
+  update_interval: 5s
+
+
+tsungen3:
+  # NOTE: contrairement à hmsw, ce composant ne supporte pas encore MULTI_CONF
+  # (pas de syntaxe en liste "- id: ...") -- v1 scope, un seul onduleur.
+  id: tsungen3_1
+  host: 192.168.1.50   # adresse IP fixe de l'onduleur MX1000
+  port: 8899            # port client_mode (TCP clair)
+  modbus_address: 1
+  # logger_serial: 2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
+  update_interval: 30s
+
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+
+  - platform: tsungen3
+    tsungen3_id: tsungen3_1
+    grid_voltage:
+      name: ${name}_tsungen3_1_grid_voltage
+    grid_current:
+      name: ${name}_tsungen3_1_grid_current
+    grid_frequency:
+      name: ${name}_tsungen3_1_grid_frequency
+    temperature:
+      name: ${name}_tsungen3_1_temperature
+    rated_power:
+      name: ${name}_tsungen3_1_rated_power
+    current_power:
+      name: ${name}_tsungen3_1_current_power
+    ac_daily_energy:
+      name: ${name}_tsungen3_1_ac_energy_today
+    ac_total_energy:
+      name: ${name}_tsungen3_1_ac_energy_total
+    pv1_voltage:
+      name: ${name}_tsungen3_1_pv1_voltage
+    pv1_current:
+      name: ${name}_tsungen3_1_pv1_current
+    pv1_power:
+      name: ${name}_tsungen3_1_pv1_power
+    pv2_voltage:
+      name: ${name}_tsungen3_1_pv2_voltage
+    pv2_current:
+      name: ${name}_tsungen3_1_pv2_current
+    pv2_power:
+      name: ${name}_tsungen3_1_pv2_power
+    pv3_voltage:
+      name: ${name}_tsungen3_1_pv3_voltage
+    pv3_current:
+      name: ${name}_tsungen3_1_pv3_current
+    pv3_power:
+      name: ${name}_tsungen3_1_pv3_power
+    pv4_voltage:
+      name: ${name}_tsungen3_1_pv4_voltage
+    pv4_current:
+      name: ${name}_tsungen3_1_pv4_current
+    pv4_power:
+      name: ${name}_tsungen3_1_pv4_power
+
+
+text_sensor:
+  - platform: tsungen3
+    tsungen3_id: tsungen3_1
+    inverter_status:
+      name: ${name}_tsungen3_1_inverter_status
+    event_alarms:
+      name: ${name}_tsungen3_1_event_alarms
+    event_faults:
+      name: ${name}_tsungen3_1_event_faults

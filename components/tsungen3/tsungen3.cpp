@@ -202,33 +202,33 @@ bool TSunGen3Component::connect_and_transact_(const std::vector<uint8_t> &reques
   char port_str[6];
   snprintf(port_str, sizeof(port_str), "%u", this->port_);
 
-  if (getaddrinfo(this->host_.c_str(), port_str, &hints, &res) != 0 || res == nullptr) {
+  if (::getaddrinfo(this->host_.c_str(), port_str, &hints, &res) != 0 || res == nullptr) {
     ESP_LOGW(TAG, "DNS/address resolution failed for %s", this->host_.c_str());
     return false;
   }
 
-  int sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+  int sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
   if (sock < 0) {
     ESP_LOGW(TAG, "Failed to create socket");
-    freeaddrinfo(res);
+    ::freeaddrinfo(res);
     return false;
   }
 
   struct timeval tv{};
   tv.tv_sec = SOCKET_TIMEOUT_MS / 1000;
   tv.tv_usec = (SOCKET_TIMEOUT_MS % 1000) * 1000;
-  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+  ::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  ::setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 
   bool ok = true;
-  if (connect(sock, res->ai_addr, res->ai_addrlen) != 0) {
+  if (::connect(sock, res->ai_addr, res->ai_addrlen) != 0) {
     ESP_LOGW(TAG, "Connect to %s:%u failed", this->host_.c_str(), this->port_);
     ok = false;
   }
-  freeaddrinfo(res);
+  ::freeaddrinfo(res);
 
   if (ok) {
-    ssize_t sent = send(sock, request.data(), request.size(), 0);
+    ssize_t sent = ::send(sock, request.data(), request.size(), 0);
     if (sent != (ssize_t) request.size()) {
       ESP_LOGW(TAG, "Short write to inverter (%d/%d bytes)", (int) sent, (int) request.size());
       ok = false;
@@ -240,7 +240,7 @@ bool TSunGen3Component::connect_and_transact_(const std::vector<uint8_t> &reques
     response.clear();
     uint32_t start = millis();
     while (millis() - start < SOCKET_TIMEOUT_MS) {
-      ssize_t n = recv(sock, buf, sizeof(buf), 0);
+      ssize_t n = ::recv(sock, buf, sizeof(buf), 0);
       if (n > 0) {
         response.insert(response.end(), buf, buf + n);
         // Stop once we have a plausible full frame: start + length header present
