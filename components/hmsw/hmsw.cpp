@@ -407,6 +407,7 @@ void HMSWComponent::handle_real_data_(const RealDataReqDTO &data) {
       if (this->ac_reactive_power_) this->ac_reactive_power_->publish_state(pv.grid_q / 10.0f);
       if (this->ac_power_factor_) this->ac_power_factor_->publish_state(pv.grid_pf / 1000.0f);
       if (this->rssi_) this->rssi_->publish_state(static_cast<float>(pv.mi_signal));
+      this->check_stale_data_(pv.grid_vol, pv.grid_freq);
     }
   }
 #endif
@@ -471,6 +472,7 @@ void HMSWComponent::handle_real_data_new_(const RealDataNewReqDTO &data) {
     if (this->power_limit_readback_) this->power_limit_readback_->publish_state(sgs.power_limit / 10.0f);
     if (this->warning_number_) this->warning_number_->publish_state(static_cast<float>(sgs.warning_number));
     if (this->link_status_) this->link_status_->publish_state(static_cast<float>(sgs.link_status));
+    this->check_stale_data_(sgs.voltage, sgs.frequency);
     ESP_LOGV(TAG, "RealDataNew crc_checksum=%d (log-only, not an entity -- see README.md)",
              (int) sgs.crc_checksum);
 #ifdef USE_TEXT_SENSOR
@@ -553,6 +555,50 @@ void HMSWComponent::handle_alarm_list_(const WInfoReqDTO &data) {
     this->active_warnings_->publish_state(active.empty() ? "None" : active);
   }
 #endif
+}
+
+void HMSWComponent::check_stale_data_(int32_t raw_ac_voltage, int32_t raw_ac_frequency) {
+  // "Hung DTU" watchdog -- ported from a detection method ohAnd/dtuGateway
+  // describes in its own troubleshooting notes: the DTU can keep answering
+  // realtime-data requests while actually stuck, replaying the same
+  // reading over and over. Comparing the RAW wire integer (not the scaled
+  // float) avoids any float-equality pitfalls -- the division is
+  // deterministic, but there's no reason to rely on that here.
+  //
+  // AC voltage (the default, matching dtuGateway) can be nearly rock-solid
+  // on an AC-coupled installation behind a hybrid inverter, which tightly
+  // regulates its own AC output voltage -- stale_data_use_frequency_
+  // switches to AC/grid frequency instead for that case (see
+  // set_stale_data_use_frequency()): present around the clock (no
+  // night-time blind spot the way power would have), and normally still
+  // tracking the real grid's natural jitter even when voltage is pinned.
+  int32_t raw_value = this->stale_data_use_frequency_ ? raw_ac_frequency : raw_ac_voltage;
+
+  if (this->has_last_stale_value_ && raw_value == this->last_stale_value_raw_) {
+    this->stale_data_count_++;
+  } else {
+    this->stale_data_count_ = 0;
+  }
+  this->last_stale_value_raw_ = raw_value;
+  this->has_last_stale_value_ = true;
+
+#ifdef USE_SENSOR
+  // Always published, independent of stale_data_threshold_ -- lets the
+  // threshold be tuned from real observed behaviour before turning on the
+  // auto-reboot action. See README.md.
+  if (this->current_stale_data_) {
+    this->current_stale_data_->publish_state(static_cast<float>(this->stale_data_count_));
+  }
+#endif
+
+  if (this->stale_data_threshold_ > 0 && this->stale_data_count_ >= this->stale_data_threshold_) {
+    ESP_LOGW(TAG, "AC voltage unchanged for %u consecutive poll(s) (threshold %u) -- DTU looks hung, "
+                  "requesting an automatic reboot", (unsigned) this->stale_data_count_,
+             (unsigned) this->stale_data_threshold_);
+    this->stale_data_count_ = 0;
+    this->has_last_stale_value_ = false;  // fresh baseline once the DTU is back
+    this->dtu_reboot_pending_ = true;
+  }
 }
 
 void HMSWComponent::publish_reachable_(bool reachable) {
@@ -649,6 +695,14 @@ void HMSWComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "  Alarm-list poll interval: %ums", (unsigned) this->alarm_poll_interval_ms_);
   } else {
     ESP_LOGCONFIG(TAG, "  Alarm-list poll: disabled");
+  }
+  ESP_LOGCONFIG(TAG, "  Stale-data watchdog metric: %s",
+                this->stale_data_use_frequency_ ? "AC frequency" : "AC voltage");
+  if (this->stale_data_threshold_ > 0) {
+    ESP_LOGCONFIG(TAG, "  Stale-data auto-reboot threshold: %u consecutive poll(s)",
+                  (unsigned) this->stale_data_threshold_);
+  } else {
+    ESP_LOGCONFIG(TAG, "  Stale-data auto-reboot: disabled (count still tracked/published)");
   }
 }
 

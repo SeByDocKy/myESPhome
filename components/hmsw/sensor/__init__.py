@@ -47,6 +47,11 @@ CONF_LINK_STATUS = "link_status"
 # alarm_poll_interval is set (disabled/0 by default). See README.md.
 CONF_ACTIVE_WARNING_COUNT = "active_warning_count"
 
+# "Hung DTU" watchdog -- always populated (independent of the hub's
+# stale_data_reboot_threshold, which only gates the auto-reboot action).
+# See README.md.
+CONF_CURRENT_STALE_DATA = "current_stale_data"
+
 DEPENDENCIES = ["hmsw"]
 
 _POWER_SCHEMA = sensor.sensor_schema(
@@ -161,6 +166,16 @@ _ACTIVE_WARNING_COUNT_SCHEMA = sensor.sensor_schema(
     accuracy_decimals=0,
     icon="mdi:alert-circle",
 )
+# "Hung DTU" watchdog -- running count of consecutive realtime-data polls
+# where AC voltage hasn't changed at all. Always populated; see
+# stale_data_reboot_threshold on the hub for the auto-reboot action this
+# feeds (off by default).
+_CURRENT_STALE_DATA_SCHEMA = sensor.sensor_schema(
+    state_class=STATE_CLASS_MEASUREMENT,
+    entity_category="diagnostic",
+    accuracy_decimals=0,
+    icon="mdi:database-clock",
+)
 
 DC_CHANNEL_SCHEMA = cv.Schema(
     {
@@ -221,6 +236,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_WARNING_NUMBER): _WARNING_NUMBER_SCHEMA,
         cv.Optional(CONF_LINK_STATUS): _LINK_STATUS_SCHEMA,
         cv.Optional(CONF_ACTIVE_WARNING_COUNT): _ACTIVE_WARNING_COUNT_SCHEMA,
+        cv.Optional(CONF_CURRENT_STALE_DATA): _CURRENT_STALE_DATA_SCHEMA,
     }
 )
 
@@ -289,3 +305,7 @@ async def to_code(config):
     if CONF_ACTIVE_WARNING_COUNT in config:
         s = await sensor.new_sensor(config[CONF_ACTIVE_WARNING_COUNT])
         cg.add(hub.set_active_warning_count_sensor(s))
+
+    if CONF_CURRENT_STALE_DATA in config:
+        s = await sensor.new_sensor(config[CONF_CURRENT_STALE_DATA])
+        cg.add(hub.set_current_stale_data_sensor(s))

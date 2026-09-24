@@ -19,6 +19,44 @@ IP address on the local network, like any other network device. No
 ESP32 (hmsw:)  <--- WiFi / TCP, port 10081, Protobuf --->  HMS-XXXXW inverter
 ```
 
+## Supported hardware
+
+"HMS-XXXXW" in this component's name refers to the naming pattern, not one
+specific wattage. The distinguishing feature is the **`W` right after the
+wattage figure** -- that's Hoymiles' own marker for "Wi-Fi integrated" (a
+built-in DTU, joining your WiFi directly), as opposed to the plain
+`HMS-XXXX-nT` models (no `W`), which have no WiFi/DTU of their own and
+need an external `DTU-Lite`/`DTU-Pro` dongle talking sub-1GHz RF -- those
+are what `hm:`/`hms:` (this repo's other components) target instead, not
+`hmsw:`. Per Hoymiles' own product pages, the Wi-Fi-integrated lineup is:
+
+| Family | PV inputs | Models |
+|---|---|---|
+| `-1T` | 1 | `HMS-300W-1T`, `HMS-350W-1T`, `HMS-400W-1T`, `HMS-450W-1T`, `HMS-500W-1T` |
+| `-2T` | 2 | `HMS-600W-2T`, `HMS-700W-2T`, `HMS-800W-2T`, `HMS-900W-2T`, `HMS-1000W-2T` |
+| `-4T` | 4 | `HMS-1600DW-4T`, `HMS-1800DW-4T`, `HMS-2000DW-4T` (note the extra `D` in this tier's naming, not just `W`) |
+
+(Sources: Hoymiles' own product pages for the
+[`-1T`](https://www.hoymiles.com/products/hms-300w-350w-400w-450w-500w-1t-wi-fi-integrated.html),
+[`-2T`](https://open-energy.hoymiles.com/en/product/hms-600w-700w-800w-900w-1000w-2t-wi-fi-integrated-eu/)
+and [`-4T`](https://www.hoymiles.com/product-release/hoymiles-wi-fi-integrated-microinverters-are-set-to-make-small-home-solar-more-cost-effective.html)
+families.)
+
+This component's `dc_channels:` array is sized for up to 4 entries
+(`pv0`..`pv3`), so it covers the `-4T` tier's 4 PV inputs as well as the
+smaller `-1T`/`-2T` units (just use fewer `dc_channels` entries).
+
+**Verified vs. assumed:** the protocol itself (this component's whole
+reason to exist) was only ever reverse-engineered/tested by upstream
+projects against the **`HMS-800W-2T`** -- `suaveolent/hoymiles-wifi`'s own
+README says as much: developed for that specific model,
+"compatibility with other inverters from the series is untested at the
+time of writing" (on their end too, not just this component's). This
+component itself has **not yet been tested against any real hardware** at
+all (see "Status" at the bottom) -- so treat every model above as "should
+work, same family/protocol", not "confirmed", until proven on real
+hardware.
+
 ## Wire protocol
 
 Reverse-engineered by the community, not published by Hoymiles. This
@@ -358,8 +396,9 @@ component runs on. Ported from `ohAnd/dtuGateway`'s
 `writeReqCommandRestartDevice()`/`requestRestartDevice()`, which that
 project exposes both as a manual "Reboot DTU" button in its own web UI
 *and* fires automatically as part of its own hang/error recovery (see
-`handleError()`). This component only wires up the manual, explicit-action
-side of that -- nothing here reboots the DTU on its own.
+`handleError()`). This component wires up both: the manual `button:` below,
+and (opt-in, see "Hung-DTU watchdog" further down) the same automatic
+trigger `dtuGateway` uses.
 
 **Notable wire-level difference from every other request in this
 component**: the reboot request is sent on `0x23 0x05`
@@ -381,6 +420,98 @@ button:
     reset_hmsw:
       name: "Reset HMSW (DTU)"
 ```
+
+## Hung-DTU watchdog (`stale_data_reboot_threshold`)
+
+Reported by several users of `suaveolent/ha-hoymiles-wifi`
+([issue #16](https://github.com/suaveolent/ha-hoymiles-wifi/issues/16)):
+the DTU can go into a state where it keeps answering realtime-data
+requests -- so a plain "is the TCP connection alive" check (this
+component's `reachable:` binary_sensor) sees nothing wrong -- but the
+values it returns stop updating, frozen at whatever it last measured.
+`ohAnd/dtuGateway`'s own troubleshooting notes (`readme_old.md`,
+"experiences with the hoymiles HMS-800W-2T") describe both the symptom and
+their fix:
+
+> *"sometimes hanging or full shutdown/break of DTU will be prevented by
+> sending an active reboot request to dtu (hanging detection at this time
+> over grid voltage, should be changing at least within 10 consecutive
+> incoming data)"*
+
+This component ports that same detection: on every realtime-data poll
+(either data source), the raw AC/grid voltage is compared to the previous
+poll's value, and a running count of consecutive **unchanged** readings is
+kept:
+
+- **`current_stale_data`** (`sensor:`) -- that running count, published on
+  every poll, **regardless of the setting below**. This is deliberate: it
+  lets you watch how this count actually behaves on your own installation
+  (normal jitter should reset it to 0 constantly) before committing to an
+  automatic action.
+- **`stale_data_reboot_threshold`** (hub option, default `0` = disabled) --
+  once the count reaches this many consecutive identical readings,
+  `reboot_dtu()` is triggered automatically (same request as the manual
+  `button:` above, same best-effort response handling). `dtuGateway`'s own
+  figure was **10** consecutive readings; with the default `poll_interval`
+  of 30s that's ~5 minutes of frozen data before a reboot is sent -- adjust
+  for your own `poll_interval` if you use a different one.
+
+Why AC/grid voltage by default, not e.g. power: it's the field
+`dtuGateway` uses, and grid voltage has natural mains fluctuation second to
+second, so on a **grid-tied** installation it's very unlikely to sit
+*exactly* unchanged for many consecutive polls unless something really is
+stuck (unlike e.g. power at night, which can legitimately read a constant
+`0` for hours). The comparison is done on the **raw wire integer**, not
+the scaled float, to sidestep any floating-point-equality concerns
+entirely.
+
+**Caveat -- AC-coupled installations behind a hybrid inverter/battery
+system:** in that setup, the HMS-XXXXW doesn't see raw grid voltage --
+it sees whatever AC voltage the hybrid inverter's own output stage is
+regulating, which can be held essentially rock-solid, especially
+off-grid/backup-powered. Voltage-based detection is prone to **false
+positives** there (perfectly healthy DTU, but voltage genuinely doesn't
+move enough to reset the counter). For that case, set:
+
+```yaml
+hmsw:
+  id: my_hmsw
+  stale_data_metric: ac_frequency   # default: ac_voltage
+```
+
+`ac_frequency` was picked over AC power for this: power drops to exactly
+`0` and sits there for hours every single night with nothing wrong,
+which would make a power-based watchdog trigger constant false positives
+on a schedule -- frequency has no such blind spot, since it's present and
+measurable around the clock regardless of production. And on a grid-tied
+installation (the hybrid inverter still connected to and synchronized
+with the utility grid, not running an isolated/off-grid AC bus), the
+hybrid is normally *tracking* the real grid frequency rather than
+synthesizing its own fixed one -- so `ac_frequency` should still carry the
+grid's natural jitter even when the hybrid pins voltage rock-solid. This
+doesn't help on a true off-grid/backup bus where the hybrid is
+grid-forming (there, it may well regulate frequency just as tightly as
+voltage) -- there's no field this component reads that's known to reliably
+distinguish "hung" from "healthy" in that specific case. Neither option's
+threshold has been validated against real hardware yet; this is a
+reasoned design based on the trade-off, not a tuned default.
+
+```yaml
+hmsw:
+  id: my_hmsw
+  host: 192.168.1.50
+  stale_data_reboot_threshold: 10   # default: 0 (disabled) -- see above
+
+sensor:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    current_stale_data:
+      name: "Current Stale Data Count"
+```
+
+**Not yet validated against real hardware** -- like the rest of this
+first cut, this is ported from documented behaviour/detection logic, not
+from a real hang captured and reproduced against this specific component.
 
 ## What this component does NOT (yet) implement
 
@@ -489,6 +620,7 @@ same physical quantities, different source message on the wire.
 | `warning_number` | -- | (none) | diagnostic, `mdi:alert` -- **RealDataNew only** |
 | `link_status` | -- | (none) | diagnostic, raw firmware value (meaning/range not yet confirmed, deliberately not a `binary_sensor`) -- **RealDataNew only** |
 | `active_warning_count` | -- | (none) | diagnostic; count of currently-active alarm-list entries -- only populated if `alarm_poll_interval` is set (see "Alarm/warning list" above) |
+| `current_stale_data` | -- | (none) | diagnostic; running count of consecutive polls with an unchanged AC voltage or AC frequency reading (selected via `stale_data_metric`) -- **always populated**, independent of `stale_data_reboot_threshold` (see "Hung-DTU watchdog" above) |
 
 `crc_checksum` is **not** exposed as an entity -- logged at `VERBOSE` only
 (`ESP_LOGV`), see `handle_real_data_new_()`.
@@ -601,9 +733,10 @@ button:
 
 Same layout as above, with `data_source: real_data_new` set on the hub and
 the extra entities (`energy_daily`, `power_limit`, `warning_number`,
-`link_status`, `firmware_version`) wired up, plus the alarm-list poll and
-the DTU-reboot button (both independent of `data_source`, so they'd work
-just as well in the first example above). `ac:`/`dc_channels:
+`link_status`, `firmware_version`) wired up, plus the alarm-list poll, the
+DTU-reboot button, and the hung-DTU watchdog (all three independent of
+`data_source`, so they'd work just as well in the first example above).
+`ac:`/`dc_channels:
 .../temperature`/`rssi` stay exactly as they are above -- see the note
 under "Entity reference" on which fields keep working and which don't
 (`rssi` is `real_data`-only) once you switch. Remember `RealDataNew` itself
@@ -623,6 +756,7 @@ hmsw:
   heartbeat_interval: 20s
   data_source: real_data_new
   alarm_poll_interval: 10min   # default: 0s (disabled) -- see "Alarm/warning list" above
+  stale_data_reboot_threshold: 10   # default: 0 (disabled) -- see "Hung-DTU watchdog" above
 
 sensor:
   - platform: hmsw
@@ -654,6 +788,8 @@ sensor:
       name: "Link Status"
     active_warning_count:
       name: "Active Warning Count"
+    current_stale_data:
+      name: "Current Stale Data Count"
 
 binary_sensor:
   - platform: hmsw

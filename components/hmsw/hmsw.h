@@ -138,6 +138,34 @@ class HMSWComponent : public Component {
   /// ohAnd/dtuGateway's requestRestartDevice(). See README.md.
   void reboot_dtu() { this->dtu_reboot_pending_ = true; }
 
+  /// "Hung DTU" watchdog: a chosen AC-side quantity (see
+  /// set_stale_data_use_frequency()) is checked on every realtime-data poll
+  /// (both data sources) and a running count of consecutive polls where it
+  /// didn't change at all is kept -- ported from a detection method
+  /// ohAnd/dtuGateway describes in its own troubleshooting notes ("hanging
+  /// detection ... over grid voltage, should be changing at least within 10
+  /// consecutive incoming data"). The count is always tracked/published
+  /// (see current_stale_data sensor) regardless of this setting, so the
+  /// threshold can be tuned from observed behaviour before enabling the
+  /// action. 0 (the default) means "track and publish only, never
+  /// auto-reboot"; a positive value triggers an automatic reboot_dtu() once
+  /// the count reaches it. See README.md.
+  void set_stale_data_threshold(uint32_t threshold) { this->stale_data_threshold_ = threshold; }
+
+  /// Which quantity the watchdog above compares across polls. false
+  /// (default) = AC/grid voltage, matching ohAnd/dtuGateway's own method --
+  /// but that field can be nearly rock-solid on an AC-coupled installation
+  /// behind a hybrid inverter, which tightly regulates its own AC output
+  /// voltage, making the watchdog prone to false positives there. true =
+  /// AC/grid frequency instead: unlike power, it's present and measurable
+  /// around the clock (not just while producing, so no night-time
+  /// false-positive risk the way power would have), and on a grid-tied
+  /// installation the hybrid inverter is normally following/tracking the
+  /// actual grid frequency rather than synthesizing its own -- so it still
+  /// carries the same natural jitter voltage might not, even when voltage
+  /// itself is tightly regulated. See README.md for the trade-off.
+  void set_stale_data_use_frequency(bool use_frequency) { this->stale_data_use_frequency_ = use_frequency; }
+
 #ifdef USE_SENSOR
   void set_dc_power_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_power_[ch] = s; }
   void set_dc_current_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_current_[ch] = s; }
@@ -164,6 +192,11 @@ class HMSWComponent : public Component {
   // warnings (WTime1 != 0 && WTime2 == 0). Only populated if
   // alarm_poll_interval is set. See README.md.
   void set_active_warning_count_sensor(sensor::Sensor *s) { this->active_warning_count_ = s; }
+  // "Hung DTU" watchdog -- current count of consecutive realtime-data polls
+  // where AC voltage hasn't changed at all. Always populated (independent
+  // of stale_data_reboot_threshold, see set_stale_data_threshold()). See
+  // README.md.
+  void set_current_stale_data_sensor(sensor::Sensor *s) { this->current_stale_data_ = s; }
 #endif
 #ifdef USE_BINARY_SENSOR
   void set_reachable_sensor(binary_sensor::BinarySensor *s) { this->reachable_sensor_ = s; }
@@ -197,6 +230,7 @@ class HMSWComponent : public Component {
   void handle_real_data_new_(const RealDataNewReqDTO &data);
   void handle_command_response_(const CommandReqDTO &data);
   void handle_alarm_list_(const WInfoReqDTO &data);
+  void check_stale_data_(int32_t raw_ac_voltage, int32_t raw_ac_frequency);
   void publish_reachable_(bool reachable);
 
   static uint16_t crc16_modbus_(const uint8_t *data, size_t len);
@@ -253,6 +287,13 @@ class HMSWComponent : public Component {
   // DTU reboot -- fire-and-forget, same convention as power_limit_pending_.
   bool dtu_reboot_pending_{false};
 
+  // "Hung DTU" watchdog (see set_stale_data_threshold()/README.md).
+  uint32_t stale_data_threshold_{0};  // 0 = track/publish only, never auto-reboot
+  bool stale_data_use_frequency_{false};  // false = AC voltage (default), true = AC frequency
+  uint32_t stale_data_count_{0};
+  int32_t last_stale_value_raw_{0};
+  bool has_last_stale_value_{false};
+
 #ifdef USE_SENSOR
   sensor::Sensor *dc_power_[4]{};
   sensor::Sensor *dc_current_[4]{};
@@ -274,6 +315,7 @@ class HMSWComponent : public Component {
   sensor::Sensor *warning_number_{nullptr};
   sensor::Sensor *link_status_{nullptr};
   sensor::Sensor *active_warning_count_{nullptr};  // alarm-list feature only
+  sensor::Sensor *current_stale_data_{nullptr};    // "hung DTU" watchdog
 #endif
 #ifdef USE_BINARY_SENSOR
   binary_sensor::BinarySensor *reachable_sensor_{nullptr};

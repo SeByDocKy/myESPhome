@@ -21,6 +21,11 @@ CONF_HEARTBEAT_INTERVAL = "heartbeat_interval"
 CONF_REQUEST_TIMEOUT = "request_timeout"
 CONF_DATA_SOURCE = "data_source"
 CONF_ALARM_POLL_INTERVAL = "alarm_poll_interval"
+CONF_STALE_DATA_REBOOT_THRESHOLD = "stale_data_reboot_threshold"
+CONF_STALE_DATA_METRIC = "stale_data_metric"
+
+STALE_DATA_METRIC_VOLTAGE = "ac_voltage"
+STALE_DATA_METRIC_FREQUENCY = "ac_frequency"
 
 DATA_SOURCE_REAL_DATA = "real_data"
 DATA_SOURCE_REAL_DATA_NEW = "real_data_new"
@@ -59,6 +64,30 @@ CONFIG_SCHEMA = cv.Schema(
         # changes rarely, so a long interval (e.g. 10-15 min) is plenty and
         # keeps this off the DTU firmware's ~2s minimum request spacing.
         cv.Optional(CONF_ALARM_POLL_INTERVAL, default="0s"): cv.positive_time_period_milliseconds,
+        # "Hung DTU" watchdog -- ohAnd/dtuGateway's troubleshooting notes
+        # describe detecting a stuck-but-still-answering DTU by watching AC
+        # (grid) voltage stop changing across ~10 consecutive realtime-data
+        # polls, then sending it an active reboot request to recover. 0 (the
+        # default) never triggers the auto-reboot action, but the running
+        # count is always tracked/published (sensor: current_stale_data) so
+        # the right threshold for your setup/poll_interval can be found from
+        # observed behaviour first. See README.md before enabling this.
+        cv.Optional(CONF_STALE_DATA_REBOOT_THRESHOLD, default=0): cv.int_range(min=0),
+        # Which quantity the watchdog above compares across polls.
+        # "ac_voltage" (default) matches ohAnd/dtuGateway's own method, but
+        # that field can be nearly rock-solid on an AC-coupled installation
+        # behind a hybrid inverter (which tightly regulates its own AC
+        # output voltage) -- prone to false "hung" positives there. Switch
+        # to "ac_frequency" in that case: unlike power, it's present around
+        # the clock (no false positives overnight the way power would have,
+        # since power legitimately sits at 0 for hours with nothing wrong),
+        # and on a grid-tied installation the hybrid inverter is normally
+        # tracking the real grid frequency rather than synthesizing its
+        # own, so it keeps the same natural jitter voltage might not.
+        # See README.md.
+        cv.Optional(CONF_STALE_DATA_METRIC, default=STALE_DATA_METRIC_VOLTAGE): cv.one_of(
+            STALE_DATA_METRIC_VOLTAGE, STALE_DATA_METRIC_FREQUENCY, lower=True
+        ),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -74,3 +103,5 @@ async def to_code(config):
     cg.add(var.set_request_timeout(config[CONF_REQUEST_TIMEOUT]))
     cg.add(var.set_use_real_data_new(config[CONF_DATA_SOURCE] == DATA_SOURCE_REAL_DATA_NEW))
     cg.add(var.set_alarm_poll_interval(config[CONF_ALARM_POLL_INTERVAL]))
+    cg.add(var.set_stale_data_threshold(config[CONF_STALE_DATA_REBOOT_THRESHOLD]))
+    cg.add(var.set_stale_data_use_frequency(config[CONF_STALE_DATA_METRIC] == STALE_DATA_METRIC_FREQUENCY))
