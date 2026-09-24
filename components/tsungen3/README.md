@@ -25,7 +25,7 @@ References:
 - Frame structure: <https://pysolarmanv5.readthedocs.io/en/stable/solarmanv5_protocol.html>
 - Register map: <https://github.com/s-allius/tsun-gen3-proxy/wiki/MODBUS-registers>
 
-## Scope (v1)
+## Scope
 
 - Read-only telemetry via a single Modbus request per poll cycle (registers
   `0x3000`-`0x3029`): grid voltage/current/frequency, temperature, rated &
@@ -33,14 +33,27 @@ References:
 - Inverter Status / Event Alarms / Event Faults are exposed as raw `0x____`
   hex strings (`text_sensor`) — the bitmap meanings aren't documented
   upstream, so no decoding is attempted yet.
-- No MODBUS writes (rated power, output coefficient) and no AT+ commands.
-  Same incremental approach as this author's other components (`hm`, `hms`,
-  `hmsw`, `pcm3k6w`): read-only first, controls added once the read path is
-  verified against real hardware.
-- One TCP connection is opened, used, and closed per poll cycle (no
-  persistent connection).
+- **Write path**: `power_percent` (`number` and `output` platforms) writes
+  the Output Coefficient register (`0x202C`, function `0x06` Write Single
+  Register) to cap the inverter's output as a percent of Rated Power. A
+  `reset_tsungen3` `button` sends `AT+Z` ("Re-start module") over the same
+  TCP connection, using a different Solarman V5 frame type/sensor-type than
+  Modbus polling (see "AT+ command framing" below).
+- One TCP connection is opened, used, and closed per transaction (poll, or
+  each control action) — no persistent connection.
 - `MULTI_CONF` is supported: several `tsungen3:` blocks (one per inverter,
   each with its own IP) can coexist on the same ESP, same as `hmsw`.
+
+### AT+ command framing (button)
+
+Unlike the Modbus read/write path, AT+ commands are **not** Modbus RTU: they
+are plain ASCII text (command + `\r`) wrapped directly in the Solarman V5
+payload, with `Frame Type = 0x01` (`AT_CMD`) and `Sensor Type = 0x0002`
+instead of the `0x02`/`0x0000` used for Modbus polling. This was taken from
+the actual proxy source (`gen3plus/solarman_v5.py`'s `send_at_cmd()`/`AT_CMD`
+constant), not just the generic pysolarmanv5 spec, since AT+ framing isn't
+part of that spec. `AT+Z` ("Re-start module") is documented on the proxy's
+wiki; no other AT+ commands are wired up here.
 
 ### Unverified assumptions — please report back if your inverter disagrees
 
@@ -51,6 +64,15 @@ References:
 - **32-bit register decoding** (`AC Total Energy` at `0x301d`/`0x301e`):
   implemented as low-word-at-lower-address, matching the tsun-gen3-proxy
   wiki's "uInt32LE" notation, but not checked against a packet capture.
+- **Output Coefficient register/scaling** (`0x202C`, ratio 100/1024): taken
+  from the wiki's MODBUS register table and the proxy's v0.9.0 release note
+  ("inverter-output-coefficient"), not from a packet capture of an actual
+  write. **Test at low percentages first** — worst case if the ratio is
+  wrong is an incorrect output cap, not a bricked inverter, but it hasn't
+  been verified on real hardware.
+- **AT+Z's actual effect**: the wiki only says "Re-start module" — whether
+  this is a soft restart of the WiFi/monitoring MCU or something more
+  disruptive (interrupting power production) is not documented upstream.
 
 ## Example configuration
 
@@ -115,6 +137,24 @@ text_sensor:
       name: "MX1000 Event Alarms"
     event_faults:
       name: "MX1000 Event Faults"
+
+number:
+  - platform: tsungen3
+    tsungen3_id: mx1000
+    power_percent:
+      name: "MX1000 Power Percent"
+
+output:
+  - platform: tsungen3
+    tsungen3_id: mx1000
+    power_percent:
+      id: mx1000_power_percent_output
+
+button:
+  - platform: tsungen3
+    tsungen3_id: mx1000
+    reset_tsungen3:
+      name: "MX1000 Reset"
 ```
 
 ## Directory layout
@@ -127,5 +167,11 @@ tsungen3/
 │   └── __init__.py
 ├── text_sensor/
 │   └── __init__.py
+├── number/
+│   └── __init__.py      # power_percent (writes Output Coefficient, 0x202C)
+├── output/
+│   └── __init__.py      # power_percent (same write, as a FloatOutput)
+├── button/
+│   └── __init__.py      # reset_tsungen3 (sends AT+Z)
 └── README.md
 ```

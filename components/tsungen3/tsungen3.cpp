@@ -3,6 +3,7 @@
 
 #include <lwip/sockets.h>
 #include <lwip/netdb.h>
+#include <cmath>
 #include <cstring>
 
 namespace esphome {
@@ -66,28 +67,19 @@ uint32_t TSunGen3Component::get_u32_(const std::vector<uint8_t> &regs, uint16_t 
 // Frame construction / parsing
 // ---------------------------------------------------------------------------
 
-std::vector<uint8_t> TSunGen3Component::build_read_request_(uint16_t start_reg, uint16_t count) {
-  // Modbus RTU request: address(1) + function(1) + start(2 BE) + count(2 BE) + crc(2 LE)
-  std::vector<uint8_t> modbus;
-  modbus.push_back(this->modbus_address_);
-  modbus.push_back(MB_READ_HOLDING_REGISTERS);
-  modbus.push_back((start_reg >> 8) & 0xFF);
-  modbus.push_back(start_reg & 0xFF);
-  modbus.push_back((count >> 8) & 0xFF);
-  modbus.push_back(count & 0xFF);
-  uint16_t crc = modbus_crc16_(modbus.data(), modbus.size());
-  modbus.push_back(crc & 0xFF);         // CRC low byte first
-  modbus.push_back((crc >> 8) & 0xFF);
-
-  // Solarman V5 request payload: 15 bytes + modbus frame
+// Wraps `tail` (a Modbus RTU frame, or AT-command bytes) into a full Solarman
+// V5 request frame: Start + Length + ControlCode(request) + Serial + LoggerSerial
+// + [FrameType + SensorType + 3x4 zero fields + tail] + Checksum + End.
+std::vector<uint8_t> TSunGen3Component::wrap_v5_request_(uint8_t frame_type, uint16_t sensor_type,
+                                                           const std::vector<uint8_t> &tail) {
   std::vector<uint8_t> payload;
-  payload.push_back(0x02);              // Frame Type: solar inverter
-  payload.push_back(0x00);              // Sensor Type LE
-  payload.push_back(0x00);
+  payload.push_back(frame_type);
+  payload.push_back(sensor_type & 0xFF);
+  payload.push_back((sensor_type >> 8) & 0xFF);
   payload.insert(payload.end(), {0x00, 0x00, 0x00, 0x00});  // Total Working Time
   payload.insert(payload.end(), {0x00, 0x00, 0x00, 0x00});  // Power On Time
   payload.insert(payload.end(), {0x00, 0x00, 0x00, 0x00});  // Offset Time
-  payload.insert(payload.end(), modbus.begin(), modbus.end());
+  payload.insert(payload.end(), tail.begin(), tail.end());
 
   std::vector<uint8_t> frame;
   frame.push_back(V5_START);
@@ -115,7 +107,9 @@ std::vector<uint8_t> TSunGen3Component::build_read_request_(uint16_t start_reg, 
   return frame;
 }
 
-bool TSunGen3Component::parse_response_(const std::vector<uint8_t> &frame, std::vector<uint8_t> &register_data) {
+// Validates the Solarman V5 envelope (start/end/length/checksum/control code)
+// and returns the raw response payload (FrameType..tail, `payload_len` bytes).
+bool TSunGen3Component::extract_v5_payload_(const std::vector<uint8_t> &frame, std::vector<uint8_t> &payload) {
   if (frame.size() < 13) {
     ESP_LOGW(TAG, "Response too short (%d bytes)", (int) frame.size());
     return false;
@@ -145,14 +139,43 @@ bool TSunGen3Component::parse_response_(const std::vector<uint8_t> &frame, std::
   }
 
   if (payload_len < 14) {
-    ESP_LOGW(TAG, "Response payload too short for Modbus frame");
+    ESP_LOGW(TAG, "Response payload too short");
     return false;
   }
 
+  payload.assign(frame.begin() + 11, frame.begin() + 11 + payload_len);
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Read (function 0x03)
+// ---------------------------------------------------------------------------
+
+std::vector<uint8_t> TSunGen3Component::build_read_request_(uint16_t start_reg, uint16_t count) {
+  // Modbus RTU request: address(1) + function(1) + start(2 BE) + count(2 BE) + crc(2 LE)
+  std::vector<uint8_t> modbus;
+  modbus.push_back(this->modbus_address_);
+  modbus.push_back(MB_READ_HOLDING_REGISTERS);
+  modbus.push_back((start_reg >> 8) & 0xFF);
+  modbus.push_back(start_reg & 0xFF);
+  modbus.push_back((count >> 8) & 0xFF);
+  modbus.push_back(count & 0xFF);
+  uint16_t crc = modbus_crc16_(modbus.data(), modbus.size());
+  modbus.push_back(crc & 0xFF);  // CRC low byte first
+  modbus.push_back((crc >> 8) & 0xFF);
+
+  return this->wrap_v5_request_(V5_FRAME_TYPE_INVERTER, V5_SENSOR_TYPE_MODBUS, modbus);
+}
+
+bool TSunGen3Component::parse_response_(const std::vector<uint8_t> &frame, std::vector<uint8_t> &register_data) {
+  std::vector<uint8_t> payload;
+  if (!this->extract_v5_payload_(frame, payload))
+    return false;
+
   // Response payload: FrameType(1) + Status(1) + TotalWorkingTime(4) + PowerOnTime(4)
   //                    + OffsetTime(4) + Modbus RTU frame(variable)
-  const uint8_t *modbus = frame.data() + 11 + 14;
-  size_t modbus_len = payload_len - 14;
+  const uint8_t *modbus = payload.data() + 14;
+  size_t modbus_len = payload.size() - 14;
 
   if (modbus_len < 5) {
     ESP_LOGW(TAG, "Modbus frame too short");
@@ -186,6 +209,106 @@ bool TSunGen3Component::parse_response_(const std::vector<uint8_t> &frame, std::
   }
 
   register_data.assign(modbus + 3, modbus + 3 + byte_count);
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Write single register (function 0x06)
+// ---------------------------------------------------------------------------
+
+std::vector<uint8_t> TSunGen3Component::build_write_request_(uint16_t reg, uint16_t value) {
+  // Modbus RTU request: address(1) + function(1) + reg(2 BE) + value(2 BE) + crc(2 LE)
+  std::vector<uint8_t> modbus;
+  modbus.push_back(this->modbus_address_);
+  modbus.push_back(MB_WRITE_SINGLE_REGISTER);
+  modbus.push_back((reg >> 8) & 0xFF);
+  modbus.push_back(reg & 0xFF);
+  modbus.push_back((value >> 8) & 0xFF);
+  modbus.push_back(value & 0xFF);
+  uint16_t crc = modbus_crc16_(modbus.data(), modbus.size());
+  modbus.push_back(crc & 0xFF);
+  modbus.push_back((crc >> 8) & 0xFF);
+
+  return this->wrap_v5_request_(V5_FRAME_TYPE_INVERTER, V5_SENSOR_TYPE_MODBUS, modbus);
+}
+
+// Per Modbus spec, a function-0x06 response echoes address+function+reg+value
+// verbatim -- this checks that echo matches what was requested.
+bool TSunGen3Component::parse_write_response_(const std::vector<uint8_t> &frame, uint16_t expected_reg,
+                                               uint16_t expected_value) {
+  std::vector<uint8_t> payload;
+  if (!this->extract_v5_payload_(frame, payload))
+    return false;
+
+  const uint8_t *modbus = payload.data() + 14;
+  size_t modbus_len = payload.size() - 14;
+
+  if (modbus_len < 8) {
+    ESP_LOGW(TAG, "Write response too short");
+    return false;
+  }
+
+  uint16_t mb_crc_calc = modbus_crc16_(modbus, 6);
+  uint16_t mb_crc_recv = (uint16_t) modbus[6] | ((uint16_t) modbus[7] << 8);
+  if (mb_crc_calc != mb_crc_recv) {
+    ESP_LOGW(TAG, "Write response CRC mismatch");
+    return false;
+  }
+
+  if (modbus[0] != this->modbus_address_) {
+    ESP_LOGW(TAG, "Unexpected Modbus address 0x%02X", modbus[0]);
+    return false;
+  }
+  if (modbus[1] != MB_WRITE_SINGLE_REGISTER) {
+    if ((modbus[1] & 0x80) != 0) {
+      ESP_LOGW(TAG, "Write rejected: Modbus exception code 0x%02X", modbus[2]);
+    } else {
+      ESP_LOGW(TAG, "Unexpected Modbus function 0x%02X in write response", modbus[1]);
+    }
+    return false;
+  }
+
+  uint16_t reg_echo = ((uint16_t) modbus[2] << 8) | modbus[3];
+  uint16_t val_echo = ((uint16_t) modbus[4] << 8) | modbus[5];
+  if (reg_echo != expected_reg || val_echo != expected_value) {
+    ESP_LOGW(TAG, "Write echo mismatch: reg 0x%04X (expected 0x%04X), value %u (expected %u)", reg_echo,
+             expected_reg, val_echo, expected_value);
+    return false;
+  }
+
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// AT+ commands
+// ---------------------------------------------------------------------------
+
+std::vector<uint8_t> TSunGen3Component::build_at_command_request_(const std::string &cmd) {
+  // AT-command payload tail: command text followed by a '\r' terminator.
+  // Framing (Frame Type 0x01, Sensor Type 0x0002) confirmed against
+  // s-allius/tsun-gen3-proxy's gen3plus/solarman_v5.py (send_at_cmd()).
+  std::vector<uint8_t> tail(cmd.begin(), cmd.end());
+  tail.push_back('\r');
+  return this->wrap_v5_request_(V5_FRAME_TYPE_AT_CMD, V5_SENSOR_TYPE_AT_CMD, tail);
+}
+
+bool TSunGen3Component::parse_at_response_(const std::vector<uint8_t> &frame, std::string &text_out) {
+  std::vector<uint8_t> payload;
+  if (!this->extract_v5_payload_(frame, payload))
+    return false;
+
+  uint8_t ftype = payload[0];
+  if (ftype != V5_FRAME_TYPE_AT_CMD && ftype != V5_FRAME_TYPE_AT_CMD_RSP) {
+    ESP_LOGW(TAG, "Unexpected frame type in AT response: 0x%02X", ftype);
+    return false;
+  }
+
+  text_out.assign(payload.begin() + 14, payload.end());
+  // Strip a trailing CR/LF/NUL, if present.
+  while (!text_out.empty() &&
+         (text_out.back() == '\r' || text_out.back() == '\n' || text_out.back() == '\0')) {
+    text_out.pop_back();
+  }
   return true;
 }
 
@@ -352,6 +475,51 @@ void TSunGen3Component::dump_config() {
   ESP_LOGCONFIG(TAG, "  Host: %s:%u", this->host_.c_str(), this->port_);
   ESP_LOGCONFIG(TAG, "  Modbus address: %u", this->modbus_address_);
   ESP_LOGCONFIG(TAG, "  Logger serial: %u", (unsigned) this->logger_serial_);
+}
+
+// ---------------------------------------------------------------------------
+// Control actions (number / output / button)
+// ---------------------------------------------------------------------------
+
+void TSunGen3Component::set_power_percent(float percent) {
+  if (percent < 0.0f)
+    percent = 0.0f;
+  if (percent > 100.0f)
+    percent = 100.0f;
+
+  // Ratio 100/1024 (see REG_OUTPUT_COEFFICIENT) => register = percent * 1024 / 100
+  uint16_t reg_value = (uint16_t) lroundf(percent * 1024.0f / 100.0f);
+  if (reg_value > 1024)
+    reg_value = 1024;
+
+  std::vector<uint8_t> request = this->build_write_request_(REG_OUTPUT_COEFFICIENT, reg_value);
+  std::vector<uint8_t> response;
+
+  if (!this->connect_and_transact_(request, response)) {
+    ESP_LOGW(TAG, "Failed to write power_percent (%.1f%%) to %s:%u", percent, this->host_.c_str(), this->port_);
+    return;
+  }
+  if (!this->parse_write_response_(response, REG_OUTPUT_COEFFICIENT, reg_value)) {
+    ESP_LOGW(TAG, "Inverter rejected/garbled power_percent write (%.1f%%)", percent);
+    return;
+  }
+  ESP_LOGI(TAG, "power_percent set to %.1f%% (register 0x%04X = %u)", percent, REG_OUTPUT_COEFFICIENT, reg_value);
+}
+
+void TSunGen3Component::send_reset_command() {
+  std::vector<uint8_t> request = this->build_at_command_request_("AT+Z");
+  std::vector<uint8_t> response;
+
+  if (!this->connect_and_transact_(request, response)) {
+    ESP_LOGW(TAG, "Failed to send AT+Z (reset) to %s:%u", this->host_.c_str(), this->port_);
+    return;
+  }
+  std::string text;
+  if (!this->parse_at_response_(response, text)) {
+    ESP_LOGW(TAG, "Garbled response to AT+Z");
+    return;
+  }
+  ESP_LOGI(TAG, "AT+Z (reset) sent, inverter replied: %s", text.c_str());
 }
 
 }  // namespace tsungen3

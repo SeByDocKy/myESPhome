@@ -127,3 +127,21 @@ text_sensor:
       name: ${name}_tsungen3_1_event_alarms
     event_faults:
       name: ${name}_tsungen3_1_event_faults
+
+number:
+  - platform: tsungen3
+    tsungen3_id: tsungen3_1
+    power_percent:
+      name: ${name}_tsungen3_1_power_percent
+
+output:
+  - platform: tsungen3
+    tsungen3_id: tsungen3_1
+    power_percent:
+      id: ${name}_tsungen3_1_power_percent_output
+
+button:
+  - platform: tsungen3
+    tsungen3_id: tsungen3_1
+    reset_tsungen3:
+      name: ${name}_tsungen3_1_reset_tsungen3
