@@ -69,6 +69,52 @@ the field names in the original disassembled DTU firmware exactly as
 ported by both upstream repos, and was verified against a real, working
 Python client (`hoymiles_wifi/dtu.py`), not just the raw `.proto` shapes.
 
+### Other known commands (not implemented here)
+
+The gap between `0xA3 0x05` and `0xA3 0x11` isn't undocumented -- it's just
+not wired up in this component yet. `ohAnd/dtuGateway`'s `dtuConst.h`
+enumerates the full `0xA3 0x01`-`0xA3 0x16` range (App -> DTU requests all
+start `0xA3`; DTU -> App responses to those same actions start `0xA2`,
+mirrored 1:1, not listed separately below), plus a handful of `0x83`/
+`0xdb`/`0x23`-prefixed variants whose exact role (a different device class?
+a different firmware generation? cloud-relay framing?) isn't documented
+anywhere upstream, `dtuGateway` included -- they're listed in its source
+with no further explanation, so treat the "meaning" column below as a
+reasonable guess from the constant's name, not a verified fact:
+
+| Command | Constant (`dtuConst.h`) | Guessed meaning | Reference `.proto` in `proto_hw/` |
+|---|---|---|---|
+| `0xA3 0x01` | `CMD_APP_INFO_DATA_RES_DTO` | App/device info exchange | `APPInfomationData.proto` |
+| `0xA3 0x02` | `CMD_HB_RES_DTO` | Heartbeat | **implemented** (`APPHeartbeatPB.proto`) |
+| `0xA3 0x03` | `CMD_REAL_DATA_RES_DTO` | Classic realtime data | **implemented** (`RealData.proto`) |
+| `0xA3 0x04` | `CMD_W_INFO_RES_DTO` | Warning-list fetch | **implemented** (`AlarmData.proto`) |
+| `0xA3 0x05` | `CMD_COMMAND_RES_DTO` | Generic action (`action` code selects the behaviour -- power limit, alarm-list step 1, DTU/MI reboot, etc.) | **implemented** (`CommandPB.proto`) |
+| `0xA3 0x06` | `CMD_COMMAND_STATUS_RES_DTO` | Poll the completion status of a previously-sent `0xA3 0x05` action | not vendored |
+| `0xA3 0x07` | `CMD_DEV_CONFIG_FETCH_RES_DTO` | Fetch device configuration | not vendored |
+| `0xA3 0x08` | `CMD_DEV_CONFIG_PUT_RES_DTO` | Push device configuration | not vendored |
+| `0xA3 0x09` | `CMD_GET_CONFIG` | Get config (DTU/network-level, distinct from 0x07/0x08's per-device config) | `GetConfig.proto` |
+| `0xA3 0x10` | `CMD_SET_CONFIG` | Set config | `SetConfig.proto` |
+| `0xA3 0x11` | `CMD_REAL_RES_DTO` | Paginated realtime data | **implemented** (`RealDataNew.proto`) |
+| `0xA3 0x12` | `CMD_GPST_RES_DTO` | Unclear (possibly time/clock sync) | not vendored |
+| `0xA3 0x13` | `CMD_AUTO_SEARCH` | Auto-discovery of MI/inverter units behind the DTU during setup | not vendored |
+| `0xA3 0x14` | `CMD_NETWORK_INFO_RES` | Network info (WiFi/IP status) | `NetworkInfo.proto` |
+| `0xA3 0x15` | `CMD_APP_GET_HIST_POWER_RES` | Historical power data | `AppGetHistPower.proto` |
+| `0xA3 0x16` | `CMD_APP_GET_HIST_ED_RES` | Historical energy data | not vendored |
+| `0x83 0x01`, `0x83 0x02`, `0x83 0x03`, `0x83 0x05`-`0x83 0x08` | `CMD_*_RES_DTO_ALT`/`_2` | Alternate framing for (probably) a different device role -- unexplained upstream | not vendored |
+| `0xdb 0x07`, `0xdb 0x08` | `CMD_SET_CONFIG_RES`/`CMD_GET_CONFIG_RES` | Config get/set *responses*, oddly on a different command prefix than the `0xA3 0x09`/`0xA3 0x10` *requests* | not vendored |
+| `0x23 0x01` | `CMD_CLOUD_INFO_DATA_RES_DTO` | Cloud-relay variant of `0xA3 0x01` | not vendored |
+| `0x23 0x05` | `CMD_CLOUD_COMMAND_RES_DTO` | Cloud-relay variant of `0xA3 0x05`, but with genuinely different behaviour for at least `action=1` (DTU reboot) | **implemented** (`CommandPB.proto`, reused) |
+
+Note the `0xA3 0x09` -> `0xA3 0x10` jump (skipping `0x0A`-`0x0F`) is in the
+firmware's own numbering, not a typo here -- `dtuGateway`'s source has it
+the same way. `0x23 0x05` (DTU reboot) is the only one of these "extra"
+commands actually confirmed to behave differently from its `0xA3`
+counterpart on real hardware (per `dtuGateway`'s own testing); the rest are
+untested guesses from constant names alone, and none of the additional
+`.proto` files above have been compiled/vendored into this component -- they
+sit in `proto_hw/` purely as a reference for whoever picks one of these up
+next.
+
 ### Protobuf via nanopb
 
 `RealData.proto`, `RealDataNew.proto` and `APPHeartbeatPB.proto` (copied
