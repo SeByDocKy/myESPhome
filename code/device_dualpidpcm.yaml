@@ -216,4 +216,6 @@ number:
       name: ${name}_${dualpidpcm_name}_delta_idle_charging
     delta_idle_discharging:
       name: ${name}_${dualpidpcm_name}_delta_idle_discharging
+    timer_standby_poweroff: 
+      name: ${name}_${dualpidpcm_name}_timer_standby_poweroff
 
