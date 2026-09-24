@@ -177,7 +177,7 @@ void DUALPIDPCMComponent::pid_update() {
     float tmp, tmp_i, epsi;
     float alphaP, alphaI, alphaD, alpha;
     bool should_be_on, raw_deadband, output_is_active;
-    bool in_startup, outputs_at_rest;
+    bool in_startup = false, outputs_at_rest;
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
     float delta_error, pending_jump;
     bool trigger_ff = false;
