@@ -42,6 +42,12 @@ class DUALPIDPCMComponent : public Component{
  // numbers positionnent l'écart avant REDÉMARRAGE (motivation anti-cyclage).
  SUB_NUMBER(delta_idle_charging)
  SUB_NUMBER(delta_idle_discharging)
+ // ── Timer avant coupure réelle au repos ───────────────────────────────────
+ // Délai (s) pendant lequel on reste en attente (onoff_switch_ laissé allumé)
+ // après une entrée en deadband/standby depuis un mode actif, avant de
+ // couper réellement l'alimentation. 0 (défaut) = coupure immédiate, comme
+ // avant l'ajout de cette fonctionnalité.
+ SUB_NUMBER(timer_standby_poweroff)
  SUB_NUMBER(kp)
  SUB_NUMBER(ki)
  SUB_NUMBER(kd)
@@ -131,6 +137,11 @@ class DUALPIDPCMComponent : public Component{
   float get_delta_idle_charging(void){return this->current_delta_idle_charging_;}
   void set_delta_idle_discharging(float value) {this->current_delta_idle_discharging_ = value;}
   float get_delta_idle_discharging(void){return this->current_delta_idle_discharging_;}
+
+  // Délai (s) de grâce avant coupure réelle de onoff_switch_ au repos.
+  // 0 = coupure immédiate (comportement historique, inchangé par défaut).
+  void set_timer_standby_poweroff(float value) {this->current_timer_standby_poweroff_ = value;}
+  float get_timer_standby_poweroff(void){return this->current_timer_standby_poweroff_;}
 
   void set_kp(float value) {this->current_kp_ = value;}
   float get_kp(void){return this->current_kp_;}
@@ -240,6 +251,22 @@ class DUALPIDPCMComponent : public Component{
   // Écart (W) seuil d'ARRÊT -> seuil de REDÉMARRAGE, par direction.
   float current_delta_idle_charging_    = 30.0f;
   float current_delta_idle_discharging_ = 30.0f;
+
+  // ── Timer avant coupure réelle au repos (grâce) ───────────────────────────
+  // current_timer_standby_poweroff_ : délai réglable (s), 0 = coupure
+  // immédiate (comportement historique).
+  // standby_start_time_ : horodatage de l'entrée en standby (depuis un mode
+  // actif), sert de référence pour le décompte.
+  // standby_power_cut_  : true si onoff_switch_ a déjà été réellement coupé
+  // pour l'épisode de standby en cours (ou si aucun épisode n'est en cours) ;
+  // false pendant la grâce, tant qu'on attend l'échéance du timer. Sert
+  // aussi à ne PAS réarmer STARTUP_INHIBIT_MS (mode_start_time_) si l'on
+  // rebascule vers CHARGE/DISCHARGE avant que la coupure n'ait eu lieu —
+  // le convertisseur n'ayant jamais été mis hors tension, aucun redémarrage
+  // physique n'est nécessaire.
+  float    current_timer_standby_poweroff_ = 0.0f;
+  uint32_t standby_start_time_             = 0;
+  bool     standby_power_cut_              = true;
 
   float current_kp_          = 1.1f;
   float current_ki_          = 0.0f;
