@@ -102,8 +102,25 @@ reasonable guess from the constant's name, not a verified fact:
 | `0xA3 0x16` | `CMD_APP_GET_HIST_ED_RES` | Historical energy data | not vendored |
 | `0x83 0x01`, `0x83 0x02`, `0x83 0x03`, `0x83 0x05`-`0x83 0x08` | `CMD_*_RES_DTO_ALT`/`_2` | Alternate framing for (probably) a different device role -- unexplained upstream | not vendored |
 | `0xdb 0x07`, `0xdb 0x08` | `CMD_SET_CONFIG_RES`/`CMD_GET_CONFIG_RES` | Config get/set *responses*, oddly on a different command prefix than the `0xA3 0x09`/`0xA3 0x10` *requests* | not vendored |
-| `0x23 0x01` | `CMD_CLOUD_INFO_DATA_RES_DTO` | Cloud-relay variant of `0xA3 0x01` | not vendored |
-| `0x23 0x05` | `CMD_CLOUD_COMMAND_RES_DTO` | Cloud-relay variant of `0xA3 0x05`, but with genuinely different behaviour for at least `action=1` (DTU reboot) | **implemented** (`CommandPB.proto`, reused) |
+| `0x23 0x01` | `CMD_CLOUD_INFO_DATA_RES_DTO` | Named after the app's cloud-relay path, but see note below -- not actually cloud traffic on our side | not vendored |
+| `0x23 0x05` | `CMD_CLOUD_COMMAND_RES_DTO` | Same "`0x23` = cloud-named" family as `0x23 0x01` above, with genuinely different behaviour for at least `action=1` (DTU reboot) | **implemented** (`CommandPB.proto`, reused) |
+
+**"Cloud" in these two constants' names is misleading -- no data actually
+leaves the LAN through them.** In the Hoymiles app, this `0x23`-prefixed
+command family (DTU/MI reboot, inverter on/off, "performance data mode",
+etc. -- `dtuGateway` implements several besides the reboot, all sharing
+this same header) is presumably the one normally sent *through* Hoymiles'
+cloud, which then relays it to the DTU. But the `0x23 0x05` header is just
+part of the payload the DTU's own firmware expects; it carries no
+special routing. Confirmed directly in `dtuGateway`'s source
+(`writeReqCommandRestartDevice()`, `src/dtuInterface.cpp`): it's sent over
+the exact same local `AsyncClient` TCP connection, to the exact same
+`serverIP:serverPort` (the DTU's own LAN IP, port 10081), as every other
+request in that project -- there is no second connection to any Hoymiles
+server anywhere in its codebase for this command. This component's own
+`DTU_REBOOT` request works identically: it goes out over the same
+short-lived local TCP connection as everything else in `hmsw.cpp`, to the
+`host:`/`port:` you configure on the `hmsw:` hub, nothing more.
 
 Note the `0xA3 0x09` -> `0xA3 0x10` jump (skipping `0x0A`-`0x0F`) is in the
 firmware's own numbering, not a typo here -- `dtuGateway`'s source has it
