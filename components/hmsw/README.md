@@ -56,8 +56,10 @@ TCP connection alive.
 |-----------|---------------------------|----------------------|--------------------------|
 | `0xA3 0x02` | `HEARTBEAT`  | `HBResDTO` (small, mostly empty) | `HBReqDTO` (ack) |
 | `0xA3 0x03` | `REAL_DATA`  | `RealDataResDTO` (small, mostly empty) | `RealDataReqDTO` (the actual telemetry: `pv_data[]`, one `PvDataMO` per DC/PV channel) |
-| `0xA3 0x05` | `POWER_LIMIT` | `CommandResDTO` (`action`/`data`) | `CommandReqDTO` (`err_code`) |
+| `0xA3 0x04` | `ALARM_LIST_FETCH` (alarm-list step 2) | `WInfoResDTO` (`offset`/`time`) | `WInfoReqDTO` (`mWInfo[]`, one `WInfoMO` per warning entry) -- see below |
+| `0xA3 0x05` | `POWER_LIMIT` or `ALARM_LIST_REQUEST` (alarm-list step 1) | `CommandResDTO` (`action`/`data`) | `CommandReqDTO` (`err_code`) -- same wire command and ack shape for both, disambiguated internally via `pending_kind_` |
 | `0xA3 0x11` | `REAL_DATA_NEW` | `RealDataNewResDTO` (small, `cp` = requested page) | `RealDataNewReqDTO` (`pv_data[]`/`sgs_data[]`/`rp_data[]`, `ap` = total pages) -- see below |
+| `0x23 0x05` | `DTU_REBOOT` | `CommandResDTO` (`action`=1, no `data`) | `CommandReqDTO`, best-effort only -- see "DTU reboot" below |
 
 **Naming gotcha, worth documenting because it looks backwards at first
 read:** the message the *client* (us) sends is the `...ResDTO`-suffixed
@@ -71,9 +73,13 @@ Python client (`hoymiles_wifi/dtu.py`), not just the raw `.proto` shapes.
 
 `RealData.proto`, `RealDataNew.proto` and `APPHeartbeatPB.proto` (copied
 from `suaveolent/hoymiles-wifi`, which is kept more current than the
-original `henkwiedig` repo -- field names differ slightly between the two)
-are compiled with [nanopb](https://github.com/nanopb/nanopb) into
-`RealData.pb.h/.c`, `RealDataNew.pb.h/.c` and `APPHeartbeatPB.pb.h/.c`,
+original `henkwiedig` repo -- field names differ slightly between the two),
+plus `AlarmData.proto` (ported from `ohAnd/dtuGateway`'s
+`include/proto/AlarmData.proto` -- only the messages this component
+actually uses, `WInfoMO`/`WInfoReqDTO`/`WInfoResDTO`, not the unrelated
+"warning wave data" messages in that same file), are compiled with
+[nanopb](https://github.com/nanopb/nanopb) into `RealData.pb.h/.c`,
+`RealDataNew.pb.h/.c`, `APPHeartbeatPB.pb.h/.c` and `AlarmData.pb.h/.c`,
 committed alongside the component (not regenerated at build time, to avoid
 needing `protoc` in the ESPHome build). All repeated/string fields are
 bounded via `.options` files (`max_size`/`max_count`) so the generated
@@ -81,7 +87,7 @@ structs are fully static (fixed-size arrays, no `pb_callback_t`, no
 malloc) -- important on an ESP32 with limited heap. The nanopb runtime
 (`pb.h`, `pb_common.*`, `pb_encode.*`, `pb_decode.*`) is vendored flat
 alongside `hmsw.cpp` for the same reason. If you need other message types
-(config read/write, DTU reboot, etc.), regenerate from the `.proto` files
+(config read/write, etc.), regenerate from the `.proto` files
 in `suaveolent/hoymiles-wifi`'s `hoymiles_wifi/protobuf/` folder the same
 way (a copy of every `.proto`/`.options` used by this component lives in
 `proto_hw/` next to this README, for reference -- not compiled at build
@@ -94,12 +100,30 @@ one implied decimal digit (voltage/power/temperature) or two (current),
 same convention as the RF-based HM/HMS protocol -- divide by 10 or 100
 accordingly (see `HMSWComponent::handle_real_data_()`).
 
-`RealDataNew`'s `PvMO`/`SGSMO` fields use the **same x10/x100 hypothesis**
-in `handle_real_data_new_()`, but this has **not been confirmed against a
-real capture** -- the `.proto` comments only say "Volts"/"Watts"/etc. with
-no scale documented (same as `RealData`'s, where the convention was only
-confirmed empirically after real-hardware testing). If `real_data_new`
-readings come back 10x or 100x off, that's the first thing to check.
+`RealDataNew`'s `PvMO`/`SGSMO` fields use the **same x10/x100 convention**
+in `handle_real_data_new_()`. This was originally a hypothesis carried over
+from `RealData`, but it's now corroborated by an independent, real-hardware
+implementation: [ohAnd/dtuGateway](https://github.com/ohAnd/dtuGateway)'s
+`calcValue(value, divider = 10)` helper divides `SGSMO`/`PvMO` voltage,
+current, power, frequency and temperature fields the same way this
+component does (default divisor 10, current/frequency by 100) --
+see `readRespRealDataNew()` in their `src/dtuInterface.cpp`. Two exceptions
+worth noting from that same code:
+
+- `energy_total`/`energy_daily` are read **unscaled off the wire** there too
+  (raw Wh) -- `dtuGateway` only divides by 1000 for its own display. This
+  component does the same /1000 conversion, but at publish time: `energy_total`
+  (both `RealData` and `RealDataNew`) and `energy_daily` (`RealDataNew` only)
+  are published as **kWh**, not raw Wh -- see `sensor/__init__.py`
+  (`UNIT_KILOWATT_HOURS`, `accuracy_decimals=3`) and the `/ 1000.0f` in
+  `handle_real_data_()`/`handle_real_data_new_()`.
+- `SGSMO.power_limit` is printed there as `"%i %%"` (raw integer, **no**
+  division, labelled as a percentage) in a commented-out debug line --
+  which would make this component's `power_limit` sensor wrong on two
+  counts (it currently divides by 10 and reports Watts). That line is
+  commented out in `dtuGateway` itself, so treat it as a lead to verify on
+  real hardware, not a second confirmation -- if `power_limit` reads 10x too
+  low and looks like a percentage instead of Watts, this is why.
 
 ## Power limit control (`number:`/`output:`)
 
@@ -194,6 +218,107 @@ Python reference client's request/response logic, not from a real
 `sgs_data`/`rsd_data`/`tgs_data` assumption above once real logs are
 available.
 
+## Alarm/warning list (`CMD_ACTION_ALARM_LIST`)
+
+A read-only diagnostic feature, ported from `ohAnd/dtuGateway`'s
+`writeReqCommandRequestAlarms()`/`writeReqCommandGetAlarms()`
+(`src/dtuInterface.cpp`) -- **not** the same thing as `RealDataNew`'s
+`SGSMO.warning_number`, which is a single raw integer this component
+already exposes as its own diagnostic sensor and which is never decoded
+anywhere, in this component or in `dtuGateway`.
+
+This is a genuine **two-step** request/response sequence, unlike everything
+else this component implements:
+
+1. **Step 1** (`ALARM_LIST_REQUEST`): a `CommandResDTO` with
+   `action = CMD_ACTION_ALARM_LIST (50)` is sent on `0xA3 0x05` -- the
+   *same* wire command and the *same* ack shape (`CommandReqDTO`,
+   `err_code`) as the power-limit command. `handle_command_response_()`
+   tells the two apart via `pending_kind_` (still valid at that point,
+   since it's only reset after the frame is handled -- see
+   `on_frame_received_()`/`abort_request_()`), not by anything in the
+   wire bytes themselves.
+2. **Step 2** (`ALARM_LIST_FETCH`), triggered automatically as soon as step
+   1's `err_code == 0` ack arrives: a `WInfoResDTO` (`offset=28800`,
+   `time`) is sent on a *different* command, `0xA3 0x04`, and the reply is
+   decoded as `WInfoReqDTO` -- a `repeated WInfoMO mWInfo` array, up to 30
+   entries.
+
+Each `WInfoMO` entry carries a packed `WCode` (`wcode1 = WCode & 0xFF`,
+`wcode2 = (WCode >> 8) & 0xFFFFFF` -- only `wcode1` is looked up here, same
+as `dtuGateway`) and two timestamps: the warning is considered **active**
+iff `WTime1 != 0 && WTime2 == 0` (started, not yet cleared). This component
+looks `wcode1` up in a small ported table (`hmsw_warnings.h`,
+`hmsw_warning_label()`) and publishes:
+
+- `active_warnings` (`text_sensor:`) -- a semicolon-joined
+  `"<label> (code N)"` list of every currently-active warning, or `"None"`.
+- `active_warning_count` (`sensor:`) -- how many are currently active.
+
+**This warning-code table is community-sourced, not an official Hoymiles
+document** -- ported verbatim from `dtuGateway`'s `warningCodeMap`
+(`readRespCommandGetAlarms()`), which itself marks a few nearby/legacy
+codes `[not approved]`/`[Unknown]` in commented-out entries this component
+did *not* carry over. A code not in the table still shows up as
+`"Unknown warning code (code N)"` rather than being dropped, so nothing is
+silently lost -- but treat the *label text* for any given code as a
+reasonable guess, not a certainty.
+
+This poll is **off by default** (`alarm_poll_interval: 0s`) and entirely
+separate from `poll_interval`/`heartbeat_interval` -- warning data changes
+rarely, so there's no reason to fetch it on the same ~30s cadence as
+realtime telemetry:
+
+```yaml
+hmsw:
+  id: my_hmsw
+  host: 192.168.1.50
+  alarm_poll_interval: 10min   # default: 0s (disabled)
+
+text_sensor:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    active_warnings:
+      name: "Active Warnings"
+
+sensor:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    active_warning_count:
+      name: "Active Warning Count"
+```
+
+## DTU reboot (`button:`)
+
+Reboots the **DTU/inverter's own network stack** -- not the ESP32 this
+component runs on. Ported from `ohAnd/dtuGateway`'s
+`writeReqCommandRestartDevice()`/`requestRestartDevice()`, which that
+project exposes both as a manual "Reboot DTU" button in its own web UI
+*and* fires automatically as part of its own hang/error recovery (see
+`handleError()`). This component only wires up the manual, explicit-action
+side of that -- nothing here reboots the DTU on its own.
+
+**Notable wire-level difference from every other request in this
+component**: the reboot request is sent on `0x23 0x05`
+(`CMD_DTU_REBOOT`), not `0xA3 0x05` (`CMD_COMMAND`, used for the power
+limit and the alarm-list step 1 above) -- a distinct command byte pair
+`dtuGateway`'s source calls out explicitly. The payload is a `CommandResDTO`
+with `action = CMD_ACTION_DTU_REBOOT (1)`, no `data` string needed.
+
+Response handling is deliberately **best-effort**: `dtuGateway`'s own
+decode of this specific reply is known to be buggy (it parses the response
+with the wrong message type), so this component logs whatever comes back
+without gating anything on it. Expect the DTU/inverter link to drop for a
+few seconds after sending this.
+
+```yaml
+button:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    reset_hmsw:
+      name: "Reset HMSW (DTU)"
+```
+
 ## What this component does NOT (yet) implement
 
 - **Encryption.** `hoymiles-wifi` supports an optional AES variant when
@@ -202,9 +327,9 @@ available.
 - **The "extended" frame format** (a different, longer header used by some
   commands/models, and the only known way to address a gateway managing
   several sub-devices behind one IP).
-- **Absolute (Watts) power limit, WiFi/config changes, DTU reboot, etc.**
-  -- only the relative (%) limit is implemented, same scope as `hm:`/
-  `hms:` started with.
+- **Absolute (Watts) power limit, WiFi/config changes, etc.** -- only the
+  relative (%) power limit, the alarm/warning list and the DTU reboot are
+  implemented so far, same starting scope as `hm:`/`hms:`.
 
 ## Polling interval
 
@@ -245,6 +370,22 @@ the inverter's EEPROM. Do **not** wire this into a fast PID loop (e.g.
 as safe only for occasional/manual limit changes until a RAM-only command is
 confirmed to exist for this series.
 
+One data point that nuances this, without resolving it: [ohAnd/dtuGateway](https://github.com/ohAnd/dtuGateway)
+-- an independent ESP32 DTU-gateway implementation for the HMS-800W-2T,
+using the exact same `CMD_ACTION_LIMIT_POWER` (`action = 8`) command this
+component does -- reports, in its `readme_old.md` "experiences with the
+Hoymiles HMS-800W-2T" section, real-hardware testing where sending many
+power-limit updates within a few seconds of each other (with no rate
+limiting) "seem[ed] to creat[e] no problems", running for "days without any
+stops". Their actual instability was from combining frequent power writes
+*with* frequent realtime-data reads close together in time (traced to a
+~31s-or-more read interval, similar to this component's own `poll_interval`
+default), not to a confirmed EEPROM failure from the writes themselves. This
+doesn't confirm the write is safe long-term (no one has published wear-out
+data), but it's a second independent real-hardware account that didn't
+observe damage even under a fairly aggressive write cadence -- worth
+weighing against the more cautious `ha-hoymiles-wifi` warning above.
+
 ## Entity reference
 
 Every platform is defined in its own sub-directory (`sensor/`,
@@ -260,9 +401,9 @@ only** stay unpublished (no entity ever appears in Home Assistant) when
 | `power` | power | W | 1 decimal |
 | `current` | current | A | 2 decimals |
 | `voltage` | voltage | V | 1 decimal |
-| `energy_total` | energy | Wh | total_increasing |
+| `energy_total` | energy | kWh | total_increasing, 3 decimals |
 | `temperature` | temperature | °C | 1 decimal |
-| `energy_daily` | energy | Wh | state class `total` (resets daily) -- **RealDataNew only** |
+| `energy_daily` | energy | kWh | state class `total` (resets daily), 3 decimals -- **RealDataNew only** |
 
 | Key (under `ac:`) | Device class | Unit | Notes |
 |---|---|---|---|
@@ -284,6 +425,7 @@ same physical quantities, different source message on the wire.
 | `power_limit` | power | W | diagnostic; readback of the currently-applied power limit (`SGSMO.power_limit`) -- **RealDataNew only**, raw scale unverified |
 | `warning_number` | -- | (none) | diagnostic, `mdi:alert` -- **RealDataNew only** |
 | `link_status` | -- | (none) | diagnostic, raw firmware value (meaning/range not yet confirmed, deliberately not a `binary_sensor`) -- **RealDataNew only** |
+| `active_warning_count` | -- | (none) | diagnostic; count of currently-active alarm-list entries -- only populated if `alarm_poll_interval` is set (see "Alarm/warning list" above) |
 
 `crc_checksum` is **not** exposed as an entity -- logged at `VERBOSE` only
 (`ESP_LOGV`), see `handle_real_data_new_()`.
@@ -293,6 +435,7 @@ same physical quantities, different source message on the wire.
 | Key | Notes |
 |---|---|
 | `firmware_version` | diagnostic, raw integer as reported by `SGSMO.firmware_version` (not yet decoded into a dotted version string) -- **RealDataNew only** |
+| `active_warnings` | diagnostic; semicolon-joined `"<label> (code N)"` list of currently-active warnings, or `"None"` -- only populated if `alarm_poll_interval` is set (see "Alarm/warning list" above) |
 
 ### `binary_sensor:`
 
@@ -311,6 +454,12 @@ same physical quantities, different source message on the wire.
 | Key | Notes |
 |---|---|
 | `persistent_power_percent` | same command/key as the `number:` above, exposed as an `output:` for use with e.g. a `pid` climate/controller; **every write hits the inverter's EEPROM** |
+
+### `button:`
+
+| Key | Notes |
+|---|---|
+| `reset_hmsw` | reboots the DTU/inverter's own network stack, **not** the ESP32 -- see "DTU reboot" above; response handling is best-effort |
 
 ## Configuration example
 
@@ -353,7 +502,7 @@ sensor:
           current:
             name: "PV0 Current"
           energy_total:
-            name: "PV0 Energy Total"
+            name: "PV0 Energy Total"   # published in kWh
     ac:
       voltage:
         name: "AC Voltage"
@@ -376,17 +525,27 @@ text_sensor:
     hmsw_id: my_hmsw
     firmware_version:
       name: "Firmware Version"
+
+# Reboots the DTU/inverter itself, not the ESP32 -- see "DTU reboot" above.
+button:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    reset_hmsw:
+      name: "Reset HMSW (DTU)"
 ```
 
 ## Configuration example -- `data_source: real_data_new`
 
 Same layout as above, with `data_source: real_data_new` set on the hub and
 the extra entities (`energy_daily`, `power_limit`, `warning_number`,
-`link_status`, `firmware_version`) wired up. `ac:`/`dc_channels:
+`link_status`, `firmware_version`) wired up, plus the alarm-list poll and
+the DTU-reboot button (both independent of `data_source`, so they'd work
+just as well in the first example above). `ac:`/`dc_channels:
 .../temperature`/`rssi` stay exactly as they are above -- see the note
 under "Entity reference" on which fields keep working and which don't
-(`rssi` is `real_data`-only) once you switch. Remember this is **not yet
-tested against real hardware** (see the `RealDataNew` section above).
+(`rssi` is `real_data`-only) once you switch. Remember `RealDataNew` itself
+is **not yet tested against real hardware** (see the `RealDataNew` section
+above).
 
 ```yaml
 external_components:
@@ -400,6 +559,7 @@ hmsw:
   poll_interval: 30s
   heartbeat_interval: 20s
   data_source: real_data_new
+  alarm_poll_interval: 10min   # default: 0s (disabled) -- see "Alarm/warning list" above
 
 sensor:
   - platform: hmsw
@@ -413,9 +573,9 @@ sensor:
           current:
             name: "PV0 Current"
           energy_total:
-            name: "PV0 Energy Total"
+            name: "PV0 Energy Total"   # published in kWh
           energy_daily:
-            name: "PV0 Energy Today"
+            name: "PV0 Energy Today"   # published in kWh
     ac:
       voltage:
         name: "AC Voltage"
@@ -429,6 +589,8 @@ sensor:
       name: "Warning Number"
     link_status:
       name: "Link Status"
+    active_warning_count:
+      name: "Active Warning Count"
 
 binary_sensor:
   - platform: hmsw
@@ -441,6 +603,14 @@ text_sensor:
     hmsw_id: my_hmsw
     firmware_version:
       name: "Firmware Version"
+    active_warnings:
+      name: "Active Warnings"
+
+button:
+  - platform: hmsw
+    hmsw_id: my_hmsw
+    reset_hmsw:
+      name: "Reset HMSW (DTU)"
 ```
 
 ## Configuration example -- two HMS-XXXXW inverters

@@ -1,10 +1,12 @@
 #include "hmsw.h"
+#include "hmsw_warnings.h"
 #include "esphome/core/log.h"
 #include "pb_encode.h"
 #include "pb_decode.h"
 #include <cstring>
 #include <cstdio>
 #include <cerrno>
+#include <string>
 
 namespace esphome {
 namespace hmsw {
@@ -42,6 +44,9 @@ void HMSWComponent::set_persistent_power_limit_percent(float percent) {
 void HMSWComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up HMSW (host=%s:%u)...", this->host_.c_str(), this->port_);
   this->last_poll_ = millis() - this->poll_interval_ms_;  // poll soon after boot
+  if (this->alarm_poll_interval_ms_ > 0) {
+    this->last_alarm_poll_ = millis() - this->alarm_poll_interval_ms_;  // poll soon after boot
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -120,6 +125,38 @@ void HMSWComponent::start_request_(RequestKind kind) {
     snprintf(msg.data, sizeof(msg.data), "A:%d,B:0,C:0\r", permille);
     ok = pb_encode(&stream, CommandResDTO_fields, &msg);
     cmd = CMD_COMMAND;
+  } else if (kind == RequestKind::ALARM_LIST_REQUEST) {
+    // Step 1 of the alarm-list sequence -- ported from
+    // ohAnd/dtuGateway's writeReqCommandRequestAlarms(). Same wire command
+    // (CMD_COMMAND) and ack message (CommandReqDTO) as POWER_LIMIT above;
+    // handle_command_response_() tells them apart via pending_kind_.
+    CommandResDTO msg = CommandResDTO_init_zero;
+    msg.time = static_cast<int32_t>(time(nullptr));
+    msg.action = CMD_ACTION_ALARM_LIST;
+    msg.package_nub = 1;
+    msg.dev_kind = 0;
+    msg.tid = static_cast<int64_t>(time(nullptr));
+    ok = pb_encode(&stream, CommandResDTO_fields, &msg);
+    cmd = CMD_COMMAND;
+  } else if (kind == RequestKind::ALARM_LIST_FETCH) {
+    // Step 2 -- ported from ohAnd/dtuGateway's writeReqCommandGetAlarms().
+    WInfoResDTO msg = WInfoResDTO_init_zero;
+    msg.offset = HMSW_TIME_OFFSET;
+    msg.time = static_cast<int32_t>(time(nullptr));
+    ok = pb_encode(&stream, WInfoResDTO_fields, &msg);
+    cmd = CMD_W_INFO;
+  } else if (kind == RequestKind::DTU_REBOOT) {
+    // Reboots the DTU/inverter's own network stack -- NOT the ESP32. Ported
+    // from ohAnd/dtuGateway's writeReqCommandRestartDevice(); note this
+    // uses CMD_DTU_REBOOT (0x23 0x05), a different wire command than every
+    // other request in this component. No `data` string needed.
+    CommandResDTO msg = CommandResDTO_init_zero;
+    msg.time = static_cast<int32_t>(time(nullptr));
+    msg.action = CMD_ACTION_DTU_REBOOT;
+    msg.package_nub = 1;
+    msg.tid = static_cast<int64_t>(time(nullptr));
+    ok = pb_encode(&stream, CommandResDTO_fields, &msg);
+    cmd = CMD_DTU_REBOOT;
   } else {
     return;
   }
@@ -164,6 +201,9 @@ void HMSWComponent::start_request_(RequestKind kind) {
   if (kind == RequestKind::HEARTBEAT) kind_name = "heartbeat";
   else if (kind == RequestKind::POWER_LIMIT) kind_name = "power-limit command";
   else if (kind == RequestKind::REAL_DATA_NEW) kind_name = "realtime-data-new";
+  else if (kind == RequestKind::ALARM_LIST_REQUEST) kind_name = "alarm-list request (step 1)";
+  else if (kind == RequestKind::ALARM_LIST_FETCH) kind_name = "alarm-list fetch (step 2)";
+  else if (kind == RequestKind::DTU_REBOOT) kind_name = "DTU reboot command";
   ESP_LOGV(TAG, "Connecting to %s:%u for %s request", this->host_.c_str(), this->port_, kind_name);
 }
 
@@ -302,6 +342,10 @@ void HMSWComponent::on_frame_received_(const uint8_t *cmd, const uint8_t *payloa
   } else if (cmd[0] == CMD_HB[0] && cmd[1] == CMD_HB[1]) {
     ESP_LOGV(TAG, "Heartbeat acknowledged");
   } else if (cmd[0] == CMD_COMMAND[0] && cmd[1] == CMD_COMMAND[1]) {
+    // Shared by POWER_LIMIT and ALARM_LIST_REQUEST (step 1) -- both reply
+    // with a CommandReqDTO on the same wire command; handle_command_response_()
+    // disambiguates via pending_kind_, which is still valid here (reset
+    // only after on_frame_received_() returns, in abort_request_()).
     CommandReqDTO data = CommandReqDTO_init_zero;
     pb_istream_t stream = pb_istream_from_buffer(payload, len);
     if (!pb_decode(&stream, CommandReqDTO_fields, &data)) {
@@ -309,6 +353,27 @@ void HMSWComponent::on_frame_received_(const uint8_t *cmd, const uint8_t *payloa
       return;
     }
     this->handle_command_response_(data);
+  } else if (cmd[0] == CMD_W_INFO[0] && cmd[1] == CMD_W_INFO[1]) {
+    WInfoReqDTO data = WInfoReqDTO_init_zero;
+    pb_istream_t stream = pb_istream_from_buffer(payload, len);
+    if (!pb_decode(&stream, WInfoReqDTO_fields, &data)) {
+      ESP_LOGW(TAG, "Failed to decode WInfoReqDTO (%s)", PB_GET_ERROR(&stream));
+      return;
+    }
+    this->handle_alarm_list_(data);
+  } else if (cmd[0] == CMD_DTU_REBOOT[0] && cmd[1] == CMD_DTU_REBOOT[1]) {
+    // dtuGateway's own response decode for this specific command is known
+    // to be unreliable (it decodes the reply with the wrong message type),
+    // so this is deliberately best-effort: try CommandReqDTO, and just log
+    // that *something* came back if it doesn't parse cleanly.
+    CommandReqDTO data = CommandReqDTO_init_zero;
+    pb_istream_t stream = pb_istream_from_buffer(payload, len);
+    if (pb_decode(&stream, CommandReqDTO_fields, &data)) {
+      this->handle_command_response_(data);
+    } else {
+      ESP_LOGI(TAG, "DTU reboot: got a reply (%u bytes), not cleanly decodable as CommandReqDTO -- ignoring "
+                     "the parse failure, the reboot request was still sent", (unsigned) len);
+    }
   } else {
     ESP_LOGV(TAG, "Unhandled response command 0x%02X 0x%02X (%u bytes payload)", cmd[0], cmd[1], (unsigned) len);
   }
@@ -326,7 +391,10 @@ void HMSWComponent::handle_real_data_(const RealDataReqDTO &data) {
     if (this->dc_voltage_[i]) this->dc_voltage_[i]->publish_state(pv.pv_vol / 10.0f);
     if (this->dc_current_[i]) this->dc_current_[i]->publish_state(pv.pv_cur / 100.0f);
     if (this->dc_power_[i]) this->dc_power_[i]->publish_state(pv.pv_power / 10.0f);
-    if (this->dc_energy_total_[i]) this->dc_energy_total_[i]->publish_state(static_cast<float>(pv.pv_energy_total));
+    // Wire value is raw Wh (confirmed against ohAnd/dtuGateway, which only
+    // divides by 1000 for its own kWh *display*, never at the protocol
+    // level) -- published here in kWh, see README.md/sensor/__init__.py.
+    if (this->dc_energy_total_[i]) this->dc_energy_total_[i]->publish_state(static_cast<float>(pv.pv_energy_total) / 1000.0f);
     if (this->dc_temperature_[i]) this->dc_temperature_[i]->publish_state(pv.pv_temp / 10.0f);
 
     // Grid-side (AC) readings are repeated identically on every PvDataMO
@@ -346,12 +414,14 @@ void HMSWComponent::handle_real_data_(const RealDataReqDTO &data) {
 
 void HMSWComponent::handle_real_data_new_(const RealDataNewReqDTO &data) {
   // Field scaling below (x10 for voltage/power/temperature, x100 for
-  // current, x1000 for power_factor) is a HYPOTHESIS carried over from the
-  // classic RealData/PvDataMO convention, NOT yet verified against a real
-  // RealDataNew capture -- the .proto comments just say "Volts"/"Watts"/
-  // etc. with no scale documented, same as they do for RealData (where the
-  // x10/x100 convention was later confirmed empirically). If readings come
-  // back 10x or 100x off on real hardware, adjust the divisors here.
+  // current/frequency, x1000 for power_factor) was originally a hypothesis
+  // carried over from the classic RealData/PvDataMO convention; it's now
+  // corroborated by an independent real-hardware implementation
+  // (ohAnd/dtuGateway's calcValue(value, divider=10) helper in
+  // readRespRealDataNew(), see README.md), so treat it as reasonably solid
+  // EXCEPT for sgs.power_limit below, which that same project's (commented-
+  // out, unverified) debug output suggests may actually be an unscaled
+  // percentage rather than x10 Watts -- see the comment at that line.
   if (this->real_data_new_cp_ == 0) {
     uint8_t ap = (data.ap < 1) ? 1 : static_cast<uint8_t>(data.ap);
     if (ap > REAL_DATA_NEW_MAX_PAGES) ap = REAL_DATA_NEW_MAX_PAGES;
@@ -367,8 +437,10 @@ void HMSWComponent::handle_real_data_new_(const RealDataNewReqDTO &data) {
     if (this->dc_voltage_[i]) this->dc_voltage_[i]->publish_state(pv.voltage / 10.0f);
     if (this->dc_current_[i]) this->dc_current_[i]->publish_state(pv.current / 100.0f);
     if (this->dc_power_[i]) this->dc_power_[i]->publish_state(pv.power / 10.0f);
-    if (this->dc_energy_total_[i]) this->dc_energy_total_[i]->publish_state(static_cast<float>(pv.energy_total));
-    if (this->dc_energy_daily_[i]) this->dc_energy_daily_[i]->publish_state(static_cast<float>(pv.energy_daily));
+    // Raw wire values are Wh -- published in kWh, same convention as the
+    // classic RealData path above.
+    if (this->dc_energy_total_[i]) this->dc_energy_total_[i]->publish_state(static_cast<float>(pv.energy_total) / 1000.0f);
+    if (this->dc_energy_daily_[i]) this->dc_energy_daily_[i]->publish_state(static_cast<float>(pv.energy_daily) / 1000.0f);
     if (pv.error_code != 0) {
       ESP_LOGV(TAG, "PV channel %u reported error_code=%d", (unsigned) i, (int) pv.error_code);
     }
@@ -391,6 +463,11 @@ void HMSWComponent::handle_real_data_new_(const RealDataNewReqDTO &data) {
     if (this->ac_current_) this->ac_current_->publish_state(sgs.current / 100.0f);
     if (this->ac_power_factor_) this->ac_power_factor_->publish_state(sgs.power_factor / 1000.0f);
     if (this->dc_temperature_[0]) this->dc_temperature_[0]->publish_state(sgs.temperature / 10.0f);
+    // /10.0f assumes Watts like the other SGSMO fields, per the .proto
+    // comment -- but ohAnd/dtuGateway's own (commented-out) debug line
+    // prints this same field unscaled and labelled "%", i.e. possibly
+    // already a 0-100 percentage. Unverified either way; check this first
+    // if the readback looks 10x too low or already looks like a percent.
     if (this->power_limit_readback_) this->power_limit_readback_->publish_state(sgs.power_limit / 10.0f);
     if (this->warning_number_) this->warning_number_->publish_state(static_cast<float>(sgs.warning_number));
     if (this->link_status_) this->link_status_->publish_state(static_cast<float>(sgs.link_status));
@@ -421,11 +498,61 @@ void HMSWComponent::handle_real_data_new_(const RealDataNewReqDTO &data) {
 }
 
 void HMSWComponent::handle_command_response_(const CommandReqDTO &data) {
+  if (this->pending_kind_ == RequestKind::ALARM_LIST_REQUEST) {
+    if (data.err_code == 0) {
+      ESP_LOGD(TAG, "Alarm-list request acknowledged (err_code=0), fetching warning list");
+      this->alarm_list_fetch_pending_ = true;
+    } else {
+      ESP_LOGW(TAG, "Alarm-list request reported err_code=%d", (int) data.err_code);
+    }
+    return;
+  }
+
+  if (this->pending_kind_ == RequestKind::DTU_REBOOT) {
+    // See the comment at the CMD_DTU_REBOOT branch in on_frame_received_():
+    // dtuGateway's own decode of this specific reply is known to be
+    // unreliable, so err_code here is logged, not treated as authoritative.
+    ESP_LOGI(TAG, "DTU reboot command sent, got a reply (err_code=%d) -- the DTU/inverter link may "
+                  "drop for a few seconds while it restarts", (int) data.err_code);
+    return;
+  }
+
   if (data.err_code == 0) {
     ESP_LOGI(TAG, "Power limit command acknowledged (err_code=0)");
   } else {
     ESP_LOGW(TAG, "Power limit command reported err_code=%d", (int) data.err_code);
   }
+}
+
+void HMSWComponent::handle_alarm_list_(const WInfoReqDTO &data) {
+  ESP_LOGD(TAG, "Alarm list: %u entr(y/ies)", (unsigned) data.mWInfo_count);
+
+  std::string active;
+  uint32_t active_count = 0;
+  for (pb_size_t i = 0; i < data.mWInfo_count; i++) {
+    const WInfoMO &w = data.mWInfo[i];
+    // Active iff a start time is set and no stop time yet -- ported from
+    // ohAnd/dtuGateway's readRespCommandGetAlarms(). WCode packs two
+    // sub-codes; only wcode1 (the low byte) is looked up here, same as
+    // that project's own warningCodeMap.
+    bool is_active = (w.WTime1 != 0 && w.WTime2 == 0);
+    if (!is_active) continue;
+    active_count++;
+    int wcode1 = w.WCode & 0x000000FF;
+    char entry[96];
+    snprintf(entry, sizeof(entry), "%s (code %d)", hmsw_warning_label(wcode1), wcode1);
+    if (!active.empty()) active += "; ";
+    active += entry;
+  }
+
+#ifdef USE_SENSOR
+  if (this->active_warning_count_) this->active_warning_count_->publish_state(static_cast<float>(active_count));
+#endif
+#ifdef USE_TEXT_SENSOR
+  if (this->active_warnings_) {
+    this->active_warnings_->publish_state(active.empty() ? "None" : active);
+  }
+#endif
 }
 
 void HMSWComponent::publish_reachable_(bool reachable) {
@@ -450,17 +577,24 @@ void HMSWComponent::loop() {
       break;
   }
 
-  // Nothing in flight -- a pending power-limit command has priority over
-  // everything else, sent as soon as the radio/connection is free instead
-  // of waiting for the next poll_interval slot (same convention as
-  // hm:/hms:). Next, an in-progress RealDataNew pagination continues
-  // (see handle_real_data_new_()) rather than waiting for the next
-  // poll_interval slot -- all pages belong to the same logical poll.
-  // Otherwise realtime data is due next; the heartbeat is only sent if
-  // neither is due, purely to exercise the connection between two
-  // poll_interval slots on long intervals (matches async_heartbeat() in
-  // the Python client -- see README.md for why this component does NOT
-  // keep the TCP connection open between requests).
+  // Nothing in flight -- explicit one-off user actions (DTU reboot, power
+  // limit) have priority over everything else, sent as soon as the
+  // radio/connection is free instead of waiting for the next poll_interval
+  // slot (same convention as hm:/hms: for the power limit). Next, an
+  // in-progress RealDataNew pagination or alarm-list fetch continues
+  // rather than waiting for the next slot -- both are the second half of a
+  // sequence already started. Then a due alarm-list poll, then realtime
+  // data; the heartbeat is only sent if none of those are due, purely to
+  // exercise the connection between two poll_interval slots on long
+  // intervals (matches async_heartbeat() in the Python client -- see
+  // README.md for why this component does NOT keep the TCP connection
+  // open between requests).
+  if (this->dtu_reboot_pending_) {
+    this->dtu_reboot_pending_ = false;
+    this->start_request_(RequestKind::DTU_REBOOT);
+    return;
+  }
+
   if (this->power_limit_pending_) {
     this->power_limit_pending_ = false;
     this->start_request_(RequestKind::POWER_LIMIT);
@@ -473,7 +607,20 @@ void HMSWComponent::loop() {
     return;
   }
 
+  if (this->alarm_list_fetch_pending_) {
+    this->alarm_list_fetch_pending_ = false;
+    this->start_request_(RequestKind::ALARM_LIST_FETCH);
+    return;
+  }
+
   uint32_t now = millis();
+
+  if (this->alarm_poll_interval_ms_ > 0 && now - this->last_alarm_poll_ >= this->alarm_poll_interval_ms_) {
+    this->last_alarm_poll_ = now;
+    this->start_request_(RequestKind::ALARM_LIST_REQUEST);
+    return;
+  }
+
   if (now - this->last_poll_ >= this->poll_interval_ms_) {
     this->last_poll_ = now;
     if (this->use_real_data_new_) {
@@ -498,6 +645,11 @@ void HMSWComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  Heartbeat interval: %ums", (unsigned) this->heartbeat_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Request timeout: %ums", (unsigned) this->request_timeout_ms_);
   ESP_LOGCONFIG(TAG, "  Data source: %s", this->use_real_data_new_ ? "RealDataNew (0xA3 0x11)" : "RealData (0xA3 0x03)");
+  if (this->alarm_poll_interval_ms_ > 0) {
+    ESP_LOGCONFIG(TAG, "  Alarm-list poll interval: %ums", (unsigned) this->alarm_poll_interval_ms_);
+  } else {
+    ESP_LOGCONFIG(TAG, "  Alarm-list poll: disabled");
+  }
 }
 
 }  // namespace hmsw

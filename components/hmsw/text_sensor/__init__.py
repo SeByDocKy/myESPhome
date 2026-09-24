@@ -8,6 +8,11 @@ CONF_HMSW_ID = "hmsw_id"
 # RealDataNew (0xA3 0x11) only -- never published when data_source:
 # real_data (the default) is in use. See README.md.
 CONF_FIRMWARE_VERSION = "firmware_version"
+# Alarm-list feature (CMD_ACTION_ALARM_LIST) -- only populated when the
+# hub's alarm_poll_interval is set (disabled/0 by default). Semicolon-
+# joined "<label> (code N)" list of currently-active warnings, or "None".
+# See README.md.
+CONF_ACTIVE_WARNINGS = "active_warnings"
 
 DEPENDENCIES = ["hmsw"]
 
@@ -15,11 +20,16 @@ _FIRMWARE_VERSION_SCHEMA = text_sensor.text_sensor_schema(
     entity_category="diagnostic",
     icon="mdi:chip",
 )
+_ACTIVE_WARNINGS_SCHEMA = text_sensor.text_sensor_schema(
+    entity_category="diagnostic",
+    icon="mdi:alert-circle-outline",
+)
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_HMSW_ID): cv.use_id(HMSWComponent),
         cv.Optional(CONF_FIRMWARE_VERSION): _FIRMWARE_VERSION_SCHEMA,
+        cv.Optional(CONF_ACTIVE_WARNINGS): _ACTIVE_WARNINGS_SCHEMA,
     }
 )
 
@@ -30,3 +40,7 @@ async def to_code(config):
     if CONF_FIRMWARE_VERSION in config:
         s = await text_sensor.new_text_sensor(config[CONF_FIRMWARE_VERSION])
         cg.add(hub.set_firmware_version_sensor(s))
+
+    if CONF_ACTIVE_WARNINGS in config:
+        s = await text_sensor.new_text_sensor(config[CONF_ACTIVE_WARNINGS])
+        cg.add(hub.set_active_warnings_sensor(s))

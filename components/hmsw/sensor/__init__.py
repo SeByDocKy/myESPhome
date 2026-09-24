@@ -20,10 +20,10 @@ from esphome.const import (
     UNIT_DECIBEL,
     UNIT_EMPTY,
     UNIT_HERTZ,
+    UNIT_KILOWATT_HOURS,
     UNIT_VOLT,
     UNIT_VOLT_AMPS_REACTIVE,
     UNIT_WATT,
-    UNIT_WATT_HOURS,
 )
 
 from .. import HMSWComponent
@@ -42,6 +42,10 @@ CONF_ENERGY_DAILY = "energy_daily"
 CONF_POWER_LIMIT = "power_limit"
 CONF_WARNING_NUMBER = "warning_number"
 CONF_LINK_STATUS = "link_status"
+
+# Alarm-list feature (CMD_ACTION_ALARM_LIST) -- only populated when the hub's
+# alarm_poll_interval is set (disabled/0 by default). See README.md.
+CONF_ACTIVE_WARNING_COUNT = "active_warning_count"
 
 DEPENDENCIES = ["hmsw"]
 
@@ -74,10 +78,10 @@ _VOLTAGE_SCHEMA = sensor.sensor_schema(
     icon="mdi:sine-wave",
 )
 _ENERGY_TOTAL_SCHEMA = sensor.sensor_schema(
-    unit_of_measurement=UNIT_WATT_HOURS,
+    unit_of_measurement=UNIT_KILOWATT_HOURS,
     device_class=DEVICE_CLASS_ENERGY,
     state_class=STATE_CLASS_TOTAL_INCREASING,
-    accuracy_decimals=0,
+    accuracy_decimals=3,
     icon="mdi:counter",
 )
 _FREQUENCY_SCHEMA = sensor.sensor_schema(
@@ -117,10 +121,10 @@ _RSSI_SCHEMA = sensor.sensor_schema(
 # "total" (not "total_increasing", which HA expects to only ever grow) --
 # same convention HA uses for other "today" energy sensors.
 _ENERGY_DAILY_SCHEMA = sensor.sensor_schema(
-    unit_of_measurement=UNIT_WATT_HOURS,
+    unit_of_measurement=UNIT_KILOWATT_HOURS,
     device_class=DEVICE_CLASS_ENERGY,
     state_class="total",
-    accuracy_decimals=0,
+    accuracy_decimals=3,
     icon="mdi:counter",
 )
 # Readback of the currently-applied power limit (SGSMO.power_limit) --
@@ -148,6 +152,14 @@ _LINK_STATUS_SCHEMA = sensor.sensor_schema(
     entity_category="diagnostic",
     accuracy_decimals=0,
     icon="mdi:link-variant",
+)
+# Alarm-list feature -- count of currently-active warnings (WTime1 != 0 &&
+# WTime2 == 0). Only populated when the hub's alarm_poll_interval is set.
+_ACTIVE_WARNING_COUNT_SCHEMA = sensor.sensor_schema(
+    state_class=STATE_CLASS_MEASUREMENT,
+    entity_category="diagnostic",
+    accuracy_decimals=0,
+    icon="mdi:alert-circle",
 )
 
 DC_CHANNEL_SCHEMA = cv.Schema(
@@ -208,6 +220,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_POWER_LIMIT): _POWER_LIMIT_SCHEMA,
         cv.Optional(CONF_WARNING_NUMBER): _WARNING_NUMBER_SCHEMA,
         cv.Optional(CONF_LINK_STATUS): _LINK_STATUS_SCHEMA,
+        cv.Optional(CONF_ACTIVE_WARNING_COUNT): _ACTIVE_WARNING_COUNT_SCHEMA,
     }
 )
 
@@ -272,3 +285,7 @@ async def to_code(config):
     if CONF_LINK_STATUS in config:
         s = await sensor.new_sensor(config[CONF_LINK_STATUS])
         cg.add(hub.set_link_status_sensor(s))
+
+    if CONF_ACTIVE_WARNING_COUNT in config:
+        s = await sensor.new_sensor(config[CONF_ACTIVE_WARNING_COUNT])
+        cg.add(hub.set_active_warning_count_sensor(s))

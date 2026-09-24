@@ -20,6 +20,7 @@ CONF_POLL_INTERVAL = "poll_interval"
 CONF_HEARTBEAT_INTERVAL = "heartbeat_interval"
 CONF_REQUEST_TIMEOUT = "request_timeout"
 CONF_DATA_SOURCE = "data_source"
+CONF_ALARM_POLL_INTERVAL = "alarm_poll_interval"
 
 DATA_SOURCE_REAL_DATA = "real_data"
 DATA_SOURCE_REAL_DATA_NEW = "real_data_new"
@@ -52,6 +53,12 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_DATA_SOURCE, default=DATA_SOURCE_REAL_DATA): cv.one_of(
             DATA_SOURCE_REAL_DATA, DATA_SOURCE_REAL_DATA_NEW, lower=True
         ),
+        # Alarm/warning-list feature (CMD_ACTION_ALARM_LIST), a two-step
+        # request separate from poll_interval/heartbeat_interval -- see
+        # README.md. Disabled (0, the default) unless set: warning data
+        # changes rarely, so a long interval (e.g. 10-15 min) is plenty and
+        # keeps this off the DTU firmware's ~2s minimum request spacing.
+        cv.Optional(CONF_ALARM_POLL_INTERVAL, default="0s"): cv.positive_time_period_milliseconds,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -66,3 +73,4 @@ async def to_code(config):
     cg.add(var.set_heartbeat_interval(config[CONF_HEARTBEAT_INTERVAL]))
     cg.add(var.set_request_timeout(config[CONF_REQUEST_TIMEOUT]))
     cg.add(var.set_use_real_data_new(config[CONF_DATA_SOURCE] == DATA_SOURCE_REAL_DATA_NEW))
+    cg.add(var.set_alarm_poll_interval(config[CONF_ALARM_POLL_INTERVAL]))

@@ -25,6 +25,7 @@
 #include "RealDataNew.pb.h"
 #include "APPHeartbeatPB.pb.h"
 #include "CommandPB.pb.h"
+#include "AlarmData.pb.h"
 
 namespace esphome {
 namespace hmsw {
@@ -48,8 +49,14 @@ namespace hmsw {
 // ---------------------------------------------------------------------------
 static const uint8_t CMD_HB[2] = {0xA3, 0x02};           // heartbeat request
 static const uint8_t CMD_REAL_DATA[2] = {0xA3, 0x03};    // classic realtime data request
-static const uint8_t CMD_COMMAND[2] = {0xA3, 0x05};      // generic command request (power limit, etc.)
+static const uint8_t CMD_W_INFO[2] = {0xA3, 0x04};       // alarm-list step 2: fetch the actual warning list
+static const uint8_t CMD_COMMAND[2] = {0xA3, 0x05};      // generic command request (power limit, alarm-list step 1, etc.)
 static const uint8_t CMD_REAL_DATA_NEW[2] = {0xA3, 0x11};  // paginated realtime data request (richer/diagnostic fields)
+// Distinct wire command for a DTU reboot -- ported from ohAnd/dtuGateway,
+// which uses this command (NOT CMD_COMMAND above) for
+// CMD_ACTION_DTU_REBOOT. Reboots the DTU/inverter's own network stack, not
+// the ESP32 this component runs on. See README.md.
+static const uint8_t CMD_DTU_REBOOT[2] = {0x23, 0x05};
 static const uint16_t DTU_DEFAULT_PORT = 10081;
 static const uint8_t FRAME_HEADER_SIZE = 10;
 static const size_t MAX_FRAME_SIZE = 512;  // generous -- real RealDataReqDTO/RealDataNewReqDTO frames are well under this
@@ -65,7 +72,27 @@ static const uint8_t REAL_DATA_NEW_MAX_PAGES = 8;
 // e.g. "A:1000,B:0,C:0\r" for 100.0%.
 static const int32_t CMD_ACTION_LIMIT_POWER = 8;
 
-enum class RequestKind : uint8_t { NONE = 0, HEARTBEAT, REAL_DATA, POWER_LIMIT, REAL_DATA_NEW };
+// CommandPB action codes for the alarm-list feature (step 1, sent on
+// CMD_COMMAND) and DTU reboot (sent on CMD_DTU_REBOOT) -- both ported from
+// ohAnd/dtuGateway's dtuConst.h (CMD_ACTION_ALARM_LIST/CMD_ACTION_DTU_REBOOT).
+static const int32_t CMD_ACTION_ALARM_LIST = 50;
+static const int32_t CMD_ACTION_DTU_REBOOT = 1;
+
+// Fixed timezone-offset constant (8h in seconds) the DTU firmware expects on
+// every OFFSET-bearing request -- same constant used for RealDataNew, not
+// something derived from this device's actual timezone.
+static const int32_t HMSW_TIME_OFFSET = 28800;
+
+enum class RequestKind : uint8_t {
+  NONE = 0,
+  HEARTBEAT,
+  REAL_DATA,
+  POWER_LIMIT,
+  REAL_DATA_NEW,
+  ALARM_LIST_REQUEST,  // step 1: "please prepare a warning list" (CMD_COMMAND)
+  ALARM_LIST_FETCH,    // step 2: "send me that warning list" (CMD_W_INFO)
+  DTU_REBOOT,
+};
 
 enum class ConnState : uint8_t {
   IDLE = 0,       // nothing in flight, waiting for the next poll
@@ -99,6 +126,18 @@ class HMSWComponent : public Component {
   /// see README.md. Every call writes to the inverter's EEPROM.
   void set_persistent_power_limit_percent(float percent);
 
+  /// Optional periodic poll of the alarm/warning list (CMD_ACTION_ALARM_LIST,
+  /// a two-step request separate from poll_interval/heartbeat_interval --
+  /// see README.md). 0 (the default) disables it entirely; the component
+  /// still never fetches it unless this is set.
+  void set_alarm_poll_interval(uint32_t ms) { this->alarm_poll_interval_ms_ = ms; }
+
+  /// Reboots the DTU/inverter's own network stack -- NOT the ESP32 this
+  /// component runs on. Non-blocking, fire-and-forget, same convention as
+  /// set_persistent_power_limit_percent(); ported from
+  /// ohAnd/dtuGateway's requestRestartDevice(). See README.md.
+  void reboot_dtu() { this->dtu_reboot_pending_ = true; }
+
 #ifdef USE_SENSOR
   void set_dc_power_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_power_[ch] = s; }
   void set_dc_current_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_current_[ch] = s; }
@@ -121,12 +160,19 @@ class HMSWComponent : public Component {
   void set_power_limit_readback_sensor(sensor::Sensor *s) { this->power_limit_readback_ = s; }
   void set_warning_number_sensor(sensor::Sensor *s) { this->warning_number_ = s; }
   void set_link_status_sensor(sensor::Sensor *s) { this->link_status_ = s; }
+  // Alarm-list feature (CMD_ACTION_ALARM_LIST) -- count of currently-active
+  // warnings (WTime1 != 0 && WTime2 == 0). Only populated if
+  // alarm_poll_interval is set. See README.md.
+  void set_active_warning_count_sensor(sensor::Sensor *s) { this->active_warning_count_ = s; }
 #endif
 #ifdef USE_BINARY_SENSOR
   void set_reachable_sensor(binary_sensor::BinarySensor *s) { this->reachable_sensor_ = s; }
 #endif
 #ifdef USE_TEXT_SENSOR
   void set_firmware_version_sensor(text_sensor::TextSensor *s) { this->firmware_version_ = s; }
+  // Semicolon-joined "<label> (code N)" list of currently-active warnings,
+  // or "None". See README.md.
+  void set_active_warnings_sensor(text_sensor::TextSensor *s) { this->active_warnings_ = s; }
 #endif
 
   void setup() override;
@@ -150,6 +196,7 @@ class HMSWComponent : public Component {
   void handle_real_data_(const RealDataReqDTO &data);
   void handle_real_data_new_(const RealDataNewReqDTO &data);
   void handle_command_response_(const CommandReqDTO &data);
+  void handle_alarm_list_(const WInfoReqDTO &data);
   void publish_reachable_(bool reachable);
 
   static uint16_t crc16_modbus_(const uint8_t *data, size_t len);
@@ -161,6 +208,8 @@ class HMSWComponent : public Component {
   uint32_t heartbeat_interval_ms_{20000};
   uint32_t request_timeout_ms_{3000};
   bool use_real_data_new_{false};
+  uint32_t alarm_poll_interval_ms_{0};  // 0 = disabled (default)
+  uint32_t last_alarm_poll_{0};
 
   std::unique_ptr<socket::Socket> socket_{nullptr};
   ConnState state_{ConnState::IDLE};
@@ -195,6 +244,15 @@ class HMSWComponent : public Component {
   uint8_t real_data_new_ap_{1};
   bool real_data_new_pending_more_{false};
 
+  // Alarm-list two-step sequence (see README.md): alarm_list_pending_
+  // triggers step 1 (request), alarm_list_fetch_pending_ triggers step 2
+  // (fetch) once step 1 is acknowledged.
+  bool alarm_list_pending_{false};
+  bool alarm_list_fetch_pending_{false};
+
+  // DTU reboot -- fire-and-forget, same convention as power_limit_pending_.
+  bool dtu_reboot_pending_{false};
+
 #ifdef USE_SENSOR
   sensor::Sensor *dc_power_[4]{};
   sensor::Sensor *dc_current_[4]{};
@@ -215,12 +273,14 @@ class HMSWComponent : public Component {
   sensor::Sensor *power_limit_readback_{nullptr};
   sensor::Sensor *warning_number_{nullptr};
   sensor::Sensor *link_status_{nullptr};
+  sensor::Sensor *active_warning_count_{nullptr};  // alarm-list feature only
 #endif
 #ifdef USE_BINARY_SENSOR
   binary_sensor::BinarySensor *reachable_sensor_{nullptr};
 #endif
 #ifdef USE_TEXT_SENSOR
   text_sensor::TextSensor *firmware_version_{nullptr};  // RealDataNew only
+  text_sensor::TextSensor *active_warnings_{nullptr};   // alarm-list feature only
 #endif
 };
 
