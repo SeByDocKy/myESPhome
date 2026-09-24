@@ -11,7 +11,7 @@ namespace hmsw {
 /// non-persistent (RAM-only) variant of this command is known for
 /// HMS-XXXXW -- every write hits the inverter's EEPROM. See README.md
 /// before wiring this into a fast control loop (PID, etc.).
-class HMSWPersistentPowerLimitPercentOutput : public output::FloatOutput {
+class HMSWPersistentPowerPercentOutput : public output::FloatOutput {
  public:
   void set_parent(HMSWComponent *parent) { this->parent_ = parent; }
 

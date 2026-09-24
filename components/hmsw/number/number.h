@@ -6,7 +6,7 @@
 namespace esphome {
 namespace hmsw {
 
-class HMSWPersistentPowerLimitPercentNumber : public number::Number {
+class HMSWPersistentPowerPercentNumber : public number::Number {
  public:
   void set_parent(HMSWComponent *parent) { this->parent_ = parent; }
 

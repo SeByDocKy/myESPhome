@@ -117,7 +117,7 @@ behind `poll_interval` -- same convention as `hm:`/`hms:`.
 `B`/`C` are always sent as `0`: they address additional MPPT/string
 groups on multi-string models this component doesn't target.
 
-Both the `number:` and `output:` keys are named `persistent_power_limit_percent`
+Both the `number:` and `output:` keys are named `persistent_power_percent`
 (not just `power_percent`/`power_limit_percent`) -- same key on both
 platforms, to make it explicit that every write goes to the inverter's
 EEPROM regardless of which one you use -- see the caution section below.
@@ -126,13 +126,13 @@ EEPROM regardless of which one you use -- see the caution section below.
 number:
   - platform: hmsw
     hmsw_id: my_hmsw
-    persistent_power_limit_percent:
+    persistent_power_percent:
       name: "Power Limit"
 
 output:
   - platform: hmsw
     hmsw_id: my_hmsw
-    persistent_power_limit_percent:
+    persistent_power_percent:
       id: hmsw_power_output
 ```
 
@@ -238,7 +238,7 @@ variant of this command is known to exist for HMS-XXXXW** -- confirmed by
 three independent community sources (`suaveolent/ha-hoymiles-wifi`'s README,
 GitHub issues #54 and #16 on that repo, and `MicHi07i/ioBroker.hoymiles-wifi`'s
 README). This is why both the `number:` and `output:` config keys are named
-`persistent_power_limit_percent`:
+`persistent_power_percent`:
 `HMSWComponent::set_persistent_power_limit_percent()` **always** writes to
 the inverter's EEPROM. Do **not** wire this into a fast PID loop (e.g.
 `zero-injection`-style control against a Shelly's active power) -- treat it
@@ -304,13 +304,13 @@ same physical quantities, different source message on the wire.
 
 | Key | Notes |
 |---|---|
-| `persistent_power_limit_percent` | relative power limit; **every write hits the inverter's EEPROM** (see caution above) |
+| `persistent_power_percent` | relative power limit; **every write hits the inverter's EEPROM** (see caution above) |
 
 ### `output:` -- standard float output, 0.0-1.0
 
 | Key | Notes |
 |---|---|
-| `persistent_power_limit_percent` | same command/key as the `number:` above, exposed as an `output:` for use with e.g. a `pid` climate/controller; **every write hits the inverter's EEPROM** |
+| `persistent_power_percent` | same command/key as the `number:` above, exposed as an `output:` for use with e.g. a `pid` climate/controller; **every write hits the inverter's EEPROM** |
 
 ## Configuration example
 

@@ -3,7 +3,7 @@
 namespace esphome {
 namespace hmsw {
 
-void HMSWPersistentPowerLimitPercentNumber::control(float value) {
+void HMSWPersistentPowerPercentNumber::control(float value) {
   this->publish_state(value);
   if (this->parent_ != nullptr) this->parent_->set_persistent_power_limit_percent(value);
 }
