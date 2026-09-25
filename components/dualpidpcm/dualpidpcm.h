@@ -185,6 +185,12 @@ class DUALPIDPCMComponent : public Component{
 
   // ── Bascule directe CHARGE<->DISCHARGE sans coupure onoff_switch_ ─────────
   bool get_pass_through(void){return this->pass_through_;}
+
+  // Expose l'état du timer_standby_poweroff pour diagnostic (binary_sensor) :
+  // true dès l'entrée en standby (si timer_standby_poweroff_ > 0, onoff_switch_
+  // encore allumé, décompte en cours), false dès que la coupure a eu lieu (ou
+  // qu'aucun épisode de grâce n'est en cours).
+  bool get_standby_timer_active(void){return (this->previous_mode_ == 0) && !this->standby_power_cut_;}
   
 
  protected:

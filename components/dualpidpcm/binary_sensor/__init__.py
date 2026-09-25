@@ -6,6 +6,7 @@ from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_OCCUPANCY,
     DEVICE_CLASS_PROBLEM,
+    DEVICE_CLASS_RUNNING,
     ENTITY_CATEGORY_DIAGNOSTIC,
 )
 
@@ -13,8 +14,10 @@ DEPENDENCIES = ["dualpidpcm"]
 CONF_DEADBAND = "deadband"
 CONF_SWAP     = "swap"
 CONF_UNDERVOLTAGE_LOCKOUT = "undervoltage_lockout"
+CONF_TIMER_STANDBY = "timer_standby"
 ICON_DEADBAND = "mdi:emoticon-dead-outline"
 ICON_UNDERVOLTAGE_LOCKOUT = "mdi:battery-alert-variant-outline"
+ICON_TIMER_STANDBY = "mdi:timer-sand"
 # ICON_SWAP     = "mdi:swap-vertical"
 
 from .. import CONF_DUALPIDPCM_ID, DUALPIDPCMComponent, dualpidpcm_ns
@@ -34,6 +37,13 @@ CONFIG_SCHEMA = {
     cv.Optional(CONF_UNDERVOLTAGE_LOCKOUT): binary_sensor.binary_sensor_schema(
         device_class=DEVICE_CLASS_PROBLEM,
         icon = ICON_UNDERVOLTAGE_LOCKOUT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+    ),
+    # On en standby avec timer_standby_poweroff en cours de decompte :
+    # onoff_switch_ encore allume, coupure pas encore effectuee.
+    cv.Optional(CONF_TIMER_STANDBY): binary_sensor.binary_sensor_schema(
+        device_class=DEVICE_CLASS_RUNNING,
+        icon = ICON_TIMER_STANDBY,
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     # cv.Optional(CONF_SWAP): binary_sensor.binary_sensor_schema(
@@ -56,7 +66,11 @@ async def to_code(config):
     if CONF_UNDERVOLTAGE_LOCKOUT in config:
         bsens = await binary_sensor.new_binary_sensor(config[CONF_UNDERVOLTAGE_LOCKOUT])
         cg.add(var.set_undervoltage_lockout_binary_sensor(bsens))
-        
+
+    if CONF_TIMER_STANDBY in config:
+        bsens = await binary_sensor.new_binary_sensor(config[CONF_TIMER_STANDBY])
+        cg.add(var.set_timer_standby_binary_sensor(bsens))
+
     # if CONF_SWAP in config:
     #     bsens = await binary_sensor.new_binary_sensor(config[CONF_SWAP])
     #     cg.add(var.set_swap_binary_sensor(bsens))    

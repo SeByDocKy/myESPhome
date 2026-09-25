@@ -95,6 +95,7 @@ was stored yet.
 |---|---|
 | `deadband` | `true` while the converter is idle/in standby (stable IDLE mode and activated). Reflects the hysteretic mode, not the raw instantaneous watt-based deadband test, to avoid flicker near the stop thresholds. |
 | `undervoltage_lockout` | `true` while the battery voltage is below `stopping_battery_voltage` (or hasn't yet recovered above `starting_battery_voltage`). Discharging is inhibited while this is set; charging remains allowed. |
+| `timer_standby` | `true` from the moment the converter enters standby with `timer_standby_poweroff` grace pending (`onoff_switch_` still on, countdown running), back to `false` as soon as the grace ends — either because `onoff_switch_` was actually cut once the timer elapsed, or because charging/discharging resumed before that. Diagnostic aid to watch the feature live from Home Assistant instead of the logs. |
 
 ## Example
 
@@ -145,4 +146,6 @@ binary_sensor:
       name: "PCM Deadband"
     undervoltage_lockout:
       name: "PCM Undervoltage Lockout"
+    timer_standby:
+      name: "PCM Standby Timer Running"
 ```
