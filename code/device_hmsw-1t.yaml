@@ -120,7 +120,7 @@ fan:
   - platform: speed
     id: ${hmsw_name}_output_command
     name: ${name}_${hmsw_name}_output_command
-    output: ${hmsw_name}_${hmsw_name}_persistent_power_percent     
+    output: ${hmsw_name}_persistent_power_percent     
     
 button:
   - platform: hmsw
