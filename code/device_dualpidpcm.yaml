@@ -156,8 +156,9 @@ binary_sensor:
       name: ${name}_${dualpidpcm_name}_deadband
     undervoltage_lockout:
       name: ${name}_${dualpidpcm_name}_undervoltage_lockout
-
-  
+    timer_standby: 
+      name: ${name}_${dualpidpcm_name}_timer_standby
+      
 switch:
   - platform: dualpidpcm
     dualpidpcm_id: ${dualpidpcm_id}
