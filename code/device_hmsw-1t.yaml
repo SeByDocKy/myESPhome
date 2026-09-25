@@ -91,7 +91,7 @@ sensor:
     icon: mdi:counter
     # update_interval: ${hm_inverter_template_update}
     lambda: |-
-      return (id(${hm_name}_energy_yesterday).state = id(${hm_name}_energy_yesterday_global));
+      return (id(${hmsw_name}_energy_yesterday).state = id(${hmsw_name}_energy_yesterday_global));
          
 binary_sensor:
 
