@@ -42,7 +42,7 @@ void HMSWComponent::set_persistent_power_limit_percent(float percent) {
 }
 
 void HMSWComponent::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up HMSW (host=%s:%u)...", this->host_.c_str(), this->port_);
+  ESP_LOGCONFIG(TAG, "Setting up HMSW (ip_address=%s:%u)...", this->ip_address_.c_str(), this->ip_port_);
   this->last_poll_ = millis() - this->poll_interval_ms_;  // poll soon after boot
   if (this->alarm_poll_interval_ms_ > 0) {
     this->last_alarm_poll_ = millis() - this->alarm_poll_interval_ms_;  // poll soon after boot
@@ -181,9 +181,9 @@ void HMSWComponent::start_request_(RequestKind kind) {
 
   struct sockaddr_storage addr;
   socklen_t addrlen = socket::set_sockaddr(reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr),
-                                            this->host_.c_str(), this->port_);
+                                            this->ip_address_.c_str(), this->ip_port_);
   if (addrlen == 0) {
-    ESP_LOGW(TAG, "Could not resolve/parse host '%s'", this->host_.c_str());
+    ESP_LOGW(TAG, "Could not resolve/parse host '%s'", this->ip_address_.c_str());
     this->socket_ = nullptr;
     return;
   }
@@ -204,7 +204,7 @@ void HMSWComponent::start_request_(RequestKind kind) {
   else if (kind == RequestKind::ALARM_LIST_REQUEST) kind_name = "alarm-list request (step 1)";
   else if (kind == RequestKind::ALARM_LIST_FETCH) kind_name = "alarm-list fetch (step 2)";
   else if (kind == RequestKind::DTU_REBOOT) kind_name = "DTU reboot command";
-  ESP_LOGV(TAG, "Connecting to %s:%u for %s request", this->host_.c_str(), this->port_, kind_name);
+  ESP_LOGV(TAG, "Connecting to %s:%u for %s request", this->ip_address_.c_str(), this->ip_port_, kind_name);
 }
 
 void HMSWComponent::abort_request_(const char *reason) {
@@ -441,7 +441,7 @@ void HMSWComponent::handle_real_data_new_(const RealDataNewReqDTO &data) {
     // Raw wire values are Wh -- published in kWh, same convention as the
     // classic RealData path above.
     if (this->dc_energy_total_[i]) this->dc_energy_total_[i]->publish_state(static_cast<float>(pv.energy_total) / 1000.0f);
-    if (this->dc_energy_daily_[i]) this->dc_energy_daily_[i]->publish_state(static_cast<float>(pv.energy_daily) / 1000.0f);
+    if (this->dc_energy_today_[i]) this->dc_energy_today_[i]->publish_state(static_cast<float>(pv.energy_daily) / 1000.0f);
     if (pv.error_code != 0) {
       ESP_LOGV(TAG, "PV channel %u reported error_code=%d", (unsigned) i, (int) pv.error_code);
     }
@@ -454,7 +454,7 @@ void HMSWComponent::handle_real_data_new_(const RealDataNewReqDTO &data) {
   // populate them. Reuses the SAME ac_*/dc_temperature_ sensor pointers as
   // classic RealData -- physically the same quantities -- so `ac:`/
   // `dc_channels: .../temperature` config is shared between both data
-  // sources; only `energy_daily`/diagnostics/power_limit are RealDataNew-only.
+  // sources; only `energy_today`/diagnostics/power_limit are RealDataNew-only.
   if (data.sgs_data_count > 0) {
     const SGSMO &sgs = data.sgs_data[0];
     if (this->ac_voltage_) this->ac_voltage_->publish_state(sgs.voltage / 10.0f);
@@ -686,7 +686,7 @@ void HMSWComponent::loop() {
 
 void HMSWComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "HMSW:");
-  ESP_LOGCONFIG(TAG, "  Host: %s:%u", this->host_.c_str(), this->port_);
+  ESP_LOGCONFIG(TAG, "  IP address: %s:%u", this->ip_address_.c_str(), this->ip_port_);
   ESP_LOGCONFIG(TAG, "  Poll interval: %ums", (unsigned) this->poll_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Heartbeat interval: %ums", (unsigned) this->heartbeat_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Request timeout: %ums", (unsigned) this->request_timeout_ms_);

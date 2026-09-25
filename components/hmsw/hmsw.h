@@ -103,14 +103,14 @@ enum class ConnState : uint8_t {
 
 class HMSWComponent : public Component {
  public:
-  void set_host(const std::string &host) { this->host_ = host; }
-  void set_port(uint16_t port) { this->port_ = port; }
+  void set_ip_address(const std::string &ip_address) { this->ip_address_ = ip_address; }
+  void set_ip_port(uint16_t ip_port) { this->ip_port_ = ip_port; }
   void set_poll_interval(uint32_t ms) { this->poll_interval_ms_ = ms; }
   void set_heartbeat_interval(uint32_t ms) { this->heartbeat_interval_ms_ = ms; }
   void set_request_timeout(uint32_t ms) { this->request_timeout_ms_ = ms; }
   /// Selects which command the periodic poll uses: classic `RealData`
   /// (0xA3 0x03, the default) or the paginated `RealDataNew` (0xA3 0x11),
-  /// which additionally exposes energy_daily, a power-limit readback, and
+  /// which additionally exposes energy_today, a power-limit readback, and
   /// diagnostic fields (firmware_version/warning_number/link_status). Kept
   /// as an either/or choice, not both at once, to respect the ~2s minimum
   /// spacing the DTU firmware appears to enforce between any two requests
@@ -181,10 +181,10 @@ class HMSWComponent : public Component {
   void set_ac_power_factor_sensor(sensor::Sensor *s) { this->ac_power_factor_ = s; }
   void set_rssi_sensor(sensor::Sensor *s) { this->rssi_ = s; }
 
-  // RealDataNew-only fields. dc_energy_daily_/power_limit_readback_/
+  // RealDataNew-only fields. dc_energy_today_/power_limit_readback_/
   // warning_number_/link_status_ stay unpublished (nullptr, never called)
   // when `data_source: real_data` (the default) is in use.
-  void set_dc_energy_daily_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_energy_daily_[ch] = s; }
+  void set_dc_energy_today_sensor(uint8_t ch, sensor::Sensor *s) { this->dc_energy_today_[ch] = s; }
   void set_power_limit_readback_sensor(sensor::Sensor *s) { this->power_limit_readback_ = s; }
   void set_warning_number_sensor(sensor::Sensor *s) { this->warning_number_ = s; }
   void set_link_status_sensor(sensor::Sensor *s) { this->link_status_ = s; }
@@ -236,8 +236,8 @@ class HMSWComponent : public Component {
   static uint16_t crc16_modbus_(const uint8_t *data, size_t len);
   size_t build_frame_(const uint8_t *cmd, const uint8_t *payload, size_t payload_len, uint8_t *out);
 
-  std::string host_;
-  uint16_t port_{DTU_DEFAULT_PORT};
+  std::string ip_address_;
+  uint16_t ip_port_{DTU_DEFAULT_PORT};
   uint32_t poll_interval_ms_{30000};
   uint32_t heartbeat_interval_ms_{20000};
   uint32_t request_timeout_ms_{3000};
@@ -300,7 +300,7 @@ class HMSWComponent : public Component {
   sensor::Sensor *dc_voltage_[4]{};
   sensor::Sensor *dc_energy_total_[4]{};
   sensor::Sensor *dc_temperature_[4]{};
-  sensor::Sensor *dc_energy_daily_[4]{};  // RealDataNew only
+  sensor::Sensor *dc_energy_today_[4]{};  // RealDataNew only
 
   sensor::Sensor *ac_voltage_{nullptr};
   sensor::Sensor *ac_current_{nullptr};

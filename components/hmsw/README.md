@@ -158,7 +158,7 @@ request in that project -- there is no second connection to any Hoymiles
 server anywhere in its codebase for this command. This component's own
 `DTU_REBOOT` request works identically: it goes out over the same
 short-lived local TCP connection as everything else in `hmsw.cpp`, to the
-`host:`/`port:` you configure on the `hmsw:` hub, nothing more.
+`ip_address:`/`ip_port:` you configure on the `hmsw:` hub, nothing more.
 
 Note the `0xA3 0x09` -> `0xA3 0x10` jump (skipping `0x0A`-`0x0F`) is in the
 firmware's own numbering, not a typo here -- `dtuGateway`'s source has it
@@ -214,8 +214,9 @@ worth noting from that same code:
 - `energy_total`/`energy_daily` are read **unscaled off the wire** there too
   (raw Wh) -- `dtuGateway` only divides by 1000 for its own display. This
   component does the same /1000 conversion, but at publish time: `energy_total`
-  (both `RealData` and `RealDataNew`) and `energy_daily` (`RealDataNew` only)
-  are published as **kWh**, not raw Wh -- see `sensor/__init__.py`
+  (both `RealData` and `RealDataNew`) and `energy_today` (`RealDataNew` only,
+  the wire field is still named `energy_daily` in the protobuf) are published
+  as **kWh**, not raw Wh -- see `sensor/__init__.py`
   (`UNIT_KILOWATT_HOURS`, `accuracy_decimals=3`) and the `/ 1000.0f` in
   `handle_real_data_()`/`handle_real_data_new_()`.
 - `SGSMO.power_limit` is printed there as `"%i %%"` (raw integer, **no**
@@ -272,14 +273,14 @@ paths stay in the component regardless of which one is configured.
 ```yaml
 hmsw:
   id: my_hmsw
-  host: 192.168.1.50
+  ip_address: 192.168.1.50
   data_source: real_data_new   # default: real_data
 ```
 
 What it adds over classic `RealData`:
 
-- **`energy_daily`** per DC channel (`PvMO.energy_daily`) -- classic
-  `RealData`'s `PvDataMO` has no daily-energy field at all.
+- **`energy_today`** per DC channel (`PvMO.energy_daily` on the wire) --
+  classic `RealData`'s `PvDataMO` has no daily-energy field at all.
 - **A power-limit readback** (`SGSMO.power_limit`) -- the currently-applied
   limit as reported by the inverter itself, not just the last value this
   component sent.
@@ -308,7 +309,7 @@ reads the AC/diagnostic block from -- HMS-XXXXW is single-phase, so
 defined in `RealDataNew.proto`) are decoded but not wired up to anything.
 `ac:` sensors are shared between `real_data`/`real_data_new` (same physical
 quantities, just a different source field per data source); only
-`energy_daily`/the power-limit readback/the diagnostic fields are
+`energy_today`/the power-limit readback/the diagnostic fields are
 `real_data_new`-only, and stay unpublished when `data_source: real_data`
 (the default) is in use.
 
@@ -373,7 +374,7 @@ realtime telemetry:
 ```yaml
 hmsw:
   id: my_hmsw
-  host: 192.168.1.50
+  ip_address: 192.168.1.50
   alarm_poll_interval: 10min   # default: 0s (disabled)
 
 text_sensor:
@@ -499,7 +500,7 @@ reasoned design based on the trade-off, not a tuned default.
 ```yaml
 hmsw:
   id: my_hmsw
-  host: 192.168.1.50
+  ip_address: 192.168.1.50
   stale_data_reboot_threshold: 10   # default: 0 (disabled) -- see above
 
 sensor:
@@ -597,7 +598,7 @@ only** stay unpublished (no entity ever appears in Home Assistant) when
 | `voltage` | voltage | V | 1 decimal |
 | `energy_total` | energy | kWh | total_increasing, 3 decimals |
 | `temperature` | temperature | °C | 1 decimal |
-| `energy_daily` | energy | kWh | state class `total` (resets daily), 3 decimals -- **RealDataNew only** |
+| `energy_today` | energy | kWh | state class `total` (resets daily), 3 decimals -- **RealDataNew only** |
 
 | Key (under `ac:`) | Device class | Unit | Notes |
 |---|---|---|---|
@@ -679,11 +680,11 @@ external_components:
 
 hmsw:
   id: my_hmsw
-  host: 192.168.1.50   # the inverter's own IP address
-  port: 10081          # default, usually no need to change
+  ip_address: 192.168.1.50   # the inverter's own IP address
+  ip_port: 10081             # default, usually no need to change
   poll_interval: 30s   # default; see "Polling interval" above before going lower
   heartbeat_interval: 20s
-  data_source: real_data   # default; "real_data_new" adds energy_daily/diagnostics, see above
+  data_source: real_data   # default; "real_data_new" adds energy_today/diagnostics, see above
 
 sensor:
   - platform: hmsw
@@ -732,7 +733,7 @@ button:
 ## Configuration example -- `data_source: real_data_new`
 
 Same layout as above, with `data_source: real_data_new` set on the hub and
-the extra entities (`energy_daily`, `power_limit`, `warning_number`,
+the extra entities (`energy_today`, `power_limit`, `warning_number`,
 `link_status`, `firmware_version`) wired up, plus the alarm-list poll, the
 DTU-reboot button, and the hung-DTU watchdog (all three independent of
 `data_source`, so they'd work just as well in the first example above).
@@ -751,7 +752,7 @@ external_components:
 
 hmsw:
   id: my_hmsw
-  host: 192.168.1.50
+  ip_address: 192.168.1.50
   poll_interval: 30s
   heartbeat_interval: 20s
   data_source: real_data_new
@@ -771,7 +772,7 @@ sensor:
             name: "PV0 Current"
           energy_total:
             name: "PV0 Energy Total"   # published in kWh
-          energy_daily:
+          energy_today:
             name: "PV0 Energy Today"   # published in kWh
     ac:
       voltage:
@@ -816,7 +817,7 @@ button:
 
 Thanks to `MULTI_CONF`, one ESP32 can poll several HMS-XXXXW units at once
 -- one `hmsw:` entry per inverter (a YAML list, each with its own `id:` and
-`host:`), and every platform entry (`sensor:`/`binary_sensor:`/etc.) points
+`ip_address:`), and every platform entry (`sensor:`/`binary_sensor:`/etc.) points
 back at the right hub via its own `hmsw_id:`. No serial number is needed
 for either unit -- the IP address alone routes each TCP connection (see
 "Architecture" above); each hub also gets its own independent
@@ -830,10 +831,10 @@ external_components:
 
 hmsw:
   - id: hmsw_roof
-    host: 192.168.1.50   # first inverter
+    ip_address: 192.168.1.50   # first inverter
     poll_interval: 30s
   - id: hmsw_garage
-    host: 192.168.1.51   # second inverter
+    ip_address: 192.168.1.51   # second inverter
     poll_interval: 30s
 
 sensor:

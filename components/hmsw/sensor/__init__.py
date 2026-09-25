@@ -38,7 +38,7 @@ CONF_RSSI = "rssi"
 
 # RealDataNew (0xA3 0x11) only -- stay unpublished when data_source:
 # real_data (the default) is in use. See README.md.
-CONF_ENERGY_DAILY = "energy_daily"
+CONF_ENERGY_TODAY = "energy_today"
 CONF_POWER_LIMIT = "power_limit"
 CONF_WARNING_NUMBER = "warning_number"
 CONF_LINK_STATUS = "link_status"
@@ -125,7 +125,7 @@ _RSSI_SCHEMA = sensor.sensor_schema(
 # Daily energy resets at midnight (on the inverter's own clock), so
 # "total" (not "total_increasing", which HA expects to only ever grow) --
 # same convention HA uses for other "today" energy sensors.
-_ENERGY_DAILY_SCHEMA = sensor.sensor_schema(
+_ENERGY_TODAY_SCHEMA = sensor.sensor_schema(
     unit_of_measurement=UNIT_KILOWATT_HOURS,
     device_class=DEVICE_CLASS_ENERGY,
     state_class="total",
@@ -184,7 +184,7 @@ DC_CHANNEL_SCHEMA = cv.Schema(
         cv.Optional(CONF_VOLTAGE): _VOLTAGE_SCHEMA,
         cv.Optional(CONF_ENERGY_TOTAL): _ENERGY_TOTAL_SCHEMA,
         cv.Optional(CONF_TEMPERATURE): _TEMPERATURE_SCHEMA,
-        cv.Optional(CONF_ENERGY_DAILY): _ENERGY_DAILY_SCHEMA,
+        cv.Optional(CONF_ENERGY_TODAY): _ENERGY_TODAY_SCHEMA,
     }
 )
 
@@ -261,9 +261,9 @@ async def to_code(config):
         if CONF_TEMPERATURE in channel:
             s = await sensor.new_sensor(channel[CONF_TEMPERATURE])
             cg.add(hub.set_dc_temperature_sensor(i, s))
-        if CONF_ENERGY_DAILY in channel:
-            s = await sensor.new_sensor(channel[CONF_ENERGY_DAILY])
-            cg.add(hub.set_dc_energy_daily_sensor(i, s))
+        if CONF_ENERGY_TODAY in channel:
+            s = await sensor.new_sensor(channel[CONF_ENERGY_TODAY])
+            cg.add(hub.set_dc_energy_today_sensor(i, s))
 
     if CONF_AC in config:
         ac = config[CONF_AC]

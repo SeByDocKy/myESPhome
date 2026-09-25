@@ -9,13 +9,15 @@ MULTI_CONF = True
 hmsw_ns = cg.esphome_ns.namespace("hmsw")
 HMSWComponent = hmsw_ns.class_("HMSWComponent", cg.Component)
 
-# Defined locally rather than imported from esphome.const: CONF_HOST isn't
-# present in every ESPHome version's const.py (broke the build on
-# 2026.10.0-dev), and CONF_PORT's availability there isn't guaranteed
-# either -- plain local strings avoid depending on that module's exact
-# contents, same as CONF_NRF24L01_ID/CONF_SN/etc. in hm/__init__.py.
-CONF_HOST = "host"
-CONF_PORT = "port"
+# Defined locally rather than imported from esphome.const: esphome.const's
+# own CONF_HOST/CONF_PORT aren't present in every ESPHome version (broke the
+# build on 2026.10.0-dev), and using them would also collide with this
+# component's own field names (ip_address:/ip_port:, chosen deliberately to
+# avoid ambiguity with hostnames) -- plain local strings avoid depending on
+# that module's exact contents, same as CONF_NRF24L01_ID/CONF_SN/etc. in
+# hm/__init__.py.
+CONF_IP_ADDRESS = "ip_address"
+CONF_IP_PORT = "ip_port"
 CONF_POLL_INTERVAL = "poll_interval"
 CONF_HEARTBEAT_INTERVAL = "heartbeat_interval"
 CONF_REQUEST_TIMEOUT = "request_timeout"
@@ -37,8 +39,8 @@ CONFIG_SCHEMA = cv.Schema(
         # own integrated WiFi DTU, so there is no separate radio hub to
         # reference here (unlike hm:/hms:, which point at an nrf24l01:/
         # cmt2300a: hub). See README.md.
-        cv.Required(CONF_HOST): cv.string_strict,
-        cv.Optional(CONF_PORT, default=10081): cv.port,
+        cv.Required(CONF_IP_ADDRESS): cv.string_strict,
+        cv.Optional(CONF_IP_PORT, default=10081): cv.port,
         # 30s, not lower: per community reports on the underlying protocol
         # (suaveolent/ha-hoymiles-wifi's README), the inverter firmware
         # appears to enforce a ~30s minimum spacing between requests
@@ -96,8 +98,8 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    cg.add(var.set_host(config[CONF_HOST]))
-    cg.add(var.set_port(config[CONF_PORT]))
+    cg.add(var.set_ip_address(config[CONF_IP_ADDRESS]))
+    cg.add(var.set_ip_port(config[CONF_IP_PORT]))
     cg.add(var.set_poll_interval(config[CONF_POLL_INTERVAL]))
     cg.add(var.set_heartbeat_interval(config[CONF_HEARTBEAT_INTERVAL]))
     cg.add(var.set_request_timeout(config[CONF_REQUEST_TIMEOUT]))
