@@ -60,6 +60,7 @@ sensor:
         name: ${name}_${hmsw_name}_ac_current
       power: 
         name: ${name}_${hmsw_name}_ac_power
+        id: ${hmsw_name}_ac_power
       frequency: 
         name: ${name}_${hmsw_name}_ac_frequency
       power_factor: 
@@ -73,7 +74,7 @@ sensor:
   - platform: total_daily_energy
     name: ${name}_${hmsw_name}_energy_today
     id: ${hmsw_name}_energy_today
-    power_id: ${hmsw_name}_inverter_power
+    power_id: ${hmsw_name}_ac_power
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     method: right
