@@ -19,6 +19,28 @@ IP address on the local network, like any other network device. No
 ESP32 (hmsw:)  <--- WiFi / TCP, port 10081, Protobuf --->  HMS-XXXXW inverter
 ```
 
+### Non-blocking by design, and why `ip_address:` is IPv4-only
+
+Everything in this component's request/response handling
+(`HMSWComponent::loop()`/`handle_connecting_()`/`handle_sending_()`/
+`handle_receiving_()`) is a small state machine driven from `loop()`:
+non-blocking sockets (`setblocking(false)`), `connect()`/`write()`/`read()`
+all checked for `EWOULDBLOCK`/`EAGAIN` and retried on the next tick, and a
+per-state deadline checked via `millis()` -- never a `delay()` call
+anywhere. Each poll/heartbeat/command opens one short-lived TCP connection
+(see below), and none of that ever blocks the main ESPHome loop.
+
+The one place that *could* still block despite all of the above:
+`esphome::socket::set_sockaddr()` falls back to `lwip_getaddrinfo()` -- a
+blocking, synchronous DNS lookup -- for anything that isn't already a
+literal IP. Since a fresh socket/connection is opened for **every single
+request**, a hostname in `ip_address:` would mean a potential multi-second
+stall on every poll if DNS is slow or unreachable, not just once at boot.
+`ip_address:` is validated at config time (`validate_ipv4_literal()` in
+`__init__.py`) to only accept a literal dotted-quad IPv4 address for
+exactly this reason -- a hostname is rejected with a clear error instead of
+becoming an intermittent field symptom.
+
 ## Supported hardware
 
 "HMS-XXXXW" in this component's name refers to the naming pattern, not one

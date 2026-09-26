@@ -1,3 +1,5 @@
+import ipaddress
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
@@ -32,14 +34,44 @@ STALE_DATA_METRIC_FREQUENCY = "ac_frequency"
 DATA_SOURCE_REAL_DATA = "real_data"
 DATA_SOURCE_REAL_DATA_NEW = "real_data_new"
 
+
+def validate_ipv4_literal(value):
+    # Deliberately NOT cv.string_strict (which would accept a hostname too):
+    # this component opens a brand-new short-lived TCP socket for every
+    # single request (one connection per poll/heartbeat/command, see
+    # README.md), and esphome's socket::set_sockaddr() falls back to
+    # lwip_getaddrinfo() -- a BLOCKING, synchronous DNS lookup -- whenever
+    # its input isn't already a literal IP. Since everything else in this
+    # component's request/response state machine is carefully non-blocking
+    # (non-blocking sockets, deadlines checked via millis(), no delay()
+    # anywhere -- see HMSWComponent::loop()/handle_connecting_()/
+    # handle_sending_()/handle_receiving_()), a hostname here would be the
+    # one remaining way to stall the whole ESPHome main loop, potentially
+    # for seconds, on every request. Rejected at config-validation time
+    # instead, so a typo'd/hostname value fails fast with a clear message
+    # rather than as an intermittent field symptom.
+    value = cv.string_strict(value)
+    try:
+        ipaddress.IPv4Address(value)
+    except ValueError as err:
+        raise cv.Invalid(
+            f"'{value}' is not a literal IPv4 address. ip_address: only accepts a "
+            "dotted-quad IP (e.g. '192.168.1.50'), not a hostname -- resolving a "
+            "hostname here would require a blocking DNS lookup on every request. "
+            "See README.md."
+        ) from err
+    return value
+
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(HMSWComponent),
-        # The IP (or hostname) of the HMS-XXXXW inverter itself -- it has its
-        # own integrated WiFi DTU, so there is no separate radio hub to
+        # The IP of the HMS-XXXXW inverter itself -- it has its own
+        # integrated WiFi DTU, so there is no separate radio hub to
         # reference here (unlike hm:/hms:, which point at an nrf24l01:/
-        # cmt2300a: hub). See README.md.
-        cv.Required(CONF_IP_ADDRESS): cv.string_strict,
+        # cmt2300a: hub). Literal IPv4 only, not a hostname -- see
+        # validate_ipv4_literal() above and README.md.
+        cv.Required(CONF_IP_ADDRESS): validate_ipv4_literal,
         cv.Optional(CONF_IP_PORT, default=10081): cv.port,
         # 30s, not lower: per community reports on the underlying protocol
         # (suaveolent/ha-hoymiles-wifi's README), the inverter firmware
