@@ -64,6 +64,78 @@ uint32_t TSunGen3Component::get_u32_(const std::vector<uint8_t> &regs, uint16_t 
 }
 
 // ---------------------------------------------------------------------------
+// Alarm / fault bit tables
+// ---------------------------------------------------------------------------
+// Sourced from TSUN's official GEN4 Modbus protocol spreadsheet ("Fault
+// Analysis" sheet: "Fault information 0" / "Fault message 1" tables), the
+// only TSUN-provided document with bit-level detail found so far -- GEN3
+// PLUS's own documentation (s-allius/tsun-gen3-proxy wiki) only names the
+// registers, not their bits. Applying a GEN4 bit table to a GEN3 PLUS
+// register is analogy, not a confirmed spec, but it lines up with what this
+// component has observed on real GEN3 PLUS hardware: event_alarms read back
+// exactly 0x0100 while the inverter's AC side was physically disconnected,
+// matching bit 8 below ("Power grid loss") exactly. The event_faults -> DC
+// fault table pairing is a weaker, unverified guess by naming/position only
+// (no non-zero event_faults reading has been observed yet to cross-check).
+static const char *const ALARM_BIT_NAMES[16] = {
+    "H-bridge fault",           // bit0
+    "Low driving voltage",      // bit1
+    "GFDI fault",                // bit2
+    "Overtemperature",           // bit3
+    "Communication loss",        // bit4
+    "ShutDown (remote)",         // bit5
+    nullptr,                     // bit6 (reserved)
+    "EEPROM fault",               // bit7
+    "Power grid loss",            // bit8 -- matches this component's own AC-disconnected observation
+    "Grid bias voltage sampling",  // bit9
+    "Relay open circuit",          // bit10
+    "Relay short circuit",          // bit11
+    "Grid overvoltage",              // bit12
+    "Grid undervoltage",              // bit13
+    "Grid overfrequency",              // bit14
+    "Grid underfrequency",              // bit15
+};
+
+static const char *const FAULT_BIT_NAMES[16] = {
+    "DC overvoltage",             // bit0
+    "DC undervoltage",             // bit1
+    "DC overcurrent",               // bit2
+    "Flyback overvoltage",           // bit3
+    "Short circuit protection",       // bit4
+    "Self-test fault",                 // bit5
+    nullptr,                            // bit6 (reserved)
+    nullptr,                             // bit7 (reserved)
+    "Anti-countercurrent comm timeout",   // bit8
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,  // bit9-15 (reserved)
+};
+
+std::string TSunGen3Component::decode_status_bits_(uint16_t value, const char *const *names) {
+  if (value == 0)
+    return "OK";
+
+  char hex[8];
+  snprintf(hex, sizeof(hex), "0x%04X: ", value);
+  std::string out(hex);
+
+  bool first = true;
+  for (uint8_t bit = 0; bit < 16; bit++) {
+    if ((value & (1u << bit)) == 0)
+      continue;
+    if (!first)
+      out += ", ";
+    first = false;
+    if (names[bit] != nullptr) {
+      out += names[bit];
+    } else {
+      char unknown[16];
+      snprintf(unknown, sizeof(unknown), "bit%u", bit);
+      out += unknown;
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // Frame construction / parsing
 // ---------------------------------------------------------------------------
 
@@ -549,12 +621,12 @@ void TSunGen3Component::handle_live_block_(const std::vector<uint8_t> &regs, uin
     this->inverter_status_text_sensor_->publish_state(hex);
   }
   if (this->event_alarms_text_sensor_ != nullptr) {
-    snprintf(hex, sizeof(hex), "0x%04X", get_u16_(regs, 0x3003, start_reg));
-    this->event_alarms_text_sensor_->publish_state(hex);
+    this->event_alarms_text_sensor_->publish_state(
+        decode_status_bits_(get_u16_(regs, 0x3003, start_reg), ALARM_BIT_NAMES));
   }
   if (this->event_faults_text_sensor_ != nullptr) {
-    snprintf(hex, sizeof(hex), "0x%04X", get_u16_(regs, 0x3004, start_reg));
-    this->event_faults_text_sensor_->publish_state(hex);
+    this->event_faults_text_sensor_->publish_state(
+        decode_status_bits_(get_u16_(regs, 0x3004, start_reg), FAULT_BIT_NAMES));
   }
 #endif
 

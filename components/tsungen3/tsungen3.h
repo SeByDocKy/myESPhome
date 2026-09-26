@@ -184,6 +184,22 @@ class TSunGen3Component : public PollingComponent {
   static uint16_t get_u16_(const std::vector<uint8_t> &regs, uint16_t reg, uint16_t start_reg);
   static uint32_t get_u32_(const std::vector<uint8_t> &regs, uint16_t reg, uint16_t start_reg);
 
+  // Decodes a 16-bit alarm/fault bitmask into a human-readable string, e.g.
+  // "0x0100: Power grid loss" (or "OK" for a zero value). `names` is a
+  // 16-entry table indexed by bit number; a nullptr entry means an
+  // undocumented/reserved bit, shown as "bitN" if it's actually set.
+  //
+  // The bit tables themselves (see tsungen3.cpp) come from TSUN's official
+  // GEN4 Modbus protocol spreadsheet, NOT from any GEN3 PLUS documentation
+  // (none with bit-level detail is known to exist). This is bit-value
+  // analogy across product generations, not a confirmed GEN3 PLUS spec --
+  // but it's a strong analogy: bit 8 (0x0100, "Power grid loss") exactly
+  // matches this component's own real-hardware observation of
+  // event_alarms == 0x0100 while the inverter's AC side was physically
+  // disconnected. Treat any other decoded name with proportionally more
+  // caution until confirmed against your own hardware/events.
+  static std::string decode_status_bits_(uint16_t value, const char *const *names);
+
   // Background-task plumbing. The task itself only ever calls the blocking
   // helpers above (connect_and_transact_/build_*/parse_*) and never touches
   // Sensor/TextSensor objects directly -- results are handed to loop() via

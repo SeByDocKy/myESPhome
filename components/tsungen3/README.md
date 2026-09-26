@@ -30,9 +30,12 @@ References:
 - Read-only telemetry via a single Modbus request per poll cycle (registers
   `0x3000`-`0x3029`): grid voltage/current/frequency, temperature, rated &
   current power, PV1-4 voltage/current/power, AC daily/total energy.
-- Inverter Status / Event Alarms / Event Faults are exposed as raw `0x____`
-  hex strings (`text_sensor`) — the bitmap meanings aren't documented
-  upstream, so no decoding is attempted yet.
+- `inverter_status` is exposed as a raw `0x____` hex string (`text_sensor`)
+  — no bit-level documentation for this particular register is known.
+- `event_alarms`/`event_faults` are decoded bit-by-bit into a human-readable
+  string, e.g. `0x0100: Power grid loss` (or `OK` for a zero value) — see
+  "Alarm/fault bit decoding" below for where the bit tables come from and
+  how much to trust them.
 - **Write path**: `power_percent` (`number` and `output` platforms) writes
   the Output Coefficient register (`0x202C`, function `0x06` Write Single
   Register) to cap the inverter's output as a percent of Rated Power. A
@@ -80,6 +83,33 @@ add a large, unrelated loop_time cost (heavy synchronous UART writes for
 every component, not just this one); use `debug` or `info` for a realistic
 loop_time reading.
 
+### Alarm/fault bit decoding
+
+`event_alarms` and `event_faults` are decoded bit-by-bit rather than left as
+raw hex. The bit tables come from **TSUN's official GEN4 Modbus protocol
+spreadsheet** ("Fault Analysis" sheet) — the only TSUN-provided document
+with bit-level detail found so far. GEN3 PLUS's own documentation
+(s-allius/tsun-gen3-proxy wiki) only names the registers, not their bits, so
+applying a GEN4 bit table to a GEN3 PLUS register is **analogy across
+product generations, not a confirmed spec**.
+
+That said, the evidence for `event_alarms` is strong: on real MX1000
+hardware with the AC side physically disconnected, `event_alarms` read back
+exactly `0x0100`, which is precisely bit 8 in the GEN4 table --
+`NoUtility` / "Power grid loss". That's exactly the condition the inverter
+was actually in, so this one bit is trusted. The rest of the `event_alarms`
+table (H-bridge fault, overtemperature, relay faults, grid over/under
+voltage/frequency, etc.) and the entire `event_faults` table (DC-side
+faults: overvoltage, overcurrent, short circuit, etc. -- paired with
+`event_faults` by naming/position only) have **not** been individually
+cross-checked against real hardware. An unrecognized-but-set bit is shown as
+`bitN` rather than silently dropped, so nothing is hidden even where the
+name is uncertain.
+
+If you see a decoded name that doesn't match what's actually happening on
+your inverter, please report it -- that's exactly the kind of mismatch this
+component needs real-world feedback on to correct.
+
 ### AT+ command framing (button)
 
 Unlike the Modbus read/write path, AT+ commands are **not** Modbus RTU: they
@@ -105,8 +135,20 @@ wiki; no other AT+ commands are wired up here.
   disconnected -- apparently a firmware default/quiescent value while
   ungridded, not a decoding bug.
 - `inverter_status`/`event_alarms` were non-zero (`0x0002`/`0x0100`) with AC
-  disconnected, consistent with a "no grid" condition, but still undecoded
-  raw hex (see above).
+  disconnected. `event_alarms` now decodes to `0x0100: Power grid loss` --
+  see "Alarm/fault bit decoding" above -- confirming the "no grid" reading.
+  `inverter_status` has no known bit table and stays raw hex.
+- **AT+Z (reset) gets no response in client_mode**: tested on real hardware
+  with the framing double-checked byte-for-byte against the proxy's actual
+  source. Modbus read/write work fine on the same TCP session at the same
+  time, so the link itself is healthy -- the request simply times out with
+  zero response bytes. Comparing with other TSUN local-access projects
+  ([jptstar/tsun-local](https://github.com/jptstar/tsun-local) is read-only
+  by design; in s-allius/tsun-gen3-proxy, `send_at_cmd()` lives in the
+  cloud-emulation code path, not the client_mode one) suggests AT+ commands
+  may simply not be honored on the client_mode TCP listener at all, on any
+  hardware -- not a bug in this component's framing. The button is kept for
+  other GEN3 PLUS models/firmwares that might behave differently.
 
 ### Unverified assumptions — please report back if your inverter disagrees
 

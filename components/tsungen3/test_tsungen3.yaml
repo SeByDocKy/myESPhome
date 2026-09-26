@@ -35,22 +35,21 @@ external_components:
       # type: local
       # path: components
 
-
 logger:
   # hardware_uart: USB_SERIAL_JTAG
-   level: verbose #debug
+   level: debug #debug
 
 debug:
   update_interval: 5s
 
 
 tsungen3:
-  - id: tsungen3_1
-    host: 192.168.1.50   # adresse IP fixe de l'onduleur MX1000
+  - id: mx1000
+    host: 192.168.1.81   # adresse IP fixe de l'onduleur MX1000
     port: 8899            # port client_mode (TCP clair)
-    poll_interval: 30s
+    poll_interval: 5s
     modbus_address: 1
-    # logger_serial: 2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
+    logger_serial: 3455843077 #2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
 
   # Deuxième onduleur GEN3 PLUS sur le même ESP (MULTI_CONF) :
   # - id: tsungen3_2
@@ -75,73 +74,72 @@ sensor:
       name: ${name}_loop_time
 
   - platform: tsungen3
-    tsungen3_id: tsungen3_1
+    tsungen3_id: mx1000
     grid_voltage:
-      name: ${name}_tsungen3_1_grid_voltage
+      name: ${name}_grid_voltage
     grid_current:
-      name: ${name}_tsungen3_1_grid_current
+      name: ${name}_grid_current
     grid_frequency:
-      name: ${name}_tsungen3_1_grid_frequency
+      name: ${name}_grid_frequency
     temperature:
-      name: ${name}_tsungen3_1_temperature
+      name: ${name}_temperature
     rated_power:
-      name: ${name}_tsungen3_1_rated_power
+      name: ${name}_rated_power
     current_power:
-      name: ${name}_tsungen3_1_current_power
+      name: ${name}_current_power
     ac_energy_today:
-      name: ${name}_tsungen3_1_ac_energy_today
+      name: ${name}_ac_energy_today
     ac_energy_total:
-      name: ${name}_tsungen3_1_ac_energy_total
+      name: ${name}_ac_energy_total
     pv1_voltage:
-      name: ${name}_tsungen3_1_pv1_voltage
+      name: ${name}_pv1_voltage
     pv1_current:
-      name: ${name}_tsungen3_1_pv1_current
+      name: ${name}_pv1_current
     pv1_power:
-      name: ${name}_tsungen3_1_pv1_power
+      name: ${name}_pv1_power
     pv2_voltage:
-      name: ${name}_tsungen3_1_pv2_voltage
+      name: ${name}_pv2_voltage
     pv2_current:
-      name: ${name}_tsungen3_1_pv2_current
+      name: ${name}_pv2_current
     pv2_power:
-      name: ${name}_tsungen3_1_pv2_power
+      name: ${name}_pv2_power
     pv3_voltage:
-      name: ${name}_tsungen3_1_pv3_voltage
+      name: ${name}_pv3_voltage
     pv3_current:
-      name: ${name}_tsungen3_1_pv3_current
+      name: ${name}_pv3_current
     pv3_power:
-      name: ${name}_tsungen3_1_pv3_power
+      name: ${name}_pv3_power
     pv4_voltage:
-      name: ${name}_tsungen3_1_pv4_voltage
+      name: ${name}_pv4_voltage
     pv4_current:
-      name: ${name}_tsungen3_1_pv4_current
+      name: ${name}_pv4_current
     pv4_power:
-      name: ${name}_tsungen3_1_pv4_power
-
+      name: ${name}_pv4_power
 
 text_sensor:
   - platform: tsungen3
-    tsungen3_id: tsungen3_1
+    tsungen3_id: mx1000
     inverter_status:
-      name: ${name}_tsungen3_1_inverter_status
+      name: ${name}_inverter_status
     event_alarms:
-      name: ${name}_tsungen3_1_event_alarms
+      name: ${name}_event_alarms
     event_faults:
-      name: ${name}_tsungen3_1_event_faults
+      name: ${name}_event_faults
 
 number:
   - platform: tsungen3
-    tsungen3_id: tsungen3_1
+    tsungen3_id: mx1000
     power_percent:
-      name: ${name}_tsungen3_1_power_percent
+      name: ${name}_power_percent
 
 output:
   - platform: tsungen3
-    tsungen3_id: tsungen3_1
+    tsungen3_id: mx1000
     power_percent:
-      id: ${name}_tsungen3_1_power_percent_output
+      id: ${name}_power_percent_output
 
 button:
   - platform: tsungen3
-    tsungen3_id: tsungen3_1
+    tsungen3_id: mx1000
     reset_tsungen3:
-      name: ${name}_tsungen3_1_reset_tsungen3
+      name: ${name}_reset_tsungen3
