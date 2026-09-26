@@ -611,12 +611,18 @@ void DUALPIDPCMComponent::pid_update() {
         if (this->current_mode_ == 1) {        // → CHARGE
             this->previous_output_ = this->olb_;
             this->current_output_  = this->olb_;
-            // On ne réarme le freeze de démarrage que si onoff_switch_ a
-            // réellement été coupé entre-temps (standby_power_cut_==true) :
-            // sorti d'une bascule directe (pass_through_) OU rattrapé avant
-            // l'échéance de timer_standby_poweroff, le convertisseur n'a
-            // jamais été mis hors tension -> pas de redémarrage physique.
-            if (!this->pass_through_ && this->standby_power_cut_) {
+            // On réarme TOUJOURS le freeze de démarrage sur une vraie
+            // transition (jamais sur une bascule pass_through_) — y compris
+            // en sortant d'un standby où onoff_switch_ n'a jamais été coupé
+            // (standby_power_cut_==false). in_startup ne sert pas qu'à geler
+            // la sortie physique : c'est aussi LE garde-fou anti-cyclage qui
+            // bloque toute re-sortie immédiate vers IDLE (cf. `!in_startup`
+            // dans la machine d'état ci-dessus). Le sauter ici a permis un
+            // yoyo CHARGE<->standby toutes les ~4-5s dès que epsi frôle le
+            // seuil. Le seul bénéfice conservé de timer_standby_poweroff est
+            // donc de ne pas couper/rallumer onoff_switch_ à chaque cycle —
+            // pas d'éviter ce court gel de sortie, qui reste nécessaire.
+            if (!this->pass_through_) {
                 this->mode_start_time_ = now;
             }
             this->standby_power_cut_ = true;  // épisode de standby clos
@@ -624,7 +630,7 @@ void DUALPIDPCMComponent::pid_update() {
         else if (this->current_mode_ == 2) {   // → DISCHARGE
             this->previous_output_ = this->oub_;
             this->current_output_  = this->oub_;
-            if (!this->pass_through_ && this->standby_power_cut_) {
+            if (!this->pass_through_) {
                 this->mode_start_time_ = now;
             }
             this->standby_power_cut_ = true;  // épisode de standby clos

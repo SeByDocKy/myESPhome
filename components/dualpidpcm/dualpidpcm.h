@@ -265,11 +265,14 @@ class DUALPIDPCMComponent : public Component{
   // actif), sert de référence pour le décompte.
   // standby_power_cut_  : true si onoff_switch_ a déjà été réellement coupé
   // pour l'épisode de standby en cours (ou si aucun épisode n'est en cours) ;
-  // false pendant la grâce, tant qu'on attend l'échéance du timer. Sert
-  // aussi à ne PAS réarmer STARTUP_INHIBIT_MS (mode_start_time_) si l'on
-  // rebascule vers CHARGE/DISCHARGE avant que la coupure n'ait eu lieu —
-  // le convertisseur n'ayant jamais été mis hors tension, aucun redémarrage
-  // physique n'est nécessaire.
+  // false pendant la grâce, tant qu'on attend l'échéance du timer. Piloté
+  // uniquement pour savoir QUAND couper onoff_switch_ (et pour le
+  // binary_sensor timer_standby) — mode_start_time_/STARTUP_INHIBIT_MS sont
+  // TOUJOURS réarmés sur une vraie transition vers CHARGE/DISCHARGE, même si
+  // on ressort du standby avant l'échéance : in_startup n'est pas qu'un gel
+  // de sortie physique, c'est aussi le garde-fou anti-cyclage qui bloque
+  // toute re-sortie immédiate. Le sauter provoquait un yoyo CHARGE<->standby
+  // toutes les quelques secondes dès que epsi frôlait le seuil d'arrêt.
   float    current_timer_standby_poweroff_ = 0.0f;
   uint32_t standby_start_time_             = 0;
   bool     standby_power_cut_              = true;

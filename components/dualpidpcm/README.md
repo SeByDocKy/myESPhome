@@ -72,7 +72,7 @@ targets a Huawei R48 charger + Hoymiles HMS microinverter pair).
 | `self_consumption` | W | 0 – 50 | 1 | Converter's own idle power draw while discharging. Added to `Pmin_discharging` so discharge only starts once house consumption exceeds what the converter itself consumes. |
 | `delta_idle_charging` | W | 0 – 100 | 1 | Anti-cycling margin (W) added on top of the charging stop threshold before charging is allowed to restart (`Pstart_charging`). |
 | `delta_idle_discharging` | W | 0 – 100 | 1 | Same anti-cycling margin for the discharge side (`Pstart_discharging`). |
-| `timer_standby_poweroff` | s | 0 – 120 | 1 | Grace period before `onoff_switch_` is actually turned off after entering standby/deadband from an active mode. `0` (default) = immediate cut, unchanged legacy behavior. If the converter needs to charge/discharge again before the timer elapses, power was never cut and no startup freeze (`STARTUP_INHIBIT_MS`) is re-armed. Rendered as a slider. |
+| `timer_standby_poweroff` | s | 0 – 120 | 1 | Grace period before `onoff_switch_` is actually turned off after entering standby/deadband from an active mode. `0` (default) = immediate cut, unchanged legacy behavior. If the converter needs to charge/discharge again before the timer elapses, `onoff_switch_` is never toggled off/on — but the normal startup freeze (`STARTUP_INHIBIT_MS`) is still re-armed on that resume, exactly as after any other real stop: it doubles as the anti-cycling guard that stops the state machine from immediately bouncing back to standby when the error is sitting right at the stop threshold. Rendered as a slider. |
 
 All number entities persist their last value across reboots (ESPHome
 preferences / NVS), falling back to the C++-side default if nothing
