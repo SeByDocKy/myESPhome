@@ -91,7 +91,7 @@ batteries).
 | `remain_out_time`, `remain_input_time` | `remainOutTime`, `remainInputTime` | min |
 | `charge_max_limit` | `chargeMaxLimit` | W |
 | `pack_num`, `soc_limit`, `fault_level`, `dc_status`, `ac_status` | same | Raw diagnostic codes |
-| `packN_soc_level`, `packN_power`, `packN_temperature`, `packN_total_voltage`, `packN_current`, `packN_max_cell_voltage`, `packN_min_cell_voltage` | `packData[N-1]` | `N` = 1 … 6, matched by position in `packData` |
+| `packN_soc_level`, `packN_power`, `packN_temperature`, `packN_total_voltage`, `packN_current`, `packN_max_cell_voltage`, `packN_min_cell_voltage`, `packN_delta_cell_voltage` | `packData[N-1]` | `N` = 1 … 6, matched by position in `packData` |
 
 **`binary_sensor`**: `online` (polling succeeds; off after 3 consecutive failures), `heat_state`, `bypass`
 (`pass`), `reverse_state`, `grid_connected` (`gridState`), `pv_active` (`pvStatus`), `soc_calibrating`
@@ -111,6 +111,15 @@ batteries).
 | `inverse_max_power` | Max inverter output (`inverseMaxPower`, W) |
 
 Slider ranges cover the largest model; the hub clamps to the configured limits and publishes the clamped value.
+
+`packN_delta_cell_voltage` is computed by the component as `packN_max_cell_voltage − packN_min_cell_voltage` (V,
+`mdi:delta`, `voltage` device class); it is skipped when either cell voltage reads 0.
+
+**`switch`**: `lamp` (`lampSwitch`, the LED strip of the device). Zendure-HA exposes this property as a writable
+"LED" switch and writes `1` / `0` with `POST /properties/write`, but the zenSDK property table lists it as
+read-only, so the write is **unverified on the SolarFlow models**: if the device ignores it, the switch simply
+falls back to the state read from the next poll. It is not restored at boot (nothing is written to the battery on
+startup). The read-only `lamp` binary sensor shows the same property.
 
 **`select`**: `ac_mode` (`acMode`: Charge / Discharge), `grid_off_mode` (`gridOffMode`: Standard / Economic /
 Closure). Values are read back on every poll. Note that `ac_mode` alone only flips the mode; use the numbers or
@@ -183,6 +192,11 @@ number:
     min_soc:
       name: "Zendure min SoC"
 
+switch:
+  - platform: zensdk
+    lamp:
+      name: "Zendure LED"
+
 select:
   - platform: zensdk
     grid_off_mode:
@@ -215,6 +229,7 @@ run against a real device yet.
   2 discharging), which the zenSDK table only states for the per-pack field.
 - **No kick-start.** Zendure-HA adds a small power boost when the requested power is just at the device's start
   threshold. That is not implemented; the request is sent as-is.
+- **Lamp switch.** See the `switch` platform above: the write is taken from Zendure-HA, not from the zenSDK table.
 - **`remainInputTime`** is read by Zendure-HA but absent from the zenSDK table; it is simply skipped if the
   device does not report it.
 - **Local API length.** The device accepts at most 512 bytes per request; all commands here are far below that.

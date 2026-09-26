@@ -144,6 +144,8 @@ sensor:
       name: ${name}_pack1_max_cell_voltage
     pack1_min_cell_voltage:
       name: ${name}_pack1_min_cell_voltage
+    pack1_delta_cell_voltage:
+      name: ${name}_pack1_delta_cell_voltage
     # Battery pack 2
     pack2_soc_level:
       name: ${name}_pack2_soc_level
@@ -159,6 +161,8 @@ sensor:
       name: ${name}_pack2_max_cell_voltage
     pack2_min_cell_voltage:
       name: ${name}_pack2_min_cell_voltage
+    pack2_delta_cell_voltage:
+      name: ${name}_pack2_delta_cell_voltage
     # Battery pack 3 (packN_* exists for N = 1 ... 6)
     pack3_soc_level:
       name: ${name}_pack3_soc_level
@@ -174,6 +178,8 @@ sensor:
       name: ${name}_pack3_max_cell_voltage
     pack3_min_cell_voltage:
       name: ${name}_pack3_min_cell_voltage
+    pack3_delta_cell_voltage:
+      name: ${name}_pack3_delta_cell_voltage
 
 binary_sensor:
   - platform: zensdk
@@ -234,6 +240,12 @@ number:
       name: ${name}_min_soc
     inverse_max_power:
       name: ${name}_inverse_max_power
+
+switch:
+  - platform: zensdk
+    zensdk_id: sf2400
+    lamp:                       # LED strip (write taken from Zendure-HA, unverified on SolarFlow)
+      name: ${name}_lamp
 
 select:
   - platform: zensdk

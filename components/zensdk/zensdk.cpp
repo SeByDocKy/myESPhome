@@ -352,6 +352,16 @@ bool ZenSdkComponent::parse_report_(const std::string &body) {
           else
             out = raw;
           break;
+        case CONV_CELL_DELTA: {
+          JsonVariant min_v = get_value(props, packs, b.pack, "minVol");
+          if (min_v.isNull())
+            continue;
+          float min_raw = min_v.as<float>();
+          if (raw == 0.0f || min_raw == 0.0f)
+            continue;  // 0 means "no reading" (same rule as Zendure-HA)
+          out = (raw - min_raw) * 0.01f;
+          break;
+        }
         case CONV_INT16:
           out = (float) (int16_t) (v.as<long>() & 0xFFFF) * b.scale;
           break;
@@ -423,6 +433,14 @@ bool ZenSdkComponent::parse_report_(const std::string &body) {
           value /= (float) this->soc_scale_;
       }
       b.number->publish_state(value);
+    }
+#endif
+
+#ifdef USE_SWITCH
+    for (auto &b : this->switches_) {
+      JsonVariant v = get_value(props, packs, -1, b.prop);
+      if (!v.isNull())
+        b.sw->publish_state(v.as<int>() != 0);
     }
 #endif
 

@@ -23,7 +23,7 @@ from .. import CONF_ZENSDK_ID, MAX_PACKS, ZenSdkComponent
 DEPENDENCIES = ["zensdk"]
 
 # Conversion ids MUST match the SensorConv enum in zensdk.h.
-CONV_LINEAR, CONV_DECIKELVIN, CONV_INT16, CONV_VOLT_AUTO, CONV_TEMP_AUTO = range(5)
+CONV_LINEAR, CONV_DECIKELVIN, CONV_INT16, CONV_VOLT_AUTO, CONV_TEMP_AUTO, CONV_CELL_DELTA = range(6)
 
 # Icon / device_class / state_class conventions match this author's other components
 # (hms, tsungen3, pcm3k6w): "mdi:power", "mdi:sine-wave" (voltage), "mdi:current-dc",
@@ -155,6 +155,8 @@ for _n in range(1, MAX_PACKS + 1):
         (f"pack{_n}_current", "batcur", _dc_current(), 0.1, 0.0, CONV_INT16, _p),
         (f"pack{_n}_max_cell_voltage", "maxVol", _voltage(accuracy=3), 0.01, 0.0, CONV_LINEAR, _p),
         (f"pack{_n}_min_cell_voltage", "minVol", _voltage(accuracy=3), 0.01, 0.0, CONV_LINEAR, _p),
+        # maxVol - minVol, computed by the hub (property "maxVol" is used for the presence check).
+        (f"pack{_n}_delta_cell_voltage", "maxVol", _voltage(accuracy=3, icon="mdi:delta"), 0.01, 0.0, CONV_CELL_DELTA, _p),
     ]
 
 CONFIG_SCHEMA = cv.Schema(

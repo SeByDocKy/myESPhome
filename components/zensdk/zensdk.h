@@ -18,6 +18,9 @@
 #ifdef USE_SELECT
 #include "esphome/components/select/select.h"
 #endif
+#ifdef USE_SWITCH
+#include "esphome/components/switch/switch.h"
+#endif
 #ifdef USE_OUTPUT
 #include "esphome/components/output/float_output.h"
 #endif
@@ -49,6 +52,7 @@ enum SensorConv : uint8_t {
   CONV_INT16 = 2,       // low 16 bits reinterpreted as signed, then * scale
   CONV_VOLT_AUTO = 3,   // raw > 200 -> centivolts (raw / 100), otherwise volts (see README)
   CONV_TEMP_AUTO = 4,   // -> Celsius from 0.1 K (raw > 1000), plain K (raw > 200) or already Celsius; 0 skipped
+  CONV_CELL_DELTA = 5,  // (maxVol - minVol) * 0.01 V of one pack; the binding's property is "maxVol"
 };
 
 // Text sensor conversion.
@@ -102,6 +106,12 @@ struct SelectBinding {
   const char *prop;
   int32_t base;  // property value of option index 0
   select::Select *select;
+};
+#endif
+#ifdef USE_SWITCH
+struct SwitchBinding {
+  const char *prop;
+  switch_::Switch *sw;
 };
 #endif
 
@@ -164,6 +174,9 @@ class ZenSdkComponent : public PollingComponent {
 #endif
 #ifdef USE_SELECT
   void add_select(const char *prop, int32_t base, select::Select *s) { this->selects_.push_back({prop, base, s}); }
+#endif
+#ifdef USE_SWITCH
+  void add_switch(const char *prop, switch_::Switch *s) { this->switches_.push_back({prop, s}); }
 #endif
 
   // ---- control API (main thread only; all fire-and-forget) ----
@@ -237,6 +250,9 @@ class ZenSdkComponent : public PollingComponent {
 #ifdef USE_SELECT
   std::vector<SelectBinding> selects_;
 #endif
+#ifdef USE_SWITCH
+  std::vector<SwitchBinding> switches_;
+#endif
 };
 
 #ifdef USE_NUMBER
@@ -267,6 +283,22 @@ class ZenSdkSelect : public select::Select, public Parented<ZenSdkComponent> {
     this->publish_state(index);
   }
   int32_t base_{0};
+  const char *prop_{""};
+};
+#endif
+
+#ifdef USE_SWITCH
+// On/off property (e.g. "lampSwitch"): writes 1 / 0 and is read back on every poll.
+// Not a Component, so no restore mode is applied: nothing is written to the device at boot.
+class ZenSdkSwitch : public switch_::Switch, public Parented<ZenSdkComponent> {
+ public:
+  void set_property(const char *prop) { this->prop_ = prop; }
+
+ protected:
+  void write_state(bool state) override {
+    this->parent_->write_property(this->prop_, state ? 1 : 0);
+    this->publish_state(state);  // optimistic, corrected by the next poll if the device ignored it
+  }
   const char *prop_{""};
 };
 #endif
