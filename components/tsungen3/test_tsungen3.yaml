@@ -88,9 +88,9 @@ sensor:
       name: ${name}_tsungen3_1_rated_power
     current_power:
       name: ${name}_tsungen3_1_current_power
-    ac_daily_energy:
+    ac_energy_today:
       name: ${name}_tsungen3_1_ac_energy_today
-    ac_total_energy:
+    ac_energy_total:
       name: ${name}_tsungen3_1_ac_energy_total
     pv1_voltage:
       name: ${name}_tsungen3_1_pv1_voltage

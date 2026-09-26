@@ -86,8 +86,8 @@ class TSunGen3Component : public PollingComponent {
   void set_temperature_sensor(sensor::Sensor *s) { this->temperature_sensor_ = s; }
   void set_rated_power_sensor(sensor::Sensor *s) { this->rated_power_sensor_ = s; }
   void set_current_power_sensor(sensor::Sensor *s) { this->current_power_sensor_ = s; }
-  void set_ac_daily_energy_sensor(sensor::Sensor *s) { this->ac_daily_energy_sensor_ = s; }
-  void set_ac_total_energy_sensor(sensor::Sensor *s) { this->ac_total_energy_sensor_ = s; }
+  void set_ac_energy_today_sensor(sensor::Sensor *s) { this->ac_energy_today_sensor_ = s; }
+  void set_ac_energy_total_sensor(sensor::Sensor *s) { this->ac_energy_total_sensor_ = s; }
 
   void set_pv1_voltage_sensor(sensor::Sensor *s) { this->pv_voltage_sensor_[0] = s; }
   void set_pv1_current_sensor(sensor::Sensor *s) { this->pv_current_sensor_[0] = s; }
@@ -144,8 +144,8 @@ class TSunGen3Component : public PollingComponent {
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *rated_power_sensor_{nullptr};
   sensor::Sensor *current_power_sensor_{nullptr};
-  sensor::Sensor *ac_daily_energy_sensor_{nullptr};
-  sensor::Sensor *ac_total_energy_sensor_{nullptr};
+  sensor::Sensor *ac_energy_today_sensor_{nullptr};
+  sensor::Sensor *ac_energy_total_sensor_{nullptr};
   sensor::Sensor *pv_voltage_sensor_[4]{nullptr, nullptr, nullptr, nullptr};
   sensor::Sensor *pv_current_sensor_[4]{nullptr, nullptr, nullptr, nullptr};
   sensor::Sensor *pv_power_sensor_[4]{nullptr, nullptr, nullptr, nullptr};

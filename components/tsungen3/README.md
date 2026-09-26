@@ -55,15 +55,30 @@ constant), not just the generic pysolarmanv5 spec, since AT+ framing isn't
 part of that spec. `AT+Z` ("Re-start module") is documented on the proxy's
 wiki; no other AT+ commands are wired up here.
 
+### Confirmed against real hardware (MX1000, Sep 2026)
+
+- **Solarman "Logger Serial" field must be the real "Monitoring SN"** printed
+  on the inverter's sticker — `0` (the option's default) does **not** get a
+  response in client_mode. Set `logger_serial` explicitly.
+- **Modbus slave/unit address `1`** works as documented.
+- The read path (framing, both CRCs, register offsets, scaling) is correct:
+  `rated_power` read back as exactly `1000.0 W` on a real MX1000 (1000W
+  nameplate), with a single PV string wired to the PV2 input reporting
+  plausible open-circuit-ish voltage while AC was still disconnected.
+- `grid_frequency` reads `50.00 Hz` even with the AC side physically
+  disconnected -- apparently a firmware default/quiescent value while
+  ungridded, not a decoding bug.
+- `inverter_status`/`event_alarms` were non-zero (`0x0002`/`0x0100`) with AC
+  disconnected, consistent with a "no grid" condition, but still undecoded
+  raw hex (see above).
+
 ### Unverified assumptions — please report back if your inverter disagrees
 
-- **Modbus slave/unit address**: defaults to `1` (`modbus_address` option).
-- **Solarman "Logger Serial" field**: defaults to `0`. Some firmware may
-  require the real "Monitoring SN" printed on the inverter's sticker
-  (`logger_serial` option) instead of `0` to answer at all.
 - **32-bit register decoding** (`AC Total Energy` at `0x301d`/`0x301e`):
   implemented as low-word-at-lower-address, matching the tsun-gen3-proxy
-  wiki's "uInt32LE" notation, but not checked against a packet capture.
+  wiki's "uInt32LE" notation, but not checked against a packet capture. Not
+  yet confirmed against real hardware (no AC/production data at time of
+  writing).
 - **Output Coefficient register/scaling** (`0x202C`, ratio 100/1024): taken
   from the wiki's MODBUS register table and the proxy's v0.9.0 release note
   ("inverter-output-coefficient"), not from a packet capture of an actual
@@ -88,7 +103,8 @@ tsungen3:
     host: 192.168.1.50        # fixed IP of the inverter
     port: 8899                 # client-mode plain-TCP port
     modbus_address: 1
-    # logger_serial: 2093984xxx  # uncomment if the inverter never responds with 0
+    logger_serial: 2093984xxx  # required -- the real "Monitoring SN" on the sticker;
+                                 # the default (0) gets no response in client_mode
     poll_interval: 30s
 
   # Second GEN3 PLUS inverter on the same ESP (MULTI_CONF):
@@ -111,9 +127,9 @@ sensor:
       name: "MX1000 Rated Power"
     current_power:
       name: "MX1000 Current Power"
-    ac_daily_energy:
+    ac_energy_today:
       name: "MX1000 AC Daily Energy"
-    ac_total_energy:
+    ac_energy_total:
       name: "MX1000 AC Total Energy"
     pv1_voltage:
       name: "MX1000 PV1 Voltage"

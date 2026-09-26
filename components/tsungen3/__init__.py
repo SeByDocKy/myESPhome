@@ -46,11 +46,12 @@ CONFIG_SCHEMA = cv.Schema(
         # inverters have been observed responding to 0x01; not confirmed across all
         # firmware/models -- override if a scan shows otherwise.
         cv.Optional(CONF_MODBUS_ADDRESS, default=1): cv.int_range(min=1, max=247),
-        # Solarman V5 "Logger Serial" (4-byte field in the frame header). Some
-        # firmware/proxy combinations accept 0 in client_mode (direct LAN connection,
-        # no Solarman cloud in the loop); others may require the real "Monitoring SN"
-        # printed on the inverter's sticker. Left at 0 by default -- set it explicitly
-        # if the inverter never answers.
+        # Solarman V5 "Logger Serial" (4-byte field in the frame header). Confirmed
+        # against a real MX1000 (Sep 2026): the default of 0 gets NO response in
+        # client_mode -- this must be set to the real "Monitoring SN" printed on
+        # the inverter's sticker. Left Optional (rather than Required) since this
+        # was only confirmed on one unit/firmware; the hub also logs a warning at
+        # startup if left at 0.
         cv.Optional(CONF_LOGGER_SERIAL, default=0): cv.uint32_t,
         cv.Optional(CONF_POLL_INTERVAL, default="30s"): cv.update_interval,
     }

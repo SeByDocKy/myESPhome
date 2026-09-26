@@ -396,6 +396,12 @@ bool TSunGen3Component::connect_and_transact_(const std::vector<uint8_t> &reques
 
 void TSunGen3Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up TSUN GEN3 PLUS component...");
+  if (this->logger_serial_ == 0) {
+    ESP_LOGW(TAG,
+             "logger_serial is 0 (default) -- confirmed on real hardware to get NO "
+             "response in client_mode. Set it to the inverter's real 'Monitoring SN' "
+             "(printed on its sticker) if polling fails.");
+  }
 }
 
 void TSunGen3Component::update() {
@@ -463,10 +469,10 @@ void TSunGen3Component::handle_live_block_(const std::vector<uint8_t> &regs, uin
       this->pv_power_sensor_[i]->publish_state(get_u16_(regs, PV_BASE[i] + 2, start_reg) * 0.1f);
   }
 
-  if (this->ac_daily_energy_sensor_ != nullptr)
-    this->ac_daily_energy_sensor_->publish_state(get_u16_(regs, 0x301c, start_reg) * 0.01f);
-  if (this->ac_total_energy_sensor_ != nullptr)
-    this->ac_total_energy_sensor_->publish_state(get_u32_(regs, 0x301d, start_reg) * 0.01f);
+  if (this->ac_energy_today_sensor_ != nullptr)
+    this->ac_energy_today_sensor_->publish_state(get_u16_(regs, 0x301c, start_reg) * 0.01f);
+  if (this->ac_energy_total_sensor_ != nullptr)
+    this->ac_energy_total_sensor_->publish_state(get_u32_(regs, 0x301d, start_reg) * 0.01f);
 #endif
 }
 

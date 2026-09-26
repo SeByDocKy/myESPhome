@@ -27,8 +27,8 @@ CONF_GRID_CURRENT = "grid_current"
 CONF_GRID_FREQUENCY = "grid_frequency"
 CONF_RATED_POWER = "rated_power"
 CONF_CURRENT_POWER = "current_power"
-CONF_AC_DAILY_ENERGY = "ac_daily_energy"
-CONF_AC_TOTAL_ENERGY = "ac_total_energy"
+CONF_AC_ENERGY_TODAY = "ac_energy_today"
+CONF_AC_ENERGY_TOTAL = "ac_energy_total"
 
 CONF_PV1_VOLTAGE = "pv1_voltage"
 CONF_PV1_CURRENT = "pv1_current"
@@ -109,8 +109,8 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_TEMPERATURE): _TEMPERATURE_SCHEMA,
         cv.Optional(CONF_RATED_POWER): _POWER_SCHEMA,
         cv.Optional(CONF_CURRENT_POWER): _POWER_SCHEMA,
-        cv.Optional(CONF_AC_DAILY_ENERGY): _ENERGY_SCHEMA,
-        cv.Optional(CONF_AC_TOTAL_ENERGY): _ENERGY_SCHEMA,
+        cv.Optional(CONF_AC_ENERGY_TODAY): _ENERGY_SCHEMA,
+        cv.Optional(CONF_AC_ENERGY_TOTAL): _ENERGY_SCHEMA,
         cv.Optional(CONF_PV1_VOLTAGE): _VOLTAGE_SCHEMA,
         cv.Optional(CONF_PV1_CURRENT): _DC_CURRENT_SCHEMA,
         cv.Optional(CONF_PV1_POWER): _POWER_SCHEMA,
@@ -133,8 +133,8 @@ _SETTERS = {
     CONF_TEMPERATURE: "set_temperature_sensor",
     CONF_RATED_POWER: "set_rated_power_sensor",
     CONF_CURRENT_POWER: "set_current_power_sensor",
-    CONF_AC_DAILY_ENERGY: "set_ac_daily_energy_sensor",
-    CONF_AC_TOTAL_ENERGY: "set_ac_total_energy_sensor",
+    CONF_AC_ENERGY_TODAY: "set_ac_energy_today_sensor",
+    CONF_AC_ENERGY_TOTAL: "set_ac_energy_total_sensor",
     CONF_PV1_VOLTAGE: "set_pv1_voltage_sensor",
     CONF_PV1_CURRENT: "set_pv1_current_sensor",
     CONF_PV1_POWER: "set_pv1_power_sensor",
