@@ -48,6 +48,7 @@ enum SensorConv : uint8_t {
   CONV_DECIKELVIN = 1,  // (value - 2731) / 10 -> Celsius; 0 is treated as "no reading" and skipped
   CONV_INT16 = 2,       // low 16 bits reinterpreted as signed, then * scale
   CONV_VOLT_AUTO = 3,   // raw > 200 -> centivolts (raw / 100), otherwise volts (see README)
+  CONV_TEMP_AUTO = 4,   // -> Celsius from 0.1 K (raw > 1000), plain K (raw > 200) or already Celsius; 0 skipped
 };
 
 // Text sensor conversion.

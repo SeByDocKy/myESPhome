@@ -1,0 +1,252 @@
+substitutions:
+  name: "test_zensdk"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  #board: esp32-s3-devkitc-1
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  # toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [zensdk]
+    refresh: 10s
+
+  # - source:
+      # type: local
+      # path: components
+
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+   level: debug #debug
+
+debug:
+  update_interval: 5s
+
+
+zensdk:
+  - id: sf2400
+    host: 192.168.1.60           # fixed IP of the SolarFlow (DHCP reservation)
+    port: 80                      # zenSDK local HTTP API
+    sn: "WOB1NHMAMXXXXX3"         # serial number, mandatory in every POST
+    model: SF2400_AC_PLUS         # SF800 / SF800_PLUS / SF800_PRO / SF1600_AC_PLUS / SF2400_AC / SF2400_AC_PLUS / SF2400_PRO
+    # max_charge_power: 3200      # optional overrides of the model limits (W)
+    # max_discharge_power: 2400
+    poll_interval: 5s
+    soc_scale: 10                 # raw socSet/minSoc units per %, set to 1 if the firmware reports plain percent
+    write_flash_on_stop: false    # false: stop with smartMode 1 (nothing written to flash)
+
+  # Second SolarFlow on the same ESP (MULTI_CONF), then add `zensdk_id: sf800` on every platform entry:
+  # - id: sf800
+  #   host: 192.168.1.61
+  #   sn: "WOB1NHMAMXXXXX4"
+  #   model: SF800
+  #   poll_interval: 10s
+
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+
+  - platform: zensdk
+    zensdk_id: sf2400
+    electric_level:
+      name: ${name}_electric_level
+    solar_input_power:
+      name: ${name}_solar_input_power
+    solar_power_1:
+      name: ${name}_solar_power_1
+    solar_power_2:
+      name: ${name}_solar_power_2
+    solar_power_3:
+      name: ${name}_solar_power_3
+    solar_power_4:
+      name: ${name}_solar_power_4
+    solar_power_5:
+      name: ${name}_solar_power_5
+    solar_power_6:
+      name: ${name}_solar_power_6
+    pack_input_power:
+      name: ${name}_pack_input_power
+    output_pack_power:
+      name: ${name}_output_pack_power
+    output_home_power:
+      name: ${name}_output_home_power
+    grid_input_power:
+      name: ${name}_grid_input_power
+    grid_off_power:
+      name: ${name}_grid_off_power
+    battery_voltage:
+      name: ${name}_battery_voltage
+    enclosure_temperature:
+      name: ${name}_enclosure_temperature
+    rssi:
+      name: ${name}_rssi
+    remain_out_time:
+      name: ${name}_remain_out_time
+    remain_input_time:
+      name: ${name}_remain_input_time
+    charge_max_limit:
+      name: ${name}_charge_max_limit
+    pack_num:
+      name: ${name}_pack_num
+    soc_limit:
+      name: ${name}_soc_limit
+    fault_level:
+      name: ${name}_fault_level
+    dc_status:
+      name: ${name}_dc_status
+    ac_status:
+      name: ${name}_ac_status
+    # Battery packs 1 to 3 (matched by position in packData; pack_num reports how many the device sees)
+    pack1_soc_level:
+      name: ${name}_pack1_soc_level
+    pack1_power:
+      name: ${name}_pack1_power
+    pack1_temperature:
+      name: ${name}_pack1_temperature
+    pack1_total_voltage:
+      name: ${name}_pack1_total_voltage
+    pack1_current:
+      name: ${name}_pack1_current
+    pack1_max_cell_voltage:
+      name: ${name}_pack1_max_cell_voltage
+    pack1_min_cell_voltage:
+      name: ${name}_pack1_min_cell_voltage
+    # Battery pack 2
+    pack2_soc_level:
+      name: ${name}_pack2_soc_level
+    pack2_power:
+      name: ${name}_pack2_power
+    pack2_temperature:
+      name: ${name}_pack2_temperature
+    pack2_total_voltage:
+      name: ${name}_pack2_total_voltage
+    pack2_current:
+      name: ${name}_pack2_current
+    pack2_max_cell_voltage:
+      name: ${name}_pack2_max_cell_voltage
+    pack2_min_cell_voltage:
+      name: ${name}_pack2_min_cell_voltage
+    # Battery pack 3 (packN_* exists for N = 1 ... 6)
+    pack3_soc_level:
+      name: ${name}_pack3_soc_level
+    pack3_power:
+      name: ${name}_pack3_power
+    pack3_temperature:
+      name: ${name}_pack3_temperature
+    pack3_total_voltage:
+      name: ${name}_pack3_total_voltage
+    pack3_current:
+      name: ${name}_pack3_current
+    pack3_max_cell_voltage:
+      name: ${name}_pack3_max_cell_voltage
+    pack3_min_cell_voltage:
+      name: ${name}_pack3_min_cell_voltage
+
+binary_sensor:
+  - platform: zensdk
+    zensdk_id: sf2400
+    online:
+      name: ${name}_online
+    heat_state:
+      name: ${name}_heat_state
+    bypass:
+      name: ${name}_bypass
+    reverse_state:
+      name: ${name}_reverse_state
+    grid_connected:
+      name: ${name}_grid_connected
+    pv_active:
+      name: ${name}_pv_active
+    soc_calibrating:
+      name: ${name}_soc_calibrating
+    error:
+      name: ${name}_error
+    fan:
+      name: ${name}_fan
+    lamp:
+      name: ${name}_lamp
+    data_ready:
+      name: ${name}_data_ready
+
+text_sensor:
+  - platform: zensdk
+    zensdk_id: sf2400
+    state:
+      name: ${name}_state
+    pack1_state:
+      name: ${name}_pack1_state
+    pack1_sn:
+      name: ${name}_pack1_sn
+    pack2_state:
+      name: ${name}_pack2_state
+    pack2_sn:
+      name: ${name}_pack2_sn
+    pack3_state:
+      name: ${name}_pack3_state
+    pack3_sn:
+      name: ${name}_pack3_sn
+
+number:
+  - platform: zensdk
+    zensdk_id: sf2400
+    power_setpoint:             # signed W: > 0 discharge, < 0 charge, 0 stop
+      name: ${name}_power_setpoint
+    input_limit:                # AC charge power (W), full smart-mode charge command
+      name: ${name}_input_limit
+    output_limit:               # AC output power (W), full smart-mode discharge command
+      name: ${name}_output_limit
+    soc_set:
+      name: ${name}_soc_set
+    min_soc:
+      name: ${name}_min_soc
+    inverse_max_power:
+      name: ${name}_inverse_max_power
+
+select:
+  - platform: zensdk
+    zensdk_id: sf2400
+    ac_mode:
+      name: ${name}_ac_mode
+    grid_off_mode:
+      name: ${name}_grid_off_mode
+
+output:
+  - platform: zensdk
+    zensdk_id: sf2400
+    charge_power:               # 0.0 .. 1.0 -> 0 .. max charge power
+      id: ${name}_charge_power_output
+    discharge_power:            # 0.0 .. 1.0 -> 0 .. max discharge power
+      id: ${name}_discharge_power_output

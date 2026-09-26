@@ -340,6 +340,18 @@ bool ZenSdkComponent::parse_report_(const std::string &body) {
             continue;  // 0 means "no reading", not -273 C
           out = (raw - 2731.0f) / 10.0f;
           break;
+        case CONV_TEMP_AUTO:
+          // The scale of hyperTmp is not documented by zenSDK, so detect it: ~3000 means 0.1 K,
+          // ~300 means Kelvin, anything below that is taken as already being in Celsius.
+          if (raw == 0.0f)
+            continue;
+          if (raw > 1000.0f)
+            out = (raw - 2731.0f) / 10.0f;
+          else if (raw > 200.0f)
+            out = raw - 273.15f;
+          else
+            out = raw;
+          break;
         case CONV_INT16:
           out = (float) (int16_t) (v.as<long>() & 0xFFFF) * b.scale;
           break;

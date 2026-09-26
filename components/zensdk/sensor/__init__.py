@@ -23,7 +23,7 @@ from .. import CONF_ZENSDK_ID, MAX_PACKS, ZenSdkComponent
 DEPENDENCIES = ["zensdk"]
 
 # Conversion ids MUST match the SensorConv enum in zensdk.h.
-CONV_LINEAR, CONV_DECIKELVIN, CONV_INT16, CONV_VOLT_AUTO = range(4)
+CONV_LINEAR, CONV_DECIKELVIN, CONV_INT16, CONV_VOLT_AUTO, CONV_TEMP_AUTO = range(5)
 
 # Icon / device_class / state_class conventions match this author's other components
 # (hms, tsungen3, pcm3k6w): "mdi:power", "mdi:sine-wave" (voltage), "mdi:current-dc",
@@ -111,7 +111,7 @@ SENSORS = [
     ("grid_input_power", "gridInputPower", _power("mdi:transmission-tower-import"), 1.0, 0.0, CONV_LINEAR, -1),
     ("grid_off_power", "gridOffPower", _power("mdi:power-plug-off"), 1.0, 0.0, CONV_LINEAR, -1),
     ("battery_voltage", "BatVolt", _voltage(), 0.01, 0.0, CONV_LINEAR, -1),
-    ("enclosure_temperature", "hyperTmp", _temperature(), 1.0, 0.0, CONV_DECIKELVIN, -1),
+    ("enclosure_temperature", "hyperTmp", _temperature(), 1.0, 0.0, CONV_TEMP_AUTO, -1),
     (
         "rssi",
         "rssi",

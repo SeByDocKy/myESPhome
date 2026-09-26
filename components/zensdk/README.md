@@ -85,7 +85,7 @@ batteries).
 | `grid_input_power` | `gridInputPower` | AC input, W |
 | `grid_off_power` | `gridOffPower` | Off-grid output, W |
 | `battery_voltage` | `BatVolt` | 0.01 V units |
-| `enclosure_temperature` | `hyperTmp` | Assumed 0.1 K units, see caveats |
+| `enclosure_temperature` | `hyperTmp` | Published in °C; the raw scale (0.1 K, K or °C) is auto-detected, see caveats |
 | `rssi` | `rssi` | dBm |
 | `remain_out_time`, `remain_input_time` | `remainOutTime`, `remainInputTime` | min |
 | `charge_max_limit` | `chargeMaxLimit` | W |
@@ -119,7 +119,7 @@ outputs to actually start charging or discharging.
 model). The effective request is `discharge − charge`, so two independent PID loops (or one signed loop split
 over the two outputs) can drive the battery.
 
-### Full example
+### Full example (a SolarFlow 2400 AC+ with 3 battery packs)
 
 ```yaml
 zensdk:
@@ -146,6 +146,14 @@ sensor:
       name: "Zendure pack 1 SoC"
     pack1_temperature:
       name: "Zendure pack 1 temperature"
+    pack2_soc_level:
+      name: "Zendure pack 2 SoC"
+    pack2_temperature:
+      name: "Zendure pack 2 temperature"
+    pack3_soc_level:
+      name: "Zendure pack 3 SoC"
+    pack3_temperature:
+      name: "Zendure pack 3 temperature"
 
 binary_sensor:
   - platform: zensdk
@@ -160,6 +168,10 @@ text_sensor:
       name: "Zendure state"
     pack1_sn:
       name: "Zendure pack 1 SN"
+    pack2_sn:
+      name: "Zendure pack 2 SN"
+    pack3_sn:
+      name: "Zendure pack 3 SN"
 
 number:
   - platform: zensdk
@@ -194,9 +206,10 @@ run against a real device yet.
   scales them by 10 (raw `1000` = 100 %). `soc_scale` defaults to `10` (Zendure-HA); set it to `1` if your
   firmware reports plain percent.
 - **Voltage and temperature units.** `packN_total_voltage` uses a heuristic (raw > 200 is treated as 0.01 V units,
-  otherwise volts) because the zenSDK table says "V" but other fields are in 0.01 V. `hyperTmp` is assumed to use
-  the same 0.1 K encoding as the pack temperatures (`(raw − 2731) / 10`; a raw `0` is skipped). `packN_current` is
-  a signed 16-bit value in 0.1 A.
+  otherwise volts) because the zenSDK table says "V" but other fields are in 0.01 V. The scale of `hyperTmp` is not
+  documented by zenSDK, so `enclosure_temperature` auto-detects it (raw > 1000: 0.1 K, i.e. `(raw − 2731) / 10`;
+  raw > 200: Kelvin; otherwise already °C; a raw `0` is skipped) and always publishes °C. Pack temperatures
+  (`packN_temperature`) use the documented 0.1 K encoding. `packN_current` is a signed 16-bit value in 0.1 A.
 - **`packState`.** The device-level `packState` is decoded like the per-pack `state` (0 standby, 1 charging,
   2 discharging), which the zenSDK table only states for the per-pack field.
 - **No kick-start.** Zendure-HA adds a small power boost when the requested power is just at the device's start
