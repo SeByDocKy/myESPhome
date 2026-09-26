@@ -44,6 +44,33 @@ References:
 - `MULTI_CONF` is supported: several `tsungen3:` blocks (one per inverter,
   each with its own IP) can coexist on the same ESP, same as `hmsw`.
 
+### Non-blocking I/O (background FreeRTOS task)
+
+All TCP I/O (DNS resolution, connect, send, recv — up to a 3 s timeout each)
+runs on a dedicated FreeRTOS task, never on ESPHome's single-threaded main
+loop:
+
+- `update()`, `set_power_percent()` and `send_reset_command()` only enqueue a
+  small job and return almost immediately.
+- The background task performs the actual Solarman V5 / Modbus RTU
+  transaction and posts the result back through a second queue.
+- `loop()` drains that result queue on the main thread and is the only place
+  that publishes sensor states or logs the outcome, since ESPHome's
+  Sensor/TextSensor/API objects must only be touched from the main thread.
+- If the background task is still busy with a previous job when a new one is
+  enqueued (job queue full), the new one is dropped with a `WARN` log rather
+  than blocking or queuing indefinitely — this only happens if a transaction
+  is taking unusually long (e.g. the inverter is slow/unreachable).
+
+Practical effect: `power_percent`/`reset_tsungen3` are genuinely
+fire-and-forget now — the call returns almost instantly, and the actual
+success/failure of the write or reset is only visible in the logs (and, for
+the `number` platform, the optimistically-published state) a moment later,
+not as a blocking round-trip. This was added after real-world testing showed
+the main loop time (measured via the `debug` component's `loop_time` sensor)
+spiking to ~400 ms per poll cycle with the previous synchronous
+implementation, which briefly starved WiFi/API/other components' `loop()`.
+
 ### AT+ command framing (button)
 
 Unlike the Modbus read/write path, AT+ commands are **not** Modbus RTU: they

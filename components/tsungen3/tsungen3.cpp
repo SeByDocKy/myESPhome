@@ -402,29 +402,133 @@ void TSunGen3Component::setup() {
              "response in client_mode. Set it to the inverter's real 'Monitoring SN' "
              "(printed on its sticker) if polling fails.");
   }
+
+  // Small queues: only ever one poll in flight, plus at most one control
+  // action (write/reset) queued up behind it. Sized generously (4) so a
+  // button press during a poll isn't dropped.
+  this->job_queue_ = xQueueCreate(4, sizeof(TSunGen3Job));
+  this->result_queue_ = xQueueCreate(4, sizeof(TSunGen3JobResult *));
+  if (this->job_queue_ == nullptr || this->result_queue_ == nullptr) {
+    ESP_LOGE(TAG, "Failed to create job/result queues");
+    this->mark_failed();
+    return;
+  }
+
+  // All blocking network I/O happens on this task -- update()/set_power_percent()/
+  // send_reset_command() only ever enqueue a job onto job_queue_, keeping the
+  // main (cooperative) loop free.
+  BaseType_t ok = xTaskCreate(&TSunGen3Component::task_trampoline_, "tsungen3", 8192, this, 5, &this->task_handle_);
+  if (ok != pdPASS) {
+    ESP_LOGE(TAG, "Failed to create background task");
+    this->mark_failed();
+  }
 }
 
 void TSunGen3Component::update() {
-  std::vector<uint8_t> request = this->build_read_request_(REG_BLOCK_START, REG_BLOCK_COUNT);
-  std::vector<uint8_t> response;
-
-  if (!this->connect_and_transact_(request, response)) {
-    ESP_LOGW(TAG, "Poll of %s:%u failed", this->host_.c_str(), this->port_);
-    return;
+  TSunGen3Job job{JobType::POLL_READ};
+  if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
+    ESP_LOGW(TAG, "Background task busy, skipping this poll cycle");
   }
+}
 
-  std::vector<uint8_t> register_data;
-  if (!this->parse_response_(response, register_data)) {
-    ESP_LOGW(TAG, "Failed to parse response from %s:%u", this->host_.c_str(), this->port_);
-    return;
+void TSunGen3Component::loop() {
+  TSunGen3JobResult *result = nullptr;
+  // Non-blocking drain: at most a few pointer-sized items per call, this is
+  // effectively free on the main thread.
+  while (xQueueReceive(this->result_queue_, &result, 0) == pdTRUE) {
+    if (result != nullptr) {
+      this->process_result_(result);
+      delete result;
+    }
   }
+}
 
-  if (register_data.size() != (size_t) REG_BLOCK_COUNT * 2) {
-    ESP_LOGW(TAG, "Unexpected register payload size: %d bytes", (int) register_data.size());
-    return;
+void TSunGen3Component::task_trampoline_(void *param) {
+  static_cast<TSunGen3Component *>(param)->run_task_();
+}
+
+void TSunGen3Component::run_task_() {
+  TSunGen3Job job{};
+  for (;;) {
+    if (xQueueReceive(this->job_queue_, &job, portMAX_DELAY) != pdTRUE)
+      continue;
+
+    auto *result = new TSunGen3JobResult();
+    result->type = job.type;
+
+    switch (job.type) {
+      case JobType::POLL_READ: {
+        std::vector<uint8_t> request = this->build_read_request_(REG_BLOCK_START, REG_BLOCK_COUNT);
+        std::vector<uint8_t> response;
+        if (this->connect_and_transact_(request, response)) {
+          std::vector<uint8_t> register_data;
+          if (this->parse_response_(response, register_data) &&
+              register_data.size() == (size_t) REG_BLOCK_COUNT * 2) {
+            result->success = true;
+            result->register_data = std::move(register_data);
+          }
+        }
+        break;
+      }
+      case JobType::WRITE_POWER_PERCENT: {
+        result->reg_value = job.reg_value;
+        std::vector<uint8_t> request = this->build_write_request_(REG_OUTPUT_COEFFICIENT, job.reg_value);
+        std::vector<uint8_t> response;
+        if (this->connect_and_transact_(request, response) &&
+            this->parse_write_response_(response, REG_OUTPUT_COEFFICIENT, job.reg_value)) {
+          result->success = true;
+        }
+        break;
+      }
+      case JobType::RESET_AT_CMD: {
+        std::vector<uint8_t> request = this->build_at_command_request_("AT+Z");
+        std::vector<uint8_t> response;
+        std::string text;
+        if (this->connect_and_transact_(request, response) && this->parse_at_response_(response, text)) {
+          result->success = true;
+          result->text = std::move(text);
+        }
+        break;
+      }
+    }
+
+    if (xQueueSend(this->result_queue_, &result, 0) != pdTRUE) {
+      // Main loop fell behind and the result queue is full: drop it rather
+      // than block the network task, and avoid leaking the heap allocation.
+      delete result;
+    }
   }
+}
 
-  this->handle_live_block_(register_data, REG_BLOCK_START, REG_BLOCK_COUNT);
+void TSunGen3Component::process_result_(TSunGen3JobResult *result) {
+  switch (result->type) {
+    case JobType::POLL_READ: {
+      if (!result->success) {
+        ESP_LOGW(TAG, "Poll of %s:%u failed", this->host_.c_str(), this->port_);
+        break;
+      }
+      this->handle_live_block_(result->register_data, REG_BLOCK_START, REG_BLOCK_COUNT);
+      break;
+    }
+    case JobType::WRITE_POWER_PERCENT: {
+      float percent = result->reg_value * 100.0f / 1024.0f;
+      if (!result->success) {
+        ESP_LOGW(TAG, "Failed to write power_percent (%.1f%%) to %s:%u", percent, this->host_.c_str(), this->port_);
+        break;
+      }
+      ESP_LOGI(TAG, "power_percent set to %.1f%% (register 0x%04X = %u)", percent, REG_OUTPUT_COEFFICIENT,
+               result->reg_value);
+      break;
+    }
+    case JobType::RESET_AT_CMD: {
+      if (!result->success) {
+        ESP_LOGW(TAG, "Failed to send AT+Z (reset) to %s:%u", this->host_.c_str(), this->port_);
+        break;
+      }
+      ESP_LOGI(TAG, "AT+Z (reset) sent, inverter replied: %s", result->text.c_str());
+      break;
+    }
+  }
 }
 
 void TSunGen3Component::handle_live_block_(const std::vector<uint8_t> &regs, uint16_t start_reg, uint16_t count) {
@@ -498,34 +602,17 @@ void TSunGen3Component::set_power_percent(float percent) {
   if (reg_value > 1024)
     reg_value = 1024;
 
-  std::vector<uint8_t> request = this->build_write_request_(REG_OUTPUT_COEFFICIENT, reg_value);
-  std::vector<uint8_t> response;
-
-  if (!this->connect_and_transact_(request, response)) {
-    ESP_LOGW(TAG, "Failed to write power_percent (%.1f%%) to %s:%u", percent, this->host_.c_str(), this->port_);
-    return;
+  TSunGen3Job job{JobType::WRITE_POWER_PERCENT, reg_value};
+  if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
+    ESP_LOGW(TAG, "Background task busy, dropped power_percent write (%.1f%%)", percent);
   }
-  if (!this->parse_write_response_(response, REG_OUTPUT_COEFFICIENT, reg_value)) {
-    ESP_LOGW(TAG, "Inverter rejected/garbled power_percent write (%.1f%%)", percent);
-    return;
-  }
-  ESP_LOGI(TAG, "power_percent set to %.1f%% (register 0x%04X = %u)", percent, REG_OUTPUT_COEFFICIENT, reg_value);
 }
 
 void TSunGen3Component::send_reset_command() {
-  std::vector<uint8_t> request = this->build_at_command_request_("AT+Z");
-  std::vector<uint8_t> response;
-
-  if (!this->connect_and_transact_(request, response)) {
-    ESP_LOGW(TAG, "Failed to send AT+Z (reset) to %s:%u", this->host_.c_str(), this->port_);
-    return;
+  TSunGen3Job job{JobType::RESET_AT_CMD};
+  if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
+    ESP_LOGW(TAG, "Background task busy, dropped AT+Z (reset) request");
   }
-  std::string text;
-  if (!this->parse_at_response_(response, text)) {
-    ESP_LOGW(TAG, "Garbled response to AT+Z");
-    return;
-  }
-  ESP_LOGI(TAG, "AT+Z (reset) sent, inverter replied: %s", text.c_str());
 }
 
 }  // namespace tsungen3

@@ -19,12 +19,51 @@
 #include "esphome/components/button/button.h"
 #endif
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/queue.h>
+
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace esphome {
 namespace tsungen3 {
+
+// ---------------------------------------------------------------------------
+// Background-task job/result plumbing
+// ---------------------------------------------------------------------------
+// All blocking TCP I/O (connect/send/recv, up to SOCKET_TIMEOUT_MS each) runs
+// on a dedicated FreeRTOS task, never on ESPHome's cooperative main loop.
+// `update()`, `set_power_percent()` and `send_reset_command()` only enqueue a
+// small POD job; the task performs the transaction with the existing
+// `connect_and_transact_`/`build_*_request_`/`parse_*_response_` methods
+// (unchanged) and posts a heap-allocated result back. `loop()` drains the
+// result queue on the main thread and is the only place that calls
+// `publish_state()`/`ESP_LOGx` for these results, since ESPHome objects
+// (Sensor, TextSensor, the API) are not safe to touch from another task.
+enum class JobType {
+  POLL_READ,
+  WRITE_POWER_PERCENT,
+  RESET_AT_CMD,
+};
+
+// Sent on job_queue_: intentionally trivial/POD so it can be copied by value
+// through a FreeRTOS queue.
+struct TSunGen3Job {
+  JobType type;
+  uint16_t reg_value{0};  // only used by WRITE_POWER_PERCENT
+};
+
+// Sent (by pointer) on result_queue_. Heap-allocated by the background task,
+// freed by loop() after processing.
+struct TSunGen3JobResult {
+  JobType type;
+  bool success{false};
+  uint16_t reg_value{0};        // echoed back for WRITE_POWER_PERCENT logging
+  std::vector<uint8_t> register_data;  // POLL_READ payload
+  std::string text;             // RESET_AT_CMD reply text
+};
 
 // ---------------------------------------------------------------------------
 // Solarman V5 framing constants
@@ -67,16 +106,24 @@ class TSunGen3Component : public PollingComponent {
 
   void setup() override;
   void update() override;
+  // NOTE: PollingComponent schedules update() through ESPHome's internal
+  // scheduler (set_update_interval()/App loop, not the loop() virtual), so
+  // overriding loop() here is safe and does not affect poll_interval timing.
+  // loop() is used only to drain result_queue_ on the main thread.
+  void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
   // Writes the Output Coefficient register (percent of Rated Power, 0-100).
-  // Called by the `number` and `output` platforms. Fire-and-forget: logs on
-  // failure, does not throw/block the caller beyond the usual TCP timeout.
+  // Called by the `number` and `output` platforms. Fire-and-forget: just
+  // enqueues a job for the background task and returns almost immediately --
+  // the actual TCP transaction (and its outcome, via logs / optimistic
+  // number state) happens off the main thread.
   void set_power_percent(float percent);
 
-  // Sends "AT+Z" (Re-start module) and logs whatever the device replies.
-  // Called by the `button` platform.
+  // Sends "AT+Z" (Re-start module); the outcome is logged once the
+  // background task's result comes back through loop(). Fire-and-forget,
+  // returns almost immediately. Called by the `button` platform.
   void send_reset_command();
 
 #ifdef USE_SENSOR
@@ -136,6 +183,18 @@ class TSunGen3Component : public PollingComponent {
 
   static uint16_t get_u16_(const std::vector<uint8_t> &regs, uint16_t reg, uint16_t start_reg);
   static uint32_t get_u32_(const std::vector<uint8_t> &regs, uint16_t reg, uint16_t start_reg);
+
+  // Background-task plumbing. The task itself only ever calls the blocking
+  // helpers above (connect_and_transact_/build_*/parse_*) and never touches
+  // Sensor/TextSensor objects directly -- results are handed to loop() via
+  // result_queue_ and published from process_result_() on the main thread.
+  static void task_trampoline_(void *param);
+  void run_task_();
+  void process_result_(TSunGen3JobResult *result);
+
+  QueueHandle_t job_queue_{nullptr};
+  QueueHandle_t result_queue_{nullptr};
+  TaskHandle_t task_handle_{nullptr};
 
 #ifdef USE_SENSOR
   sensor::Sensor *grid_voltage_sensor_{nullptr};
