@@ -85,18 +85,18 @@ sensor:
       name: ${name}_electric_level
     solar_input_power:
       name: ${name}_solar_input_power
-    solar_power_1:
-      name: ${name}_solar_power_1
-    solar_power_2:
-      name: ${name}_solar_power_2
-    solar_power_3:
-      name: ${name}_solar_power_3
-    solar_power_4:
-      name: ${name}_solar_power_4
-    solar_power_5:
-      name: ${name}_solar_power_5
-    solar_power_6:
-      name: ${name}_solar_power_6
+    pv_power_1:
+      name: ${name}_pv_power_1
+    pv_power_2:
+      name: ${name}_pv_power_2
+    pv_power_3:
+      name: ${name}_pv_power_3
+    pv_power_4:
+      name: ${name}_pv_power_4
+    pv_power_5:
+      name: ${name}_pv_power_5
+    pv_power_6:
+      name: ${name}_pv_power_6
     pack_input_power:
       name: ${name}_pack_input_power
     output_pack_power:

@@ -78,7 +78,8 @@ batteries).
 | Key | Property | Notes |
 |---|---|---|
 | `electric_level` | `electricLevel` | Average SoC, % |
-| `solar_input_power`, `solar_power_1` … `solar_power_6` | `solarInputPower`, `solarPower1..6` | W |
+| `solar_input_power` | `solarInputPower` | Total PV input, W |
+| `pv_power_1` … `pv_power_6` | `solarPower1..6` | Power of each PV / MPPT input channel, W |
 | `pack_input_power` | `packInputPower` | Battery discharge power, W |
 | `output_pack_power` | `outputPackPower` | Battery charge power, W |
 | `output_home_power` | `outputHomePower` | AC output to home, W |

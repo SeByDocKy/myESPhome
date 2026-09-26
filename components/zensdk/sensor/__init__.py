@@ -141,7 +141,7 @@ SENSORS = [
 # PV channels 1..6
 for _n in range(1, 7):
     SENSORS.append(
-        (f"solar_power_{_n}", f"solarPower{_n}", _power("mdi:solar-panel"), 1.0, 0.0, CONV_LINEAR, -1)
+        (f"pv_power_{_n}", f"solarPower{_n}", _power("mdi:solar-panel"), 1.0, 0.0, CONV_LINEAR, -1)
     )
 
 # Per-battery-pack entities, matched by position in "packData".
