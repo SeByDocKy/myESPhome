@@ -1,14 +1,11 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import number
-from esphome.components.number import NUMBER_MODES
 from esphome.const import (
     CONF_ID,
-    CONF_MODE,
     DEVICE_CLASS_VOLTAGE,
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_POWER,
-    DEVICE_CLASS_DURATION,
     ENTITY_CATEGORY_CONFIG,
     ICON_BATTERY,
     ICON_PERCENT,
@@ -16,7 +13,6 @@ from esphome.const import (
     UNIT_VOLT,
     UNIT_PERCENT,
     UNIT_WATT,
-    UNIT_SECOND,
 )
 
 DEPENDENCIES = ["dualpidpcm"]
@@ -46,8 +42,6 @@ SelfConsumptionNumber = dualpidpcm_ns.class_("SelfConsumptionNumber", number.Num
 DeltaIdleChargingNumber = dualpidpcm_ns.class_("DeltaIdleChargingNumber", number.Number, cg.Component)
 DeltaIdleDischargingNumber = dualpidpcm_ns.class_("DeltaIdleDischargingNumber", number.Number, cg.Component)
 
-TimerStandbyPoweroffNumber = dualpidpcm_ns.class_("TimerStandbyPoweroffNumber", number.Number, cg.Component)
-
 CONF_SETPOINT = "setpoint"
 CONF_STARTING_BATTERY_VOLTAGE = "starting_battery_voltage"
 CONF_STOPPING_BATTERY_VOLTAGE = "stopping_battery_voltage"
@@ -67,8 +61,6 @@ CONF_FEEDFORWARD_THRESHOLD = "feedforward_threshold"
 CONF_SELF_CONSUMPTION = "self_consumption"
 CONF_DELTA_IDLE_CHARGING = "delta_idle_charging"
 CONF_DELTA_IDLE_DISCHARGING = "delta_idle_discharging"
-
-CONF_TIMER_STANDBY_POWEROFF = "timer_standby_poweroff"
 
 
 CONFIG_SCHEMA = {
@@ -172,17 +164,7 @@ CONFIG_SCHEMA = {
         icon = ICON_POWER,
         unit_of_measurement=UNIT_WATT,
         entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA),
-
-    cv.Optional(CONF_TIMER_STANDBY_POWEROFF): number.number_schema(
-        TimerStandbyPoweroffNumber,
-        device_class=DEVICE_CLASS_DURATION,
-        icon = "mdi:timer-sand",
-        unit_of_measurement=UNIT_SECOND,
-        entity_category=ENTITY_CATEGORY_CONFIG
-    ).extend(cv.COMPONENT_SCHEMA).extend(
-        {cv.Optional(CONF_MODE, default="SLIDER"): cv.enum(NUMBER_MODES, upper=True)}
-    ),
+    ).extend(cv.COMPONENT_SCHEMA),  
 }
 
 async def to_code(config):
@@ -301,14 +283,4 @@ async def to_code(config):
         await cg.register_component(n, delta_idle_discharging_config)
         await cg.register_parented(n, dualpidpcm_component)
         cg.add(dualpidpcm_component.set_delta_idle_discharging_number(n))
-
-  if timer_standby_poweroff_config := config.get(CONF_TIMER_STANDBY_POWEROFF):
-        # 0 = comportement historique (coupure immédiate) ; jusqu'à 120s
-        # de grâce avant coupure réelle de onoff_switch_ au repos.
-        n = await number.new_number(
-            timer_standby_poweroff_config, min_value=0.0, max_value=120.0, step=1.0
-        )
-        await cg.register_component(n, timer_standby_poweroff_config)
-        await cg.register_parented(n, dualpidpcm_component)
-        cg.add(dualpidpcm_component.set_timer_standby_poweroff_number(n))
-
+    

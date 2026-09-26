@@ -42,12 +42,6 @@ class DUALPIDPCMComponent : public Component{
  // numbers positionnent l'écart avant REDÉMARRAGE (motivation anti-cyclage).
  SUB_NUMBER(delta_idle_charging)
  SUB_NUMBER(delta_idle_discharging)
- // ── Timer avant coupure réelle au repos ───────────────────────────────────
- // Délai (s) pendant lequel on reste en attente (onoff_switch_ laissé allumé)
- // après une entrée en deadband/standby depuis un mode actif, avant de
- // couper réellement l'alimentation. 0 (défaut) = coupure immédiate, comme
- // avant l'ajout de cette fonctionnalité.
- SUB_NUMBER(timer_standby_poweroff)
  SUB_NUMBER(kp)
  SUB_NUMBER(ki)
  SUB_NUMBER(kd)
@@ -138,11 +132,6 @@ class DUALPIDPCMComponent : public Component{
   void set_delta_idle_discharging(float value) {this->current_delta_idle_discharging_ = value;}
   float get_delta_idle_discharging(void){return this->current_delta_idle_discharging_;}
 
-  // Délai (s) de grâce avant coupure réelle de onoff_switch_ au repos.
-  // 0 = coupure immédiate (comportement historique, inchangé par défaut).
-  void set_timer_standby_poweroff(float value) {this->current_timer_standby_poweroff_ = value;}
-  float get_timer_standby_poweroff(void){return this->current_timer_standby_poweroff_;}
-
   void set_kp(float value) {this->current_kp_ = value;}
   float get_kp(void){return this->current_kp_;}
   void set_ki(float value) {this->current_ki_ = value;}
@@ -185,12 +174,6 @@ class DUALPIDPCMComponent : public Component{
 
   // ── Bascule directe CHARGE<->DISCHARGE sans coupure onoff_switch_ ─────────
   bool get_pass_through(void){return this->pass_through_;}
-
-  // Expose l'état du timer_standby_poweroff pour diagnostic (binary_sensor) :
-  // true dès l'entrée en standby (si timer_standby_poweroff_ > 0, onoff_switch_
-  // encore allumé, décompte en cours), false dès que la coupure a eu lieu (ou
-  // qu'aucun épisode de grâce n'est en cours).
-  bool get_standby_timer_active(void){return (this->previous_mode_ == 0) && !this->standby_power_cut_;}
   
 
  protected:
@@ -257,25 +240,6 @@ class DUALPIDPCMComponent : public Component{
   // Écart (W) seuil d'ARRÊT -> seuil de REDÉMARRAGE, par direction.
   float current_delta_idle_charging_    = 30.0f;
   float current_delta_idle_discharging_ = 30.0f;
-
-  // ── Timer avant coupure réelle au repos (grâce) ───────────────────────────
-  // current_timer_standby_poweroff_ : délai réglable (s), 0 = coupure
-  // immédiate (comportement historique).
-  // standby_start_time_ : horodatage de l'entrée en standby (depuis un mode
-  // actif), sert de référence pour le décompte.
-  // standby_power_cut_  : true si onoff_switch_ a déjà été réellement coupé
-  // pour l'épisode de standby en cours (ou si aucun épisode n'est en cours) ;
-  // false pendant la grâce, tant qu'on attend l'échéance du timer. Piloté
-  // uniquement pour savoir QUAND couper onoff_switch_ (et pour le
-  // binary_sensor timer_standby) — mode_start_time_/STARTUP_INHIBIT_MS sont
-  // TOUJOURS réarmés sur une vraie transition vers CHARGE/DISCHARGE, même si
-  // on ressort du standby avant l'échéance : in_startup n'est pas qu'un gel
-  // de sortie physique, c'est aussi le garde-fou anti-cyclage qui bloque
-  // toute re-sortie immédiate. Le sauter provoquait un yoyo CHARGE<->standby
-  // toutes les quelques secondes dès que epsi frôlait le seuil d'arrêt.
-  float    current_timer_standby_poweroff_ = 0.0f;
-  uint32_t standby_start_time_             = 0;
-  bool     standby_power_cut_              = true;
 
   float current_kp_          = 1.1f;
   float current_ki_          = 0.0f;

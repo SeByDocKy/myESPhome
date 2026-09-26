@@ -125,8 +125,6 @@ void DUALPIDPCMComponent::setup() {
     this->mode_start_time_             = millis() - STARTUP_INHIBIT_MS;  // in_startup=false au boot
     this->pass_through_                = false;
     this->undervoltage_lockout_        = false;
-    this->standby_power_cut_           = true;
-    this->standby_start_time_          = 0;
 
     if (this->input_sensor_ != nullptr) {
         this->input_sensor_->add_on_state_callback([this](float state) {
@@ -177,7 +175,7 @@ void DUALPIDPCMComponent::pid_update() {
     float tmp, tmp_i, epsi;
     float alphaP, alphaI, alphaD, alpha;
     bool should_be_on, raw_deadband, output_is_active;
-    bool in_startup = false, outputs_at_rest;
+    bool in_startup, outputs_at_rest;
     float o_min_charge, o_max_charge, o_min_discharge, o_max_discharge, o_clamped;
     float delta_error, pending_jump;
     bool trigger_ff = false;
@@ -292,7 +290,6 @@ void DUALPIDPCMComponent::pid_update() {
         this->current_onoff_              = false;
         this->current_deadband_           = false;
         this->pass_through_               = false;
-        this->standby_power_cut_          = true;
 
         if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
             this->onoff_switch_->turn_off();
@@ -336,40 +333,12 @@ void DUALPIDPCMComponent::pid_update() {
                  this->undervoltage_lockout_);
     }
 
-    // ── Timer standby_poweroff : décompte de la grâce avant coupure ────
-    // Tant qu'on est en IDLE (previous_mode_==0) sans avoir encore coupé
-    // onoff_switch_ pour l'épisode de standby en cours (standby_power_cut_
-    // == false), on vérifie ICI si timer_standby_poweroff_ est écoulé —
-    // à CHAQUE cycle en IDLE, deadband stricte ou "zone tampon" Pmin..Pstart
-    // incluse, pour ne jamais couper trop tôt ni rater l'échéance.
-    // Ne fait rien d'autre : la conséquence (onoff_switch_ resté allumé ou
-    // coupé) est ensuite lue par les blocs ci-dessous et par la gestion
-    // finale de onoff_switch_.
-    if (this->previous_mode_ == 0 && !this->standby_power_cut_) {
-        uint32_t standby_elapsed = now - this->standby_start_time_;
-        if (standby_elapsed >= (uint32_t)(this->current_timer_standby_poweroff_ * 1000.0f)) {
-            if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
-                this->onoff_switch_->turn_off();
-                this->onoff_switch_->publish_state(false);
-            }
-            this->current_onoff_     = false;
-            this->standby_power_cut_ = true;
-            ESP_LOGI(TAG, "timer_standby_poweroff (%.1fs) ecoule -> coupure onoff_switch_", this->current_timer_standby_poweroff_);
-        }
-    }
-
-    // ── Deadband en mode IDLE : on reste off (ou en attente du timer) ──
+    // ── Deadband en mode IDLE : on reste off ──────────────────────────
     if (this->current_deadband_ && this->previous_mode_ == 0) {
-        if (this->standby_power_cut_) {
-            // Comportement historique : pas de grâce en cours, on s'assure
-            // que onoff_switch_ est bien coupé.
-            if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
-                this->onoff_switch_->turn_off();
-                this->onoff_switch_->publish_state(false);
-            }
+        if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
+            this->onoff_switch_->turn_off();
+            this->onoff_switch_->publish_state(false);
         }
-        // sinon : grâce timer_standby_poweroff en cours, gérée par le bloc
-        // ci-dessus — on n'y touche pas ici, onoff_switch_ reste allumé.
         this->set_charging_level(0.0f);
         this->set_discharging_level(0.0f);
         this->last_time_                   = now;
@@ -378,36 +347,18 @@ void DUALPIDPCMComponent::pid_update() {
         return;
     }
 
-    // ── Deadband depuis mode ACTIF : arrêt réel (immédiat ou temporisé) ─
-    // timer_standby_poweroff_ == 0 (défaut) : comportement inchangé,
-    // coupure immédiate de onoff_switch_.
-    // timer_standby_poweroff_ > 0 : on entre en standby avec onoff_switch_
-    // laissé allumé ; la coupure réelle n'intervient que si l'on reste en
-    // IDLE au-delà du délai (bloc timer ci-dessus, à chaque cycle suivant).
-    // Si l'on ressort de IDLE avant l'échéance, la coupure n'aura jamais eu
-    // lieu et aucun STARTUP_INHIBIT_MS ne sera imposé au redémarrage (cf.
-    // garde standby_power_cut_ dans le bloc "Transition de mode").
+    // ── Deadband depuis mode ACTIF : arrêt réel ───────────────────────
     if (this->current_deadband_ && this->previous_mode_ != 0) {
         this->pass_through_ = false;
 
-        if (this->current_timer_standby_poweroff_ <= 0.0f) {
-            if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
-                this->onoff_switch_->turn_off();
-                this->onoff_switch_->publish_state(false);
-                delay(ONOFF_DELAY);
-            }
-            this->current_onoff_     = false;
-            this->standby_power_cut_ = true;
+        if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
+            this->onoff_switch_->turn_off();
+            this->onoff_switch_->publish_state(false);
+            delay(ONOFF_DELAY);
         }
-        else {
-            this->standby_start_time_ = now;
-            this->standby_power_cut_  = false;
-            this->current_onoff_      = true;  // reste alimenté pendant la grâce
-            ESP_LOGI(TAG, "Entree en standby (mode %d -> IDLE) -> attente timer_standby_poweroff=%.1fs avant coupure", this->previous_mode_, this->current_timer_standby_poweroff_);
-        }
-
         this->set_charging_level(0.0f);
         this->set_discharging_level(0.0f);
+        this->current_onoff_ = false;
 
         if (this->previous_mode_ == 2) {
             this->previous_output_ = this->oub_;
@@ -611,21 +562,9 @@ void DUALPIDPCMComponent::pid_update() {
         if (this->current_mode_ == 1) {        // → CHARGE
             this->previous_output_ = this->olb_;
             this->current_output_  = this->olb_;
-            // On réarme TOUJOURS le freeze de démarrage sur une vraie
-            // transition (jamais sur une bascule pass_through_) — y compris
-            // en sortant d'un standby où onoff_switch_ n'a jamais été coupé
-            // (standby_power_cut_==false). in_startup ne sert pas qu'à geler
-            // la sortie physique : c'est aussi LE garde-fou anti-cyclage qui
-            // bloque toute re-sortie immédiate vers IDLE (cf. `!in_startup`
-            // dans la machine d'état ci-dessus). Le sauter ici a permis un
-            // yoyo CHARGE<->standby toutes les ~4-5s dès que epsi frôle le
-            // seuil. Le seul bénéfice conservé de timer_standby_poweroff est
-            // donc de ne pas couper/rallumer onoff_switch_ à chaque cycle —
-            // pas d'éviter ce court gel de sortie, qui reste nécessaire.
             if (!this->pass_through_) {
                 this->mode_start_time_ = now;
             }
-            this->standby_power_cut_ = true;  // épisode de standby clos
         }
         else if (this->current_mode_ == 2) {   // → DISCHARGE
             this->previous_output_ = this->oub_;
@@ -633,7 +572,6 @@ void DUALPIDPCMComponent::pid_update() {
             if (!this->pass_through_) {
                 this->mode_start_time_ = now;
             }
-            this->standby_power_cut_ = true;  // épisode de standby clos
         }
         else {                                  // → IDLE
             this->previous_output_ = this->oneutral_;
@@ -643,10 +581,6 @@ void DUALPIDPCMComponent::pid_update() {
             this->current_onoff_ = this->pass_through_;
 
             if (!this->pass_through_) {
-                // Arrêt forcé (allow_charging/allow_discharging=false ou
-                // undervoltage lockout) : coupure immédiate, jamais
-                // temporisée par timer_standby_poweroff — c'est un arrêt de
-                // sécurité, pas un simple repos par manque de puissance.
                 if ((this->onoff_switch_ != nullptr) && (this->onoff_switch_->state == true)) {
                     this->onoff_switch_->turn_off();
                     this->onoff_switch_->publish_state(false);
@@ -657,7 +591,6 @@ void DUALPIDPCMComponent::pid_update() {
                     this->discharge_charge_switch_->publish_state(true);
                     delay(CHARGE_DISCHARGE_DELAY);
                 }
-                this->standby_power_cut_ = true;
             }
         }
 
@@ -673,10 +606,7 @@ void DUALPIDPCMComponent::pid_update() {
         case 0:
             this->current_output_charging_    = 0.0f;
             this->current_output_discharging_ = 0.0f;
-            // Reflète l'état réel : encore alimenté si une grâce
-            // timer_standby_poweroff est en cours (standby_power_cut_
-            // == false), coupé sinon.
-            this->current_onoff_              = !this->standby_power_cut_;
+            this->current_onoff_              = false;
             break;
 
         case 1:
@@ -740,18 +670,14 @@ void DUALPIDPCMComponent::pid_update() {
             this->onoff_switch_->publish_state(true);
             delay(ONOFF_DELAY);
         }
-        // Le && standby_power_cut_ évite de couper ici, prématurément,
-        // pendant la "zone tampon" Pmin..Pstart en IDLE alors qu'une grâce
-        // timer_standby_poweroff est encore en cours : seul le bloc timer
-        // dédié (plus haut) décide du moment de cette coupure-là.
-        else if (!should_be_on && this->onoff_switch_->state && this->standby_power_cut_) {
+        else if (!should_be_on && this->onoff_switch_->state) {
             this->onoff_switch_->turn_off();
             this->onoff_switch_->publish_state(false);
             delay(ONOFF_DELAY);
         }
     }
 
-    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d pass_through=%d allow_c=%d allow_d=%d uv_lockout=%d standby_cut=%d Pstart_c=%.1f Pstart_d=%.1f",
+    ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d startup=%d pass_through=%d allow_c=%d allow_d=%d uv_lockout=%d Pstart_c=%.1f Pstart_d=%.1f",
              this->current_output_,
              this->current_output_charging_,
              this->current_output_discharging_,
@@ -762,7 +688,6 @@ void DUALPIDPCMComponent::pid_update() {
              (int)this->current_allow_charging_,
              (int)this->current_allow_discharging_,
              (int)this->undervoltage_lockout_,
-             (int)this->standby_power_cut_,
              Pstart_charging,
              Pstart_discharging);
 
