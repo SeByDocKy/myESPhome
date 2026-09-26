@@ -28,6 +28,10 @@ static const size_t MAX_RESPONSE_BYTES = 8192;
 static const uint32_t POWER_REFRESH_MS = 60000;
 // Consecutive failed polls before the `online` binary sensor goes off.
 static const uint8_t OFFLINE_AFTER_FAILURES = 3;
+// Kick-start (same constant and logic as Zendure-HA's SmartMode.POWER_START in ZendureZenSdk.charge/discharge):
+// a request of exactly this power that the device has not started to follow yet is nudged up.
+static const int32_t KICKSTART_POWER_W = 50;
+static const int32_t KICKSTART_BOOST_W = 4;
 
 static const char *const PATH_REPORT = "/properties/report";
 static const char *const PATH_WRITE = "/properties/write";
@@ -326,6 +330,19 @@ bool ZenSdkComponent::parse_report_(const std::string &body) {
     JsonVariant grid_off = get_value(props, packs, -1, "gridOffPower");
     if (!grid_off.isNull())
       this->grid_off_power_ = grid_off.as<int>();
+    // Same for the values the kick-start logic looks at.
+    JsonVariant kick_v = get_value(props, packs, -1, "gridInputPower");
+    if (!kick_v.isNull())
+      this->home_input_w_ = kick_v.as<int>();
+    kick_v = get_value(props, packs, -1, "outputHomePower");
+    if (!kick_v.isNull())
+      this->home_output_w_ = kick_v.as<int>();
+    kick_v = get_value(props, packs, -1, "inputLimit");
+    if (!kick_v.isNull())
+      this->input_limit_w_ = kick_v.as<int>();
+    kick_v = get_value(props, packs, -1, "outputLimit");
+    if (!kick_v.isNull())
+      this->output_limit_w_ = kick_v.as<int>();
 
 #ifdef USE_SENSOR
     for (auto &b : this->sensors_) {
@@ -506,6 +523,18 @@ void ZenSdkComponent::write_property(const char *prop, int32_t raw_value) {
 }
 
 void ZenSdkComponent::set_power(int32_t watts) {
+  if (this->kickstart_) {
+    // The requested power is exactly the start threshold, the device already holds a limit of at least that much
+    // and yet moves no power: send a slightly higher value (limit + 4 W, at most 2x the threshold) so it takes off.
+    if (watts == KICKSTART_POWER_W && this->output_limit_w_ >= KICKSTART_POWER_W && this->home_output_w_ == 0) {
+      watts = std::min(this->output_limit_w_ + KICKSTART_BOOST_W, 2 * KICKSTART_POWER_W);
+      ESP_LOGD(TAG, "[%s] Kick-start discharge: %d W", this->host_.c_str(), (int) watts);
+    } else if (watts == -KICKSTART_POWER_W && this->input_limit_w_ >= KICKSTART_POWER_W &&
+               this->home_input_w_ == 0) {
+      watts = -std::min(this->input_limit_w_ + KICKSTART_BOOST_W, 2 * KICKSTART_POWER_W);
+      ESP_LOGD(TAG, "[%s] Kick-start charge: %d W", this->host_.c_str(), (int) watts);
+    }
+  }
   if (watts > (int32_t) this->max_discharge_power_)
     watts = this->max_discharge_power_;
   if (watts < -(int32_t) this->max_charge_power_)

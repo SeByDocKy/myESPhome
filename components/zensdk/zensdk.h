@@ -150,6 +150,8 @@ class ZenSdkComponent : public PollingComponent {
   void set_max_discharge_power(uint16_t w) { this->max_discharge_power_ = w; }
   void set_soc_scale(uint8_t scale) { this->soc_scale_ = scale; }
   void set_write_flash_on_stop(bool v) { this->write_flash_on_stop_ = v; }
+  // Enables / disables the kick-start boost (see set_power()); driven by the `kickstart` switch.
+  void set_kickstart(bool enabled) { this->kickstart_ = enabled; }
 
   void setup() override;
   void update() override;
@@ -185,7 +187,8 @@ class ZenSdkComponent : public PollingComponent {
   // ---- control API (main thread only; all fire-and-forget) ----
 
   // Signed AC power request in W: > 0 discharge, < 0 charge, 0 stop. Clamped to
-  // the configured device limits. Always sends the complete smartMode/acMode/
+  // the configured device limits. With kick-start enabled, a request of exactly +/-50 W that the device has not
+  // started to follow yet is bumped to (current limit + 4 W), capped at 100 W, like Zendure-HA does. Always sends the complete smartMode/acMode/
   // inputLimit/outputLimit set (a bare limit write is ignored by the device once
   // it has dropped out of smart mode).
   void set_power(int32_t watts);
@@ -210,9 +213,15 @@ class ZenSdkComponent : public PollingComponent {
   uint16_t max_discharge_power_{0};
   uint8_t soc_scale_{10};
   bool write_flash_on_stop_{false};
+  bool kickstart_{false};
 
   uint32_t http_id_{0};
   int32_t grid_off_power_{0};
+  // Last values reported by the device, only used by the kick-start logic (0 until the first report).
+  int32_t home_input_w_{0};   // gridInputPower
+  int32_t home_output_w_{0};  // outputHomePower
+  int32_t input_limit_w_{0};  // inputLimit
+  int32_t output_limit_w_{0};  // outputLimit
   uint8_t consecutive_failures_{0};
 
   float charge_request_w_{0.0f};
@@ -303,6 +312,26 @@ class ZenSdkSwitch : public switch_::Switch, public Parented<ZenSdkComponent> {
     this->publish_state(state);  // optimistic, corrected by the next poll if the device ignored it
   }
   const char *prop_{""};
+};
+#endif
+
+#ifdef USE_SWITCH
+// Software-only setting (no device property): enables the kick-start boost of ZenSdkComponent::set_power().
+// Restored from flash according to the switch's restore_mode (default: off).
+class ZenSdkKickstartSwitch : public switch_::Switch, public Component, public Parented<ZenSdkComponent> {
+ public:
+  void setup() override {
+    auto initial = this->get_initial_state_with_restore_mode();
+    bool state = initial.has_value() && *initial;
+    this->parent_->set_kickstart(state);
+    this->publish_state(state);
+  }
+
+ protected:
+  void write_state(bool state) override {
+    this->parent_->set_kickstart(state);
+    this->publish_state(state);
+  }
 };
 #endif
 

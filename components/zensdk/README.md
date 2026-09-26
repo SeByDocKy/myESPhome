@@ -132,6 +132,14 @@ read-only, so the write is **unverified on the SolarFlow models**: if the device
 falls back to the state read from the next poll. It is not restored at boot (nothing is written to the battery on
 startup). The read-only `lamp` binary sensor shows the same property.
 
+`kickstart` (config category, restored at boot, **off by default**) is a software-only switch, not a device
+property. When on, a power request of exactly ±50 W that the device does not follow yet is bumped to the current limit
+plus 4 W (at most 100 W). "Not following yet" means the limit the device reports (`outputLimit` for discharge,
+`inputLimit` for charge) is already ≥ 50 W while its real flow (`outputHomePower` / `gridInputPower`) is still 0 W.
+This is the logic of Zendure-HA's `ZendureZenSdk.charge()` / `discharge()` (`SmartMode.POWER_START = 50`); its purpose
+is not documented there, it appears to nudge the device out of standby when a manager asks it to start at the
+minimum power. It only matters for controllers that request exactly 50 W to start a battery.
+
 **`select`**: `ac_mode` (`acMode`: Charge / Discharge), `grid_off_mode` (`gridOffMode`: Standard / Economic /
 Closure). Values are read back on every poll. Note that `ac_mode` alone only flips the mode; use the numbers or
 outputs to actually start charging or discharging.
@@ -209,6 +217,8 @@ switch:
   - platform: zensdk
     lamp:
       name: "Zendure LED"
+    kickstart:
+      name: "Zendure kickstart"
 
 select:
   - platform: zensdk
@@ -240,8 +250,8 @@ run against a real device yet.
   (`packN_temperature`) use the documented 0.1 K encoding. `packN_current` is a signed 16-bit value in 0.1 A.
 - **`packState`.** The device-level `packState` is decoded like the per-pack `state` (0 standby, 1 charging,
   2 discharging), which the zenSDK table only states for the per-pack field.
-- **No kick-start.** Zendure-HA adds a small power boost when the requested power is just at the device's start
-  threshold. That is not implemented; the request is sent as-is.
+- **Kick-start.** Optional (`kickstart` switch, off by default). It follows Zendure-HA's code, but the reason for it is
+  inferred, not documented, and it has not been tried on a device.
 - **Firmware versions.** zenSDK documents only the per-pack `softVersion`. The device-level version properties are
   the names Zendure-HA reads when present; whether the local `/properties/report` of your SolarFlow contains them is
   not confirmed, so `firmware_version` may stay without a state. Check `curl http://<ip>/properties/report`

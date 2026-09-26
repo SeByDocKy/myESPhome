@@ -262,6 +262,8 @@ switch:
     zensdk_id: sf2400
     lamp:                       # LED strip (write taken from Zendure-HA, unverified on SolarFlow)
       name: ${name}_lamp
+    kickstart:                  # software-only: +/-50 W request bumped to limit + 4 W when the device does not follow
+      name: ${name}_kickstart
 
 select:
   - platform: zensdk
