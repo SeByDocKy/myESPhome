@@ -437,7 +437,14 @@ void TSunGen3Component::loop() {
   // effectively free on the main thread.
   while (xQueueReceive(this->result_queue_, &result, 0) == pdTRUE) {
     if (result != nullptr) {
+      // TEMPORARY instrumentation to pin down a residual loop_time spike
+      // after moving I/O to the background task -- remove once confirmed.
+      uint32_t t0 = millis();
       this->process_result_(result);
+      uint32_t dt = millis() - t0;
+      if (dt > 5) {
+        ESP_LOGW(TAG, "process_result_ (main thread) took %u ms for job type %d", (unsigned) dt, (int) result->type);
+      }
       delete result;
     }
   }
@@ -452,6 +459,11 @@ void TSunGen3Component::run_task_() {
   for (;;) {
     if (xQueueReceive(this->job_queue_, &job, portMAX_DELAY) != pdTRUE)
       continue;
+
+    // TEMPORARY instrumentation (see loop()) -- measures the background
+    // task's own transaction time, which should NOT affect loop_time at all
+    // since it runs off the main thread. Confirms the split is doing its job.
+    uint32_t task_t0 = millis();
 
     auto *result = new TSunGen3JobResult();
     result->type = job.type;
@@ -491,6 +503,9 @@ void TSunGen3Component::run_task_() {
         break;
       }
     }
+
+    ESP_LOGD(TAG, "Background transaction (job type %d) took %u ms", (int) job.type,
+             (unsigned) (millis() - task_t0));
 
     if (xQueueSend(this->result_queue_, &result, 0) != pdTRUE) {
       // Main loop fell behind and the result queue is full: drop it rather
