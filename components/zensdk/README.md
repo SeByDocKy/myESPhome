@@ -97,7 +97,18 @@ batteries).
 (`pass`), `reverse_state`, `grid_connected` (`gridState`), `pv_active` (`pvStatus`), `soc_calibrating`
 (`socStatus`), `error` (`is_error`), `fan`, `lamp`, `data_ready`.
 
-**`text_sensor`**: `state` (`packState`: Standby / Charging / Discharging), `packN_state`, `packN_sn`.
+**`text_sensor`**: `state` (`packState`: Standby / Charging / Discharging), `packN_state`, `packN_sn`, and the
+firmware versions (diagnostic category, published as `vX.Y.ZZ`, only re-published when they change):
+
+| Key | Property | Notes |
+|---|---|---|
+| `firmware_version` | `masterSoftVersion`, else `masterFirmwareVersion` | Main firmware of the device |
+| `ac_firmware_version`, `dc_firmware_version`, `bms_firmware_version`, `mppt_firmware_version` | `acFirmwareVersion`, `dcFirmwareVersion`, `bmsFirmwareVersion`, `mpptFirmwareVersion` | Sub-module firmwares |
+| `packN_firmware_version` | `packData[N-1].softVersion` | The only version property documented by zenSDK |
+
+The packed integer is decoded like Zendure-HA does: a value above 10 becomes `v<bits 15-12>.<bits 11-8>.<bits 7-0>`
+(e.g. `0x2107` → `v2.1.7`), `<= 0` gives `not provided`, and 1 to 10 is printed as is. A string value is passed through
+unchanged.
 
 **`number`**
 
@@ -182,6 +193,8 @@ text_sensor:
       name: "Zendure pack 2 SN"
     pack3_sn:
       name: "Zendure pack 3 SN"
+    firmware_version:
+      name: "Zendure firmware"
 
 number:
   - platform: zensdk
@@ -229,6 +242,10 @@ run against a real device yet.
   2 discharging), which the zenSDK table only states for the per-pack field.
 - **No kick-start.** Zendure-HA adds a small power boost when the requested power is just at the device's start
   threshold. That is not implemented; the request is sent as-is.
+- **Firmware versions.** zenSDK documents only the per-pack `softVersion`. The device-level version properties are
+  the names Zendure-HA reads when present; whether the local `/properties/report` of your SolarFlow contains them is
+  not confirmed, so `firmware_version` may stay without a state. Check `curl http://<ip>/properties/report`
+  and tell me which keys your device reports.
 - **Lamp switch.** See the `switch` platform above: the write is taken from Zendure-HA, not from the zenSDK table.
 - **`remainInputTime`** is read by Zendure-HA but absent from the zenSDK table; it is simply skipped if the
   device does not report it.

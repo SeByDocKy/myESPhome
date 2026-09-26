@@ -59,6 +59,7 @@ enum SensorConv : uint8_t {
 enum TextConv : uint8_t {
   TEXT_RAW = 0,    // string as-is (numbers are printed as integers)
   TEXT_STATE = 1,  // 0/1/2 -> Standby / Charging / Discharging
+  TEXT_VERSION = 2,  // packed integer -> "vX.Y.ZZ" (same decoding as Zendure-HA); a string is passed through
 };
 
 // What a number entity does when written.
@@ -92,6 +93,7 @@ struct TextBinding {
   uint8_t conv;
   int8_t pack;
   text_sensor::TextSensor *sensor;
+  const char *alt_prop;  // optional fallback property when `prop` is absent from the report
 };
 #endif
 #ifdef USE_NUMBER
@@ -165,8 +167,9 @@ class ZenSdkComponent : public PollingComponent {
   void set_online_binary_sensor(binary_sensor::BinarySensor *s) { this->online_sensor_ = s; }
 #endif
 #ifdef USE_TEXT_SENSOR
-  void add_text_sensor(const char *prop, uint8_t conv, int8_t pack, text_sensor::TextSensor *s) {
-    this->text_sensors_.push_back({prop, conv, pack, s});
+  void add_text_sensor(const char *prop, uint8_t conv, int8_t pack, text_sensor::TextSensor *s,
+                       const char *alt_prop = nullptr) {
+    this->text_sensors_.push_back({prop, conv, pack, s, alt_prop});
   }
 #endif
 #ifdef USE_NUMBER

@@ -387,6 +387,8 @@ bool ZenSdkComponent::parse_report_(const std::string &body) {
 #ifdef USE_TEXT_SENSOR
     for (auto &b : this->text_sensors_) {
       JsonVariant v = get_value(props, packs, b.pack, b.prop);
+      if (v.isNull() && b.alt_prop != nullptr)
+        v = get_value(props, packs, b.pack, b.alt_prop);
       if (v.isNull())
         continue;
       std::string text;
@@ -407,10 +409,25 @@ bool ZenSdkComponent::parse_report_(const std::string &body) {
         }
       } else if (v.is<const char *>()) {
         text = v.as<const char *>();
+      } else if (b.conv == TEXT_VERSION) {
+        // Packed version, decoded like Zendure-HA: > 10 -> vMAJOR.MINOR.PATCH from nibbles 15..12 / 11..8 / 7..0,
+        // <= 0 -> not provided, 1..10 -> printed as is.
+        long version = v.as<long>();
+        if (version <= 0) {
+          text = "not provided";
+        } else if (version > 10) {
+          char buf[24];
+          snprintf(buf, sizeof(buf), "v%ld.%ld.%ld", (version & 0xF000) >> 12, (version & 0x0F00) >> 8,
+                   version & 0x00FF);
+          text = buf;
+        } else {
+          text = std::to_string(version);
+        }
       } else {
         text = std::to_string(v.as<long>());
       }
-      b.sensor->publish_state(text);
+      if (b.sensor->state != text)  // versions and serial numbers rarely change: don't re-publish every poll
+        b.sensor->publish_state(text);
     }
 #endif
 

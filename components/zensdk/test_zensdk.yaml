@@ -212,18 +212,34 @@ text_sensor:
     zensdk_id: sf2400
     state:
       name: ${name}_state
+    firmware_version:           # masterSoftVersion, else masterFirmwareVersion (decoded as vX.Y.ZZ)
+      name: ${name}_firmware_version
+    ac_firmware_version:
+      name: ${name}_ac_firmware_version
+    dc_firmware_version:
+      name: ${name}_dc_firmware_version
+    bms_firmware_version:
+      name: ${name}_bms_firmware_version
+    mppt_firmware_version:
+      name: ${name}_mppt_firmware_version
     pack1_state:
       name: ${name}_pack1_state
     pack1_sn:
       name: ${name}_pack1_sn
+    pack1_firmware_version:
+      name: ${name}_pack1_firmware_version
     pack2_state:
       name: ${name}_pack2_state
     pack2_sn:
       name: ${name}_pack2_sn
+    pack2_firmware_version:
+      name: ${name}_pack2_firmware_version
     pack3_state:
       name: ${name}_pack3_state
     pack3_sn:
       name: ${name}_pack3_sn
+    pack3_firmware_version:
+      name: ${name}_pack3_firmware_version
 
 number:
   - platform: zensdk
