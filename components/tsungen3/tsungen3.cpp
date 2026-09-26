@@ -113,7 +113,7 @@ std::string TSunGen3Component::decode_status_bits_(uint16_t value, const char *c
   if (value == 0)
     return "OK";
 
-  char hex[8];
+  char hex[12];
   snprintf(hex, sizeof(hex), "0x%04X: ", value);
   std::string out(hex);
 
