@@ -71,6 +71,15 @@ the main loop time (measured via the `debug` component's `loop_time` sensor)
 spiking to ~400 ms per poll cycle with the previous synchronous
 implementation, which briefly starved WiFi/API/other components' `loop()`.
 
+**Confirmed on real hardware (MX1000, Sep 2026):** with this background-task
+architecture, `loop_time` stayed at 19-22 ms even while individual poll
+transactions took 55-153 ms (logged at `DEBUG` level as "Background
+transaction (job type N) took X ms") — the transaction time no longer leaks
+into the main loop at all. Note that `logger: level: verbose` on its own can
+add a large, unrelated loop_time cost (heavy synchronous UART writes for
+every component, not just this one); use `debug` or `info` for a realistic
+loop_time reading.
+
 ### AT+ command framing (button)
 
 Unlike the Modbus read/write path, AT+ commands are **not** Modbus RTU: they
