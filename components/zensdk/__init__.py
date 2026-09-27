@@ -15,7 +15,7 @@ AIO 2400) are NOT supported.
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.const import CONF_ID, CONF_MODEL, CONF_PORT
+from esphome.const import CONF_ID, CONF_MODEL
 
 CODEOWNERS = ["@SeByDocKy"]
 DEPENDENCIES = ["network"]
@@ -23,10 +23,10 @@ AUTO_LOAD = ["json"]
 # One `zensdk:` block per battery/hub (each opens its own HTTP connection):
 #   zensdk:
 #     - id: zensdk_1
-#       host: 192.168.1.60
+#       ip_address: 192.168.1.60
 #       sn: "WOB1NHMAMXXXXX3"
 #     - id: zensdk_2
-#       host: 192.168.1.61
+#       ip_address: 192.168.1.61
 #       sn: "WOB1NHMAMXXXXX4"
 MULTI_CONF = True
 
@@ -34,7 +34,8 @@ zensdk_ns = cg.esphome_ns.namespace("zensdk")
 ZenSdkComponent = zensdk_ns.class_("ZenSdkComponent", cg.PollingComponent)
 
 CONF_ZENSDK_ID = "zensdk_id"
-CONF_HOST = "host"
+CONF_IP_ADDRESS = "ip_address"
+CONF_IP_PORT = "ip_port"
 CONF_SN = "sn"
 CONF_MAX_CHARGE_POWER = "max_charge_power"
 CONF_MAX_DISCHARGE_POWER = "max_discharge_power"
@@ -78,8 +79,8 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(): cv.declare_id(ZenSdkComponent),
             # IP address recommended (the device also announces itself via mDNS as
             # `Zendure-<Model>-<Last12MAC>`, but ESPHome cannot resolve .local names).
-            cv.Required(CONF_HOST): cv.string_strict,
-            cv.Optional(CONF_PORT, default=80): cv.port,
+            cv.Required(CONF_IP_ADDRESS): cv.string_strict,
+            cv.Optional(CONF_IP_PORT, default=80): cv.port,
             # Device serial number: mandatory in every POST body of the local API.
             cv.Required(CONF_SN): cv.string_strict,
             cv.Optional(CONF_MODEL): cv.one_of(*MODEL_LIMITS, upper=True),
@@ -102,8 +103,8 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    cg.add(var.set_host(config[CONF_HOST]))
-    cg.add(var.set_port(config[CONF_PORT]))
+    cg.add(var.set_host(config[CONF_IP_ADDRESS]))
+    cg.add(var.set_port(config[CONF_IP_PORT]))
     cg.add(var.set_sn(config[CONF_SN]))
     cg.add(var.set_max_charge_power(config[CONF_MAX_CHARGE_POWER]))
     cg.add(var.set_max_discharge_power(config[CONF_MAX_DISCHARGE_POWER]))

@@ -47,7 +47,7 @@ is enabled by adding HEMS in the Zendure app and then exiting the HEMS setup to 
 ```yaml
 zensdk:
   - id: zensdk_1
-    host: 192.168.1.60            # required, IP address of the battery
+    ip_address: 192.168.1.60      # required, IP address of the battery
     sn: "WOB1NHMAMXXXXX3"         # required, serial number (mandatory in every POST)
     model: SF2400_AC_PLUS         # sets the power limits, see below
     poll_interval: 10s            # default 10s
@@ -55,8 +55,8 @@ zensdk:
 
 | Option | Default | Description |
 |---|---|---|
-| `host` | required | IP address (or DNS name) of the battery |
-| `port` | `80` | HTTP port |
+| `ip_address` | required | IP address (or DNS name) of the battery |
+| `ip_port` | `80` | HTTP port |
 | `sn` | required | Device serial number |
 | `model` | — | `SF800`, `SF800_PLUS`, `SF800_PRO`, `SF1600_AC_PLUS`, `SF2400_AC`, `SF2400_AC_PLUS`, `SF2400_PRO` |
 | `max_charge_power` | from `model` | Max AC charge power in W (required if `model` is not set) |
@@ -153,7 +153,7 @@ over the two outputs) can drive the battery.
 ```yaml
 zensdk:
   - id: zensdk_1
-    host: 192.168.1.60
+    ip_address: 192.168.1.60
     sn: "WOB1NHMAMXXXXX3"
     model: SF2400_AC_PLUS
 

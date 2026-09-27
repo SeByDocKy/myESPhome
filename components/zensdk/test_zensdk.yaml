@@ -45,8 +45,8 @@ debug:
 
 zensdk:
   - id: sf2400
-    host: 192.168.1.60           # fixed IP of the SolarFlow (DHCP reservation)
-    port: 80                      # zenSDK local HTTP API
+    ip_address: 192.168.1.60      # fixed IP of the SolarFlow (DHCP reservation)
+    ip_port: 80                   # zenSDK local HTTP API
     sn: "WOB1NHMAMXXXXX3"         # serial number, mandatory in every POST
     model: SF2400_AC_PLUS         # SF800 / SF800_PLUS / SF800_PRO / SF1600_AC_PLUS / SF2400_AC / SF2400_AC_PLUS / SF2400_PRO
     # max_charge_power: 3200      # optional overrides of the model limits (W)
@@ -57,7 +57,7 @@ zensdk:
 
   # Second SolarFlow on the same ESP (MULTI_CONF), then add `zensdk_id: sf800` on every platform entry:
   # - id: sf800
-  #   host: 192.168.1.61
+  #   ip_address: 192.168.1.61
   #   sn: "WOB1NHMAMXXXXX4"
   #   model: SF800
   #   poll_interval: 10s
