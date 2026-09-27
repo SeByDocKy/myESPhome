@@ -45,15 +45,15 @@ debug:
 
 tsungen3:
   - id: mx1000
-    host: 192.168.1.81   # adresse IP fixe de l'onduleur MX1000
-    port: 8899            # port client_mode (TCP clair)
+    ip_address: 192.168.1.81   # adresse IP fixe de l'onduleur MX1000
+    ip_port: 8899               # port client_mode (TCP clair)
     poll_interval: 5s
     modbus_address: 1
     logger_serial: 3455843077 #2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
 
   # Deuxième onduleur GEN3 PLUS sur le même ESP (MULTI_CONF) :
   # - id: tsungen3_2
-  #   host: 192.168.1.51
+  #   ip_address: 192.168.1.51
   #   poll_interval: 30s
 
 

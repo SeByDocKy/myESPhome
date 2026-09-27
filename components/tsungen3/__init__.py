@@ -13,7 +13,7 @@ this author's other Hoymiles/TSUN-adjacent components (hm, hms, hmsw, pcm3k6w).
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import network
-from esphome.const import CONF_ID, CONF_PORT
+from esphome.const import CONF_ID
 
 CODEOWNERS = ["@SeByDocKy"]
 DEPENDENCIES = ["network"]
@@ -21,16 +21,20 @@ DEPENDENCIES = ["network"]
 # hmsw component -- e.g.:
 #   tsungen3:
 #     - id: tsungen3_1
-#       host: 192.168.1.50
+#       ip_address: 192.168.1.50
 #     - id: tsungen3_2
-#       host: 192.168.1.51
+#       ip_address: 192.168.1.51
 MULTI_CONF = True
 
 tsungen3_ns = cg.esphome_ns.namespace("tsungen3")
 TSunGen3Component = tsungen3_ns.class_("TSunGen3Component", cg.PollingComponent)
 
 CONF_TSUNGEN3_ID = "tsungen3_id"
-CONF_HOST = "host"
+# Named "ip_address"/"ip_port" (not the generic esphome.const CONF_HOST/CONF_PORT
+# keys) to be unambiguous about what this points at -- the inverter's own local
+# IP and its client_mode TCP port, not e.g. a hostname or an MQTT broker.
+CONF_IP_ADDRESS = "ip_address"
+CONF_IP_PORT = "ip_port"
 CONF_MODBUS_ADDRESS = "modbus_address"
 CONF_LOGGER_SERIAL = "logger_serial"
 # Named "poll_interval" (not "update_interval") to match this author's hmsw
@@ -40,8 +44,8 @@ CONF_POLL_INTERVAL = "poll_interval"
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(TSunGen3Component),
-        cv.Required(CONF_HOST): cv.string_strict,
-        cv.Optional(CONF_PORT, default=8899): cv.port,
+        cv.Required(CONF_IP_ADDRESS): cv.string_strict,
+        cv.Optional(CONF_IP_PORT, default=8899): cv.port,
         # Slave/unit id used inside the embedded Modbus RTU frame. TSUN GEN3 PLUS
         # inverters have been observed responding to 0x01; not confirmed across all
         # firmware/models -- override if a scan shows otherwise.
@@ -62,8 +66,8 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    cg.add(var.set_host(config[CONF_HOST]))
-    cg.add(var.set_port(config[CONF_PORT]))
+    cg.add(var.set_host(config[CONF_IP_ADDRESS]))
+    cg.add(var.set_port(config[CONF_IP_PORT]))
     cg.add(var.set_modbus_address(config[CONF_MODBUS_ADDRESS]))
     cg.add(var.set_logger_serial(config[CONF_LOGGER_SERIAL]))
     # register_component() only auto-wires PollingComponent's interval when the

@@ -178,8 +178,8 @@ external_components:
 
 tsungen3:
   - id: mx1000
-    host: 192.168.1.50        # fixed IP of the inverter
-    port: 8899                 # client-mode plain-TCP port
+    ip_address: 192.168.1.50   # fixed IP of the inverter
+    ip_port: 8899               # client-mode plain-TCP port
     modbus_address: 1
     logger_serial: 2093984xxx  # required -- the real "Monitoring SN" on the sticker;
                                  # the default (0) gets no response in client_mode
@@ -187,7 +187,7 @@ tsungen3:
 
   # Second GEN3 PLUS inverter on the same ESP (MULTI_CONF):
   # - id: mx1000_b
-  #   host: 192.168.1.51
+  #   ip_address: 192.168.1.51
   #   poll_interval: 30s
 
 sensor:
