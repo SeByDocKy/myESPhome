@@ -171,10 +171,15 @@ wiki; no other AT+ commands are wired up here.
 
 ```yaml
 external_components:
-  - source:
-      type: local
-      path: components
+  - source: "github://SeByDocKy/myESPhome/"
     components: [tsungen3]
+    refresh: 10s
+
+  # Local checkout instead (e.g. while developing the component itself):
+  # - source:
+  #     type: local
+  #     path: components
+  #   components: [tsungen3]
 
 tsungen3:
   - id: mx1000
