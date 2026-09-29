@@ -1,8 +1,42 @@
 # tsungen3
 
-Native ESPHome component for **TSUN / TSOL GEN3 PLUS** micro-inverters (e.g.
-MX1000, MX3000, MX450, MS1600/1800/2000, MS2000-D, MS800) and compatible
-GEN3 PLUS storage systems, read over their local TCP interface.
+Native ESPHome component for **TSUN / TSOL GEN3 PLUS** micro-inverters, read
+and controlled over their local TCP interface.
+
+## Compatible models (GEN3 PLUS only)
+
+Per [s-allius/tsun-gen3-proxy](https://github.com/s-allius/tsun-gen3-proxy)'s
+own compatibility list (this component targets the same generation and
+protocol, so the same list applies):
+
+- **Inverters**: TSOL-MX3000, TSOL-MX1000, TSOL-MX450, TSOL-MS2000,
+  TSOL-MS1800, TSOL-MS1600, TSOL-MS800
+- **Battery/storage**: TSOL-DC1000 (protocol family only -- this component
+  was written for and tested against an inverter, not a storage unit; the
+  register map would very likely differ)
+- **Smart meter**: TSOL-MG3-MS, DDZY422-D2 (same caveat as above)
+
+This does **not** cover GEN4 hardware (a different, incompatible register
+map -- see this author's other components for GEN4-specific work, if any
+exists by the time you're reading this).
+
+## ⚠️ Use the "Monitoring SN", never the printed inverter serial number
+
+This is the single most common reason polling silently fails, so it gets
+its own section up top rather than being buried in `logger_serial`'s field
+description below.
+
+Every GEN3 PLUS device ships with a small sticker carrying a **"Monitoring
+SN:"** -- a separate number from the inverter's own printed serial number
+(which starts with `Y17`/`Y47` for inverters, `410` for battery/storage
+units). **`logger_serial` must be set to the Monitoring SN, not the
+inverter's serial number.** Confirmed on real MX1000 hardware (see "Confirmed
+against real hardware" below): the default of `0` gets no response at all in
+client_mode, and using the inverter's own serial number instead of the
+Monitoring SN will fail exactly the same way, since neither is what the
+Solarman V5 protocol's "Logger Serial" field actually expects -- it's asking
+for the *logger's* identity (the WiFi/monitoring module built into the
+device), not the inverter's.
 
 ## Protocol
 
