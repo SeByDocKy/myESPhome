@@ -128,8 +128,8 @@ output:
     power_percent:
       id: ${name}_${deyemi_name}_power_percent_output
 
-button:
-  - platform: deyemi
-    deyemi_id: ${deyemi_id}
-    reset_deyemi:
-      name: ${name}_${deyemi_name}_reset_deyemi
+# button:
+#   - platform: deyemi
+#     deyemi_id: ${deyemi_id}
+#     reset_deyemi:
+#       name: ${name}_${deyemi_name}_reset_deyemi
