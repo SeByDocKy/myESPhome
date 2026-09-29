@@ -33,40 +33,45 @@ sensor:
   
   - platform: tsungen3
     tsungen3_id: ${tsungen3_id}
-    grid_voltage:
-      name: ${name}_${tsungen3_name}_grid_voltage
-    grid_current:
-      name: ${name}_${tsungen3_name}_grid_current
-    grid_frequency:
-      name: ${name}_${tsungen3_name}_grid_frequency
-    temperature:
-      name: ${name}_${tsungen3_name}_temperature
-    rated_power:
-      name: ${name}_${tsungen3_name}_rated_power
-    current_power:
-      name: ${name}_${tsungen3_name}_current_power
-      id: ${tsungen3_name}_current_power
-    ac_energy_today:
-      name: ${name}_${tsungen3_name}_ac_energy_today
-    ac_energy_total:
-      name: ${name}_${tsungen3_name}_ac_energy_total
-    pv1_voltage:
-      name: ${name}_${tsungen3_name}_pv1_voltage
-    pv1_current:
-      name: ${name}_${tsungen3_name}_pv1_current
-    pv1_power:
-      name: ${name}_${tsungen3_name}_pv1_power
-    pv2_voltage:
-      name: ${name}_${tsungen3_name}_pv2_voltage
-    pv2_current:
-      name: ${name}_${tsungen3_name}_pv2_current
-    pv2_power:
-      name: ${name}_${tsungen3_name}_pv2_power
+    dc_channels:
+      - pv0:
+          voltage:
+            name: ${name}_${tsungen3_name}_pv0_voltage
+          current:
+            name: ${name}_${tsungen3_name}_pv0_current
+          power:
+            name: ${name}_${tsungen3_name}_pv0_power
+      - pv1:
+          voltage:
+            name: ${name}_${tsungen3_name}_pv1_voltage
+          current:
+            name: ${name}_${tsungen3_name}_pv1_current
+          power:
+            name: ${name}_${tsungen3_name}_pv1_power
+    ac:
+      voltage:
+        name: ${name}_${tsungen3_name}_grid_voltage
+      current:
+        name: ${name}_${tsungen3_name}_grid_current
+      frequency:
+        name: ${name}_${tsungen3_name}_grid_frequency
+      power:
+        name: ${name}_${tsungen3_name}_power
+        id: ${tsungen3_name}_power
+      energy_today:
+        name: ${name}_${tsungen3_name}_ac_energy_today
+      energy_total:
+        name: ${name}_${tsungen3_name}_ac_energy_total
+    inverter:
+      temperature:
+        name: ${name}_${tsungen3_name}_temperature
+      rated_power:
+        name: ${name}_${tsungen3_name}_rated_power
 
   - platform: total_daily_energy
     name: ${name}_${tsungen3_name}_energy_today
     id: ${tsungen3_name}_energy_today
-    power_id: ${tsungen3_name}_current_power
+    power_id: ${tsungen3_name}_power
     unit_of_measurement: 'kWh'
     accuracy_decimals: 1
     method: right
