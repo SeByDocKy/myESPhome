@@ -33,7 +33,7 @@ sensor:
   
   - platform: tsungen3
     tsungen3_id: ${tsungen3_id}
-     grid_voltage:
+    grid_voltage:
       name: ${name}_${tsungen3_name}_grid_voltage
     grid_current:
       name: ${name}_${tsungen3_name}_grid_current
