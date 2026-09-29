@@ -96,7 +96,7 @@ text_sensor:
   - platform: deyemi
     deyemi_id: ${deyemi_id}
     inverter_status:
-      name: ${name}_inverter_status
+      name: ${name}_${deyemi_name}_inverter_status
     # event_alarms:
     #   name: ${name}_event_alarms
     # event_faults:
