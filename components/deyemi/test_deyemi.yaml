@@ -63,46 +63,53 @@ sensor:
 
   - platform: deyemi
     deyemi_id: deye1
-    grid_voltage:
-      name: ${name}_grid_voltage
-    grid_current:
-      name: ${name}_grid_current
-    grid_frequency:
-      name: ${name}_grid_frequency
-    temperature:
-      name: ${name}_temperature
-    rated_power:
-      name: ${name}_rated_power
-    current_power:
-      name: ${name}_current_power
-    ac_energy_today:
-      name: ${name}_ac_energy_today
-    ac_energy_total:
-      name: ${name}_ac_energy_total
-    pv1_voltage:
-      name: ${name}_pv1_voltage
-    pv1_current:
-      name: ${name}_pv1_current
-    pv1_power:
-      name: ${name}_pv1_power
-    pv2_voltage:
-      name: ${name}_pv2_voltage
-    pv2_current:
-      name: ${name}_pv2_current
-    pv2_power:
-      name: ${name}_pv2_power
-    pv3_voltage:
-      name: ${name}_pv3_voltage
-    pv3_current:
-      name: ${name}_pv3_current
-    pv3_power:
-      name: ${name}_pv3_power
-    pv4_voltage:
-      name: ${name}_pv4_voltage
-    pv4_current:
-      name: ${name}_pv4_current
-    pv4_power:
-      name: ${name}_pv4_power
+    dc_channels:
+      - pv0:
+          voltage:
+            name: ${name}_pv1_voltage
+          current:
+            name: ${name}_pv1_current
+          power:
+            name: ${name}_pv1_power
+      - pv1:
+          voltage:
+            name: ${name}_pv2_voltage
+          current:
+            name: ${name}_pv2_current
+          power:
+            name: ${name}_pv2_power
+      - pv2:
+          voltage:
+            name: ${name}_pv3_voltage
+          current:
+            name: ${name}_pv3_current
+          power:
+            name: ${name}_pv3_power
+      - pv3:
+          voltage:
+            name: ${name}_pv4_voltage
+          current:
+            name: ${name}_pv4_current
+          power:
+            name: ${name}_pv4_power
+    ac:
+      voltage:
+        name: ${name}_grid_voltage
+      current:
+        name: ${name}_grid_current
+      frequency:
+        name: ${name}_grid_frequency
+      power:
+        name: ${name}_current_power
+      energy_today:
+        name: ${name}_ac_energy_today
+      energy_total:
+        name: ${name}_ac_energy_total
+    inverter:
+      temperature:
+        name: ${name}_temperature
+      rated_power:
+        name: ${name}_rated_power
 
 
 text_sensor:

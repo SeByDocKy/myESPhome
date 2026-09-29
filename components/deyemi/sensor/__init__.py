@@ -2,7 +2,11 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
+    CONF_CURRENT,
+    CONF_FREQUENCY,
+    CONF_POWER,
     CONF_TEMPERATURE,
+    CONF_VOLTAGE,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_FREQUENCY,
@@ -22,26 +26,16 @@ from .. import CONF_DEYEMI_ID, DeyeMiComponent
 
 DEPENDENCIES = ["deyemi"]
 
-CONF_GRID_VOLTAGE = "grid_voltage"
-CONF_GRID_CURRENT = "grid_current"
-CONF_GRID_FREQUENCY = "grid_frequency"
+# Structure matches this author's hms/hmsw components: a `dc_channels` list
+# (one entry per MPPT string, 0-indexed -- pv0, pv1, ...) plus flat `ac:` and
+# `inverter:` blocks, instead of the former flat pv1_voltage/pv2_voltage/...
+# keys. See README.md "Breaking change" note.
+CONF_DC_CHANNELS = "dc_channels"
+CONF_AC = "ac"
+CONF_INVERTER = "inverter"
+CONF_ENERGY_TODAY = "energy_today"
+CONF_ENERGY_TOTAL = "energy_total"
 CONF_RATED_POWER = "rated_power"
-CONF_CURRENT_POWER = "current_power"
-CONF_AC_ENERGY_TODAY = "ac_energy_today"
-CONF_AC_ENERGY_TOTAL = "ac_energy_total"
-
-CONF_PV1_VOLTAGE = "pv1_voltage"
-CONF_PV1_CURRENT = "pv1_current"
-CONF_PV1_POWER = "pv1_power"
-CONF_PV2_VOLTAGE = "pv2_voltage"
-CONF_PV2_CURRENT = "pv2_current"
-CONF_PV2_POWER = "pv2_power"
-CONF_PV3_VOLTAGE = "pv3_voltage"
-CONF_PV3_CURRENT = "pv3_current"
-CONF_PV3_POWER = "pv3_power"
-CONF_PV4_VOLTAGE = "pv4_voltage"
-CONF_PV4_CURRENT = "pv4_current"
-CONF_PV4_POWER = "pv4_power"
 
 # Icon/accuracy conventions match this author's tsungen3/hms components
 # (same schemas, same icon strings and accuracy_decimals values) for
@@ -96,63 +90,119 @@ _TEMPERATURE_SCHEMA = sensor.sensor_schema(
     icon="mdi:thermometer",
 )
 
-CONFIG_SCHEMA = cv.Schema(
+DC_CHANNEL_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(CONF_DEYEMI_ID): cv.use_id(DeyeMiComponent),
-        cv.Optional(CONF_GRID_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_GRID_CURRENT): _AC_CURRENT_SCHEMA,
-        cv.Optional(CONF_GRID_FREQUENCY): _FREQUENCY_SCHEMA,
-        cv.Optional(CONF_TEMPERATURE): _TEMPERATURE_SCHEMA,
-        cv.Optional(CONF_RATED_POWER): _POWER_SCHEMA,
-        cv.Optional(CONF_CURRENT_POWER): _POWER_SCHEMA,
-        cv.Optional(CONF_AC_ENERGY_TODAY): _ENERGY_SCHEMA,
-        cv.Optional(CONF_AC_ENERGY_TOTAL): _ENERGY_SCHEMA,
-        cv.Optional(CONF_PV1_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV1_CURRENT): _DC_CURRENT_SCHEMA,
-        cv.Optional(CONF_PV1_POWER): _POWER_SCHEMA,
-        cv.Optional(CONF_PV2_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV2_CURRENT): _DC_CURRENT_SCHEMA,
-        cv.Optional(CONF_PV2_POWER): _POWER_SCHEMA,
-        # PV3/PV4 only make sense on the 4-MPPT variant -- left available in
-        # the schema regardless (no model-dependent validation here), since
-        # the model may only be known at runtime (model: auto). They'll just
-        # never publish on 2-MPPT hardware.
-        cv.Optional(CONF_PV3_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV3_CURRENT): _DC_CURRENT_SCHEMA,
-        cv.Optional(CONF_PV3_POWER): _POWER_SCHEMA,
-        cv.Optional(CONF_PV4_VOLTAGE): _VOLTAGE_SCHEMA,
-        cv.Optional(CONF_PV4_CURRENT): _DC_CURRENT_SCHEMA,
-        cv.Optional(CONF_PV4_POWER): _POWER_SCHEMA,
+        cv.Optional(CONF_VOLTAGE): _VOLTAGE_SCHEMA,
+        cv.Optional(CONF_CURRENT): _DC_CURRENT_SCHEMA,
+        cv.Optional(CONF_POWER): _POWER_SCHEMA,
     }
 )
 
-_SETTERS = {
-    CONF_GRID_VOLTAGE: "set_grid_voltage_sensor",
-    CONF_GRID_CURRENT: "set_grid_current_sensor",
-    CONF_GRID_FREQUENCY: "set_grid_frequency_sensor",
-    CONF_TEMPERATURE: "set_temperature_sensor",
-    CONF_RATED_POWER: "set_rated_power_sensor",
-    CONF_CURRENT_POWER: "set_current_power_sensor",
-    CONF_AC_ENERGY_TODAY: "set_ac_energy_today_sensor",
-    CONF_AC_ENERGY_TOTAL: "set_ac_energy_total_sensor",
-    CONF_PV1_VOLTAGE: "set_pv1_voltage_sensor",
-    CONF_PV1_CURRENT: "set_pv1_current_sensor",
-    CONF_PV1_POWER: "set_pv1_power_sensor",
-    CONF_PV2_VOLTAGE: "set_pv2_voltage_sensor",
-    CONF_PV2_CURRENT: "set_pv2_current_sensor",
-    CONF_PV2_POWER: "set_pv2_power_sensor",
-    CONF_PV3_VOLTAGE: "set_pv3_voltage_sensor",
-    CONF_PV3_CURRENT: "set_pv3_current_sensor",
-    CONF_PV3_POWER: "set_pv3_power_sensor",
-    CONF_PV4_VOLTAGE: "set_pv4_voltage_sensor",
-    CONF_PV4_CURRENT: "set_pv4_current_sensor",
-    CONF_PV4_POWER: "set_pv4_power_sensor",
-}
+AC_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_VOLTAGE): _VOLTAGE_SCHEMA,
+        cv.Optional(CONF_CURRENT): _AC_CURRENT_SCHEMA,
+        cv.Optional(CONF_POWER): _POWER_SCHEMA,
+        cv.Optional(CONF_FREQUENCY): _FREQUENCY_SCHEMA,
+        cv.Optional(CONF_ENERGY_TODAY): _ENERGY_SCHEMA,
+        cv.Optional(CONF_ENERGY_TOTAL): _ENERGY_SCHEMA,
+    }
+)
+
+INVERTER_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_TEMPERATURE): _TEMPERATURE_SCHEMA,
+        cv.Optional(CONF_RATED_POWER): _POWER_SCHEMA,
+    }
+)
+
+
+def _dc_channel_entry(value):
+    value = cv.Schema({cv.string: DC_CHANNEL_SCHEMA})(value)
+    if len(value) != 1:
+        raise cv.Invalid(
+            "Each 'dc_channels' entry must contain exactly one channel name "
+            "(e.g. 'pv0: {power: {name: ...}}')."
+        )
+    return value
+
+
+def _validate_dc_channels_list(value):
+    value = cv.ensure_list(_dc_channel_entry)(value)
+    # No compile-time SN-or-model-based cross-check against the actual MPPT
+    # count on real hardware (unlike hms, which decodes it from the Hoymiles
+    # SN prefix) -- `model: auto` is resolved from the "Inverter ID" string
+    # at runtime, not at YAML-validation time, so there's nothing reliable
+    # to cross-check against here yet. Just a generic 1-4 bound for now.
+    cv.Length(min=1, max=4)(value)
+
+    seen = set()
+    for entry in value:
+        label = next(iter(entry))
+        if label in seen:
+            raise cv.Invalid(
+                f"Channel name '{label}' is used more than once in "
+                f"'dc_channels' -- each channel must have a unique name (pv0, pv1, ...)."
+            )
+        seen.add(label)
+    return value
+
+
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_DEYEMI_ID): cv.use_id(DeyeMiComponent),
+        cv.Optional(CONF_DC_CHANNELS): _validate_dc_channels_list,
+        cv.Optional(CONF_AC): AC_SCHEMA,
+        cv.Optional(CONF_INVERTER): INVERTER_SCHEMA,
+    }
+)
 
 
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_DEYEMI_ID])
-    for key, setter in _SETTERS.items():
-        if key in config:
-            sens = await sensor.new_sensor(config[key])
-            cg.add(getattr(hub, setter)(sens))
+
+    # `dc_channels` list index (0-based) maps 1:1 to the hub's pv_*_sensor_[]
+    # array slot -- pv0 -> index 0, ..., pv3 -> index 3. The channel's own
+    # label (e.g. "pv0") is only used for YAML readability/uniqueness
+    # checking above; it isn't passed to the hub.
+    for i, entry in enumerate(config.get(CONF_DC_CHANNELS, [])):
+        _label, channel = next(iter(entry.items()))
+        if CONF_VOLTAGE in channel:
+            s = await sensor.new_sensor(channel[CONF_VOLTAGE])
+            cg.add(hub.set_dc_voltage_sensor(i, s))
+        if CONF_CURRENT in channel:
+            s = await sensor.new_sensor(channel[CONF_CURRENT])
+            cg.add(hub.set_dc_current_sensor(i, s))
+        if CONF_POWER in channel:
+            s = await sensor.new_sensor(channel[CONF_POWER])
+            cg.add(hub.set_dc_power_sensor(i, s))
+
+    if CONF_AC in config:
+        ac = config[CONF_AC]
+        if CONF_VOLTAGE in ac:
+            s = await sensor.new_sensor(ac[CONF_VOLTAGE])
+            cg.add(hub.set_ac_voltage_sensor(s))
+        if CONF_CURRENT in ac:
+            s = await sensor.new_sensor(ac[CONF_CURRENT])
+            cg.add(hub.set_ac_current_sensor(s))
+        if CONF_POWER in ac:
+            s = await sensor.new_sensor(ac[CONF_POWER])
+            cg.add(hub.set_ac_power_sensor(s))
+        if CONF_FREQUENCY in ac:
+            s = await sensor.new_sensor(ac[CONF_FREQUENCY])
+            cg.add(hub.set_ac_frequency_sensor(s))
+        if CONF_ENERGY_TODAY in ac:
+            s = await sensor.new_sensor(ac[CONF_ENERGY_TODAY])
+            cg.add(hub.set_ac_energy_today_sensor(s))
+        if CONF_ENERGY_TOTAL in ac:
+            s = await sensor.new_sensor(ac[CONF_ENERGY_TOTAL])
+            cg.add(hub.set_ac_energy_total_sensor(s))
+
+    if CONF_INVERTER in config:
+        inv = config[CONF_INVERTER]
+        if CONF_TEMPERATURE in inv:
+            s = await sensor.new_sensor(inv[CONF_TEMPERATURE])
+            cg.add(hub.set_temperature_sensor(s))
+        if CONF_RATED_POWER in inv:
+            s = await sensor.new_sensor(inv[CONF_RATED_POWER])
+            cg.add(hub.set_rated_power_sensor(s))

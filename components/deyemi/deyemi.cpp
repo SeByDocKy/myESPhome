@@ -543,19 +543,19 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
 #endif
 
 #ifdef USE_SENSOR
-  if (this->grid_voltage_sensor_ != nullptr)
-    this->grid_voltage_sensor_->publish_state(get_u16_(regs, REG_AC_VOLTAGE, start_reg) * 0.1f);
-  if (this->grid_current_sensor_ != nullptr)
-    this->grid_current_sensor_->publish_state(get_s16_(regs, REG_GRID_CURRENT, start_reg) * 0.1f);
-  if (this->grid_frequency_sensor_ != nullptr)
-    this->grid_frequency_sensor_->publish_state(get_u16_(regs, REG_AC_FREQUENCY, start_reg) * 0.01f);
+  if (this->ac_voltage_sensor_ != nullptr)
+    this->ac_voltage_sensor_->publish_state(get_u16_(regs, REG_AC_VOLTAGE, start_reg) * 0.1f);
+  if (this->ac_current_sensor_ != nullptr)
+    this->ac_current_sensor_->publish_state(get_s16_(regs, REG_GRID_CURRENT, start_reg) * 0.1f);
+  if (this->ac_frequency_sensor_ != nullptr)
+    this->ac_frequency_sensor_->publish_state(get_u16_(regs, REG_AC_FREQUENCY, start_reg) * 0.01f);
   if (this->temperature_sensor_ != nullptr)
     this->temperature_sensor_->publish_state(((float) get_u16_(regs, REG_RADIATOR_TEMP, start_reg) - 1000.0f) *
                                               0.01f);
   if (this->rated_power_sensor_ != nullptr)
     this->rated_power_sensor_->publish_state(get_u16_(regs, REG_RATED_POWER, start_reg) * 0.1f);
-  if (this->current_power_sensor_ != nullptr)
-    this->current_power_sensor_->publish_state(
+  if (this->ac_power_sensor_ != nullptr)
+    this->ac_power_sensor_->publish_state(
         get_u32_hi_first_(regs, REG_TOTAL_AC_POWER, REG_TOTAL_AC_POWER + 1, start_reg) * 0.1f);
   if (this->ac_energy_today_sensor_ != nullptr)
     this->ac_energy_today_sensor_->publish_state(get_u16_(regs, REG_DAILY_PRODUCTION, start_reg) * 0.1f);

@@ -135,27 +135,23 @@ class DeyeMiComponent : public PollingComponent {
   void set_power_percent(float percent);
 
 #ifdef USE_SENSOR
-  void set_grid_voltage_sensor(sensor::Sensor *s) { this->grid_voltage_sensor_ = s; }
-  void set_grid_current_sensor(sensor::Sensor *s) { this->grid_current_sensor_ = s; }
-  void set_grid_frequency_sensor(sensor::Sensor *s) { this->grid_frequency_sensor_ = s; }
-  void set_temperature_sensor(sensor::Sensor *s) { this->temperature_sensor_ = s; }
-  void set_rated_power_sensor(sensor::Sensor *s) { this->rated_power_sensor_ = s; }
-  void set_current_power_sensor(sensor::Sensor *s) { this->current_power_sensor_ = s; }
+  void set_ac_voltage_sensor(sensor::Sensor *s) { this->ac_voltage_sensor_ = s; }
+  void set_ac_current_sensor(sensor::Sensor *s) { this->ac_current_sensor_ = s; }
+  void set_ac_frequency_sensor(sensor::Sensor *s) { this->ac_frequency_sensor_ = s; }
+  void set_ac_power_sensor(sensor::Sensor *s) { this->ac_power_sensor_ = s; }
   void set_ac_energy_today_sensor(sensor::Sensor *s) { this->ac_energy_today_sensor_ = s; }
   void set_ac_energy_total_sensor(sensor::Sensor *s) { this->ac_energy_total_sensor_ = s; }
+  void set_temperature_sensor(sensor::Sensor *s) { this->temperature_sensor_ = s; }
+  void set_rated_power_sensor(sensor::Sensor *s) { this->rated_power_sensor_ = s; }
 
-  void set_pv1_voltage_sensor(sensor::Sensor *s) { this->pv_voltage_sensor_[0] = s; }
-  void set_pv1_current_sensor(sensor::Sensor *s) { this->pv_current_sensor_[0] = s; }
-  void set_pv1_power_sensor(sensor::Sensor *s) { this->pv_power_sensor_[0] = s; }
-  void set_pv2_voltage_sensor(sensor::Sensor *s) { this->pv_voltage_sensor_[1] = s; }
-  void set_pv2_current_sensor(sensor::Sensor *s) { this->pv_current_sensor_[1] = s; }
-  void set_pv2_power_sensor(sensor::Sensor *s) { this->pv_power_sensor_[1] = s; }
-  void set_pv3_voltage_sensor(sensor::Sensor *s) { this->pv_voltage_sensor_[2] = s; }
-  void set_pv3_current_sensor(sensor::Sensor *s) { this->pv_current_sensor_[2] = s; }
-  void set_pv3_power_sensor(sensor::Sensor *s) { this->pv_power_sensor_[2] = s; }
-  void set_pv4_voltage_sensor(sensor::Sensor *s) { this->pv_voltage_sensor_[3] = s; }
-  void set_pv4_current_sensor(sensor::Sensor *s) { this->pv_current_sensor_[3] = s; }
-  void set_pv4_power_sensor(sensor::Sensor *s) { this->pv_power_sensor_[3] = s; }
+  // Generic, index-based (0-3) DC/PV-channel setters -- index maps 1:1 to
+  // the `dc_channels` YAML list position (pv0 = index 0, ...). Replaces the
+  // former set_pv1_voltage_sensor()..set_pv4_power_sensor() 12-method set;
+  // the underlying storage was already array-based, only the setter surface
+  // changes here.
+  void set_dc_voltage_sensor(uint8_t index, sensor::Sensor *s) { this->pv_voltage_sensor_[index] = s; }
+  void set_dc_current_sensor(uint8_t index, sensor::Sensor *s) { this->pv_current_sensor_[index] = s; }
+  void set_dc_power_sensor(uint8_t index, sensor::Sensor *s) { this->pv_power_sensor_[index] = s; }
 #endif
 
 #ifdef USE_TEXT_SENSOR
@@ -235,12 +231,12 @@ class DeyeMiComponent : public PollingComponent {
   TaskHandle_t task_handle_{nullptr};
 
 #ifdef USE_SENSOR
-  sensor::Sensor *grid_voltage_sensor_{nullptr};
-  sensor::Sensor *grid_current_sensor_{nullptr};
-  sensor::Sensor *grid_frequency_sensor_{nullptr};
+  sensor::Sensor *ac_voltage_sensor_{nullptr};
+  sensor::Sensor *ac_current_sensor_{nullptr};
+  sensor::Sensor *ac_frequency_sensor_{nullptr};
+  sensor::Sensor *ac_power_sensor_{nullptr};
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *rated_power_sensor_{nullptr};
-  sensor::Sensor *current_power_sensor_{nullptr};
   sensor::Sensor *ac_energy_today_sensor_{nullptr};
   sensor::Sensor *ac_energy_total_sensor_{nullptr};
   sensor::Sensor *pv_voltage_sensor_[4]{nullptr, nullptr, nullptr, nullptr};

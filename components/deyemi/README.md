@@ -6,6 +6,25 @@ read and controlled over their local TCP interface (Solarman V5 framing).
 purpose, because both generations turn out to share the same register map
 (see "Why one component for two generations" below).
 
+## ⚠️ Breaking change: `sensor:` YAML structure (2026-09-29)
+
+The flat `pv1_voltage`/`pv2_current`/`grid_voltage`/`current_power`/...
+sensor keys have been replaced by a `dc_channels:` list (0-indexed: `pv0`,
+`pv1`, `pv2`, `pv3`, matching this author's `hms`/`hmsw` components) plus
+`ac:` and `inverter:` blocks. Not released/in production anywhere yet, so no
+migration path is provided -- just rewrite your config against the "Example
+configuration" section below. Mapping, for reference:
+
+| Old key | New location |
+|---|---|
+| `grid_voltage`, `grid_current`, `grid_frequency`, `current_power` | `ac: { voltage, current, frequency, power }` |
+| `ac_energy_today`, `ac_energy_total` | `ac: { energy_today, energy_total }` |
+| `temperature`, `rated_power` | `inverter: { temperature, rated_power }` |
+| `pv1_voltage`/`pv1_current`/`pv1_power` | `dc_channels: [pv0: {voltage, current, power}]` |
+| `pv2_*` | `dc_channels: [..., pv1: {...}]` |
+| `pv3_*` | `dc_channels: [..., pv2: {...}]` |
+| `pv4_*` | `dc_channels: [..., pv3: {...}]` |
+
 ## Compatible models
 
 - **2 MPPT** (`model: deye_2mppt`):
@@ -122,10 +141,10 @@ References:
 ### 2-MPPT vs 4-MPPT: auto-detection
 
 A `model:` option (`auto` / `deye_2mppt` / `deye_4mppt`, default `auto`)
-controls whether `pv3_voltage`/`pv3_current`/`pv3_power` and their PV4
-equivalents ever publish. Note there is deliberately no separate "GEN3" vs
-"GEN4" choice here -- the register map doesn't change between them, so the
-MPPT count is the only thing that actually matters.
+controls whether a `dc_channels` entry for `pv2` or `pv3` (the 4-MPPT
+variant's 3rd/4th strings) ever publishes. Note there is deliberately no
+separate "GEN3" vs "GEN4" choice here -- the register map doesn't change
+between them, so the MPPT count is the only thing that actually matters.
 
 With `model: auto` (the default), the hub reads the "Inverter ID" string
 register (`0x0003`-`0x0007`, 5 registers / 10 ASCII bytes) on the first
@@ -136,13 +155,17 @@ generations' 4-MPPT model numbers at once (GEN3's 1300/1600/2000 and GEN4's
 "M160G4". None of them collide with either generation's 2-MPPT model
 numbers (GEN3: 600/800/1000; GEN4: 60/80/100). Anything that doesn't match
 is treated as 2-MPPT, the conservative default -- worst case you're just
-missing PV3/PV4 readings rather than publishing garbage values read from
-registers a 2-MPPT unit doesn't implement. **The exact contents and byte
-order of the Inverter ID string were not confirmed by any of the source
-reports**, so this detection logic is still a guess -- if it picks the
-wrong variant on your unit, set `model:` explicitly to override it (the
-startup log line "Inverter ID read as ..." will tell you what it saw and
-decided).
+missing the `pv2`/`pv3` `dc_channels` entries rather than publishing garbage
+values read from registers a 2-MPPT unit doesn't implement. **The exact
+contents and byte order of the Inverter ID string were not confirmed by any
+of the source reports**, so this detection logic is still a guess -- if it
+picks the wrong variant on your unit, set `model:` explicitly to override it
+(the startup log line "Inverter ID read as ..." will tell you what it saw
+and decided). Note this is a runtime check only: since `model: auto` isn't
+resolved until the first successful poll, YAML validation does **not**
+cross-check the number of `dc_channels` entries against it -- declaring
+`pv2`/`pv3` on what turns out to be 2-MPPT hardware isn't rejected, those
+channels just never publish.
 
 ## Known unknowns -- please report back once you have real hardware
 
@@ -150,7 +173,7 @@ decided).
   `Total AC Output Power` at `0x0056`/`0x0057`): implemented as
   **high-word-first**, this author's best guess from common Modbus/Solarman
   convention -- not confirmed by any source used here, GEN3 or GEN4. If
-  `current_power` or `ac_energy_total` come back wildly wrong (e.g. jumping
+  `ac.power` or `ac.energy_total` come back wildly wrong (e.g. jumping
   by a factor of 65536), this word order is the first thing to flip.
 - **"Inverter ID" string decoding**: assumed ASCII, 2 characters per
   register, high byte first. Never seen an actual decoded value from either
@@ -212,46 +235,56 @@ deyemi:
 sensor:
   - platform: deyemi
     deyemi_id: deye1
-    grid_voltage:
-      name: "Deye1 Grid Voltage"
-    grid_current:
-      name: "Deye1 Grid Current"
-    grid_frequency:
-      name: "Deye1 Grid Frequency"
-    temperature:
-      name: "Deye1 Temperature"
-    rated_power:
-      name: "Deye1 Rated Power"
-    current_power:
-      name: "Deye1 Current Power"
-    ac_energy_today:
-      name: "Deye1 AC Daily Energy"
-    ac_energy_total:
-      name: "Deye1 AC Total Energy"
-    pv1_voltage:
-      name: "Deye1 PV1 Voltage"
-    pv1_current:
-      name: "Deye1 PV1 Current"
-    pv1_power:
-      name: "Deye1 PV1 Power"
-    pv2_voltage:
-      name: "Deye1 PV2 Voltage"
-    pv2_current:
-      name: "Deye1 PV2 Current"
-    pv2_power:
-      name: "Deye1 PV2 Power"
-    pv3_voltage:
-      name: "Deye1 PV3 Voltage"
-    pv3_current:
-      name: "Deye1 PV3 Current"
-    pv3_power:
-      name: "Deye1 PV3 Power"
-    pv4_voltage:
-      name: "Deye1 PV4 Voltage"
-    pv4_current:
-      name: "Deye1 PV4 Current"
-    pv4_power:
-      name: "Deye1 PV4 Power"
+    # One entry per MPPT string, 0-indexed (pv0, pv1, ...) -- matches this
+    # author's hms/hmsw components. 2-MPPT hardware only needs pv0/pv1; the
+    # 4-MPPT entries below are ignored (never published) on 2-MPPT units.
+    dc_channels:
+      - pv0:
+          voltage:
+            name: "Deye1 PV1 Voltage"
+          current:
+            name: "Deye1 PV1 Current"
+          power:
+            name: "Deye1 PV1 Power"
+      - pv1:
+          voltage:
+            name: "Deye1 PV2 Voltage"
+          current:
+            name: "Deye1 PV2 Current"
+          power:
+            name: "Deye1 PV2 Power"
+      - pv2:
+          voltage:
+            name: "Deye1 PV3 Voltage"
+          current:
+            name: "Deye1 PV3 Current"
+          power:
+            name: "Deye1 PV3 Power"
+      - pv3:
+          voltage:
+            name: "Deye1 PV4 Voltage"
+          current:
+            name: "Deye1 PV4 Current"
+          power:
+            name: "Deye1 PV4 Power"
+    ac:
+      voltage:
+        name: "Deye1 Grid Voltage"
+      current:
+        name: "Deye1 Grid Current"
+      frequency:
+        name: "Deye1 Grid Frequency"
+      power:
+        name: "Deye1 Current Power"
+      energy_today:
+        name: "Deye1 AC Daily Energy"
+      energy_total:
+        name: "Deye1 AC Total Energy"
+    inverter:
+      temperature:
+        name: "Deye1 Temperature"
+      rated_power:
+        name: "Deye1 Rated Power"
 
 text_sensor:
   - platform: deyemi
