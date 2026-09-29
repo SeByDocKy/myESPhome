@@ -78,32 +78,32 @@ sensor:
     dc_channels:
       - pv0:
           voltage:
+            name: ${name}_pv0_voltage
+          current:
+            name: ${name}_pv0_current
+          power:
+            name: ${name}_pv0_power
+      - pv1:
+          voltage:
             name: ${name}_pv1_voltage
           current:
             name: ${name}_pv1_current
           power:
             name: ${name}_pv1_power
-      - pv1:
+      - pv2:
           voltage:
             name: ${name}_pv2_voltage
           current:
             name: ${name}_pv2_current
           power:
             name: ${name}_pv2_power
-      - pv2:
+      - pv3:
           voltage:
             name: ${name}_pv3_voltage
           current:
             name: ${name}_pv3_current
           power:
             name: ${name}_pv3_power
-      - pv3:
-          voltage:
-            name: ${name}_pv4_voltage
-          current:
-            name: ${name}_pv4_current
-          power:
-            name: ${name}_pv4_power
     ac:
       voltage:
         name: ${name}_grid_voltage
