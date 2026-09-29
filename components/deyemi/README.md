@@ -46,12 +46,12 @@ already had to handle per-generation anyway (`model:` / auto-detection).
 
 Confirmed independently on **both** generations, not just by analogy: on
 this author's TSUN hardware (different brand, same V5 transport), the
-default `logger_serial` of `0` got no response at all in client_mode. For
+default `sn` of `0` got no response at all in client_mode. For
 Deye GEN4 specifically, multiple users hit and solved the exact same issue:
 *"User Serial Number from the Logger, not from the Inverter!"* (confirmed
 working, SUN-M80G4-EU-Q0), and *"I used the inverter serial number instead
 of the device serial number from the web interface..."* (SUN-M160G4-EU-Q0,
-fixed by switching to the correct one). Set `logger_serial` to the **data
+fixed by switching to the correct one). Set `sn` to the **data
 logger's own serial number** -- found on the logger/WiFi module itself,
 readable from the inverter's local web/AP interface -- not the serial number
 printed on the inverter's own nameplate.
@@ -164,7 +164,7 @@ decided).
   the time of writing, just requested -- but it's a plausible follow-up if
   you need a true zero-injection shutdown and can test it safely. Whether
   this register also exists/works on GEN3 units is unknown.
-- **`logger_serial` mechanism**: the *requirement* (real logger serial, not
+- **`sn` mechanism**: the *requirement* (real logger serial, not
   the inverter's) is confirmed for GEN4 by real users (see the warning
   above); *why* the default of `0` gets rejected, and whether GEN3 behaves
   identically, was never explained by anyone, just worked around.
@@ -200,7 +200,7 @@ deyemi:
     ip_address: 192.168.1.60   # fixed IP of the inverter
     ip_port: 8899               # client-mode plain-TCP port
     modbus_address: 1
-    logger_serial: 2408xxxxx   # the DATA LOGGER's own serial number -- not the inverter's, see warning above
+    sn: 2408xxxxx   # the DATA LOGGER's own serial number -- not the inverter's, see warning above
     model: auto                 # or "deye_2mppt" / "deye_4mppt" to override -- works for GEN3 and GEN4 alike
     poll_interval: 30s
 

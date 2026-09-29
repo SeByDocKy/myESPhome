@@ -113,10 +113,10 @@ std::vector<uint8_t> DeyeMiComponent::wrap_v5_request_(uint8_t frame_type, uint1
   frame.push_back(this->v5_serial_);
   frame.push_back(0x00);
 
-  frame.push_back(this->logger_serial_ & 0xFF);
-  frame.push_back((this->logger_serial_ >> 8) & 0xFF);
-  frame.push_back((this->logger_serial_ >> 16) & 0xFF);
-  frame.push_back((this->logger_serial_ >> 24) & 0xFF);
+  frame.push_back(this->sn_ & 0xFF);
+  frame.push_back((this->sn_ >> 8) & 0xFF);
+  frame.push_back((this->sn_ >> 16) & 0xFF);
+  frame.push_back((this->sn_ >> 24) & 0xFF);
 
   frame.insert(frame.end(), payload.begin(), payload.end());
 
@@ -374,9 +374,9 @@ bool DeyeMiComponent::connect_and_transact_(const std::vector<uint8_t> &request,
 
 void DeyeMiComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up Deye GEN3/GEN4 microinverter component...");
-  if (this->logger_serial_ == 0) {
+  if (this->sn_ == 0) {
     ESP_LOGW(TAG,
-             "logger_serial is 0 (default) -- multiple independent GEN4 users (see README) report this "
+             "sn is 0 (default) -- multiple independent GEN4 users (see README) report this "
              "MUST be the data logger's own serial number, not the inverter's, to get any "
              "response at all. Set it to the real logger serial if polling fails.");
   }
@@ -585,7 +585,7 @@ void DeyeMiComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "Deye microinverter (GEN3/GEN4):");
   ESP_LOGCONFIG(TAG, "  Host: %s:%u", this->host_.c_str(), this->port_);
   ESP_LOGCONFIG(TAG, "  Modbus address: %u", this->modbus_address_);
-  ESP_LOGCONFIG(TAG, "  Logger serial: %u", (unsigned) this->logger_serial_);
+  ESP_LOGCONFIG(TAG, "  SN: %u", (unsigned) this->sn_);
   ESP_LOGCONFIG(TAG, "  Model: %s",
                 this->configured_model_ == DeyeMiModel::MODEL_AUTO
                     ? "auto (resolved at runtime from Inverter ID)"

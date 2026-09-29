@@ -68,7 +68,7 @@ CONF_DEYEMI_ID = "deyemi_id"
 CONF_IP_ADDRESS = "ip_address"
 CONF_IP_PORT = "ip_port"
 CONF_MODBUS_ADDRESS = "modbus_address"
-CONF_LOGGER_SERIAL = "logger_serial"
+CONF_SN = "sn"
 CONF_MODEL = "model"
 # Named "poll_interval" (not "update_interval") to match this author's other
 # components' naming.
@@ -87,7 +87,7 @@ CONFIG_SCHEMA = cv.Schema(
         # by multiple independent GEN4 users (see README) to require the data
         # logger's own serial number, NOT the inverter's -- the hub logs a warning
         # at startup if left at the default of 0.
-        cv.Optional(CONF_LOGGER_SERIAL, default=0): cv.uint32_t,
+        cv.Optional(CONF_SN, default=0): cv.uint32_t,
         cv.Optional(CONF_MODEL, default="auto"): cv.enum(MODELS, lower=True),
         cv.Optional(CONF_POLL_INTERVAL, default="30s"): cv.update_interval,
     }
@@ -101,7 +101,7 @@ async def to_code(config):
     cg.add(var.set_host(config[CONF_IP_ADDRESS]))
     cg.add(var.set_port(config[CONF_IP_PORT]))
     cg.add(var.set_modbus_address(config[CONF_MODBUS_ADDRESS]))
-    cg.add(var.set_logger_serial(config[CONF_LOGGER_SERIAL]))
+    cg.add(var.set_sn(config[CONF_SN]))
     cg.add(var.set_model(config[CONF_MODEL]))
     # register_component() only auto-wires PollingComponent's interval when the
     # config key is literally "update_interval" -- ours is "poll_interval", so

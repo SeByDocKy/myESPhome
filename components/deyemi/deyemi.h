@@ -117,7 +117,7 @@ class DeyeMiComponent : public PollingComponent {
   void set_host(const std::string &host) { this->host_ = host; }
   void set_port(uint16_t port) { this->port_ = port; }
   void set_modbus_address(uint8_t address) { this->modbus_address_ = address; }
-  void set_logger_serial(uint32_t serial) { this->logger_serial_ = serial; }
+  void set_sn(uint32_t serial) { this->sn_ = serial; }
   void set_model(DeyeMiModel model) { this->configured_model_ = model; }
 
   void setup() override;
@@ -166,7 +166,7 @@ class DeyeMiComponent : public PollingComponent {
   std::string host_;
   uint16_t port_{8899};
   uint8_t modbus_address_{1};
-  uint32_t logger_serial_{0};
+  uint32_t sn_{0};
   uint8_t v5_serial_{0};
   DeyeMiModel configured_model_{DeyeMiModel::MODEL_AUTO};
   // Effective model actually used to decide whether PV3/PV4 are published --
