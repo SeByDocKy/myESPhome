@@ -529,7 +529,7 @@ void DeyeGen3Component::handle_live_block_(const std::vector<uint8_t> &regs, uin
     if (name != nullptr) {
       this->inverter_status_text_sensor_->publish_state(name);
     } else {
-      char hex[16];
+      char hex[20];
       snprintf(hex, sizeof(hex), "Unknown (0x%04X)", status);
       this->inverter_status_text_sensor_->publish_state(hex);
     }

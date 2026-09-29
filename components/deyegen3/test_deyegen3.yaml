@@ -1,0 +1,126 @@
+substitutions:
+  name: "test_deyegen3"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [deyegen3]
+    refresh: 10s
+
+  # Local checkout instead (e.g. while developing the component itself):
+  # - source:
+  #     type: local
+  #     path: components
+  #   components: [deyegen3]
+
+
+logger:
+   level: debug
+
+debug:
+  update_interval: 5s
+
+
+deyegen3:
+  - id: sun1000
+    ip_address: 192.168.1.90   # fixed IP of the inverter
+    ip_port: 8899               # client_mode plain-TCP port
+    poll_interval: 5s
+    modbus_address: 1
+    # logger_serial: 2093984xxx  # set to the real logger serial if polling fails
+    model: auto                  # or "deye_2mppt" / "deye_4mppt" if auto-detection is wrong
+
+
+sensor:
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+
+  - platform: deyegen3
+    deyegen3_id: sun1000
+    grid_voltage:
+      name: ${name}_grid_voltage
+    grid_current:
+      name: ${name}_grid_current
+    grid_frequency:
+      name: ${name}_grid_frequency
+    temperature:
+      name: ${name}_temperature
+    rated_power:
+      name: ${name}_rated_power
+    current_power:
+      name: ${name}_current_power
+    ac_energy_today:
+      name: ${name}_ac_energy_today
+    ac_energy_total:
+      name: ${name}_ac_energy_total
+    pv1_voltage:
+      name: ${name}_pv1_voltage
+    pv1_current:
+      name: ${name}_pv1_current
+    pv1_power:
+      name: ${name}_pv1_power
+    pv2_voltage:
+      name: ${name}_pv2_voltage
+    pv2_current:
+      name: ${name}_pv2_current
+    pv2_power:
+      name: ${name}_pv2_power
+    pv3_voltage:
+      name: ${name}_pv3_voltage
+    pv3_current:
+      name: ${name}_pv3_current
+    pv3_power:
+      name: ${name}_pv3_power
+    pv4_voltage:
+      name: ${name}_pv4_voltage
+    pv4_current:
+      name: ${name}_pv4_current
+    pv4_power:
+      name: ${name}_pv4_power
+
+
+text_sensor:
+  - platform: deyegen3
+    deyegen3_id: sun1000
+    inverter_status:
+      name: ${name}_inverter_status
+
+
+number:
+  - platform: deyegen3
+    deyegen3_id: sun1000
+    power_percent:
+      name: ${name}_power_percent
+
+
+output:
+  - platform: deyegen3
+    deyegen3_id: sun1000
+    power_percent:
+      id: ${name}_power_percent_output
