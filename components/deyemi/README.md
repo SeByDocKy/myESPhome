@@ -6,25 +6,6 @@ read and controlled over their local TCP interface (Solarman V5 framing).
 purpose, because both generations turn out to share the same register map
 (see "Why one component for two generations" below).
 
-## ⚠️ Breaking change: `sensor:` YAML structure (2026-09-29)
-
-The flat `pv1_voltage`/`pv2_current`/`grid_voltage`/`current_power`/...
-sensor keys have been replaced by a `dc_channels:` list (0-indexed: `pv0`,
-`pv1`, `pv2`, `pv3`, matching this author's `hms`/`hmsw` components) plus
-`ac:` and `inverter:` blocks. Not released/in production anywhere yet, so no
-migration path is provided -- just rewrite your config against the "Example
-configuration" section below. Mapping, for reference:
-
-| Old key | New location |
-|---|---|
-| `grid_voltage`, `grid_current`, `grid_frequency`, `current_power` | `ac: { voltage, current, frequency, power }` |
-| `ac_energy_today`, `ac_energy_total` | `ac: { energy_today, energy_total }` |
-| `temperature`, `rated_power` | `inverter: { temperature, rated_power }` |
-| `pv1_voltage`/`pv1_current`/`pv1_power` | `dc_channels: [pv0: {voltage, current, power}]` |
-| `pv2_*` | `dc_channels: [..., pv1: {...}]` |
-| `pv3_*` | `dc_channels: [..., pv2: {...}]` |
-| `pv4_*` | `dc_channels: [..., pv3: {...}]` |
-
 ## Compatible models
 
 - **2 MPPT** (`model: deye_2mppt`):
@@ -241,32 +222,32 @@ sensor:
     dc_channels:
       - pv0:
           voltage:
+            name: "Deye1 PV0 Voltage"
+          current:
+            name: "Deye1 PV0 Current"
+          power:
+            name: "Deye1 PV0 Power"
+      - pv1:
+          voltage:
             name: "Deye1 PV1 Voltage"
           current:
             name: "Deye1 PV1 Current"
           power:
             name: "Deye1 PV1 Power"
-      - pv1:
+      - pv2:
           voltage:
             name: "Deye1 PV2 Voltage"
           current:
             name: "Deye1 PV2 Current"
           power:
             name: "Deye1 PV2 Power"
-      - pv2:
+      - pv3:
           voltage:
             name: "Deye1 PV3 Voltage"
           current:
             name: "Deye1 PV3 Current"
           power:
             name: "Deye1 PV3 Power"
-      - pv3:
-          voltage:
-            name: "Deye1 PV4 Voltage"
-          current:
-            name: "Deye1 PV4 Current"
-          power:
-            name: "Deye1 PV4 Power"
     ac:
       voltage:
         name: "Deye1 Grid Voltage"
