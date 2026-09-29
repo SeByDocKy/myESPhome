@@ -100,7 +100,7 @@ sensor:
       
 text_sensor:
   - platform: tsungen3
-    tsungen3_id: mx1000
+    tsungen3_id: ${tsungen3_id}
     inverter_status:
       name: ${name}_inverter_status
     event_alarms:
