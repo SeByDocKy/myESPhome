@@ -95,11 +95,11 @@ text_sensor:
   - platform: tsungen3
     tsungen3_id: ${tsungen3_id}
     inverter_status:
-      name: ${name}_inverter_status
+      name: ${name}_${tsungen3_name}_inverter_status
     event_alarms:
-      name: ${name}_event_alarms
+      name: ${name}_${tsungen3_name}_event_alarms
     event_faults:
-      name: ${name}_event_faults
+      name: ${name}_${tsungen3_name}_event_faults
 
 number:
   - platform: tsungen3
