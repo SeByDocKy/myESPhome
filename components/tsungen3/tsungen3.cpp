@@ -631,19 +631,19 @@ void TSunGen3Component::handle_live_block_(const std::vector<uint8_t> &regs, uin
 #endif
 
 #ifdef USE_SENSOR
-  if (this->grid_voltage_sensor_ != nullptr)
-    this->grid_voltage_sensor_->publish_state(get_u16_(regs, 0x3009, start_reg) * 0.1f);
-  if (this->grid_current_sensor_ != nullptr)
-    this->grid_current_sensor_->publish_state(get_u16_(regs, 0x300a, start_reg) * 0.01f);
-  if (this->grid_frequency_sensor_ != nullptr)
-    this->grid_frequency_sensor_->publish_state(get_u16_(regs, 0x300b, start_reg) * 0.01f);
+  if (this->ac_voltage_sensor_ != nullptr)
+    this->ac_voltage_sensor_->publish_state(get_u16_(regs, 0x3009, start_reg) * 0.1f);
+  if (this->ac_current_sensor_ != nullptr)
+    this->ac_current_sensor_->publish_state(get_u16_(regs, 0x300a, start_reg) * 0.01f);
+  if (this->ac_frequency_sensor_ != nullptr)
+    this->ac_frequency_sensor_->publish_state(get_u16_(regs, 0x300b, start_reg) * 0.01f);
   if (this->temperature_sensor_ != nullptr)
     // Register stores (actual_temperature + 40)
     this->temperature_sensor_->publish_state((float) get_u16_(regs, 0x300c, start_reg) - 40.0f);
   if (this->rated_power_sensor_ != nullptr)
     this->rated_power_sensor_->publish_state((float) get_u16_(regs, 0x300e, start_reg));
-  if (this->current_power_sensor_ != nullptr)
-    this->current_power_sensor_->publish_state(get_u16_(regs, 0x300f, start_reg) * 0.1f);
+  if (this->ac_power_sensor_ != nullptr)
+    this->ac_power_sensor_->publish_state(get_u16_(regs, 0x300f, start_reg) * 0.1f);
 
   static const uint16_t PV_BASE[4] = {0x3010, 0x3013, 0x3016, 0x3019};
   for (uint8_t i = 0; i < 4; i++) {

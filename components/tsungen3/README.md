@@ -3,6 +3,25 @@
 Native ESPHome component for **TSUN / TSOL GEN3 PLUS** micro-inverters, read
 and controlled over their local TCP interface.
 
+## ⚠️ Breaking change: `sensor:` YAML structure (2026-09-29)
+
+The flat `pv1_voltage`/`pv2_current`/`grid_voltage`/`current_power`/...
+sensor keys have been replaced by a `dc_channels:` list (0-indexed: `pv0`,
+`pv1`, ..., matching this author's `hms`/`hmsw` components) plus `ac:` and
+`inverter:` blocks. Not released/in production anywhere yet, so no migration
+path is provided -- just rewrite your config against the "Example
+configuration" section below. Mapping, for reference:
+
+| Old key | New location |
+|---|---|
+| `grid_voltage`, `grid_current`, `grid_frequency`, `current_power` | `ac: { voltage, current, frequency, power }` |
+| `ac_energy_today`, `ac_energy_total` | `ac: { energy_today, energy_total }` |
+| `temperature`, `rated_power` | `inverter: { temperature, rated_power }` |
+| `pv1_voltage`/`pv1_current`/`pv1_power` | `dc_channels: [pv0: {voltage, current, power}]` |
+| `pv2_*` | `dc_channels: [..., pv1: {...}]` |
+| `pv3_*` | `dc_channels: [..., pv2: {...}]` |
+| `pv4_*` | `dc_channels: [..., pv3: {...}]` |
+
 ## Compatible models (GEN3 PLUS only)
 
 Per [s-allius/tsun-gen3-proxy](https://github.com/s-allius/tsun-gen3-proxy)'s
@@ -232,34 +251,42 @@ tsungen3:
 sensor:
   - platform: tsungen3
     tsungen3_id: mx1000
-    grid_voltage:
-      name: "MX1000 Grid Voltage"
-    grid_current:
-      name: "MX1000 Grid Current"
-    grid_frequency:
-      name: "MX1000 Grid Frequency"
-    temperature:
-      name: "MX1000 Temperature"
-    rated_power:
-      name: "MX1000 Rated Power"
-    current_power:
-      name: "MX1000 Current Power"
-    ac_energy_today:
-      name: "MX1000 AC Daily Energy"
-    ac_energy_total:
-      name: "MX1000 AC Total Energy"
-    pv1_voltage:
-      name: "MX1000 PV1 Voltage"
-    pv1_current:
-      name: "MX1000 PV1 Current"
-    pv1_power:
-      name: "MX1000 PV1 Power"
-    pv2_voltage:
-      name: "MX1000 PV2 Voltage"
-    pv2_current:
-      name: "MX1000 PV2 Current"
-    pv2_power:
-      name: "MX1000 PV2 Power"
+    # One entry per PV string, 0-indexed (pv0, pv1, ...) -- matches this
+    # author's hms/hmsw components. Add pv2/pv3 entries for a model with
+    # more than 2 MPPT inputs.
+    dc_channels:
+      - pv0:
+          voltage:
+            name: "MX1000 PV1 Voltage"
+          current:
+            name: "MX1000 PV1 Current"
+          power:
+            name: "MX1000 PV1 Power"
+      - pv1:
+          voltage:
+            name: "MX1000 PV2 Voltage"
+          current:
+            name: "MX1000 PV2 Current"
+          power:
+            name: "MX1000 PV2 Power"
+    ac:
+      voltage:
+        name: "MX1000 Grid Voltage"
+      current:
+        name: "MX1000 Grid Current"
+      frequency:
+        name: "MX1000 Grid Frequency"
+      power:
+        name: "MX1000 Current Power"
+      energy_today:
+        name: "MX1000 AC Daily Energy"
+      energy_total:
+        name: "MX1000 AC Total Energy"
+    inverter:
+      temperature:
+        name: "MX1000 Temperature"
+      rated_power:
+        name: "MX1000 Rated Power"
 
 text_sensor:
   - platform: tsungen3
