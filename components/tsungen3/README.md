@@ -23,13 +23,13 @@ exists by the time you're reading this).
 ## ⚠️ Use the "Monitoring SN", never the printed inverter serial number
 
 This is the single most common reason polling silently fails, so it gets
-its own section up top rather than being buried in `logger_serial`'s field
+its own section up top rather than being buried in `sn`'s field
 description below.
 
 Every GEN3 PLUS device ships with a small sticker carrying a **"Monitoring
 SN:"** -- a separate number from the inverter's own printed serial number
 (which starts with `Y17`/`Y47` for inverters, `410` for battery/storage
-units). **`logger_serial` must be set to the Monitoring SN, not the
+units). **`sn` must be set to the Monitoring SN, not the
 inverter's serial number.** Confirmed on real MX1000 hardware (see "Confirmed
 against real hardware" below): the default of `0` gets no response at all in
 client_mode, and using the inverter's own serial number instead of the
@@ -159,7 +159,7 @@ wiki; no other AT+ commands are wired up here.
 
 - **Solarman "Logger Serial" field must be the real "Monitoring SN"** printed
   on the inverter's sticker — `0` (the option's default) does **not** get a
-  response in client_mode. Set `logger_serial` explicitly.
+  response in client_mode. Set `sn` explicitly.
 - **Modbus slave/unit address `1`** works as documented.
 - The read path (framing, both CRCs, register offsets, scaling) is correct:
   `rated_power` read back as exactly `1000.0 W` on a real MX1000 (1000W
@@ -220,8 +220,8 @@ tsungen3:
     ip_address: 192.168.1.50   # fixed IP of the inverter
     ip_port: 8899               # client-mode plain-TCP port
     modbus_address: 1
-    logger_serial: 2093984xxx  # required -- the real "Monitoring SN" on the sticker;
-                                 # the default (0) gets no response in client_mode
+    sn: 2093984xxx  # required -- the real "Monitoring SN" on the sticker;
+                      # the default (0) gets no response in client_mode
     poll_interval: 30s
 
   # Second GEN3 PLUS inverter on the same ESP (MULTI_CONF):

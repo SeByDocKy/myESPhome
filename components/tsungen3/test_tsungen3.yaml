@@ -49,7 +49,7 @@ tsungen3:
     ip_port: 8899               # port client_mode (TCP clair)
     poll_interval: 5s
     modbus_address: 1
-    logger_serial: 3455843077 #2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
+    sn: 3455843077 #2093984xxx  # décommenter si l'onduleur ne répond pas avec 0
 
   # Deuxième onduleur GEN3 PLUS sur le même ESP (MULTI_CONF) :
   # - id: tsungen3_2
