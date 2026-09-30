@@ -34,7 +34,6 @@ class DUALPIDPCMComponent : public Component{
  SUB_NUMBER(self_consumption)
  SUB_NUMBER(starting_battery_voltage)
  SUB_NUMBER(stopping_battery_voltage)
- SUB_NUMBER(discharge_self_consumption)
  // ── Hystérésis start/stop (anti-chatter) ──────────────────────────────────
  // Écart en W à ajouter au seuil d'arrêt (Pmin_charging/Pmin_discharging)
  // pour obtenir le seuil de (re)démarrage. self_consumption/discharge_self_
@@ -83,7 +82,7 @@ class DUALPIDPCMComponent : public Component{
   bool get_activation(void){return this->current_activation_;}
   void set_manual_override(bool enable) {this->current_manual_override_ = enable;}
   bool get_manual_override(void){return this->current_manual_override_;}
-  void set_pid_mode(bool enable) {this->current_pid_mode_ = enable;}
+  void set_pid_mode(bool enable);
   bool get_pid_mode(void){return this->current_pid_mode_;}
   void set_reverse(bool enable) {this->current_reverse_ = enable;}
   bool get_reverse(void){return this->current_reverse_;}
@@ -132,12 +131,12 @@ class DUALPIDPCMComponent : public Component{
   void set_delta_idle_discharging(float value) {this->current_delta_idle_discharging_ = value;}
   float get_delta_idle_discharging(void){return this->current_delta_idle_discharging_;}
 
-  void set_kp(float value) {this->current_kp_ = value;}
+  void set_kp(float value);
   float get_kp(void){return this->current_kp_;}
-  void set_ki(float value) {this->current_ki_ = value;}
+  void set_ki(float value);
   float get_ki(void){return this->current_ki_;}
-  void set_kd(float value) {this->current_kd_ = value;}
-  float get_kd(void){return this->current_kd_;}
+  void set_kd(float value) {this->current_kd_ = 0.0f;}
+  float get_kd(void){return 0.0f;}
     
   void set_output_min_charging(float value) {this->current_output_min_charging_ = value;}
   float get_output_min_charging(void){return this->current_output_min_charging_;}
@@ -241,9 +240,19 @@ class DUALPIDPCMComponent : public Component{
   float current_delta_idle_charging_    = 30.0f;
   float current_delta_idle_discharging_ = 30.0f;
 
-  float current_kp_          = 1.1f;
+  float current_kp_          = 4.0f;
   float current_ki_          = 0.0f;
   float current_kd_          = 0.0f;
+
+  float kp_incremental_      = 4.0f;
+  float ki_incremental_      = 0.0f;
+  float kp_standard_         = 2.0f;
+  float ki_standard_         = 9.0f;
+
+  ESPPreferenceObject pref_kp_inc_;
+  ESPPreferenceObject pref_ki_inc_;
+  ESPPreferenceObject pref_kp_std_;
+  ESPPreferenceObject pref_ki_std_;
      
   float current_output_max_charging_ = 1.0f;
   float current_output_min_charging_ = 0.0f;
@@ -254,6 +263,8 @@ class DUALPIDPCMComponent : public Component{
   bool current_deadband_                = false;
  
   uint32_t mode_start_time_             = 0;
+  uint32_t deadband_start_time_         = 0;
+  uint32_t idle_start_time_             = 0;
  
 
   float lb_             = 0.01f;

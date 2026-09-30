@@ -206,7 +206,7 @@ async def to_code(config):
   
   if ki_config := config.get(CONF_KI):
         n = await number.new_number(
-            ki_config, min_value=0.0, max_value=10.0, step=0.1
+            ki_config, min_value=0.0, max_value=12.0, step=0.1
         )
         await cg.register_component(n, ki_config)
         await cg.register_parented(n, dualpidpcm_component)

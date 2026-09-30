@@ -19,6 +19,7 @@ void ActivationSwitch::write_state(bool state) {
   this->publish_state(state);
   this->parent_->set_activation(state);
   this->pref_.save(&state);
+  this->parent_->pid_update();
 }
 
 }  // namespace esphome
