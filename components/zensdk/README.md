@@ -16,6 +16,15 @@ SolarFlow 800, 800 Plus, 800 Pro, 1600 AC+, 2400 AC, 2400 AC+, 2400 Pro (the mod
 **Not supported:** legacy MQTT-only devices (Hyper 2000, Hub 1200 / 2000, Ace 1500, AIO 2400). They have no
 HTTP API and need a broker plus a Bluetooth provisioning step.
 
+**Probably compatible (unofficial).** SolarFlow 3000 Mix AC+, 4000 Mix AC+ and 4000 Mix Pro are not yet in
+zenSDK's official "Supported Products" list, but community Home Assistant integrations
+([Gielz1986/Zendure-HA-zenSDK](https://github.com/Gielz1986/Zendure-HA-zenSDK)) talk to these models over the
+same local `/properties/report` / `/properties/write` API and the same property names. **Not verified against
+a real device.** There is no `model:` preset for them yet (their AC charge/discharge power limits aren't
+published), so set `max_charge_power` / `max_discharge_power` explicitly. Their PV input is 2 independent
+30–400 V string MPPTs rather than the 6 low-voltage `solarPower1..6` channels of the SF800–2400 range, so
+`dc_channels:` should still work but likely only exposes 2 entries (`pv0`, `pv1`) — unconfirmed.
+
 ## How it works
 
 The battery hosts a small REST server:
@@ -303,6 +312,9 @@ run against a real device yet.
 - **`remainInputTime`** is read by Zendure-HA but absent from the zenSDK table; it is simply skipped if the
   device does not report it.
 - **Local API length.** The device accepts at most 512 bytes per request; all commands here are far below that.
+- **SolarFlow 4000/3000 Mix.** Community evidence (see "Supported devices" above) suggests the same local API
+  works, but this has not been confirmed on a real Mix device, no power-limit preset exists for it, and the
+  2-MPPT PV topology may not populate `solarPower1..6` the same way as the SF800–2400 range.
 - **ArduinoJson / `json` component.** The report is parsed with ESPHome's `json::parse_json()`. If a future
   ESPHome release changes that signature, only `ZenSdkComponent::parse_report_()` needs adapting.
 - ESP32 only (FreeRTOS task and lwIP sockets).
