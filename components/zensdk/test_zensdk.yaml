@@ -81,105 +81,121 @@ sensor:
 
   - platform: zensdk
     zensdk_id: sf2400
-    electric_level:
-      name: ${name}_electric_level
     solar_input_power:
       name: ${name}_solar_input_power
-    pv_power_1:
-      name: ${name}_pv_power_1
-    pv_power_2:
-      name: ${name}_pv_power_2
-    pv_power_3:
-      name: ${name}_pv_power_3
-    pv_power_4:
-      name: ${name}_pv_power_4
-    pv_power_5:
-      name: ${name}_pv_power_5
-    pv_power_6:
-      name: ${name}_pv_power_6
-    pack_input_power:
-      name: ${name}_pack_input_power
-    output_pack_power:
-      name: ${name}_output_pack_power
-    output_home_power:
-      name: ${name}_output_home_power
-    grid_input_power:
-      name: ${name}_grid_input_power
-    grid_off_power:
-      name: ${name}_grid_off_power
-    battery_voltage:
-      name: ${name}_battery_voltage
-    enclosure_temperature:
-      name: ${name}_enclosure_temperature
     rssi:
       name: ${name}_rssi
-    remain_out_time:
-      name: ${name}_remain_out_time
-    remain_input_time:
-      name: ${name}_remain_input_time
-    charge_max_limit:
-      name: ${name}_charge_max_limit
-    pack_num:
-      name: ${name}_pack_num
-    soc_limit:
-      name: ${name}_soc_limit
+    enclosure_temperature:
+      name: ${name}_enclosure_temperature
     fault_level:
       name: ${name}_fault_level
-    dc_status:
-      name: ${name}_dc_status
-    ac_status:
-      name: ${name}_ac_status
-    # Battery packs 1 to 3 (matched by position in packData; pack_num reports how many the device sees)
-    pack1_soc_level:
-      name: ${name}_pack1_soc_level
-    pack1_power:
-      name: ${name}_pack1_power
-    pack1_temperature:
-      name: ${name}_pack1_temperature
-    pack1_total_voltage:
-      name: ${name}_pack1_total_voltage
-    pack1_current:
-      name: ${name}_pack1_current
-    pack1_max_cell_voltage:
-      name: ${name}_pack1_max_cell_voltage
-    pack1_min_cell_voltage:
-      name: ${name}_pack1_min_cell_voltage
-    pack1_delta_cell_voltage:
-      name: ${name}_pack1_delta_cell_voltage
-    # Battery pack 2
-    pack2_soc_level:
-      name: ${name}_pack2_soc_level
-    pack2_power:
-      name: ${name}_pack2_power
-    pack2_temperature:
-      name: ${name}_pack2_temperature
-    pack2_total_voltage:
-      name: ${name}_pack2_total_voltage
-    pack2_current:
-      name: ${name}_pack2_current
-    pack2_max_cell_voltage:
-      name: ${name}_pack2_max_cell_voltage
-    pack2_min_cell_voltage:
-      name: ${name}_pack2_min_cell_voltage
-    pack2_delta_cell_voltage:
-      name: ${name}_pack2_delta_cell_voltage
-    # Battery pack 3 (packN_* exists for N = 1 ... 6)
-    pack3_soc_level:
-      name: ${name}_pack3_soc_level
-    pack3_power:
-      name: ${name}_pack3_power
-    pack3_temperature:
-      name: ${name}_pack3_temperature
-    pack3_total_voltage:
-      name: ${name}_pack3_total_voltage
-    pack3_current:
-      name: ${name}_pack3_current
-    pack3_max_cell_voltage:
-      name: ${name}_pack3_max_cell_voltage
-    pack3_min_cell_voltage:
-      name: ${name}_pack3_min_cell_voltage
-    pack3_delta_cell_voltage:
-      name: ${name}_pack3_delta_cell_voltage
+
+    # One entry per MPPT string, 0-indexed (pv0, pv1, ...).
+    dc_channels:
+      - pv0:
+          power:
+            name: ${name}_pv0_power
+      - pv1:
+          power:
+            name: ${name}_pv1_power
+      - pv2:
+          power:
+            name: ${name}_pv2_power
+      - pv3:
+          power:
+            name: ${name}_pv3_power
+      - pv4:
+          power:
+            name: ${name}_pv4_power
+      - pv5:
+          power:
+            name: ${name}_pv5_power
+
+    ac:
+      home_power:
+        name: ${name}_output_home_power
+      grid_power:
+        name: ${name}_grid_input_power
+      offgrid_power:
+        name: ${name}_grid_off_power
+      status:
+        name: ${name}_ac_status
+
+    battery:
+      soc:
+        name: ${name}_electric_level
+      voltage:
+        name: ${name}_battery_voltage
+      charge_power:
+        name: ${name}_pack_input_power
+      discharge_power:
+        name: ${name}_output_pack_power
+      soc_limit:
+        name: ${name}_soc_limit
+      charge_max_limit:
+        name: ${name}_charge_max_limit
+      pack_count:
+        name: ${name}_pack_num
+      remain_out_time:
+        name: ${name}_remain_out_time
+      remain_input_time:
+        name: ${name}_remain_input_time
+      status:
+        name: ${name}_dc_status
+      # One entry per battery pack, 0-indexed (pack0, pack1, ...), matched by
+      # position in packData (pack_count reports how many the device sees).
+      packs:
+        - pack0:
+            soc_level:
+              name: ${name}_pack0_soc_level
+            power:
+              name: ${name}_pack0_power
+            temperature:
+              name: ${name}_pack0_temperature
+            total_voltage:
+              name: ${name}_pack0_total_voltage
+            current:
+              name: ${name}_pack0_current
+            max_cell_voltage:
+              name: ${name}_pack0_max_cell_voltage
+            min_cell_voltage:
+              name: ${name}_pack0_min_cell_voltage
+            delta_cell_voltage:
+              name: ${name}_pack0_delta_cell_voltage
+        - pack1:
+            soc_level:
+              name: ${name}_pack1_soc_level
+            power:
+              name: ${name}_pack1_power
+            temperature:
+              name: ${name}_pack1_temperature
+            total_voltage:
+              name: ${name}_pack1_total_voltage
+            current:
+              name: ${name}_pack1_current
+            max_cell_voltage:
+              name: ${name}_pack1_max_cell_voltage
+            min_cell_voltage:
+              name: ${name}_pack1_min_cell_voltage
+            delta_cell_voltage:
+              name: ${name}_pack1_delta_cell_voltage
+        - pack2:
+            soc_level:
+              name: ${name}_pack2_soc_level
+            power:
+              name: ${name}_pack2_power
+            temperature:
+              name: ${name}_pack2_temperature
+            total_voltage:
+              name: ${name}_pack2_total_voltage
+            current:
+              name: ${name}_pack2_current
+            max_cell_voltage:
+              name: ${name}_pack2_max_cell_voltage
+            min_cell_voltage:
+              name: ${name}_pack2_min_cell_voltage
+            delta_cell_voltage:
+              name: ${name}_pack2_delta_cell_voltage
 
 binary_sensor:
   - platform: zensdk
@@ -222,24 +238,31 @@ text_sensor:
       name: ${name}_bms_firmware_version
     mppt_firmware_version:
       name: ${name}_mppt_firmware_version
-    pack1_state:
-      name: ${name}_pack1_state
-    pack1_sn:
-      name: ${name}_pack1_sn
-    pack1_firmware_version:
-      name: ${name}_pack1_firmware_version
-    pack2_state:
-      name: ${name}_pack2_state
-    pack2_sn:
-      name: ${name}_pack2_sn
-    pack2_firmware_version:
-      name: ${name}_pack2_firmware_version
-    pack3_state:
-      name: ${name}_pack3_state
-    pack3_sn:
-      name: ${name}_pack3_sn
-    pack3_firmware_version:
-      name: ${name}_pack3_firmware_version
+    battery:
+      # One entry per battery pack, 0-indexed (pack0, pack1, ...), same order as
+      # the sensor platform's battery.packs.
+      packs:
+        - pack0:
+            state:
+              name: ${name}_pack0_state
+            sn:
+              name: ${name}_pack0_sn
+            firmware_version:
+              name: ${name}_pack0_firmware_version
+        - pack1:
+            state:
+              name: ${name}_pack1_state
+            sn:
+              name: ${name}_pack1_sn
+            firmware_version:
+              name: ${name}_pack1_firmware_version
+        - pack2:
+            state:
+              name: ${name}_pack2_state
+            sn:
+              name: ${name}_pack2_sn
+            firmware_version:
+              name: ${name}_pack2_firmware_version
 
 number:
   - platform: zensdk

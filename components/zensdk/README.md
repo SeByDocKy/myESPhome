@@ -73,38 +73,70 @@ SF1600 AC+ 1600 / 1600 W, SF2400 AC 2400 / 2400 W, SF2400 AC+ and 2400 Pro 3200 
 Each platform lives in its own sub-directory and takes an optional `zensdk_id` (only needed with several
 batteries).
 
+> **Breaking change.** The flat `pv_power_1..6` / `pack1_*..pack6_*` keys of earlier versions were replaced by
+> `dc_channels:` / `ac:` / `battery:` groups (`sensor`) and a `battery.packs:` group (`text_sensor`), all
+> 0-indexed (`pv0`…`pv5`, `pack0`…`pack5`), matching this author's `hms`/`hmsw`/`deyemi` components. Update your
+> YAML accordingly — see the examples below.
+
 **`sensor`**
+
+Structured like this author's `hms`/`hmsw`/`deyemi` components: device-level diagnostics stay flat at the
+root, PV channels are grouped under `dc_channels:`, AC/grid/home entities under `ac:`, and battery entities
+under `battery:` (with per-pack entries in `battery.packs:`). All lists are **0-indexed** (`pv0` … `pv5`,
+`pack0` … `pack5`), consistent across every platform of this component.
 
 | Key | Property | Notes |
 |---|---|---|
-| `electric_level` | `electricLevel` | Average SoC, % |
 | `solar_input_power` | `solarInputPower` | Total PV input, W |
-| `pv_power_1` … `pv_power_6` | `solarPower1..6` | Power of each PV / MPPT input channel, W |
-| `pack_input_power` | `packInputPower` | Battery discharge power, W |
-| `output_pack_power` | `outputPackPower` | Battery charge power, W |
-| `output_home_power` | `outputHomePower` | AC output to home, W |
-| `grid_input_power` | `gridInputPower` | AC input, W |
-| `grid_off_power` | `gridOffPower` | Off-grid output, W |
-| `battery_voltage` | `BatVolt` | 0.01 V units |
-| `enclosure_temperature` | `hyperTmp` | Published in °C; the raw scale (0.1 K, K or °C) is auto-detected, see caveats |
 | `rssi` | `rssi` | dBm |
-| `remain_out_time`, `remain_input_time` | `remainOutTime`, `remainInputTime` | min |
+| `enclosure_temperature` | `hyperTmp` | Published in °C; the raw scale (0.1 K, K or °C) is auto-detected, see caveats |
+| `fault_level` | `faultLevel` | Raw diagnostic code |
+
+`dc_channels:` — a list, one entry per PV / MPPT input, e.g. `- pv0: {power: {name: ...}}`. List position
+(0-based) maps to `solarPower<position+1>`; only `power` is exposed (zenSDK has no per-channel voltage/current).
+
+`ac:` (flat):
+
+| Key | Property | Notes |
+|---|---|---|
+| `home_power` | `outputHomePower` | AC output to home, W |
+| `grid_power` | `gridInputPower` | AC input, W |
+| `offgrid_power` | `gridOffPower` | Off-grid output, W |
+| `status` | `acStatus` | Raw code: 0 stopped, 1 grid-tied/off-grid running, 2 charging (`docs/zh_properties.md`) |
+
+`battery:` (flat fields, plus a `packs:` list):
+
+| Key | Property | Notes |
+|---|---|---|
+| `soc` | `electricLevel` | Average SoC, % |
+| `voltage` | `BatVolt` | 0.01 V units |
+| `charge_power` | `packInputPower` | Power flowing into the packs, W |
+| `discharge_power` | `outputPackPower` | Power flowing out of the packs, W |
+| `soc_limit` | `socLimit` | Raw diagnostic code |
 | `charge_max_limit` | `chargeMaxLimit` | W |
-| `pack_num`, `soc_limit`, `fault_level`, `dc_status`, `ac_status` | same | Raw diagnostic codes |
-| `packN_soc_level`, `packN_power`, `packN_temperature`, `packN_total_voltage`, `packN_current`, `packN_max_cell_voltage`, `packN_min_cell_voltage`, `packN_delta_cell_voltage` | `packData[N-1]` | `N` = 1 … 6, matched by position in `packData` |
+| `pack_count` | `packNum` | Raw diagnostic code |
+| `remain_out_time`, `remain_input_time` | `remainOutTime`, `remainInputTime` | min |
+| `status` | `dcStatus` | Raw code: 0 stopped, 1 battery input (charging), 2 battery output (discharging) (`docs/zh_properties.md`) |
+
+`battery.packs:` — a list, one entry per battery pack, e.g. `- pack0: {soc_level: {name: ...}, ...}`.
+List position (0-based) is the index into `packData`; `pack_count` reports how many the device sees.
+Per-pack fields: `soc_level`, `power`, `temperature`, `total_voltage`, `current`, `max_cell_voltage`,
+`min_cell_voltage`, `delta_cell_voltage`.
 
 **`binary_sensor`**: `online` (polling succeeds; off after 3 consecutive failures), `heat_state`, `bypass`
 (`pass`), `reverse_state`, `grid_connected` (`gridState`), `pv_active` (`pvStatus`), `soc_calibrating`
-(`socStatus`), `error` (`is_error`), `fan`, `lamp`, `data_ready`.
+(`socStatus`), `error` (`is_error`), `fan`, `lamp`, `data_ready`. (Unchanged by the `dc_channels`/`ac`/`battery`
+restructuring below; it only applies to `sensor` and `text_sensor`.)
 
-**`text_sensor`**: `state` (`packState`: Standby / Charging / Discharging), `packN_state`, `packN_sn`, and the
-firmware versions (diagnostic category, published as `vX.Y.ZZ`, only re-published when they change):
+**`text_sensor`**: `state` (`packState`: Standby / Charging / Discharging) and the firmware versions stay flat
+at the root (diagnostic category, published as `vX.Y.ZZ`, only re-published when they change); the per-pack
+`state` / `sn` / `firmware_version` move under `battery.packs:`, same 0-indexed list as the `sensor` platform:
 
 | Key | Property | Notes |
 |---|---|---|
 | `firmware_version` | `masterSoftVersion`, else `masterFirmwareVersion` | Main firmware of the device |
 | `ac_firmware_version`, `dc_firmware_version`, `bms_firmware_version`, `mppt_firmware_version` | `acFirmwareVersion`, `dcFirmwareVersion`, `bmsFirmwareVersion`, `mpptFirmwareVersion` | Sub-module firmwares |
-| `packN_firmware_version` | `packData[N-1].softVersion` | The only version property documented by zenSDK |
+| `battery.packs[].state`, `battery.packs[].sn`, `battery.packs[].firmware_version` | `packData[i].state/sn/softVersion` | `softVersion` is the only version property documented by zenSDK |
 
 The packed integer is decoded like Zendure-HA does: a value above 10 becomes `v<bits 15-12>.<bits 11-8>.<bits 7-0>`
 (e.g. `0x2107` → `v2.1.7`), `<= 0` gives `not provided`, and 1 to 10 is printed as is. A string value is passed through
@@ -123,7 +155,7 @@ unchanged.
 
 Slider ranges cover the largest model; the hub clamps to the configured limits and publishes the clamped value.
 
-`packN_delta_cell_voltage` is computed by the component as `packN_max_cell_voltage − packN_min_cell_voltage` (V,
+`battery.packs[].delta_cell_voltage` is computed by the component as `max_cell_voltage − min_cell_voltage` (V,
 `mdi:delta`, `voltage` device class); it is skipped when either cell voltage reads 0.
 
 **`switch`**: `lamp` (`lampSwitch`, the LED strip of the device). Zendure-HA exposes this property as a writable
@@ -159,30 +191,36 @@ zensdk:
 
 sensor:
   - platform: zensdk
-    electric_level:
-      name: "Zendure SoC"
     solar_input_power:
       name: "Zendure PV power"
-    pack_input_power:
-      name: "Zendure battery discharge"
-    output_pack_power:
-      name: "Zendure battery charge"
-    output_home_power:
-      name: "Zendure AC output"
-    grid_input_power:
-      name: "Zendure AC input"
-    pack1_soc_level:
-      name: "Zendure pack 1 SoC"
-    pack1_temperature:
-      name: "Zendure pack 1 temperature"
-    pack2_soc_level:
-      name: "Zendure pack 2 SoC"
-    pack2_temperature:
-      name: "Zendure pack 2 temperature"
-    pack3_soc_level:
-      name: "Zendure pack 3 SoC"
-    pack3_temperature:
-      name: "Zendure pack 3 temperature"
+    ac:
+      home_power:
+        name: "Zendure AC output"
+      grid_power:
+        name: "Zendure AC input"
+    battery:
+      soc:
+        name: "Zendure SoC"
+      charge_power:
+        name: "Zendure battery discharge"
+      discharge_power:
+        name: "Zendure battery charge"
+      packs:
+        - pack0:
+            soc_level:
+              name: "Zendure pack 0 SoC"
+            temperature:
+              name: "Zendure pack 0 temperature"
+        - pack1:
+            soc_level:
+              name: "Zendure pack 1 SoC"
+            temperature:
+              name: "Zendure pack 1 temperature"
+        - pack2:
+            soc_level:
+              name: "Zendure pack 2 SoC"
+            temperature:
+              name: "Zendure pack 2 temperature"
 
 binary_sensor:
   - platform: zensdk
@@ -195,14 +233,19 @@ text_sensor:
   - platform: zensdk
     state:
       name: "Zendure state"
-    pack1_sn:
-      name: "Zendure pack 1 SN"
-    pack2_sn:
-      name: "Zendure pack 2 SN"
-    pack3_sn:
-      name: "Zendure pack 3 SN"
     firmware_version:
       name: "Zendure firmware"
+    battery:
+      packs:
+        - pack0:
+            sn:
+              name: "Zendure pack 0 SN"
+        - pack1:
+            sn:
+              name: "Zendure pack 1 SN"
+        - pack2:
+            sn:
+              name: "Zendure pack 2 SN"
 
 number:
   - platform: zensdk
