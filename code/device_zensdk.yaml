@@ -239,7 +239,7 @@ text_sensor:
             state:
               name: ${name}_${zensdk_name}_pack2_state
             sn:
-              name: ${name}_pack2_sn
+              name: ${name}_${zensdk_name}_pack2_sn
             firmware_version:
               name: ${name}_${zensdk_name}_pack2_firmware_version
 
