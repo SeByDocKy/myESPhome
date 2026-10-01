@@ -1,0 +1,111 @@
+substitutions:
+  name: "test_tsungen3"
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  #board: esp32-s3-devkitc-1
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  # toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+time:
+  - platform: sntp
+    id: my_time
+
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+   level: debug #debug
+
+debug:
+  update_interval: 5s
+
+
+# tsungen3:
+  # - id: mx1000
+    # ip_address: 192.168.1.81   # adresse IP fixe de l'onduleur MX1000
+    # ip_port: 8899              # port client_mode (TCP clair)
+    # poll_interval: 5s
+    # modbus_address: 1
+    # sn: 3455843077 #2093984xxx  
+
+  # Deuxième onduleur GEN3 PLUS sur le même ESP (MULTI_CONF) :
+  # - id: tsungen3_2
+  #   ip_address: 192.168.1.51
+  #   poll_interval: 30s
+
+
+packages:
+    
+  mx1000:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_tsungen3-2t.yaml'
+        vars:
+          tsungen3_id: 'mx1000'
+          tsungen3_name: 'mx1000'
+          tsungen3_ip_address: '192.168.1.81'
+          tsungen3_ip_port: 8899
+          tsungen3_modbus_address: 1
+          tsungen3_sn: !secret mx1000_sn1 
+          tsungen3_poll_interval: '3s'
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+      
+      
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s      
