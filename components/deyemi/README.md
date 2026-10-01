@@ -103,11 +103,17 @@ References:
   protocol, so there's no `event_alarms`/`event_faults` equivalent here
   (unlike `tsungen3`).
 - **Write path**: `power_percent` (`number` and `output` platforms) writes
-  the "Active Power Regulations" register (`0x0028`, function `0x06`) as a
-  direct percent value. Note: at least one GEN4 model (SUN-M200G4-EU-Q0) is
-  documented to floor this register at 1% rather than reaching a true 0%
-  output -- see "Known unknowns" for a possible alternative register this
-  component does not yet use.
+  the "Active Power Regulations" register (`0x0028`) as a direct percent
+  value, using Modbus function `0x10` (Write Multiple Registers, quantity 1)
+  -- **not** `0x06` (Write Single Register). Confirmed by field testing on a
+  real M100-G4-EU-Q0: `0x06` gets rejected at the V5 envelope level (status
+  `0x05`, "inverter did not answer"), never reaching the inverter's Modbus
+  stack. This matches an independently documented Deye/Sunsynk quirk
+  (https://github.com/SunReye/SunReye pull #253): these inverters ignore
+  `0x06` on settings registers. Note: at least one GEN4 model
+  (SUN-M200G4-EU-Q0) is documented to floor this register at 1% rather than
+  reaching a true 0% output -- see "Known unknowns" for a possible
+  alternative register this component does not yet use.
 - No reset/AT+ equivalent is known for this protocol -- no `button`
   platform.
 - All blocking network I/O runs on a dedicated FreeRTOS background task --
