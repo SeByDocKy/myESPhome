@@ -45,7 +45,7 @@ debug:
     # ip_port: 8899              # port client_mode (TCP clair)
     # poll_interval: 5s
     # modbus_address: 1
-    # sn: 3455843077 #2093984xxx  
+    # sn: 345584xxxx #2093984xxx  
 
   # Deuxième onduleur GEN3 PLUS sur le même ESP (MULTI_CONF) :
   # - id: tsungen3_2
