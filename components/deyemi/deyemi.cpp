@@ -454,9 +454,16 @@ void DeyeMiComponent::run_task_() {
         result->reg_value = job.reg_value;
         std::vector<uint8_t> request = this->build_write_request_(REG_ACTIVE_POWER_REGULATION, job.reg_value);
         std::vector<uint8_t> response;
-        if (this->connect_and_transact_(request, response) &&
-            this->parse_write_response_(response, REG_ACTIVE_POWER_REGULATION, job.reg_value)) {
-          result->success = true;
+        if (this->connect_and_transact_(request, response)) {
+          // TEMP DIAGNOSTIC: the write-ack format below was ported from
+          // tsungen3 and never confirmed against real Deye GEN3/GEN4
+          // hardware -- field reports show "Write response too short", so
+          // dump the raw bytes to find the real layout, then remove this.
+          ESP_LOGD(TAG, "Write response raw (%u bytes): %s", (unsigned) response.size(),
+                   format_hex_pretty(response).c_str());
+          if (this->parse_write_response_(response, REG_ACTIVE_POWER_REGULATION, job.reg_value)) {
+            result->success = true;
+          }
         }
         break;
       }
