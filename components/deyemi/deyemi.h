@@ -274,9 +274,12 @@ class DeyeMiPowerPercentNumber : public number::Number, public Parented<DeyeMiCo
 #ifdef USE_OUTPUT
 // Same underlying write as the number above, exposed as a plain FloatOutput
 // (0.0-1.0) for use as a write_action target from other components/automations.
+// 1.0 maps to 120% (the register's actual high limit -- see
+// set_power_percent()'s comment), not 100%, so this output's full range
+// matches the number's full range.
 class DeyeMiPowerPercentOutput : public output::FloatOutput, public Parented<DeyeMiComponent> {
  protected:
-  void write_state(float state) override { this->parent_->set_power_percent(state * 100.0f); }
+  void write_state(float state) override { this->parent_->set_power_percent(state * 120.0f); }
 };
 #endif
 
