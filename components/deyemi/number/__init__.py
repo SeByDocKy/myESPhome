@@ -29,5 +29,5 @@ async def to_code(config):
     hub = await cg.get_variable(config[CONF_DEYEMI_ID])
     if CONF_POWER_PERCENT in config:
         conf = config[CONF_POWER_PERCENT]
-        var = await number.new_number(conf, min_value=0.0, max_value=100.0, step=1.0)
+        var = await number.new_number(conf, min_value=0.0, max_value=120.0, step=1.0)
         await cg.register_parented(var, hub)
