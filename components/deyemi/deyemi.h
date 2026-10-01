@@ -41,7 +41,16 @@ static const uint16_t V5_CTRL_REQUEST = 0x4510;
 static const uint16_t V5_CTRL_RESPONSE = 0x1510;
 
 static const uint8_t MB_READ_HOLDING_REGISTERS = 0x03;
-static const uint8_t MB_WRITE_SINGLE_REGISTER = 0x06;
+static const uint8_t MB_WRITE_SINGLE_REGISTER = 0x06;  // kept for reference only -- NOT used for writes, see below
+// Deye/Sunsynk inverters reject FC06 (Write Single Register) on their
+// settings registers -- confirmed both by field testing on this component
+// (M100-G4-EU-Q0 logger replies with V5 status 0x05, "inverter did not
+// answer this request") and independently documented in
+// https://github.com/SunReye/SunReye pull #253: "Deye/Sunsynk inverters
+// silently ignore FC6 ... on their settings registers -- the request gets
+// no reply and the transaction times out." Writes use FC16 (Write Multiple
+// Registers) instead, even for a single register.
+static const uint8_t MB_WRITE_MULTIPLE_REGISTERS = 0x10;
 
 static const uint8_t V5_FRAME_TYPE_INVERTER = 0x02;
 static const uint16_t V5_SENSOR_TYPE_MODBUS = 0x0000;
@@ -70,7 +79,7 @@ static const uint16_t REG_BLOCK_COUNT = 0x7D;  // 0x0001..0x007D inclusive (125 
 static const uint16_t REG_INVERTER_ID_START = 0x0003;  // 5 registers, ASCII string (e.g. "SUN-M160G4..." -- unconfirmed)
 static const uint8_t REG_INVERTER_ID_COUNT = 5;
 static const uint16_t REG_RATED_POWER = 0x0010;         // 0.1 W
-static const uint16_t REG_ACTIVE_POWER_REGULATION = 0x0028;  // 1 % per unit, write target for power_percent (FC06)
+static const uint16_t REG_ACTIVE_POWER_REGULATION = 0x0028;  // 1 % per unit, write target for power_percent (FC16)
 static const uint16_t REG_DAILY_PRODUCTION = 0x003C;    // 0.1 kWh
 static const uint16_t REG_RUNNING_STATUS = 0x003B;      // enum: 0=Stand-by 1=Self-check 2=Normal 3=Warning 4=Fault
 static const uint16_t REG_TOTAL_PRODUCTION = 0x003F;    // + 0x0040, 32-bit, 0.1 kWh
@@ -187,7 +196,7 @@ class DeyeMiComponent : public PollingComponent {
   void resolve_model_(const std::vector<uint8_t> &regs, uint16_t start_reg);
 
   std::vector<uint8_t> build_write_request_(uint16_t reg, uint16_t value);
-  bool parse_write_response_(const std::vector<uint8_t> &frame, uint16_t expected_reg, uint16_t expected_value);
+  bool parse_write_response_(const std::vector<uint8_t> &frame, uint16_t expected_reg);
 
   static uint16_t modbus_crc16_(const uint8_t *data, size_t len);
   static uint8_t v5_checksum_(const uint8_t *data, size_t len);
