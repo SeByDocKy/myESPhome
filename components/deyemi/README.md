@@ -110,10 +110,17 @@ References:
   `0x05`, "inverter did not answer"), never reaching the inverter's Modbus
   stack. This matches an independently documented Deye/Sunsynk quirk
   (https://github.com/SunReye/SunReye pull #253): these inverters ignore
-  `0x06` on settings registers. Note: at least one GEN4 model
-  (SUN-M200G4-EU-Q0) is documented to floor this register at 1% rather than
-  reaching a true 0% output -- see "Known unknowns" for a possible
-  alternative register this component does not yet use.
+  `0x06` on settings registers. A GEN3-specific register table
+  (https://github.com/dmaj/deye-controller's `sun_x_g3_registers.py`)
+  independently confirms the same register, same FC16-quantity-1 write
+  pattern, and gives the register's actual range as **0-120%**, not 0-100%
+  -- `number` and `output` are set accordingly (`output`'s `1.0` maps to
+  `120%`, not `100%`). No source consulted here explains the >100% headroom,
+  but it's consistent with overpaneled installs (DC array rated above the
+  inverter's AC nameplate). Note: at least one GEN4 model (SUN-M200G4-EU-Q0)
+  is documented to floor this register at 1% rather than reaching a true 0%
+  output -- see "Known unknowns" for a possible alternative register this
+  component does not yet use.
 - No reset/AT+ equivalent is known for this protocol -- no `button`
   platform.
 - All blocking network I/O runs on a dedicated FreeRTOS background task --
