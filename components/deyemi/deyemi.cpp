@@ -228,15 +228,24 @@ bool DeyeMiComponent::parse_response_(const std::vector<uint8_t> &frame, std::ve
 }
 
 // ---------------------------------------------------------------------------
-// Write single register (function 0x06)
+// Write a single register via function 0x10 (Write Multiple Registers,
+// quantity = 1) -- NOT function 0x06 (Write Single Register). Confirmed by
+// field testing on this component (M100-G4-EU-Q0: FC06 gets a V5-level
+// "status 0x05 / inverter did not answer" reject) and independently
+// documented in https://github.com/SunReye/SunReye pull #253: Deye/Sunsynk
+// inverters reject FC06 on settings registers. See the comment on
+// MB_WRITE_MULTIPLE_REGISTERS in deyemi.h.
 // ---------------------------------------------------------------------------
 
 std::vector<uint8_t> DeyeMiComponent::build_write_request_(uint16_t reg, uint16_t value) {
   std::vector<uint8_t> modbus;
   modbus.push_back(this->modbus_address_);
-  modbus.push_back(MB_WRITE_SINGLE_REGISTER);
+  modbus.push_back(MB_WRITE_MULTIPLE_REGISTERS);
   modbus.push_back((reg >> 8) & 0xFF);
   modbus.push_back(reg & 0xFF);
+  modbus.push_back(0x00);  // quantity of registers, high byte
+  modbus.push_back(0x01);  // quantity of registers, low byte -- always 1 here
+  modbus.push_back(0x02);  // byte count = 2 * quantity
   modbus.push_back((value >> 8) & 0xFF);
   modbus.push_back(value & 0xFF);
   uint16_t crc = modbus_crc16_(modbus.data(), modbus.size());
@@ -246,8 +255,7 @@ std::vector<uint8_t> DeyeMiComponent::build_write_request_(uint16_t reg, uint16_
   return this->wrap_v5_request_(V5_FRAME_TYPE_INVERTER, V5_SENSOR_TYPE_MODBUS, modbus);
 }
 
-bool DeyeMiComponent::parse_write_response_(const std::vector<uint8_t> &frame, uint16_t expected_reg,
-                                               uint16_t expected_value) {
+bool DeyeMiComponent::parse_write_response_(const std::vector<uint8_t> &frame, uint16_t expected_reg) {
   std::vector<uint8_t> payload;
   if (!this->extract_v5_payload_(frame, payload))
     return false;
@@ -255,8 +263,22 @@ bool DeyeMiComponent::parse_write_response_(const std::vector<uint8_t> &frame, u
   const uint8_t *modbus = payload.data() + 14;
   size_t modbus_len = payload.size() - 14;
 
+  // A payload shorter than a full FC16 echo (8 bytes: addr+func+reg(2)+qty(2)+CRC(2))
+  // is not a truncated Modbus frame -- it's the V5 envelope's own short
+  // status/reject payload (e.g. "05 00"), distinct from a real Modbus
+  // response even though both arrive under control code 0x1510. See
+  // https://github.com/SunReye/SunReye pull #253/#252 ("reject frames").
+  // Known status bytes from that source: 0x05 = inverter did not answer
+  // (bad register address, or a read over the 125-register cap), 0x06 =
+  // wrong/unknown logger serial.
   if (modbus_len < 8) {
-    ESP_LOGW(TAG, "Write response too short");
+    if (modbus_len >= 1) {
+      ESP_LOGW(TAG, "Write rejected by logger/inverter: status 0x%02X (0x05 = inverter did not answer -- bad "
+                    "register address; 0x06 = wrong/unknown logger serial)",
+               modbus[0]);
+    } else {
+      ESP_LOGW(TAG, "Write response too short");
+    }
     return false;
   }
 
@@ -271,7 +293,7 @@ bool DeyeMiComponent::parse_write_response_(const std::vector<uint8_t> &frame, u
     ESP_LOGW(TAG, "Unexpected Modbus address 0x%02X", modbus[0]);
     return false;
   }
-  if (modbus[1] != MB_WRITE_SINGLE_REGISTER) {
+  if (modbus[1] != MB_WRITE_MULTIPLE_REGISTERS) {
     if ((modbus[1] & 0x80) != 0) {
       ESP_LOGW(TAG, "Write rejected: Modbus exception code 0x%02X", modbus[2]);
     } else {
@@ -280,11 +302,13 @@ bool DeyeMiComponent::parse_write_response_(const std::vector<uint8_t> &frame, u
     return false;
   }
 
+  // FC16 echoes the starting register address and quantity written, not the
+  // value (unlike FC06's echo).
   uint16_t reg_echo = ((uint16_t) modbus[2] << 8) | modbus[3];
-  uint16_t val_echo = ((uint16_t) modbus[4] << 8) | modbus[5];
-  if (reg_echo != expected_reg || val_echo != expected_value) {
-    ESP_LOGW(TAG, "Write echo mismatch: reg 0x%04X (expected 0x%04X), value %u (expected %u)", reg_echo,
-             expected_reg, val_echo, expected_value);
+  uint16_t qty_echo = ((uint16_t) modbus[4] << 8) | modbus[5];
+  if (reg_echo != expected_reg || qty_echo != 1) {
+    ESP_LOGW(TAG, "Write echo mismatch: reg 0x%04X (expected 0x%04X), quantity %u (expected 1)", reg_echo,
+             expected_reg, qty_echo);
     return false;
   }
 
@@ -455,13 +479,9 @@ void DeyeMiComponent::run_task_() {
         std::vector<uint8_t> request = this->build_write_request_(REG_ACTIVE_POWER_REGULATION, job.reg_value);
         std::vector<uint8_t> response;
         if (this->connect_and_transact_(request, response)) {
-          // TEMP DIAGNOSTIC: the write-ack format below was ported from
-          // tsungen3 and never confirmed against real Deye GEN3/GEN4
-          // hardware -- field reports show "Write response too short", so
-          // dump the raw bytes to find the real layout, then remove this.
           ESP_LOGD(TAG, "Write response raw (%u bytes): %s", (unsigned) response.size(),
                    format_hex_pretty(response).c_str());
-          if (this->parse_write_response_(response, REG_ACTIVE_POWER_REGULATION, job.reg_value)) {
+          if (this->parse_write_response_(response, REG_ACTIVE_POWER_REGULATION)) {
             result->success = true;
           }
         }
