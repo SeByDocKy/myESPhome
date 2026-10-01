@@ -626,8 +626,12 @@ void DeyeMiComponent::dump_config() {
 void DeyeMiComponent::set_power_percent(float percent) {
   if (percent < 0.0f)
     percent = 0.0f;
-  if (percent > 100.0f)
-    percent = 100.0f;
+  // Register range is 0-120% (confirmed independently by
+  // https://github.com/dmaj/deye-controller's sun_x_g3_registers.py,
+  // low_limit=0/high_limit=120, GEN3) -- not 0-100%. >100% supports
+  // overpaneled installs (DC array rated above the inverter's AC nameplate).
+  if (percent > 120.0f)
+    percent = 120.0f;
 
   // Active Power Regulations register is a direct 1%-per-unit value, same as
   // Note this register is documented (see deyemi.h) to floor at
