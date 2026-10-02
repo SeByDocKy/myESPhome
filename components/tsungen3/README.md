@@ -76,6 +76,18 @@ References:
   `reset_tsungen3` `button` sends `AT+Z` ("Re-start module") over the same
   TCP connection, using a different Solarman V5 frame type/sensor-type than
   Modbus polling (see "AT+ command framing" below).
+- **Readback**: if `power_percent`'s `number` is configured, this component
+  also issues a second, dedicated read of `0x202C` on every poll cycle
+  (it falls outside `REG_BLOCK_START`..`+REG_BLOCK_COUNT`, so it can't ride
+  along with the main poll) and republishes the number from the real
+  register value. Without this the number would sit at `0` after every ESP
+  reboot -- its default/restored value -- until someone moved the slider
+  again; with it, it reflects reality within one poll interval, including
+  changes made from elsewhere (the inverter's own app, say). This roughly
+  doubles the background task's per-cycle network work -- a second TCP
+  transaction, similar latency to the first -- so it's skipped entirely
+  (no second transaction at all) when `power_percent`'s `number` isn't
+  configured.
 - One TCP connection is opened, used, and closed per transaction (poll, or
   each control action) — no persistent connection.
 - `MULTI_CONF` is supported: several `tsungen3:` blocks (one per inverter,
