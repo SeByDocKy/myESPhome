@@ -501,6 +501,22 @@ void TSunGen3Component::update() {
   if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
     ESP_LOGW(TAG, "Background task busy, skipping this poll cycle");
   }
+
+#ifdef USE_NUMBER
+  // REG_OUTPUT_COEFFICIENT lives far outside REG_BLOCK_START..+REG_BLOCK_COUNT
+  // (0x202C vs 0x3000+), so it can't ride along with the main poll above --
+  // it needs its own dedicated read, and only when something actually wants
+  // it (the number isn't configured otherwise). This roughly doubles the
+  // background task's work per poll cycle (a second TCP transaction, ~55-153
+  // ms like the first on real hardware) in exchange for the number showing
+  // the real output limit instead of resetting to 0 on every reboot.
+  if (this->power_percent_number_ != nullptr) {
+    TSunGen3Job coeff_job{JobType::POLL_OUTPUT_COEFFICIENT};
+    if (xQueueSend(this->job_queue_, &coeff_job, 0) != pdTRUE) {
+      ESP_LOGW(TAG, "Background task busy, skipping this cycle's Output Coefficient read");
+    }
+  }
+#endif
 }
 
 void TSunGen3Component::loop() {
@@ -543,6 +559,18 @@ void TSunGen3Component::run_task_() {
           std::vector<uint8_t> register_data;
           if (this->parse_response_(response, register_data) &&
               register_data.size() == (size_t) REG_BLOCK_COUNT * 2) {
+            result->success = true;
+            result->register_data = std::move(register_data);
+          }
+        }
+        break;
+      }
+      case JobType::POLL_OUTPUT_COEFFICIENT: {
+        std::vector<uint8_t> request = this->build_read_request_(REG_OUTPUT_COEFFICIENT, 1);
+        std::vector<uint8_t> response;
+        if (this->connect_and_transact_(request, response)) {
+          std::vector<uint8_t> register_data;
+          if (this->parse_response_(response, register_data) && register_data.size() == 2) {
             result->success = true;
             result->register_data = std::move(register_data);
           }
@@ -592,6 +620,23 @@ void TSunGen3Component::process_result_(TSunGen3JobResult *result) {
       this->handle_live_block_(result->register_data, REG_BLOCK_START, REG_BLOCK_COUNT);
       break;
     }
+#ifdef USE_NUMBER
+    case JobType::POLL_OUTPUT_COEFFICIENT: {
+      if (!result->success) {
+        // Not logged at WARN: unlike the main poll, a dropped reading here
+        // just means the number keeps showing its last known value for
+        // another cycle -- not worth alarming about on every transient
+        // network hiccup.
+        ESP_LOGD(TAG, "Output Coefficient read failed, number keeps its last value");
+        break;
+      }
+      if (this->power_percent_number_ != nullptr) {
+        uint16_t reg_value = get_u16_(result->register_data, REG_OUTPUT_COEFFICIENT, REG_OUTPUT_COEFFICIENT);
+        this->power_percent_number_->publish_state(reg_value * 100.0f / 1024.0f);
+      }
+      break;
+    }
+#endif
     case JobType::WRITE_POWER_PERCENT: {
       float percent = result->reg_value * 100.0f / 1024.0f;
       if (!result->success) {
