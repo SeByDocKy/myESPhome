@@ -167,6 +167,15 @@ class DeyeMiComponent : public PollingComponent {
   void set_inverter_status_text_sensor(text_sensor::TextSensor *s) { this->inverter_status_text_sensor_ = s; }
 #endif
 
+#ifdef USE_NUMBER
+  // Lets the `number` platform register itself so the hub can push the
+  // Active Power Regulations register's *actual* value back into it -- see
+  // handle_live_block_(). Without this, the number resets to 0 on every ESP
+  // reboot (its default/restored value) and doesn't reflect the register's
+  // real value until someone moves the slider again.
+  void set_power_percent_number(number::Number *n) { this->power_percent_number_ = n; }
+#endif
+
  protected:
   std::string host_;
   uint16_t port_{8899};
@@ -255,6 +264,10 @@ class DeyeMiComponent : public PollingComponent {
 
 #ifdef USE_TEXT_SENSOR
   text_sensor::TextSensor *inverter_status_text_sensor_{nullptr};
+#endif
+
+#ifdef USE_NUMBER
+  number::Number *power_percent_number_{nullptr};
 #endif
 };
 
