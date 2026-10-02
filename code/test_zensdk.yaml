@@ -1,0 +1,354 @@
+substitutions:
+  name: 'test_zensdk'
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+
+esphome:
+  name: ${name}
+  min_version: 2026.9.0
+
+esp32:
+  #board: esp32-s3-devkitc-1
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  # toolchain: platformio
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+
+# external_components:
+
+  # - source: "github://SeByDocKy/myESPhome/"
+    # components: [zensdk]
+    # refresh: 10s
+
+  # - source:
+      # type: local
+      # path: components
+
+logger:
+  # hardware_uart: USB_SERIAL_JTAG
+   level: debug #debug
+
+debug:
+  update_interval: 5s
+
+
+time:
+  - platform: sntp
+    id: my_time
+
+
+# zensdk:
+  # - id: sf2400
+    # ip_address: 192.168.1.60      # fixed IP of the SolarFlow (DHCP reservation)
+    # ip_port: 80                   # zenSDK local HTTP API
+    # sn: "WOB1NHMAMXXXXX3"         # serial number, mandatory in every POST
+    # model: SF2400_AC_PLUS         # SF800 / SF800_PLUS / SF800_PRO / SF1600_AC_PLUS / SF2400_AC / SF2400_AC_PLUS / SF2400_PRO
+    # # max_charge_power: 3200      # optional overrides of the model limits (W)
+    # # max_discharge_power: 2400
+    # poll_interval: 5s
+    # soc_scale: 10                 # raw socSet/minSoc units per %, set to 1 if the firmware reports plain percent
+    # write_flash_on_stop: false    # false: stop with smartMode 1 (nothing written to flash)
+
+  # Second SolarFlow on the same ESP (MULTI_CONF), then add `zensdk_id: sf800` on every platform entry:
+  # - id: sf800
+  #   ip_address: 192.168.1.61
+  #   sn: "WOB1NHMAMXXXXX4"
+  #   model: SF800
+  #   poll_interval: 10s
+
+packages:
+
+  sf2400:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_zensdk.yaml'
+        vars:
+          zensdk_id: 'mx1000'
+          zensdk_name: 'mx1000'
+          zensdk_ip_address: '192.168.1.60'
+          zensdk_ip_port: 80
+          zensdk_model: 'SF2400_AC_PLUS'
+          zensdk_sn: !secret sf2400_sn1
+          zensdk_soc_scale: 10
+          zensdk_write_flash_on_stop: false
+          zensdk_poll_interval: '5s'
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+
+  # - platform: zensdk
+    # zensdk_id: sf2400
+    # solar_input_power:
+      # name: ${name}_solar_input_power
+    # rssi:
+      # name: ${name}_rssi
+    # enclosure_temperature:
+      # name: ${name}_enclosure_temperature
+    # fault_level:
+      # name: ${name}_fault_level
+
+    # # One entry per MPPT string, 0-indexed (pv0, pv1, ...).
+    # dc_channels:
+      # - pv0:
+          # power:
+            # name: ${name}_pv0_power
+      # - pv1:
+          # power:
+            # name: ${name}_pv1_power
+      # - pv2:
+          # power:
+            # name: ${name}_pv2_power
+      # - pv3:
+          # power:
+            # name: ${name}_pv3_power
+      # - pv4:
+          # power:
+            # name: ${name}_pv4_power
+      # - pv5:
+          # power:
+            # name: ${name}_pv5_power
+
+    # ac:
+      # home_power:
+        # name: ${name}_output_home_power
+      # grid_power:
+        # name: ${name}_grid_input_power
+      # offgrid_power:
+        # name: ${name}_grid_off_power
+      # status:
+        # name: ${name}_ac_status
+
+    # battery:
+      # soc:
+        # name: ${name}_electric_level
+      # voltage:
+        # name: ${name}_battery_voltage
+      # charge_power:
+        # name: ${name}_pack_input_power
+      # discharge_power:
+        # name: ${name}_output_pack_power
+      # soc_limit:
+        # name: ${name}_soc_limit
+      # charge_max_limit:
+        # name: ${name}_charge_max_limit
+      # pack_count:
+        # name: ${name}_pack_num
+      # remain_out_time:
+        # name: ${name}_remain_out_time
+      # remain_input_time:
+        # name: ${name}_remain_input_time
+      # status:
+        # name: ${name}_dc_status
+      # # One entry per battery pack, 0-indexed (pack0, pack1, ...), matched by
+      # # position in packData (pack_count reports how many the device sees).
+      # packs:
+        # - pack0:
+            # soc_level:
+              # name: ${name}_pack0_soc_level
+            # power:
+              # name: ${name}_pack0_power
+            # temperature:
+              # name: ${name}_pack0_temperature
+            # total_voltage:
+              # name: ${name}_pack0_total_voltage
+            # current:
+              # name: ${name}_pack0_current
+            # max_cell_voltage:
+              # name: ${name}_pack0_max_cell_voltage
+            # min_cell_voltage:
+              # name: ${name}_pack0_min_cell_voltage
+            # delta_cell_voltage:
+              # name: ${name}_pack0_delta_cell_voltage
+        # - pack1:
+            # soc_level:
+              # name: ${name}_pack1_soc_level
+            # power:
+              # name: ${name}_pack1_power
+            # temperature:
+              # name: ${name}_pack1_temperature
+            # total_voltage:
+              # name: ${name}_pack1_total_voltage
+            # current:
+              # name: ${name}_pack1_current
+            # max_cell_voltage:
+              # name: ${name}_pack1_max_cell_voltage
+            # min_cell_voltage:
+              # name: ${name}_pack1_min_cell_voltage
+            # delta_cell_voltage:
+              # name: ${name}_pack1_delta_cell_voltage
+        # - pack2:
+            # soc_level:
+              # name: ${name}_pack2_soc_level
+            # power:
+              # name: ${name}_pack2_power
+            # temperature:
+              # name: ${name}_pack2_temperature
+            # total_voltage:
+              # name: ${name}_pack2_total_voltage
+            # current:
+              # name: ${name}_pack2_current
+            # max_cell_voltage:
+              # name: ${name}_pack2_max_cell_voltage
+            # min_cell_voltage:
+              # name: ${name}_pack2_min_cell_voltage
+            # delta_cell_voltage:
+              # name: ${name}_pack2_delta_cell_voltage
+
+# binary_sensor:
+  # - platform: zensdk
+    # zensdk_id: sf2400
+    # online:
+      # name: ${name}_online
+    # heat_state:
+      # name: ${name}_heat_state
+    # bypass:
+      # name: ${name}_bypass
+    # reverse_state:
+      # name: ${name}_reverse_state
+    # grid_connected:
+      # name: ${name}_grid_connected
+    # pv_active:
+      # name: ${name}_pv_active
+    # soc_calibrating:
+      # name: ${name}_soc_calibrating
+    # error:
+      # name: ${name}_error
+    # fan:
+      # name: ${name}_fan
+    # lamp:
+      # name: ${name}_lamp
+    # data_ready:
+      # name: ${name}_data_ready
+
+# text_sensor:
+  # - platform: zensdk
+    # zensdk_id: sf2400
+    # state:
+      # name: ${name}_state
+    # firmware_version:           # masterSoftVersion, else masterFirmwareVersion (decoded as vX.Y.ZZ)
+      # name: ${name}_firmware_version
+    # ac_firmware_version:
+      # name: ${name}_ac_firmware_version
+    # dc_firmware_version:
+      # name: ${name}_dc_firmware_version
+    # bms_firmware_version:
+      # name: ${name}_bms_firmware_version
+    # mppt_firmware_version:
+      # name: ${name}_mppt_firmware_version
+    # battery:
+      # # One entry per battery pack, 0-indexed (pack0, pack1, ...), same order as
+      # # the sensor platform's battery.packs.
+      # packs:
+        # - pack0:
+            # state:
+              # name: ${name}_pack0_state
+            # sn:
+              # name: ${name}_pack0_sn
+            # firmware_version:
+              # name: ${name}_pack0_firmware_version
+        # - pack1:
+            # state:
+              # name: ${name}_pack1_state
+            # sn:
+              # name: ${name}_pack1_sn
+            # firmware_version:
+              # name: ${name}_pack1_firmware_version
+        # - pack2:
+            # state:
+              # name: ${name}_pack2_state
+            # sn:
+              # name: ${name}_pack2_sn
+            # firmware_version:
+              # name: ${name}_pack2_firmware_version
+
+# number:
+  # - platform: zensdk
+    # zensdk_id: sf2400
+    # power_setpoint:             # signed W: > 0 discharge, < 0 charge, 0 stop
+      # name: ${name}_power_setpoint
+    # input_limit:                # AC charge power (W), full smart-mode charge command
+      # name: ${name}_input_limit
+    # output_limit:               # AC output power (W), full smart-mode discharge command
+      # name: ${name}_output_limit
+    # soc_set:
+      # name: ${name}_soc_set
+    # min_soc:
+      # name: ${name}_min_soc
+    # inverse_max_power:
+      # name: ${name}_inverse_max_power
+
+# switch:
+  # - platform: zensdk
+    # zensdk_id: sf2400
+    # lamp:                       # LED strip (write taken from Zendure-HA, unverified on SolarFlow)
+      # name: ${name}_lamp
+    # kickstart:                  # software-only: +/-50 W request bumped to limit + 4 W when the device does not follow
+      # name: ${name}_kickstart
+
+# select:
+  # - platform: zensdk
+    # zensdk_id: sf2400
+    # ac_mode:
+      # name: ${name}_ac_mode
+    # grid_off_mode:
+      # name: ${name}_grid_off_mode
+
+# output:
+  # - platform: zensdk
+    # zensdk_id: sf2400
+    # charge_power:               # 0.0 .. 1.0 -> 0 .. max charge power
+      # id: ${name}_charge_power_output
+    # discharge_power:            # 0.0 .. 1.0 -> 0 .. max discharge power
+      # id: ${name}_discharge_power_output
+
+
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s
