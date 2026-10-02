@@ -43,6 +43,9 @@ CONF_READ_LAMBDA = "read_lambda"
 CONF_WRITE_LAMBDA = "write_lambda"
 CONF_SERVER_REGISTERS = "server_registers"
 MULTI_CONF = True
+# Other components (marstek) auto-load this one to reuse its C++ engine: without this flag ESPHome would
+# instantiate a default controller (unit 1, 60 s) on the Modbus TCP hub for them.
+MULTI_CONF_NO_DEFAULT = True
 
 modbustcp_controller_ns = cg.esphome_ns.namespace("modbustcp_controller")
 ModbusTCPController = modbustcp_controller_ns.class_(

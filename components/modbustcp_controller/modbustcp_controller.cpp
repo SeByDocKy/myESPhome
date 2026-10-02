@@ -60,6 +60,10 @@ bool ModbusTCPController::send_next_command_() {
 
 // Queue incoming response
 void ModbusTCPController::on_modbus_data(const std::vector<uint8_t> &data) {
+  if (this->command_queue_.empty()) {
+    ESP_LOGW(TAG, "Modbus response received but no command is pending - ignored");
+    return;
+  }
   auto &current_command = this->command_queue_.front();
   if (current_command != nullptr) {
     if (this->module_offline_) {
@@ -93,6 +97,8 @@ void ModbusTCPController::process_modbus_data_(const ModbusCommandItem *response
 
 void ModbusTCPController::on_modbus_error(uint8_t function_code, uint8_t exception_code) {
   ESP_LOGE(TAG, "Modbus error function code: 0x%X exception: %d ", function_code, exception_code);
+  if (this->command_queue_.empty())
+    return;
   // Remove pending command waiting for a response
   auto &current_command = this->command_queue_.front();
   if (current_command != nullptr) {
@@ -354,7 +360,8 @@ size_t ModbusTCPController::create_register_ranges_() {
       // this is not the first register in range so it might be possible
       // to reuse the last register or extend the current range
       if (!curr->force_new_range && r.register_type == curr->register_type &&
-          curr->register_type != ModbusRegisterType::CUSTOM) {
+          curr->register_type != ModbusRegisterType::CUSTOM &&
+          (!this->split_ranges_by_skip_ || curr->skip_updates == r.skip_updates)) {
         if (curr->start_address == (r.start_address + r.register_count - prev->register_count) &&
             curr->register_count == prev->register_count && curr->get_register_size() == prev->get_register_size()) {
           // this register can re-use the data from the previous register
@@ -371,7 +378,8 @@ size_t ModbusTCPController::create_register_ranges_() {
 
           ESP_LOGV(TAG, "Re-use previous register - change to register: 0x%X %d offset=%u", curr->start_address,
                    curr->register_count, curr->offset);
-        } else if (curr->start_address == (r.start_address + r.register_count)) {
+        } else if (curr->start_address == (r.start_address + r.register_count) &&
+                   (r.register_count + curr->register_count) <= 125) {  // Modbus limit for one read request
           // this register can extend the current range
 
           // remove this sensore because start_address is changed (sort-order)
@@ -470,7 +478,9 @@ void ModbusTCPController::loop() {
 
 void ModbusTCPController::on_write_register_response(ModbusRegisterType register_type, uint16_t start_address,
                                                   const std::vector<uint8_t> &data) {
-  ESP_LOGV(TAG, "Command ACK 0x%X %d ", get_data<uint16_t>(data, 0), get_data<int16_t>(data, 1));
+  if (data.size() >= 4) {
+    ESP_LOGV(TAG, "Command ACK address=0x%X value/count=%d", get_data<uint16_t>(data, 0), get_data<uint16_t>(data, 2));
+  }
 }
 
 void ModbusTCPController::dump_sensors_() {

@@ -531,6 +531,9 @@ class ModbusTCPController : public PollingComponent, public modbustcp::ModbusDev
   void set_max_cmd_retries(uint8_t max_cmd_retries) { this->max_cmd_retries_ = max_cmd_retries; }
   /// get how many times a command will be (re)sent if no response is received
   uint8_t get_max_cmd_retries() { return this->max_cmd_retries_; }
+  /// When enabled, a read range never mixes sensors with a different skip_updates. By default a range takes the
+  /// lowest non zero skip_updates of its sensors, so a fast sensor next to a slow one would be polled slowly.
+  void set_split_ranges_by_skip(bool split) { this->split_ranges_by_skip_ = split; }
 
  protected:
   /// parse sensormap_ and create range of sequential addresses
@@ -567,6 +570,8 @@ class ModbusTCPController : public PollingComponent, public modbustcp::ModbusDev
   uint16_t offline_skip_updates_{0};
   /// How many times we will retry a command if we get no response
   uint8_t max_cmd_retries_{4};
+  /// See set_split_ranges_by_skip()
+  bool split_ranges_by_skip_{false};
   /// Command sent callback
   CallbackManager<void(int, int)> command_sent_callback_{};
   /// Server online callback
