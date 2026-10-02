@@ -44,6 +44,7 @@ namespace tsungen3 {
 // (Sensor, TextSensor, the API) are not safe to touch from another task.
 enum class JobType {
   POLL_READ,
+  POLL_OUTPUT_COEFFICIENT,
   WRITE_POWER_PERCENT,
   RESET_AT_CMD,
 };
@@ -61,7 +62,7 @@ struct TSunGen3JobResult {
   JobType type;
   bool success{false};
   uint16_t reg_value{0};        // echoed back for WRITE_POWER_PERCENT logging
-  std::vector<uint8_t> register_data;  // POLL_READ payload
+  std::vector<uint8_t> register_data;  // POLL_READ (42 regs) or POLL_OUTPUT_COEFFICIENT (1 reg) payload
   std::string text;             // RESET_AT_CMD reply text
 };
 
@@ -152,6 +153,19 @@ class TSunGen3Component : public PollingComponent {
   void set_event_faults_text_sensor(text_sensor::TextSensor *s) { this->event_faults_text_sensor_ = s; }
 #endif
 
+#ifdef USE_NUMBER
+  // Lets the `number` platform register itself so the hub can push
+  // REG_OUTPUT_COEFFICIENT's *actual* value back into it -- see
+  // POLL_OUTPUT_COEFFICIENT in process_result_(). Without this, the number
+  // resets to 0 on every ESP reboot (its default/restored value) and doesn't
+  // reflect the register's real value until someone moves the slider again.
+  // Same pattern as deyemi's set_power_percent_number(), except
+  // REG_OUTPUT_COEFFICIENT falls outside the main poll block here, so it
+  // needs its own dedicated read (see update()) rather than coming along for
+  // free with the regular poll.
+  void set_power_percent_number(number::Number *n) { this->power_percent_number_ = n; }
+#endif
+
  protected:
   std::string host_;
   uint16_t port_{8899};
@@ -226,6 +240,10 @@ class TSunGen3Component : public PollingComponent {
   text_sensor::TextSensor *inverter_status_text_sensor_{nullptr};
   text_sensor::TextSensor *event_alarms_text_sensor_{nullptr};
   text_sensor::TextSensor *event_faults_text_sensor_{nullptr};
+#endif
+
+#ifdef USE_NUMBER
+  number::Number *power_percent_number_{nullptr};
 #endif
 };
 
