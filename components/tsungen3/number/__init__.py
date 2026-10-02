@@ -32,3 +32,4 @@ async def to_code(config):
         conf = config[CONF_POWER_PERCENT]
         var = await number.new_number(conf, min_value=0.0, max_value=100.0, step=1.0)
         await cg.register_parented(var, hub)
+        cg.add(hub.set_power_percent_number(var))
