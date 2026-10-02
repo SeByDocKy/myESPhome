@@ -606,6 +606,18 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
       this->pv_power_sensor_[i]->publish_state(voltage * current);
   }
 #endif
+
+#ifdef USE_NUMBER
+  // Keeps the number in sync with the register's actual value -- notably,
+  // this is what gives it a correct value right after an ESP reboot
+  // (instead of sitting at 0 until the next manual write), since
+  // REG_ACTIVE_POWER_REGULATION (0x0028) is read on every poll anyway (it
+  // falls inside REG_BLOCK_START..+REG_BLOCK_COUNT). Also self-heals the
+  // displayed value if the register was changed from elsewhere (the Deye
+  // app, another controller) rather than through this number.
+  if (this->power_percent_number_ != nullptr)
+    this->power_percent_number_->publish_state(get_u16_(regs, REG_ACTIVE_POWER_REGULATION, start_reg));
+#endif
 }
 
 void DeyeMiComponent::dump_config() {
