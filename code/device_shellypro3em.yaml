@@ -17,8 +17,8 @@ globals:
 
 modbustcp:
   - id: modbus_tcp
-    host: ${shelly_ip_address}
-    port: ${shelly_ip_port}
+    ip_address: ${shelly_ip_address}
+    ip_port: ${shelly_ip_port}
     send_wait_time: ${shelly_send_wait_time}  
   
 modbustcp_controller:
