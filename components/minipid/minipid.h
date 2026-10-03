@@ -18,8 +18,7 @@
 #include "esphome/components/time/real_time_clock.h"
 
 
-namespace esphome {
-namespace minipid {
+namespace esphome::minipid {
 	
 class MINIPIDComponent : public Component{
 
@@ -134,9 +133,7 @@ SUB_NUMBER(output_max)
 
 };
 		
-
- }  // namespace minipid
-}  // namespace esphome
+}  // namespace esphome::minipid
 
 
 
