@@ -223,6 +223,31 @@ slider at run time.
 
 `reboot`: sends `{"cmd":5,"rc":1,"reboot":1}`.
 
+#### `output`
+
+Float output (0.0 .. 1.0) for control loops (PID, zero injection ...): `0.0` maps to 0 W and `1.0` to 2500 W
+(step 10 W); the limits reported by the battery narrow the range. The command is only sent when the integer
+value changes (and repeated every 30 s otherwise).
+
+```yaml
+output:
+  - platform: jackerysv3
+    jackerysv3_id: jackery
+    max_output_power:            # 0.0 -> 0 W, 1.0 -> 2500 W: maximum power of the grid-tied port
+      id: jackery_max_output_power
+```
+
+#### What can be controlled (and what cannot)
+
+The protocol, as used by the official integration, only exposes these writable settings: maximum output power
+(`maxOutPw`), SOC charge / discharge limits (`socChgLimit`, `socDischgLimit`), AC socket (`swEps`), auto standby
+(`isAutoStandby`, `autoStandby`), reboot and the smart plugs. There is **no charge / discharge power setpoint**
+(unlike e.g. a Marstek or Zendure): the battery charges and discharges by itself according to its work mode.
+What you can do from ESPHome is limit the grid output power (`max_output_power`, which caps the discharge /
+feed-in, as a `number` or an `output`) and set the SOC limits (`number` platform; `soc_charge_limit` stops
+charging at the chosen level). Changing the work mode
+is not available through this protocol either (`work_mode` is read-only).
+
 ## Full example
 
 See [`test_jackerysv3.yaml`](test_jackerysv3.yaml) for a complete configuration with every entity.

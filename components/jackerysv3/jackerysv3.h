@@ -91,6 +91,8 @@ class JackerySV3Hub : public PollingComponent, public mqtt_broker::MessageSink {
   void on_clients_changed(size_t connected) override;
 
   bool is_online() const { return this->online_; }
+  /// Decoded state (nullptr before setup())
+  const JackeryState *state() const { return this->state_.get(); }
 
  protected:
   template<typename E> struct NumEntry {
