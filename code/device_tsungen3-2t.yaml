@@ -111,7 +111,7 @@ output:
   - platform: tsungen3
     tsungen3_id: ${tsungen3_id}
     power_percent:
-      id: ${name}_${tsungen3_name}_power_percent_output
+      id: ${tsungen3_name}_power_percent_output
 
 button:
   - platform: tsungen3
