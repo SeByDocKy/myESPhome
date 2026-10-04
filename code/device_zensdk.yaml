@@ -279,6 +279,6 @@ output:
   - platform: zensdk
     zensdk_id: ${zensdk_id}
     charge_power:               # 0.0 .. 1.0 -> 0 .. max charge power
-      id: ${name}_${zensdk_name}_charge_power_output
+      id: ${zensdk_name}_charge_power_output
     discharge_power:            # 0.0 .. 1.0 -> 0 .. max discharge power
-      id: ${name}_${zensdk_name}_discharge_power_output
+      id: ${zensdk_name}_discharge_power_output
