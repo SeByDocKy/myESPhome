@@ -454,6 +454,12 @@ class WeikaiChannel : public uart::UARTComponent {
   /// @brief set the baud rate
   void set_baudrate_();
 
+  /// @brief Reads the FIFO status register (FSR) of the channel.
+  /// @details Reading FSR clears the RFOE (receive overflow) flag in the chip, so every FSR read goes through this
+  /// method which remembers the flag until rx_in_fifo_() has reported it.
+  /// @return the value of the FSR register
+  uint8_t read_fsr_();
+
   /// @brief Returns the number of bytes in the receive fifo
   /// @return the number of bytes in the fifo
   size_t rx_in_fifo_();
@@ -496,6 +502,7 @@ class WeikaiChannel : public uart::UARTComponent {
   WeikaiComponent *parent_;  ///< our WK2168component parent
   uint8_t channel_;          ///< our Channel number
   const char *name_{""};     ///< name of the entity (string literal, no heap allocation)
+  bool rfoe_latched_{false};  ///< RFOE seen by an FSR read that was not made by rx_in_fifo_()
 };
 
 }  // namespace esphome::weikai

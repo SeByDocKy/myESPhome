@@ -332,12 +332,19 @@ void WeikaiChannel::set_baudrate_() {
            this->baud_rate_, baud_high, baud_low, baud_dec);
 }
 
-inline bool WeikaiChannel::tx_fifo_is_not_empty_() { return this->reg(WKREG_FSR) & FSR_TFDAT; }
+uint8_t WeikaiChannel::read_fsr_() {
+  uint8_t const fsr = this->reg(WKREG_FSR);
+  if (fsr & FSR_RFOE)
+    this->rfoe_latched_ = true;  // the chip has just cleared the flag: remember it until it is reported
+  return fsr;
+}
+
+inline bool WeikaiChannel::tx_fifo_is_not_empty_() { return this->read_fsr_() & FSR_TFDAT; }
 
 size_t WeikaiChannel::tx_in_fifo_() {
   size_t tfcnt = this->reg(WKREG_TFCNT);
   if (tfcnt == 0) {
-    uint8_t const fsr = this->reg(WKREG_FSR);
+    uint8_t const fsr = this->read_fsr_();
     if (fsr & FSR_TFFULL) {
       char bin_buf[9];
       ESP_LOGVV(TAG, "tx FIFO full FSR=%s", format_bin_to(bin_buf, fsr));
@@ -353,7 +360,11 @@ size_t WeikaiChannel::rx_in_fifo_() {
   // When RFDAT is 1 we read RFCNT afterwards: as only we remove bytes from the FIFO, RFCNT can only be greater
   // than or equal to what FSR reported, so RFCNT == 0 here really means that the FIFO holds 256 bytes (the 8 bits
   // counter wraps around). No additional read is needed to disambiguate.
-  uint8_t const fsr = this->reg(WKREG_FSR);
+  uint8_t fsr = this->read_fsr_();
+  if (this->rfoe_latched_) {  // overflow flag possibly consumed by an earlier FSR read (flush(), tx_in_fifo_())
+    fsr |= FSR_RFOE;
+    this->rfoe_latched_ = false;
+  }
   if (fsr & (FSR_RFOE | FSR_RFLB | FSR_RFFE | FSR_RFPE)) {
     char bin_buf[9];
     if (fsr & FSR_RFOE) {
@@ -439,7 +450,7 @@ void WeikaiChannel::write_array(const uint8_t *buffer, size_t length) {
       uint32_t const start_time = millis();
       while (FIFO_SIZE - this->tx_in_fifo_() < chunk) {
         if (millis() - start_time > 200) {
-          ESP_LOGE(TAG, "write_array: timeout waiting for room in the transmit FIFO - %d bytes dropped", length);
+          ESP_LOGE(TAG, "write_array: timeout waiting for room in the transmit FIFO - %d bytes dropped", (int) length);
           return;
         }
         yield();
