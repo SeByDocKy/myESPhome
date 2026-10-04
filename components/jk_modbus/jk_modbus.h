@@ -3,8 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 
-namespace esphome {
-namespace jk_modbus {
+namespace esphome::jk_modbus {
 
 class JkModbusDevice;
 
@@ -36,8 +35,11 @@ class JkModbus : public uart::UARTDevice, public Component {
   bool parse_jk_modbus_byte_(uint8_t byte);
 
   std::vector<uint8_t> rx_buffer_;
+  std::vector<uint8_t> frame_data_;
   uint16_t rx_timeout_{50};
   uint32_t last_jk_modbus_byte_{0};
+  uint32_t write_busy_until_{0};
+  bool write_busy_{false};
   std::vector<JkModbusDevice *> devices_;
 };
 
@@ -58,5 +60,4 @@ class JkModbusDevice {
   uint8_t address_;
 };
 
-}  // namespace jk_modbus
-}  // namespace esphome
+}  // namespace esphome::jk_modbus

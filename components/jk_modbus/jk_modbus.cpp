@@ -3,8 +3,9 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
 
-namespace esphome {
-namespace jk_modbus {
+#include <algorithm>
+
+namespace esphome::jk_modbus {
 
 static const char *const TAG = "jk_modbus";
 
@@ -17,30 +18,58 @@ static const uint8_t ADDRESS_READ_ALL = 0x00;
 
 static const uint8_t FRAME_SOURCE_GPS = 0x02;
 
+// data_len covers everything but the two CRC bytes. The payload is handed over as
+// [11, data_len - 3), so anything below 14 would produce an invalid iterator range.
+static const uint16_t MIN_DATA_LEN = 14;
+// The largest known status frame (24 cells) has a data_len of ~309; keep some headroom.
+static const uint16_t MAX_DATA_LEN = 512;
+// Initial capacity of the RX buffers
+static const size_t TYPICAL_FRAME_SIZE = 320;
+// Time the BMS needs to process the password frame before it accepts a write.
+static const uint32_t WRITE_AUTH_DELAY_MS = 150;
+// Gap between two queued writes so that authenticate/write pairs never interleave.
+static const uint32_t WRITE_GUARD_MS = 10;
+// Bytes pulled from the UART per read_array() call.
+static const size_t READ_CHUNK_SIZE = 64;
+
 void JkModbus::setup() {
   if (this->flow_control_pin_ != nullptr) {
     this->flow_control_pin_->setup();
   }
+
+  // Avoid the repeated reallocations push_back() would cause while a frame is assembled
+  // (the largest known frame, 24 cells, is ~311 bytes)
+  this->rx_buffer_.reserve(TYPICAL_FRAME_SIZE);
+  this->frame_data_.reserve(TYPICAL_FRAME_SIZE);
 }
 
 void JkModbus::loop() {
   const uint32_t now = millis();
   if (now - this->last_jk_modbus_byte_ > this->rx_timeout_) {
+    // .data() instead of &front(): front() on an empty vector is undefined behaviour
     ESP_LOGVV(TAG, "Buffer cleared due to timeout: %s",
-              format_hex_pretty(&this->rx_buffer_.front(), this->rx_buffer_.size()).c_str());
+              format_hex_pretty(this->rx_buffer_.data(), this->rx_buffer_.size()).c_str());  // NOLINT
     this->rx_buffer_.clear();
     this->last_jk_modbus_byte_ = now;
   }
 
-  while (this->available()) {
-    uint8_t byte;
-    this->read_byte(&byte);
-    if (this->parse_jk_modbus_byte_(byte)) {
-      this->last_jk_modbus_byte_ = now;
-    } else {
-      ESP_LOGVV(TAG, "Buffer cleared due to reset: %s",
-                format_hex_pretty(&this->rx_buffer_.front(), this->rx_buffer_.size()).c_str());
-      this->rx_buffer_.clear();
+  // Read the UART in chunks: one available() + read_array() per chunk instead of one
+  // available() + read_byte() round trip into the UART driver for every single byte.
+  uint8_t chunk[READ_CHUNK_SIZE];
+  int available;
+  while ((available = this->available()) > 0) {
+    const size_t len = std::min((size_t) available, sizeof(chunk));
+    if (!this->read_array(chunk, len))
+      break;
+
+    for (size_t i = 0; i < len; i++) {
+      if (this->parse_jk_modbus_byte_(chunk[i])) {
+        this->last_jk_modbus_byte_ = now;
+      } else {
+        ESP_LOGVV(TAG, "Buffer cleared due to reset: %s",
+                  format_hex_pretty(this->rx_buffer_.data(), this->rx_buffer_.size()).c_str());  // NOLINT
+        this->rx_buffer_.clear();
+      }
     }
   }
 }
@@ -86,6 +115,15 @@ bool JkModbus::parse_jk_modbus_byte_(uint8_t byte) {
     return true;
   uint16_t data_len = (uint16_t(raw[2]) << 8 | (uint16_t(raw[2 + 1]) << 0));
 
+  // Reject implausible lengths as soon as they are known instead of waiting for up to 64 kB of
+  // data (or building an invalid iterator range for the payload below).
+  if (at == 4 && (data_len < MIN_DATA_LEN || data_len > MAX_DATA_LEN)) {
+    ESP_LOGW(TAG, "Invalid frame length: %u", data_len);
+
+    // return false to reset buffer
+    return false;
+  }
+
   // data_len: CRC_LO (over all bytes)
   if (at <= data_len)
     return true;
@@ -100,12 +138,13 @@ bool JkModbus::parse_jk_modbus_byte_(uint8_t byte) {
     return false;
   }
 
-  std::vector<uint8_t> data(this->rx_buffer_.begin() + 11, this->rx_buffer_.begin() + data_len - 3);
+  // assign() reuses the capacity of frame_data_, so no heap allocation per frame
+  this->frame_data_.assign(this->rx_buffer_.begin() + 11, this->rx_buffer_.begin() + data_len - 3);
 
   bool found = false;
   for (auto *device : this->devices_) {
     if (device->address_ == address) {
-      device->on_jk_modbus_data(function, data);
+      device->on_jk_modbus_data(function, this->frame_data_);
       found = true;
     }
   }
@@ -166,12 +205,36 @@ void JkModbus::send(uint8_t function, uint8_t address, uint8_t value) {
 void JkModbus::authenticate_() { this->send(FUNCTION_PASSWORD, 0x00, 0x00); }
 
 void JkModbus::write_register(uint8_t address, uint8_t value) {
-  this->authenticate_();
-  delay(150);  // NOLINT
-  this->send(FUNCTION_WRITE_REGISTER, address, value);
+  // authenticate -> wait -> write, scheduled instead of delay(150) so the main loop (WiFi, API,
+  // UART RX) keeps running. Writes are serialized: a second write waits until the first pair is done.
+  uint32_t wait = 0;
+  if (this->write_busy_) {
+    const int32_t remaining = (int32_t) (this->write_busy_until_ - millis());
+    if (remaining > 0)
+      wait = (uint32_t) remaining;
+  }
+
+  const uint32_t busy_for = wait + WRITE_AUTH_DELAY_MS + WRITE_GUARD_MS;
+
+  this->set_timeout(wait, [this]() { this->authenticate_(); });
+  this->set_timeout(wait + WRITE_AUTH_DELAY_MS,
+                    [this, address, value]() { this->send(FUNCTION_WRITE_REGISTER, address, value); });
+  // The flag is cleared by the last timeout, so a stale write_busy_until_ is never compared
+  // against millis() after the 32 bit counter wrapped.
+  this->set_timeout(busy_for, [this]() { this->write_busy_ = false; });
+
+  this->write_busy_ = true;
+  this->write_busy_until_ = millis() + busy_for;
 }
 
 void JkModbus::read_registers() {
+  // Don't talk over a response that is still being received (half-duplex RS485): the request
+  // would collide with the BMS transmission. Matters most with a short update_interval.
+  if (!this->rx_buffer_.empty() && (millis() - this->last_jk_modbus_byte_) <= this->rx_timeout_) {
+    ESP_LOGD(TAG, "Skipping request: a response is still being received");
+    return;
+  }
+
   uint8_t frame[21];
   frame[0] = 0x4E;                         // start sequence
   frame[1] = 0x57;                         // start sequence
@@ -207,5 +270,4 @@ void JkModbus::read_registers() {
     this->flow_control_pin_->digital_write(false);
 }
 
-}  // namespace jk_modbus
-}  // namespace esphome
+}  // namespace esphome::jk_modbus
