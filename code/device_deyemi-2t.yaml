@@ -112,7 +112,7 @@ output:
   - platform: deyemi
     deyemi_id: ${deyemi_id}
     power_percent:
-      id: ${name}_${deyemi_name}_power_percent_output
+      id: ${deyemi_name}_power_percent_output
 
 # button:
 #   - platform: deyemi
