@@ -112,7 +112,7 @@ number:
   - platform: tsungen3
     tsungen3_id: ${tsungen3_id}
     power_percent:
-      name: ${name}_${tsungen3_name}_power_percent
+      name: ${tsungen3_name}_power_percent
 
 output:
   - platform: tsungen3
