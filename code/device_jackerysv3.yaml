@@ -83,6 +83,7 @@ sensor:
         name: ${name}_${jackerysv3_name}_grid_output_energy
       home_power:
         name: ${name}_${jackerysv3_name}_home_power
+        id: ${jackerysv3_name}_home_power
       other_load_power:
         name: ${name}_${jackerysv3_name}_other_load_power
       max_feed_in_power:
@@ -165,6 +166,30 @@ sensor:
           name: ${name}_${jackerysv3_name}_plug1_power
         energy:
           name: ${name}_${jackerysv3_name}_plug1_energy
+          
+          
+  - platform: total_daily_energy
+    name: ${name}_${jackerysv3_name}_energy_today
+    id: ${jackerysv3_name}_energy_today
+    power_id: ${jackerysv3_name}_home_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: right
+    restore: true
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${jackerysv3_name}_energy_yesterday
+    id: ${jackerysv3_name}_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    # update_interval: ${hms_inverter_template_update}
+    lambda: |-
+      return (id(${jackerysv3_name}_energy_yesterday).state = id(${jackerysv3_name}_energy_yesterday_global));          
 
 binary_sensor:
   - platform: jackerysv3
