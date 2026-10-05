@@ -78,6 +78,8 @@ the wiring and the bus termination (120 Ω at both ends).
 | text_sensor | `error` | VREG `0xEDDA` | charger error code as text |
 | text_sensor | `firmware_version`, `model`, `serial_number` | VREG `0x0102`, `0x010B`, `0x010A` | read once |
 | binary_sensor | `relay`, `alarm`, `low_voltage`, `high_voltage`, `solar_activity` | PGN 127501 (status 1..5) | on / off |
+| number | `absorption_voltage`, `float_voltage`, `equalization_voltage`, `max_charge_current` | see "Writing settings" | V, V, V, A |
+| switch | `charger` | see "Writing settings" | on / off |
 
 Only the registers behind the entities you configure are requested. A register the charger refuses with a NACK is
 logged once and not polled again; a value reported as "not available" is published as `NaN`.
