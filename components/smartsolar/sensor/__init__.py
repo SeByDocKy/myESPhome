@@ -108,6 +108,41 @@ SENSORS = {
         dict(unit_of_measurement=UNIT_AMPERE, accuracy_decimals=1, device_class=DEVICE_CLASS_CURRENT,
              entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:current-dc"),
     ),
+    "input_voltage": (
+        16,
+        dict(unit_of_measurement=UNIT_VOLT, accuracy_decimals=2, device_class=DEVICE_CLASS_VOLTAGE,
+             state_class=STATE_CLASS_MEASUREMENT, icon="mdi:solar-panel"),
+    ),
+    "input_power": (
+        17,
+        dict(unit_of_measurement=UNIT_WATT, accuracy_decimals=1, device_class=DEVICE_CLASS_POWER,
+             state_class=STATE_CLASS_MEASUREMENT, icon="mdi:solar-power"),
+    ),
+    "output_voltage": (
+        18,
+        dict(unit_of_measurement=UNIT_VOLT, accuracy_decimals=2, device_class=DEVICE_CLASS_VOLTAGE,
+             state_class=STATE_CLASS_MEASUREMENT, icon="mdi:battery-charging"),
+    ),
+    "output_current": (
+        19,
+        dict(unit_of_measurement=UNIT_AMPERE, accuracy_decimals=1, device_class=DEVICE_CLASS_CURRENT,
+             state_class=STATE_CLASS_MEASUREMENT, icon="mdi:current-dc"),
+    ),
+    "output_power": (
+        20,
+        dict(unit_of_measurement=UNIT_WATT, accuracy_decimals=1, device_class=DEVICE_CLASS_POWER,
+             state_class=STATE_CLASS_MEASUREMENT, icon="mdi:flash"),
+    ),
+    "charger_max_current": (
+        21,
+        dict(unit_of_measurement=UNIT_AMPERE, accuracy_decimals=1, device_class=DEVICE_CLASS_CURRENT,
+             entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:current-dc"),
+    ),
+    "battery_temperature_reg": (
+        22,
+        dict(unit_of_measurement=UNIT_CELSIUS, accuracy_decimals=1, device_class=DEVICE_CLASS_TEMPERATURE,
+             state_class=STATE_CLASS_MEASUREMENT, icon="mdi:thermometer"),
+    ),
 }
 
 CONFIG_SCHEMA = cv.Schema(

@@ -74,12 +74,23 @@ the wiring and the bus termination (120 Ω at both ends).
 | sensor | `max_power_today` / `max_power_yesterday` | VREG `0xEDD2` / `0xEDD0` | W |
 | sensor | `internal_temperature` | VREG `0xEDDB` | °C |
 | sensor | `absorption_voltage`, `float_voltage`, `max_charge_current` | VREG `0xEDF7`, `0xEDF6`, `0xEDF0` | V, V, A |
+| sensor | `input_voltage`, `input_power` | VREG `0xEDBB`, `0xEDBC` (PV side as seen by the charger) | V, W |
+| sensor | `output_voltage`, `output_current`, `output_power` | VREG `0xEDD5`, `0xEDD7`, `0xEDD6` (battery side) | V, A, W |
+| sensor | `charger_max_current` | VREG `0xEDDF` (rating of the charger) | A |
+| sensor | `battery_temperature_reg` | VREG `0xEDEC` (temperature sensor, K converted to °C) | °C |
+| text_sensor | `tracker_mode` | VREG `0xEDB3` | Off, Limited, MPP tracking |
+| text_sensor | `additional_state` | VREG `0xEDD4` | active items, e.g. "Temperature dimming" or "None" |
 | text_sensor | `state` | VREG `0x0201` | Off, Bulk, Absorption, Float, ... |
 | text_sensor | `error` | VREG `0xEDDA` | charger error code as text |
 | text_sensor | `firmware_version`, `model`, `serial_number` | VREG `0x0102`, `0x010B`, `0x010A` | read once |
 | binary_sensor | `relay`, `alarm`, `low_voltage`, `high_voltage`, `solar_activity` | PGN 127501 (status 1..5) | on / off |
 | number | `absorption_voltage`, `float_voltage`, `equalization_voltage`, `max_charge_current` | see "Writing settings" | V, V, V, A |
 | switch | `charger` | see "Writing settings" | on / off |
+
+`input_*` and `output_*` come from registers that Victron defines for the HEX protocol; the docs say the charger
+normally broadcasts the live data as PGNs, so these registers may be absent on some models (they are then NACKed once and
+no longer polled). They are an alternative to the PGN based `pv_*` / `battery_*` entities, handy when the instance
+numbers of the PGNs are not what you expect.
 
 Only the registers behind the entities you configure are requested. A register the charger refuses with a NACK is
 logged once and not polled again; a value reported as "not available" is published as `NaN`.

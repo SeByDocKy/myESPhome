@@ -319,6 +319,33 @@ inline const char *device_state_name(uint8_t s) {
   }
 }
 
+// Input MPP mode (VREG 0xEDB3)
+inline const char *mppt_mode_name(uint8_t m) {
+  switch (m) {
+    case 0x00: return "Off";
+    case 0x01: return "Limited";  // voltage or current limited
+    case 0x02: return "MPP tracking";
+    case 0xFF: return "Not available";
+    default: return "Unknown";
+  }
+}
+
+// Charger additional state information (VREG 0xEDD4): comma separated list of the active items.
+inline std::string charger_additional_state(uint8_t bits) {
+  static const char *const NAMES[8] = {"Safe mode",       "Automatic equalization", "Repeated absorption",
+                                       "Low input dimming", "Temperature dimming",  "Sense wire dimming",
+                                       "Input current dimming", "Low power mode"};
+  std::string out;
+  for (int i = 0; i < 8; i++) {
+    if (bits & (1 << i)) {
+      if (!out.empty())
+        out += ", ";
+      out += NAMES[i];
+    }
+  }
+  return out.empty() ? "None" : out;
+}
+
 // Charger error code (VREG 0xEDDA).
 inline const char *charger_error_name(uint8_t e) {
   // v23 of "VE.Can registers", register 0xEDDA

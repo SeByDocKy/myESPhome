@@ -42,6 +42,17 @@ static const uint16_t REG_ABSORPTION_VOLTAGE = 0xEDF7;
 static const uint16_t REG_FLOAT_VOLTAGE = 0xEDF6;
 static const uint16_t REG_MAX_CHARGE_CURRENT = 0xEDF0;
 
+// Additional registers (read only), see "VE.Can registers" v23
+static const uint16_t REG_INPUT_MPP_MODE = 0xEDB3;
+static const uint16_t REG_INPUT_VOLTAGE = 0xEDBB;
+static const uint16_t REG_INPUT_POWER = 0xEDBC;
+static const uint16_t REG_OUTPUT_VOLTAGE = 0xEDD5;
+static const uint16_t REG_OUTPUT_POWER = 0xEDD6;
+static const uint16_t REG_OUTPUT_CURRENT = 0xEDD7;
+static const uint16_t REG_ADDITIONAL_STATE = 0xEDD4;
+static const uint16_t REG_CHARGER_MAX_CURRENT = 0xEDDF;
+static const uint16_t REG_BATTERY_TEMPERATURE = 0xEDEC;
+
 static const uint16_t REG_DEVICE_MODE = 0x0200;
 static const uint16_t REG_EQUALIZATION_VOLTAGE = 0xEDF4;
 
@@ -99,6 +110,13 @@ static uint16_t reg_for_sensor(uint8_t kind) {
     case SENSOR_ABSORPTION_VOLTAGE: return REG_ABSORPTION_VOLTAGE;
     case SENSOR_FLOAT_VOLTAGE: return REG_FLOAT_VOLTAGE;
     case SENSOR_MAX_CHARGE_CURRENT: return REG_MAX_CHARGE_CURRENT;
+    case SENSOR_INPUT_VOLTAGE: return REG_INPUT_VOLTAGE;
+    case SENSOR_INPUT_POWER: return REG_INPUT_POWER;
+    case SENSOR_OUTPUT_VOLTAGE: return REG_OUTPUT_VOLTAGE;
+    case SENSOR_OUTPUT_CURRENT: return REG_OUTPUT_CURRENT;
+    case SENSOR_OUTPUT_POWER: return REG_OUTPUT_POWER;
+    case SENSOR_CHARGER_MAX_CURRENT: return REG_CHARGER_MAX_CURRENT;
+    case SENSOR_BATTERY_TEMPERATURE_REG: return REG_BATTERY_TEMPERATURE;
     default: return 0;
   }
 }
@@ -110,6 +128,8 @@ static uint16_t reg_for_sensor(uint8_t kind) {
     case TEXT_FIRMWARE_VERSION: return REG_FIRMWARE;
     case TEXT_MODEL: return REG_MODEL;
     case TEXT_SERIAL_NUMBER: return REG_SERIAL;
+    case TEXT_TRACKER_MODE: return REG_INPUT_MPP_MODE;
+    case TEXT_ADDITIONAL_STATE: return REG_ADDITIONAL_STATE;
     default: return 0;
   }
 }
@@ -607,6 +627,45 @@ void SmartSolar::on_vreg(uint16_t reg, const uint8_t *data, uint16_t len) {
         uint16_t raw = vecan::rd_u16(data);
         if (raw != 0xFFFF)
           this->on_register_value_(reg, raw);
+      }
+      break;
+    case REG_INPUT_MPP_MODE:
+      if (len >= 1)
+        this->publish_text_sensor_(TEXT_TRACKER_MODE, vecan::mppt_mode_name(data[0]));
+      break;
+    case REG_ADDITIONAL_STATE:
+      if (len >= 1)
+        this->publish_text_sensor_(TEXT_ADDITIONAL_STATE, vecan::charger_additional_state(data[0]));
+      break;
+    case REG_INPUT_VOLTAGE:   // un16, 0.01 V (0xFFFF = not available)
+    case REG_OUTPUT_VOLTAGE:  // un16, 0.01 V
+    case REG_OUTPUT_POWER:    // un16, 0.01 W
+      if (len >= 2) {
+        uint16_t raw = vecan::rd_u16(data);
+        uint8_t kind = reg == REG_INPUT_VOLTAGE ? SENSOR_INPUT_VOLTAGE
+                       : reg == REG_OUTPUT_VOLTAGE ? SENSOR_OUTPUT_VOLTAGE
+                                                   : SENSOR_OUTPUT_POWER;
+        this->publish_sensor_(kind, raw == 0xFFFF ? NAN : raw * 0.01f);
+      }
+      break;
+    case REG_OUTPUT_CURRENT:        // un16, 0.1 A
+    case REG_CHARGER_MAX_CURRENT:  // un16, 0.1 A
+      if (len >= 2) {
+        uint16_t raw = vecan::rd_u16(data);
+        this->publish_sensor_(reg == REG_OUTPUT_CURRENT ? SENSOR_OUTPUT_CURRENT : SENSOR_CHARGER_MAX_CURRENT,
+                              raw == 0xFFFF ? NAN : raw * 0.1f);
+      }
+      break;
+    case REG_INPUT_POWER:  // un32, 0.01 W (0xFFFFFFFF = not available)
+      if (len >= 4) {
+        uint32_t raw = vecan::rd_u32(data);
+        this->publish_sensor_(SENSOR_INPUT_POWER, raw == 0xFFFFFFFF ? NAN : raw * 0.01f);
+      }
+      break;
+    case REG_BATTERY_TEMPERATURE:  // un16, 0.01 K (0xFFFF = not available)
+      if (len >= 2) {
+        uint16_t raw = vecan::rd_u16(data);
+        this->publish_sensor_(SENSOR_BATTERY_TEMPERATURE_REG, raw == 0xFFFF ? NAN : raw * 0.01f - 273.15f);
       }
       break;
     case REG_DEVICE_MODE:  // un8 (writable): 4 = off

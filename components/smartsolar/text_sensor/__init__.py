@@ -27,6 +27,8 @@ TEXT_SENSORS = {
         4,
         dict(entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:identifier"),
     ),
+    "tracker_mode": (5, dict(icon="mdi:solar-panel-large")),
+    "additional_state": (6, dict(icon="mdi:information-outline")),
 }
 
 CONFIG_SCHEMA = cv.Schema(
