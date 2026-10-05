@@ -48,6 +48,12 @@ class VeCanHub : public Component {
   /// Returns false when nothing can be sent (listen-only, queue full).
   bool request_vreg(uint8_t dst, uint16_t reg);
 
+  /// Queue a write of one VREG (single frame, up to 4 data bytes, little endian) of the device at `dst`.
+  /// A write still waiting for the same register is replaced by the new value. Writes are sent before queued reads.
+  /// The device answers with a broadcast of the new value, or with a NACK (see VeCanDevice::on_vreg_nack).
+  /// Returns false when nothing can be sent (listen-only, queue full).
+  bool write_vreg(uint8_t dst, uint16_t reg, uint32_t value);
+
   /// True once our address is claimed and transmissions are allowed.
   bool can_transmit() const { return this->state_ == State::READY; }
   bool is_listen_only() const { return this->listen_only_; }
@@ -63,6 +69,8 @@ class VeCanHub : public Component {
   struct TxItem {
     uint8_t dst;
     uint16_t reg;
+    bool write;
+    uint32_t value;
   };
 
   void on_frame_(uint32_t can_id, bool extended, bool rtr, const std::vector<uint8_t> &data);

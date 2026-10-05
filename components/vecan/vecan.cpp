@@ -79,7 +79,12 @@ void VeCanHub::loop() {
         TxItem item = this->tx_queue_.front();
         this->tx_queue_.erase(this->tx_queue_.begin());
         uint8_t payload[8];
-        build_vreg_request(item.reg, payload);
+        if (item.write) {
+          ESP_LOGI(TAG, "Writing register 0x%04X of 0x%02X = 0x%08" PRIX32, item.reg, item.dst, item.value);
+          build_vreg_write(item.reg, item.value, payload);
+        } else {
+          build_vreg_request(item.reg, payload);
+        }
         this->send_frame_(encode_id(PRIORITY_VREG, PGN_VREG_SF, item.dst, this->address_), payload, 8);
         this->last_tx_ms_ = now;
       }
@@ -93,14 +98,36 @@ bool VeCanHub::request_vreg(uint8_t dst, uint16_t reg) {
   if (this->state_ == State::LISTEN_ONLY)
     return false;
   for (const auto &q : this->tx_queue_) {
-    if (q.dst == dst && q.reg == reg)
+    if (q.dst == dst && q.reg == reg && !q.write)
       return true;  // already waiting
   }
   if (this->tx_queue_.size() >= TX_QUEUE_MAX) {
     ESP_LOGW(TAG, "TX queue full, dropping request for register 0x%04X", reg);
     return false;
   }
-  this->tx_queue_.push_back({dst, reg});
+  this->tx_queue_.push_back({dst, reg, false, 0});
+  return true;
+}
+
+bool VeCanHub::write_vreg(uint8_t dst, uint16_t reg, uint32_t value) {
+  if (this->state_ == State::LISTEN_ONLY)
+    return false;
+  size_t first_read = 0;  // writes go before the reads, but stay in order among themselves
+  for (size_t i = 0; i < this->tx_queue_.size(); i++) {
+    TxItem &q = this->tx_queue_[i];
+    if (!q.write)
+      break;
+    if (q.dst == dst && q.reg == reg) {
+      q.value = value;  // newer value for a write that has not been sent yet
+      return true;
+    }
+    first_read = i + 1;
+  }
+  if (this->tx_queue_.size() >= TX_QUEUE_MAX) {
+    ESP_LOGW(TAG, "TX queue full, dropping write of register 0x%04X", reg);
+    return false;
+  }
+  this->tx_queue_.insert(this->tx_queue_.begin() + first_read, TxItem{dst, reg, true, value});
   return true;
 }
 

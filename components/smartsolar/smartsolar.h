@@ -4,6 +4,7 @@
 #include "esphome/core/defines.h"
 #include "esphome/components/vecan/vecan.h"
 
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -48,6 +49,17 @@ enum BinarySensorKind : uint8_t {
   BINARY_SOLAR_ACTIVITY = 4,
 };
 
+enum NumberKind : uint8_t {
+  NUMBER_ABSORPTION_VOLTAGE = 0,
+  NUMBER_FLOAT_VOLTAGE = 1,
+  NUMBER_MAX_CHARGE_CURRENT = 2,
+  NUMBER_EQUALIZATION_VOLTAGE = 3,
+};
+
+enum SwitchKind : uint8_t {
+  SWITCH_CHARGER = 0,  // device mode register: on / off
+};
+
 #ifdef USE_SENSOR
 class SmartSolarSensor;
 #endif
@@ -56,6 +68,12 @@ class SmartSolarTextSensor;
 #endif
 #ifdef USE_BINARY_SENSOR
 class SmartSolarBinarySensor;
+#endif
+#ifdef USE_NUMBER
+class SmartSolarNumber;
+#endif
+#ifdef USE_SWITCH
+class SmartSolarSwitch;
 #endif
 
 /// One VE.Can MPPT solar charger (BlueSolar / SmartSolar MPPT 150/xx with VE.Can port).
@@ -79,7 +97,18 @@ class SmartSolar : public PollingComponent, public vecan::VeCanDevice {
   void register_binary_sensor(SmartSolarBinarySensor *sensor);
 #endif
 
+#ifdef USE_NUMBER
+  void register_number(SmartSolarNumber *number);
+  /// Request a new value (V or A). The entity only changes once the charger has confirmed it.
+  void write_number(uint8_t kind, float value);
+#endif
+#ifdef USE_SWITCH
+  void register_switch(SmartSolarSwitch *sw);
+  void write_switch(uint8_t kind, bool state);
+#endif
+
   void setup() override;
+  void loop() override;
   void update() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA - 1.0f; }
@@ -95,6 +124,29 @@ class SmartSolar : public PollingComponent, public vecan::VeCanDevice {
   void publish_binary_sensor_(uint8_t kind, bool value);
   void request_(uint16_t reg);
 
+  // --- register writes -------------------------------------------------------------------------
+  // Safety rules, because these registers live in the charger's non-volatile memory:
+  //  * a value equal to the one the charger already reports is never written
+  //  * writes are debounced (a slider being dragged produces one write) and spaced per register
+  //  * the value is hard-limited, and float <= absorption is enforced when both are known
+  //  * the charger must confirm (broadcast of the new value); otherwise the register is read back, and the
+  //    entity returns to the value the charger really has
+  enum class WriteState : uint8_t { DEBOUNCE, SENT, VERIFY };
+  struct PendingWrite {
+    uint16_t reg;
+    uint32_t raw;
+    WriteState state;
+    uint32_t due_ms;   // DEBOUNCE: when to send. SENT/VERIFY: when the state times out
+    bool has_seen;     // a value of the register was received since the write was sent
+    uint32_t seen_raw;
+  };
+  bool queue_write_(uint16_t reg, uint32_t raw, uint32_t debounce_ms);
+  PendingWrite *find_pending_(uint16_t reg);
+  void drop_pending_(uint16_t reg);
+  void publish_register_(uint16_t reg, uint32_t raw);  // number / switch entities backed by `reg`
+  void on_register_value_(uint16_t reg, uint32_t raw);
+  bool known_raw_(uint16_t reg, uint32_t &raw) const;
+
   vecan::VeCanHub *parent_{nullptr};
   uint8_t battery_instance_{0};
   uint8_t pv_instance_{1};
@@ -107,6 +159,10 @@ class SmartSolar : public PollingComponent, public vecan::VeCanDevice {
   std::set<uint16_t> poll_regs_;    // requested at every update()
   std::set<uint16_t> static_regs_;  // requested until answered once
   std::set<uint16_t> static_done_;
+  std::map<uint16_t, uint32_t> known_values_;    // last value received for each writable register
+  std::map<uint16_t, uint32_t> last_write_ms_;   // when each register was last written
+  std::vector<PendingWrite> pending_;
+  uint8_t on_mode_{1};  // value written for "charger on": the last non-off mode the charger reported
   std::set<uint16_t> unsupported_;  // registers the device answered with a NACK
 
   uint32_t boot_ms_{0};
@@ -123,6 +179,12 @@ class SmartSolar : public PollingComponent, public vecan::VeCanDevice {
 #endif
 #ifdef USE_BINARY_SENSOR
   std::vector<SmartSolarBinarySensor *> binary_sensors_;
+#endif
+#ifdef USE_NUMBER
+  std::vector<SmartSolarNumber *> numbers_;
+#endif
+#ifdef USE_SWITCH
+  std::vector<SmartSolarSwitch *> switches_;
 #endif
 };
 

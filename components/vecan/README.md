@@ -45,8 +45,9 @@ Tip: the `canbus` component logs every frame at `DEBUG` level. Keep `logs: canbu
 1. 500 ms after boot it sends an ISO request for address claims, then listens for 1.5 s (this is also how Victron
    devices get discovered: `Victron device found at address 0x20`).
 2. It claims its address and waits 250 ms before transmitting anything else.
-3. Device components ask for registers with `request_vreg(dst, reg)`; requests are queued and sent one at a time.
-   The answer is broadcast by the device, as described in Victron's public register document.
+3. Device components ask for registers with `request_vreg(dst, reg)` and change them with `write_vreg(dst, reg, value)`;
+   frames are queued (writes before reads) and sent one at a time. The answer (or the confirmation of a write) is
+   broadcast by the device, as described in Victron's public register document; a refusal is a NACK.
 
 The NAME used for the address claim carries the "not registered" manufacturer code (2047), a unique identity derived
 from the MAC address and the marine industry group.
@@ -58,7 +59,7 @@ class MyDevice : public Component, public vecan::VeCanDevice {
   void setup() override { this->hub_->register_device(this); }
   void on_pgn(uint32_t pgn, const uint8_t *data, uint8_t len) override;      // standard PGNs
   void on_vreg(uint16_t reg, const uint8_t *data, uint16_t len) override;    // VREG values
-  void on_vreg_nack(uint16_t reg, uint16_t code) override;                   // refused requests
+  void on_vreg_nack(uint16_t reg, uint16_t code) override;                   // refused requests / writes
 };
 ```
 
@@ -70,7 +71,9 @@ Only frames whose source address equals `set_address()` are forwarded. `vecan_pr
 - Sources: Victron's public *VE.Can registers* document (v20, 2015) and the *Data communication with Victron Energy
   products* white paper. Victron does not publish a register list per product: which registers a given device implements
   has to be checked on the bus (a device answers `0x8000` to a register it does not have).
-- Writing registers is **not** implemented yet (read-only hub). Fast-packet *transmission* is not implemented either.
+- Register writes are supported with `write_vreg(dst, reg, value)` (single frame, up to 4 data bytes): the hub only
+  frames and paces them, protection against bad values is the job of the device component (see `smartsolar`).
+  Fast-packet *transmission* is not implemented.
 - Fast packets are reassembled for the proprietary VREG PGN only, one packet in flight per source address, up to 96 bytes.
-- A Victron GX device (Cerbo GX) is normally the system master on the bus. The ESP32 only reads, or requests registers.
-  Do not write settings that the GX also manages.
+- A Victron GX device (Cerbo GX) is normally the system master on the bus. The ESP32 mostly reads.
+  Do not write settings that the GX also manages (DVCC, charge limits...).

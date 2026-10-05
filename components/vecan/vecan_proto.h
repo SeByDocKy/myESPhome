@@ -114,6 +114,21 @@ inline void build_vreg_request(uint16_t reg, uint8_t out[8]) {
   out[7] = 0xFF;
 }
 
+// Write one register: 66 99 regL regH v0 v1 v2 v3   (value little endian, zero padded; un8/un16 use the first bytes)
+// e.g. device mode off:        66 99 00 02 04 00 00 00
+//      absorption voltage 58 V: 66 99 F7 ED A8 16 00 00
+// The device confirms by broadcasting the register with its new value, or refuses with a NACK (reg 0x0002).
+inline void build_vreg_write(uint16_t reg, uint32_t value, uint8_t out[8]) {
+  out[0] = VREG_HDR0;
+  out[1] = VREG_HDR1;
+  out[2] = reg & 0xFF;
+  out[3] = reg >> 8;
+  out[4] = value & 0xFF;
+  out[5] = (value >> 8) & 0xFF;
+  out[6] = (value >> 16) & 0xFF;
+  out[7] = (value >> 24) & 0xFF;
+}
+
 struct VregMsg {
   uint16_t reg;
   const uint8_t *data;  // bytes following the 4-byte header
