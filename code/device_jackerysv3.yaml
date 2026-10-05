@@ -1,0 +1,238 @@
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [jackerysv3, mqtt_broker]
+    refresh: 10s 
+
+globals:
+  - id: ${jackerysv3_name}_energy_yesterday_global
+    type: float
+    restore_value: yes
+    
+time:
+  - platform: sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:  
+          - globals.set:
+              id: ${jackerysv3_name}_energy_yesterday_global
+              value: !lambda return ( id(${jackerysv3_name}_energy_yesterday_global) =  float( id(${jackerysv3_name}_energy_today).state) );
+
+mqtt_broker:
+  id: ${jackerysv3_id}_broker
+  port: 1883
+  # username: jackery            # optional; without credentials any client is accepted
+  # password: secret
+  max_clients: 4
+  log_traffic: true               # see what the battery sends on first connection
+
+jackerysv3:
+  id: ${jackerysv3_id}
+  mqtt_broker_id: ${jackerysv3_id}_broker
+  sn: ${jackerysv3_sn}           # serial number shown in the Jackery app
+  token: ${jackerysv3_token}     # token shown in the Jackery app (MQTT settings)
+  topic_prefix: hb
+  poll_interval: ${jackerysv3_poll_interval}
+  offline_timeout: 60s
+              
+              
+sensor:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    status_code:
+      name: ${name}_${jackerysv3_name}_status_code
+    work_mode_code:
+      name: ${name}_${jackerysv3_name}_work_mode_code
+    dc_channels:
+      power:
+        name: ${name}_${jackerysv3_name}_pv_power
+      energy:
+        name: ${name}_${jackerysv3_name}_pv_energy
+      pv0:
+        power:
+          name: ${name}_${jackerysv3_name}_pv0_power
+        energy:
+          name: ${name}_${jackerysv3_name}_pv0_energy
+      pv1:
+        power:
+          name: ${name}_${jackerysv3_name}_pv1_power
+        energy:
+          name: ${name}_${jackerysv3_name}_pv1_energy
+      pv2:
+        power:
+          name: ${name}_${jackerysv3_name}_pv2_power
+        energy:
+          name: ${name}_${jackerysv3_name}_pv2_energy
+      pv3:
+        power:
+          name: ${name}_${jackerysv3_name}_pv3_power
+        energy:
+          name: ${name}_${jackerysv3_name}_pv3_energy  
+    ac:
+      grid_power:
+        name: ${name}_${jackerysv3_name}_grid_power
+      grid_input_power:
+        name: ${name}_${jackerysv3_name}_grid_input_power
+      grid_output_power:
+        name: ${name}_${jackerysv3_name}_grid_output_power
+      grid_input_energy:
+        name: ${name}_${jackerysv3_name}_grid_input_energy
+      grid_output_energy:
+        name: ${name}_${jackerysv3_name}_grid_output_energy
+      home_power:
+        name: ${name}_${jackerysv3_name}_home_power
+      other_load_power:
+        name: ${name}_${jackerysv3_name}_other_load_power
+      max_feed_in_power:
+        name: ${name}_${jackerysv3_name}_max_feed_in_power
+      socket_power:
+        name: ${name}_${jackerysv3_name}_socket_power
+      socket_input_power:
+        name: ${name}_${jackerysv3_name}_socket_input_power
+      socket_input_energy:
+        name: ${name}_${jackerysv3_name}_socket_input_energy
+      socket_output_energy:
+        name: ${name}_${jackerysv3_name}_socket_output_energy
+    battery:
+      soc:
+        name: ${name}_${jackerysv3_name}_battery_soc
+      average_soc:
+        name: ${name}_${jackerysv3_name}_battery_average_soc
+      temperature:
+        name: ${name}_${jackerysv3_name}_battery_temperature
+      pack_count:
+        name: ${name}_${jackerysv3_name}_battery_pack_count
+      net_power:
+        name: ${name}_${jackerysv3_name}_battery_net_power
+      charge_power:
+        name: ${name}_${jackerysv3_name}_battery_charge_power
+      discharge_power:
+        name: ${name}_${jackerysv3_name}_battery_discharge_power
+      charge_energy:
+        name: ${name}_${jackerysv3_name}_battery_charge_energy
+      discharge_energy:
+        name: ${name}_${jackerysv3_name}_battery_discharge_energy
+    energy_flows:
+      pv_to_battery:
+        name: ${name}_${jackerysv3_name}_pv_to_battery_energy
+      pv_to_socket:
+        name: ${name}_${jackerysv3_name}_pv_to_socket_energy
+      pv_to_grid:
+        name: ${name}_${jackerysv3_name}_pv_to_grid_energy
+      grid_to_battery:
+        name: ${name}_${jackerysv3_name}_grid_to_battery_Energy
+      grid_to_socket:
+        name: ${name}_${jackerysv3_name}_grid_to_socket_energy
+      battery_to_socket:
+        name: ${name}_${jackerysv3_name}_nattery_to_socket_energy
+      battery_to_grid:
+        name: ${name}_${jackerysv3_name}_battery_to_grid_energy
+      socket_to_battery:
+        name: ${name}_${jackerysv3_name}_socket_to_battery_energy
+      socket_to_grid:
+        name: ${name}_${jackerysv3_name}_socket_to_grid_energy
+    ct:
+      forward_power:
+        name: ${name}_${jackerysv3_name}_ct_forward_power
+      reverse_power:
+        name: ${name}_${jackerysv3_name}_ct_reverse_power
+      forward_energy:
+        name: ${name}_${jackerysv3_name}_ct_forward_energy
+      reverse_energy:
+        name: ${name}_${jackerysv3_name}_ct_reverse_energy
+      phase_a_forward_power:
+        name: ${name}_${jackerysv3_name}_ct_pa_forward_power
+      phase_b_forward_power:
+        name: ${name}_${jackerysv3_name}_ct_pb_forward_power
+      phase_c_forward_power:
+        name: ${name}_${jackerysv3_name}_ct_pc_forward_power
+      phase_a_reverse_power:
+        name: ${name}_${jackerysv3_name}_ct_pa_reverse_power
+      phase_b_reverse_power:
+        name: ${name}_${jackerysv3_name}_ct_pb_reverse_power
+      phase_c_reverse_power:
+        name: ${name}_${jackerysv3_name}_ct_pc_reverse_power
+    plugs:
+      plug0:
+        power:
+          name: ${name}_${jackerysv3_name}_plug0_power
+        energy:
+          name: ${name}_${jackerysv3_name}_plug0_energy
+      plug1:
+        power:
+          name: ${name}_${jackerysv3_name}_plug1_power
+        energy:
+          name: ${name}_${jackerysv3_name}_plug1_energy
+
+binary_sensor:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    online:
+      name: ${name}_${jackerysv3_name}_online
+    client_connected:
+      name: ${name}_${jackerysv3_name}_mqtt_client_connected
+    on_grid:
+      name: ${name}_${jackerysv3_name}_on_grid
+    ct_online:
+      name: ${name}_${jackerysv3_name}_ct_online
+    grid_meter_link:
+      name: ${name}_${jackerysv3_name}_grid_meter_link
+    socket_ok:
+      name: ${name}_${jackerysv3_name}_socket_ok
+
+text_sensor:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    status:
+      name: ${name}_${jackerysv3_name}_status
+    work_mode:
+      name: ${name}_${jackerysv3_name}_work_mode
+    firmware_version:
+      name: ${name}_${jackerysv3_name}_firmware_version
+    model:
+      name: ${name}_${jackerysv3_name}_model
+    ct_type:
+      name: ${name}_${jackerysv3_name}_ct_type
+
+switch:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    ac_socket:
+      name: ${name}_${jackerysv3_name}_ac_socket
+    auto_standby_allowed:
+      name: ${name}_${jackerysv3_name}_auto_standby_allowed
+    plugs:
+      plug0:
+        name: ${name}_${jackerysv3_name}_plug0
+
+number:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    soc_charge_limit:
+      name: ${name}_${jackerysv3_name}_soc_charge_limit
+    soc_discharge_limit:
+      name: ${name}_${jackerysv3_name}_soc_discharge_limit
+    max_output_power:
+      name: ${name}_${jackerysv3_name}_max_output_power
+
+select:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    auto_standby_mode:
+      name: ${name}_${jackerysv3_name}_auto_standby_mode
+
+button:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    reboot:
+      name: ${name}_${jackerysv3_name}_reboot
+
+# For control loops (PID, zero injection ...): float output 0.0 .. 1.0 mapped on the range of the setting
+output:
+  - platform: jackerysv3
+    jackerysv3_id: ${jackerysv3_id}
+    max_output_power:               # 0.0 -> 0 W, 1.0 -> 2500 W (step 10 W)
+      id: ${jackerysv3_name}_max_output_power
+              
