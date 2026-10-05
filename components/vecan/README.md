@@ -68,7 +68,7 @@ Only frames whose source address equals `set_address()` are forwarded. `vecan_pr
 
 ## Protocol notes and limits
 
-- Sources: Victron's public *VE.Can registers* document (v20, 2015) and the *Data communication with Victron Energy
+- Sources: Victron's public *VE.Can registers* document (v23, 2026-09; v20-v22 changed the error codes, device states and several registers) and the *Data communication with Victron Energy
   products* white paper. Victron does not publish a register list per product: which registers a given device implements
   has to be checked on the bus (a device answers `0x8000` to a register it does not have).
 - Register writes are supported with `write_vreg(dst, reg, value)` (single frame, up to 4 data bytes): the hub only

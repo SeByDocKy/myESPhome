@@ -107,6 +107,9 @@ for continuous regulation. A wrong battery voltage can damage a battery. The com
   If nothing arrives within 2 s the register is read back; if the charger still has another value, an error is logged
   and the entity goes back to the real value. A NACK (for example `0x8300` value out of range) does the same.
 - Do not drive these entities from a fast automation loop.
+- Per Victron's register document (v23): the charge-algorithm settings (absorption, float, equalisation voltage...) can
+  only be changed when the **battery type is "user defined" (255)**, otherwise the charger refuses the write (NACK).
+  Some chargers also ignore them when a physical switch or a BMS controls the charging.
 
 Frame layout (from Victron's register document): `66 99 regL regH v0 v1 v2 v3`, sent to the charger's address.
 Example, absorption 58.00 V: `66 99 F7 ED A8 16 00 00`.
@@ -124,8 +127,9 @@ answered with a NACK).
   (float above absorption, outside the hard limits), charger NACK, write not applied by the charger, on/off switch
   with the 10 s spacing, and three quick slider changes merged into one write.
 - **Not yet tested on a real charger.** The write format and the register ids come from Victron's public register
-  document; the mode values (`4` = off, `1` = on) follow the VE.Direct/VE.Can convention and have to be confirmed on
-  your charger: use `listen_only: false`, read `0x0200` first (the `charger` switch reflects it) and then try. The PGN/register meanings come from Victron's public documents, which describe
+  document (v23, 2026-09); the mode values are `4` = off and, for "on", whatever non-off mode the charger reports
+  (the register document lists 1 = charger only, 3 = on, 5 = eco for VE.Bus products, MPPTs usually use 1); confirm
+  on your charger: use `listen_only: false`, read `0x0200` first (the `charger` switch reflects it) and then try. The PGN/register meanings come from Victron's public documents, which describe
   the BlueSolar MPPT 150/70 and 150/85 (PV on battery instance 1 of PGN 127508, binary status bits 1..5).
   Newer SmartSolar VE.Can models may map things differently: if `pv_*` stay empty, sniff the bus in `listen_only` mode
   and adjust `battery_instance` / `pv_instance`.

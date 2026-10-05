@@ -4,7 +4,7 @@
 // No ESPHome dependency on purpose: this header is unit-tested on the host with plain g++.
 //
 // References (public Victron documents):
-//  - "VE.Can registers - public" (Victron Registers in NMEA 2000, v20)
+//  - "VE.Can registers - public" (Victron Registers in NMEA 2000, v23)
 //  - "Data communication with Victron Energy products" (whitepaper, PGN tables, FAQ)
 
 #include <algorithm>
@@ -264,14 +264,19 @@ inline bool decode_binary_status(const uint8_t *d, size_t n, uint8_t &instance, 
 // ---------------------------------------------------------------------------------------------
 // Firmware version, BCD-like: 0x030201 -> "3.02.01", 0x000201 -> "2.01", 0x00C201 -> "C2.01".
 inline std::string format_firmware(uint32_t v) {
+  // VREG 0x0102 (v23 of "VE.Can registers"): BCD un24. Two significant bytes: "mid.lo" (0x000201 -> 2.01,
+  // 0x00C201 -> C2.01, a release candidate). Three bytes: hi.mid, and the low byte is the build type:
+  // 0xFF = release (0x0302FF -> 3.02), anything else is a beta build (0x030201 -> 3.02-beta-01).
   if (v == 0xFFFFFF)
     return "none";
-  char buf[16];
+  char buf[24];
   uint8_t hi = (v >> 16) & 0xFF, mid = (v >> 8) & 0xFF, lo = v & 0xFF;
-  if (hi != 0)
-    std::snprintf(buf, sizeof(buf), "%X.%02X.%02X", hi, mid, lo);
-  else
+  if (hi == 0)
     std::snprintf(buf, sizeof(buf), "%X.%02X", mid, lo);
+  else if (lo == 0xFF)
+    std::snprintf(buf, sizeof(buf), "%X.%02X", hi, mid);
+  else
+    std::snprintf(buf, sizeof(buf), "%X.%02X-beta-%02X", hi, mid, lo);
   return buf;
 }
 
@@ -301,8 +306,14 @@ inline const char *device_state_name(uint8_t s) {
     case 0x09: return "Inverting";
     case 0x0A: return "Assisting";
     case 0x0B: return "Power supply";
+    case 0xF5: return "Wake-up";
+    case 0xF6: return "Repeated absorption";
+    case 0xF7: return "Auto equalize";
+    case 0xF8: return "Battery safe";
+    case 0xF9: return "Load detect";
+    case 0xFA: return "Blocked";
     case 0xFB: return "Test";
-    case 0xFC: return "Hub-1";
+    case 0xFC: return "External control";
     case 0xFF: return "Not available";
     default: return "Unknown";
   }
@@ -310,6 +321,9 @@ inline const char *device_state_name(uint8_t s) {
 
 // Charger error code (VREG 0xEDDA).
 inline const char *charger_error_name(uint8_t e) {
+  // v23 of "VE.Can registers", register 0xEDDA
+  if (e >= 200 && e <= 254)
+    return "Internal error";
   switch (e) {
     case 0: return "No error";
     case 1: return "Battery temperature too high";
@@ -321,6 +335,11 @@ inline const char *charger_error_name(uint8_t e) {
     case 7: return "Battery voltage sense miswired (-)";
     case 8: return "Battery voltage sense disconnected";
     case 9: return "Battery voltage wire losses too high";
+    case 10: return "Battery voltage too low";
+    case 11: return "Battery ripple voltage too high";
+    case 12: return "Battery low state-of-charge";
+    case 13: return "Battery mid-point voltage issue";
+    case 14: return "Battery temperature too high";
     case 17: return "Charger temperature too high";
     case 18: return "Charger over-current";
     case 19: return "Charger current reversed";
@@ -332,25 +351,45 @@ inline const char *charger_error_name(uint8_t e) {
     case 25: return "Charger fan over-current";
     case 26: return "Charger terminal overheated";
     case 27: return "Charger short circuit";
+    case 28: return "Charger issue with power stage";
+    case 29: return "Charger over-charge protection";
+    case 31: return "Input voltage out of range";
+    case 32: return "Input voltage too low";
     case 33: return "Input voltage too high";
     case 34: return "Input current too high";
     case 35: return "Input power too high";
     case 36: return "Input polarity reversed";
     case 37: return "Input voltage absent";
-    case 49: return "Load temperature too high";
-    case 50: return "Load over voltage";
-    case 51: return "Load over current";
-    case 52: return "Load current reversed";
-    case 53: return "Load over power";
+    case 38: return "Input shutdown (permanent)";
+    case 39: return "Input shutdown (retries)";
+    case 40: return "Internal failure (MPPT)";
+    case 41: return "Inverter shutdown (panel isolation)";
+    case 42: return "Inverter shutdown (ground current)";
+    case 43: return "Inverter shutdown (L-PE voltage)";
+    case 50: return "Inverter overload";
+    case 51: return "Inverter temperature too high";
+    case 52: return "Inverter peak current";
+    case 53: return "Inverter internal DC level";
+    case 54: return "Inverter wrong AC out level";
+    case 55: return "Inverter power stage fault";
+    case 56: return "Inverter power stage fault";
+    case 57: return "Inverter connected to AC";
+    case 58: return "Inverter power stage fault";
+    case 59: return "AC-in 1 relay test fault";
+    case 60: return "AC-in 2 relay test fault";
     case 65: return "Link device missing";
     case 66: return "Link incompatible device (settings)";
     case 67: return "Link BMS connection lost";
+    case 68: return "Link network misconfigured";
     case 113: return "Non-volatile storage write error";
     case 114: return "CPU temperature too high";
-    case 116: return "User settings corrupt/lost";
+    case 116: return "Factory calibration data corrupt/lost";
     case 117: return "Incompatible firmware";
     case 118: return "Incompatible hardware";
-    case 119: return "Factory settings corrupt/lost";
+    case 119: return "User settings corrupt/lost";
+    case 120: return "Internal reference voltage failure";
+    case 121: return "Tester failure";
+    case 122: return "History data invalid";
     default: return "Unknown error";
   }
 }
