@@ -46,7 +46,9 @@ class VeCanHub : public Component {
 
   /// Queue a request for one VREG of the device at `dst`. Duplicates already waiting are dropped.
   /// Returns false when nothing can be sent (listen-only, queue full).
-  bool request_vreg(uint8_t dst, uint16_t reg);
+  /// With a mask other than 0xFFFF every register whose id AND mask equals `reg` answers: request_vreg(dst, 0x2200,
+  /// 0xFF00) asks for the whole page 0x22. Used to discover what a device implements.
+  bool request_vreg(uint8_t dst, uint16_t reg, uint16_t mask = 0xFFFF);
 
   /// Queue a write of one VREG (single frame, up to 4 data bytes, little endian) of the device at `dst`.
   /// A write still waiting for the same register is replaced by the new value. Writes are sent before queued reads.
@@ -70,7 +72,7 @@ class VeCanHub : public Component {
     uint8_t dst;
     uint16_t reg;
     bool write;
-    uint32_t value;
+    uint32_t value;  // write: the value, read: the request mask
   };
 
   void on_frame_(uint32_t can_id, bool extended, bool rtr, const std::vector<uint8_t> &data);

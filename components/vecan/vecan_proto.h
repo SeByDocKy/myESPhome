@@ -103,15 +103,15 @@ inline uint8_t name_function(uint64_t name) { return (name >> 40) & 0xFF; }
 // VREG (Victron register) frames
 // ---------------------------------------------------------------------------------------------
 // Request one register: 66 99 01 00 regL regH FF FF   (regId + mask 0xFFFF = exact match)
-inline void build_vreg_request(uint16_t reg, uint8_t out[8]) {
+inline void build_vreg_request(uint16_t reg, uint8_t out[8], uint16_t mask = 0xFFFF) {
   out[0] = VREG_HDR0;
   out[1] = VREG_HDR1;
   out[2] = VREG_REQUEST & 0xFF;
   out[3] = VREG_REQUEST >> 8;
   out[4] = reg & 0xFF;
   out[5] = reg >> 8;
-  out[6] = 0xFF;
-  out[7] = 0xFF;
+  out[6] = mask & 0xFF;  // registers whose id AND mask equals regId answer (0xFFFF: that register only,
+  out[7] = mask >> 8;    // 0xFF00: the whole page, e.g. regId 0x2200)
 }
 
 // Write one register: 66 99 regL regH v0 v1 v2 v3   (value little endian, zero padded; un8/un16 use the first bytes)

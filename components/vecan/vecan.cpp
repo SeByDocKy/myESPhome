@@ -83,7 +83,7 @@ void VeCanHub::loop() {
           ESP_LOGI(TAG, "Writing register 0x%04X of 0x%02X = 0x%08" PRIX32, item.reg, item.dst, item.value);
           build_vreg_write(item.reg, item.value, payload);
         } else {
-          build_vreg_request(item.reg, payload);
+          build_vreg_request(item.reg, payload, static_cast<uint16_t>(item.value));
         }
         this->send_frame_(encode_id(PRIORITY_VREG, PGN_VREG_SF, item.dst, this->address_), payload, 8);
         this->last_tx_ms_ = now;
@@ -94,18 +94,18 @@ void VeCanHub::loop() {
   }
 }
 
-bool VeCanHub::request_vreg(uint8_t dst, uint16_t reg) {
+bool VeCanHub::request_vreg(uint8_t dst, uint16_t reg, uint16_t mask) {
   if (this->state_ == State::LISTEN_ONLY)
     return false;
   for (const auto &q : this->tx_queue_) {
-    if (q.dst == dst && q.reg == reg && !q.write)
+    if (q.dst == dst && q.reg == reg && !q.write && q.value == mask)
       return true;  // already waiting
   }
   if (this->tx_queue_.size() >= TX_QUEUE_MAX) {
     ESP_LOGW(TAG, "TX queue full, dropping request for register 0x%04X", reg);
     return false;
   }
-  this->tx_queue_.push_back({dst, reg, false, 0});
+  this->tx_queue_.push_back({dst, reg, false, mask});
   return true;
 }
 

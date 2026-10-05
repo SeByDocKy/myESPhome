@@ -45,7 +45,7 @@ Tip: the `canbus` component logs every frame at `DEBUG` level. Keep `logs: canbu
 1. 500 ms after boot it sends an ISO request for address claims, then listens for 1.5 s (this is also how Victron
    devices get discovered: `Victron device found at address 0x20`).
 2. It claims its address and waits 250 ms before transmitting anything else.
-3. Device components ask for registers with `request_vreg(dst, reg)` and change them with `write_vreg(dst, reg, value)`;
+3. Device components ask for registers with `request_vreg(dst, reg)` (an optional mask, e.g. 0xFF00, requests a whole register page) and change them with `write_vreg(dst, reg, value)`;
    frames are queued (writes before reads) and sent one at a time. The answer (or the confirmation of a write) is
    broadcast by the device, as described in Victron's public register document; a refusal is a NACK.
 
