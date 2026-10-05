@@ -19,6 +19,7 @@
 #include "switch/smartsolar_switch.h"
 #endif
 
+#include <cinttypes>
 #include <cmath>
 
 namespace esphome {
@@ -470,7 +471,8 @@ void SmartSolar::loop() {
         break;
       case WriteState::VERIFY: {  // last chance expired
         if (p.has_seen) {
-          ESP_LOGE(TAG, "Register 0x%04X was NOT changed: the charger reports 0x%X instead of 0x%X", p.reg, p.seen_raw, p.raw);
+          ESP_LOGE(TAG, "Register 0x%04X was NOT changed: the charger reports 0x%" PRIX32 " instead of 0x%" PRIX32, p.reg,
+                   p.seen_raw, p.raw);
           this->publish_register_(p.reg, p.seen_raw);
         } else {
           ESP_LOGE(TAG, "No answer from the charger after writing register 0x%04X, the new value is unconfirmed", p.reg);
@@ -498,7 +500,7 @@ void SmartSolar::on_register_value_(uint16_t reg, uint32_t raw) {
   if (p->state == WriteState::DEBOUNCE)
     return;  // the user is still changing the value: do not move the slider under their finger
   if (raw == p->raw) {
-    ESP_LOGI(TAG, "Register 0x%04X confirmed by the charger: 0x%X", reg, raw);
+    ESP_LOGI(TAG, "Register 0x%04X confirmed by the charger: 0x%" PRIX32, reg, raw);
     this->publish_register_(reg, raw);
     this->drop_pending_(reg);
     return;
