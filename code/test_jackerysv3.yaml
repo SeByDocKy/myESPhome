@@ -1,0 +1,317 @@
+substitutions:
+  name: "test_jackerysv3"
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+logger:
+  level: DEBUG
+  
+debug:
+  update_interval: 5s  
+
+# Recommended: the poll requests carry a timestamp
+
+# external_components:
+  # - source: "github://SeByDocKy/myESPhome/"
+    # components: [jackerysv3, mqtt_broker]
+    # refresh: 1min
+    
+  
+time:
+  - platform: sntp
+    id: my_time    
+    
+    
+    
+packages:
+
+  sv3:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_jackerysv3.yaml'
+        vars:
+          jackerysv3_name: 'sv3'
+          jackerysv3_id: 'sv3'
+          jackerysv3_ip_address: '192.168.1.60'
+          jackerysv3_sn: !secret sf3_sn1
+          jackerysv3_token: !secret sf3_token1
+          jackerysv3_poll_interval: '5s'    
+          
+          
+          
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time          
+
+# mqtt_broker:
+  # id: broker
+  # port: 1883
+  # # username: jackery            # optional; without credentials any client is accepted
+  # # password: secret
+  # max_clients: 4
+  # log_traffic: true               # see what the battery sends on first connection
+
+# jackerysv3:
+  # id: jackery
+  # mqtt_broker_id: broker
+  # sn: "SV3XXXXXXXXXXXX"           # serial number shown in the Jackery app
+  # token: "xxxxxxxxxxxxxxxx"       # token shown in the Jackery app (MQTT settings)
+  # topic_prefix: hb
+  # poll_interval: 5s
+  # offline_timeout: 60s
+  # # plug_sns: ["PLUGSN0", "PLUGSN1"]
+
+# sensor:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # status_code:
+      # name: "Jackery Status Code"
+    # work_mode_code:
+      # name: "Jackery Work Mode Code"
+    # dc_channels:
+      # power:
+        # name: "Jackery Solar Power"
+      # energy:
+        # name: "Jackery Solar Energy"
+      # pv0:
+        # power:
+          # name: "Jackery PV0 Power"
+        # energy:
+          # name: "Jackery PV0 Energy"
+      # pv1:
+        # power:
+          # name: "Jackery PV1 Power"
+        # energy:
+          # name: "Jackery PV1 Energy"
+      # pv2:
+        # power:
+          # name: "Jackery PV2 Power"
+      # pv3:
+        # power:
+          # name: "Jackery PV3 Power"
+    # ac:
+      # grid_power:
+        # name: "Jackery Grid Power"
+      # grid_input_power:
+        # name: "Jackery Grid Input Power"
+      # grid_output_power:
+        # name: "Jackery Grid Output Power"
+      # grid_input_energy:
+        # name: "Jackery Grid Input Energy"
+      # grid_output_energy:
+        # name: "Jackery Grid Output Energy"
+      # home_power:
+        # name: "Jackery Home Power"
+      # other_load_power:
+        # name: "Jackery Other Load Power"
+      # max_feed_in_power:
+        # name: "Jackery Max Feed-in Power"
+      # socket_power:
+        # name: "Jackery Socket Power"
+      # socket_input_power:
+        # name: "Jackery Socket Input Power"
+      # socket_input_energy:
+        # name: "Jackery Socket Input Energy"
+      # socket_output_energy:
+        # name: "Jackery Socket Output Energy"
+    # battery:
+      # soc:
+        # name: "Jackery Battery SOC"
+      # average_soc:
+        # name: "Jackery Battery Average SOC"
+      # temperature:
+        # name: "Jackery Battery Temperature"
+      # pack_count:
+        # name: "Jackery Battery Pack Count"
+      # net_power:
+        # name: "Jackery Battery Net Power"
+      # charge_power:
+        # name: "Jackery Battery Charge Power"
+      # discharge_power:
+        # name: "Jackery Battery Discharge Power"
+      # charge_energy:
+        # name: "Jackery Battery Charge Energy"
+      # discharge_energy:
+        # name: "Jackery Battery Discharge Energy"
+    # energy_flows:
+      # pv_to_battery:
+        # name: "Jackery PV to Battery Energy"
+      # pv_to_socket:
+        # name: "Jackery PV to Socket Energy"
+      # pv_to_grid:
+        # name: "Jackery PV to Grid Energy"
+      # grid_to_battery:
+        # name: "Jackery Grid to Battery Energy"
+      # grid_to_socket:
+        # name: "Jackery Grid to Socket Energy"
+      # battery_to_socket:
+        # name: "Jackery Battery to Socket Energy"
+      # battery_to_grid:
+        # name: "Jackery Battery to Grid Energy"
+      # socket_to_battery:
+        # name: "Jackery Socket to Battery Energy"
+      # socket_to_grid:
+        # name: "Jackery Socket to Grid Energy"
+    # ct:
+      # forward_power:
+        # name: "Jackery CT Forward Power"
+      # reverse_power:
+        # name: "Jackery CT Reverse Power"
+      # forward_energy:
+        # name: "Jackery CT Forward Energy"
+      # reverse_energy:
+        # name: "Jackery CT Reverse Energy"
+      # phase_a_forward_power:
+        # name: "Jackery CT Phase A Forward Power"
+      # phase_b_forward_power:
+        # name: "Jackery CT Phase B Forward Power"
+      # phase_c_forward_power:
+        # name: "Jackery CT Phase C Forward Power"
+      # phase_a_reverse_power:
+        # name: "Jackery CT Phase A Reverse Power"
+      # phase_b_reverse_power:
+        # name: "Jackery CT Phase B Reverse Power"
+      # phase_c_reverse_power:
+        # name: "Jackery CT Phase C Reverse Power"
+    # plugs:
+      # plug0:
+        # power:
+          # name: "Jackery Plug0 Power"
+        # energy:
+          # name: "Jackery Plug0 Energy"
+      # plug1:
+        # power:
+          # name: "Jackery Plug1 Power"
+
+# binary_sensor:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # online:
+      # name: "Jackery Online"
+    # client_connected:
+      # name: "Jackery MQTT Client Connected"
+    # on_grid:
+      # name: "Jackery On Grid"
+    # ct_online:
+      # name: "Jackery CT Online"
+    # grid_meter_link:
+      # name: "Jackery Grid Meter Link"
+    # socket_ok:
+      # name: "Jackery Socket OK"
+
+# text_sensor:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # status:
+      # name: "Jackery Status"
+    # work_mode:
+      # name: "Jackery Work Mode"
+    # firmware_version:
+      # name: "Jackery Firmware Version"
+    # model:
+      # name: "Jackery Model"
+    # ct_type:
+      # name: "Jackery CT Type"
+
+# switch:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # ac_socket:
+      # name: "Jackery AC Socket"
+    # auto_standby_allowed:
+      # name: "Jackery Auto Standby Allowed"
+    # plugs:
+      # plug0:
+        # name: "Jackery Plug0"
+
+# number:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # soc_charge_limit:
+      # name: "Jackery SOC Charge Limit"
+    # soc_discharge_limit:
+      # name: "Jackery SOC Discharge Limit"
+    # max_output_power:
+      # name: "Jackery Max Output Power"
+
+# select:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # auto_standby_mode:
+      # name: "Jackery Auto Standby Mode"
+
+# button:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # reboot:
+      # name: "Jackery Reboot"
+
+# # For control loops (PID, zero injection ...): float output 0.0 .. 1.0 mapped on the range of the setting
+# output:
+  # - platform: jackerysv3
+    # jackerysv3_id: jackery
+    # max_output_power:               # 0.0 -> 0 W, 1.0 -> 2500 W (step 10 W)
+      # id: jackery_max_output_power
+      
+      
+      
+      
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s
+      
