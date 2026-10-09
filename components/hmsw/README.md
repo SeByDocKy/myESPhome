@@ -390,7 +390,7 @@ reasonable guess, not a certainty.
 
 This poll is **off by default** (`alarm_poll_interval: 0s`) and entirely
 separate from `poll_interval`/`heartbeat_interval` -- warning data changes
-rarely, so there's no reason to fetch it on the same ~60s cadence as
+rarely, so there's no reason to fetch it on the same ~30s cadence as
 realtime telemetry:
 
 ```yaml
@@ -550,28 +550,20 @@ from a real hang captured and reproduced against this specific component.
 
 ## Polling interval
 
-`poll_interval` defaults to **60s** and `heartbeat_interval` to **300s**.
+`poll_interval` defaults to **60s** (and `heartbeat_interval` to **300s**,
+`request_timeout` to **10s**). These values come from field testing on a real
+HMS-W (DTU firmware V00.01.11, reported in issue #8): with `poll_interval: 30s`
+and the former 20s heartbeat, the DTU stopped accepting connections after
+about 25 minutes (errno 104), while 60s / 300s was stable.
 
-Real-hardware report (HMS-W with 2 PV inputs, DTU firmware V00.01.11): with
-the former defaults (30s poll + 20s heartbeat, i.e. a new TCP connection
-every 10-20s), the DTU stopped accepting local connections after ~25 minutes.
-Port 10081 was refused or reset (errno 104) for every client, including a PC,
-until the DTU was restarted. With 60s + 300s it was read every minute without
-a single failure, including while the inverter's AC side was switched off and
-on. The DTU only serves **one connection at a time**: don't poll it from
-another application (hoymiles-wifi, the S-Miles app on the LAN…) at the same
-time. [ohAnd/dtuGateway](https://github.com/ohAnd/dtuGateway) reports the
-same limit ("~31 second minimum polling to avoid DTU hangs").
-
-Per community
-reports on the underlying protocol
+Per community reports on the underlying protocol
 ([suaveolent/ha-hoymiles-wifi's README](https://github.com/suaveolent/ha-hoymiles-wifi/blob/main/README.md)),
-the inverter firmware itself appears to enforce a ~30s minimum spacing
+the inverter firmware itself also appears to enforce a ~30s minimum spacing
 between requests regardless of what the client asks for, and polling below
 ~32s (120s on newer firmware) has been reported to **disable the
-inverter's own sync with the Hoymiles cloud**. Going lower than 60s here
-is not expected to get you fresher data -- it risks losing cloud sync for
-no benefit.
+inverter's own sync with the Hoymiles cloud**. Going lower than the defaults
+here is not expected to get you fresher data -- it risks losing cloud sync
+or hanging the DTU for no benefit.
 
 Separately, the Python reference client enforces at least ~2s between *any*
 two requests it sends (regardless of command), which is also why
@@ -906,16 +898,18 @@ binary_sensor:
 
 ## Status
 
-First working cut, built from protocol documentation and a verified
-reference client -- **not yet tested against real HMS-XXXXW hardware.**
-Expect to iterate from real logs, the same way `hm:`/`hms:` were debugged
-to their current state (see their own README/commit history).
+Field-tested **read-only** on an HMS-800W-2T-class inverter (DTU firmware
+V00.01.11, ESP32-C3) thanks to a community report and patch (issue #8, PR #9):
+connection handling, frame reception, the `0xA2` response command and
+`reachable` reporting were fixed as a result, and the default timings were
+raised (see "Polling interval"). Write features (power limit, DTU reboot)
+have **not** been tested on real hardware yet. Please report your logs.
 
-
-License
+## License
 
 This component is released under the MIT License.
 
+```
 MIT License
 
 Copyright (c) 2026 Sébastien PARIS
@@ -937,5 +931,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```
 
-Third-party code bundled in this directory keeps its own license: the pb*.c/pb*.h files are nanopb (zlib license), and the *.pb.c/*.pb.h files are nanopb-generated code.
+Third-party code bundled in this directory keeps its own license: the
+`pb*.c`/`pb*.h` files are [nanopb](https://github.com/nanopb/nanopb)
+(zlib license), and the `*.pb.c`/`*.pb.h` files are nanopb-generated code.
