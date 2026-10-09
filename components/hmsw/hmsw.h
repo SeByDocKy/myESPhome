@@ -222,6 +222,7 @@ class HMSWComponent : public Component {
   // connection alive across WiFi hiccups.
   void start_request_(RequestKind kind);
   void abort_request_(const char *reason);
+  void fail_request_(const char *reason);
   void handle_connecting_();
   void handle_sending_();
   void handle_receiving_();
@@ -238,9 +239,9 @@ class HMSWComponent : public Component {
 
   std::string ip_address_;
   uint16_t ip_port_{DTU_DEFAULT_PORT};
-  uint32_t poll_interval_ms_{30000};
-  uint32_t heartbeat_interval_ms_{20000};
-  uint32_t request_timeout_ms_{3000};
+  uint32_t poll_interval_ms_{60000};
+  uint32_t heartbeat_interval_ms_{300000};
+  uint32_t request_timeout_ms_{10000};
   bool use_real_data_new_{false};
   uint32_t alarm_poll_interval_ms_{0};  // 0 = disabled (default)
   uint32_t last_alarm_poll_{0};

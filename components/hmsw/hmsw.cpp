@@ -219,12 +219,30 @@ void HMSWComponent::abort_request_(const char *reason) {
   this->pending_kind_ = RequestKind::NONE;
 }
 
+// A network failure (timeout, socket error) counts as a failure for "reachable",
+// like an invalid response (otherwise the entity stays unknown while nothing answers).
+void HMSWComponent::fail_request_(const char *reason) {
+  this->consecutive_failures_++;
+  this->publish_reachable_(this->consecutive_failures_ < REACHABLE_FAILURE_THRESHOLD);
+  this->abort_request_(reason);
+}
+
 void HMSWComponent::handle_connecting_() {
-  // Non-blocking connect() completion: writability indicates the connect
-  // attempt has resolved (success or failure) -- same convention as a
-  // classic BSD-socket select()-on-writable check.
-  if (!this->socket_->ready()) {
-    if (millis() > this->state_deadline_) this->abort_request_("connect timeout");
+  // Non-blocking connect() completion. ESPHome's Socket::ready() means "data
+  // available to read", not "connect() resolved" (using it made write() run
+  // before the connection existed: "send() error", errno 119).
+  // Connected = getpeername() succeeds; failed = SO_ERROR is non-zero.
+  struct sockaddr_storage peer;
+  socklen_t peer_len = sizeof(peer);
+  if (this->socket_->getpeername(reinterpret_cast<struct sockaddr *>(&peer), &peer_len) != 0) {
+    int so_err = 0;
+    socklen_t so_len = sizeof(so_err);
+    if (this->socket_->getsockopt(SOL_SOCKET, SO_ERROR, &so_err, &so_len) == 0 && so_err != 0) {
+      ESP_LOGD(TAG, "connect() failed (errno=%d)", so_err);
+      this->fail_request_("connect failed");
+      return;
+    }
+    if (millis() > this->state_deadline_) this->fail_request_("connect timeout");
     return;
   }
   this->state_ = ConnState::SENDING;
@@ -238,11 +256,15 @@ void HMSWComponent::handle_sending_() {
       this->tx_sent_ += static_cast<size_t>(n);
       continue;
     }
-    if (n == 0 || (n < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))) {
-      if (millis() > this->state_deadline_) this->abort_request_("send timeout");
+    // On lwIP, getpeername() can succeed while the handshake is still in progress:
+    // write() then returns EINPROGRESS (119) / EALREADY / ENOTCONN => retry next tick.
+    if (n == 0 || (n < 0 && (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINPROGRESS ||
+                             errno == EALREADY || errno == ENOTCONN))) {
+      if (millis() > this->state_deadline_) this->fail_request_("send timeout");
       return;  // try again next tick
     }
-    this->abort_request_("send() error");
+    ESP_LOGD(TAG, "send() errno=%d", errno);
+    this->fail_request_("send() error");
     return;
   }
   this->state_ = ConnState::RECEIVING;
@@ -258,6 +280,13 @@ void HMSWComponent::handle_receiving_() {
     ssize_t n = this->socket_->read(this->rx_buf_ + this->rx_len_, MAX_FRAME_SIZE - this->rx_len_);
     if (n > 0) {
       this->rx_len_ += static_cast<size_t>(n);
+      // The DTU does not close the connection after answering (the Python
+      // client closes it itself) => process the frame as soon as it is complete
+      // according to its declared length (bytes 8-9), without waiting for EOF.
+      if (this->rx_len_ >= FRAME_HEADER_SIZE) {
+        uint16_t declared = (static_cast<uint16_t>(this->rx_buf_[8]) << 8) | this->rx_buf_[9];
+        if (declared >= FRAME_HEADER_SIZE && this->rx_len_ >= declared) break;
+      }
     } else if (n == 0) {
       // Peer closed the connection -- normal for this protocol (one
       // connection per request/response, like the Python reference client).
@@ -265,11 +294,11 @@ void HMSWComponent::handle_receiving_() {
     } else {
       if (errno == EWOULDBLOCK || errno == EAGAIN) {
         if (millis() > this->state_deadline_) {
-          this->abort_request_("receive timeout");
+          this->fail_request_("receive timeout");
         }
         return;  // try again next tick
       }
-      this->abort_request_("recv() error");
+      this->fail_request_("recv() error");
       return;
     }
   }
@@ -319,9 +348,14 @@ void HMSWComponent::handle_receiving_() {
   this->abort_request_(nullptr);
 }
 
-void HMSWComponent::on_frame_received_(const uint8_t *cmd, const uint8_t *payload, size_t len) {
+void HMSWComponent::on_frame_received_(const uint8_t *rx_cmd, const uint8_t *payload, size_t len) {
   this->consecutive_failures_ = 0;
   this->publish_reachable_(true);
+
+  // The DTU answers 0xA3 xx requests with 0xA2 xx (seen on an HMS-W, DTU firmware
+  // V00.01.11): map back to 0xA3 for the dispatch below.
+  const uint8_t cmd[2] = {rx_cmd[0] == 0xA2 ? static_cast<uint8_t>(0xA3) : rx_cmd[0], rx_cmd[1]};
+  ESP_LOGV(TAG, "Response 0x%02X 0x%02X, %u bytes payload", rx_cmd[0], rx_cmd[1], (unsigned) len);
 
   if (cmd[0] == CMD_REAL_DATA[0] && cmd[1] == CMD_REAL_DATA[1]) {
     RealDataReqDTO data = RealDataReqDTO_init_zero;
@@ -375,7 +409,7 @@ void HMSWComponent::on_frame_received_(const uint8_t *cmd, const uint8_t *payloa
                      "the parse failure, the reboot request was still sent", (unsigned) len);
     }
   } else {
-    ESP_LOGV(TAG, "Unhandled response command 0x%02X 0x%02X (%u bytes payload)", cmd[0], cmd[1], (unsigned) len);
+    ESP_LOGD(TAG, "Unhandled response command 0x%02X 0x%02X (%u bytes payload)", rx_cmd[0], rx_cmd[1], (unsigned) len);
   }
 }
 
