@@ -18,6 +18,12 @@ static constexpr uint32_t REAUTH_HINT_TIMEOUT_MS = 120000;  // nothing received 
 static constexpr uint32_t HINT_REPEAT_MS = 600000;          // repeat the hint every 10 minutes
 static constexpr uint32_t TOKEN_WARN_REPEAT_MS = 60000;
 static constexpr uint32_t HOUSEKEEPING_MS = 1000;
+static constexpr uint32_t TIME_WAIT_MS = 60000;      // wait this long after boot for a valid clock before polling
+static constexpr uint32_t NO_REPLY_WARN_MS = 30000;  // polls delivered but the battery stays silent this long
+static constexpr uint32_t SUMMARY_MS = 60000;
+static constexpr time_t MIN_VALID_TIME = 1704067200;  // 2024-01-01: anything earlier means the clock is not set
+
+static bool system_time_valid() { return ::time(nullptr) >= MIN_VALID_TIME; }
 
 enum BinarySource : uint8_t { SRC_STATE = 0, SRC_ONLINE = 1, SRC_CLIENT = 2 };
 
@@ -169,6 +175,16 @@ void JackerySV3Hub::on_message(const std::string &topic, const uint8_t *payload,
   }
   this->messages_++;
   const uint32_t now = millis();
+  // The topics are matched case-insensitively, but the battery only receives a message published on the exact
+  // topic it subscribed to: copy the spelling it uses itself (e.g. an SN typed in another case in the YAML).
+  const size_t slash = topic.rfind('/');
+  if (slash != std::string::npos) {
+    const std::string action = topic.substr(0, slash) + "/action";
+    if (action != this->action_topic_) {
+      ESP_LOGI(TAG, "The battery uses another topic spelling: sending requests on %s", action.c_str());
+      this->action_topic_ = action;
+    }
+  }
   bool parsed = json::parse_json(payload, len, [&](JsonObject root) -> bool {
     JackeryState::Result r = this->state_->ingest(root, now);
     if (r.token_error) {
@@ -198,8 +214,15 @@ void JackerySV3Hub::on_message(const std::string &topic, const uint8_t *payload,
 
 void JackerySV3Hub::on_subscribed(const std::string &filter) {
   // The battery just subscribed to its action topic: poll it right away (from loop(), never from here)
-  if (mqtt_broker::Broker::topic_matches(filter, this->action_topic_)) {
-    ESP_LOGI(TAG, "The battery subscribed to %s", this->action_topic_.c_str());
+  const bool exact_ci = strcasecmp(filter.c_str(), this->action_topic_.c_str()) == 0;
+  if (exact_ci && filter != this->action_topic_) {
+    // same topic, other spelling: publish exactly where the battery listens
+    ESP_LOGI(TAG, "The battery subscribed to %s (spelling differs from the configured serial number)",
+             filter.c_str());
+    this->action_topic_ = filter;
+  }
+  if (exact_ci || mqtt_broker::Broker::topic_matches(filter, this->action_topic_)) {
+    ESP_LOGI(TAG, "The battery subscribed to %s", filter.c_str());
     this->poll_now_ = true;
   }
 }
@@ -246,6 +269,8 @@ bool JackerySV3Hub::publish_(const std::string &payload) {
     this->no_subscriber_logged_ = false;
     ESP_LOGI(TAG, "The battery is reachable on %s", this->action_topic_.c_str());
   }
+  if (this->first_delivery_ms_ == 0)
+    this->first_delivery_ms_ = millis() | 1u;  // never 0 (0 means "none yet")
   ESP_LOGV(TAG, "TX %s: %s", this->action_topic_.c_str(), payload.c_str());
   return true;
 }
@@ -253,8 +278,22 @@ bool JackerySV3Hub::publish_(const std::string &payload) {
 void JackerySV3Hub::send_polls_() {
   if (!this->ready_to_send_() || this->sn_.empty())
     return;
+  // Every request carries a timestamp (seconds since the epoch, like the Home Assistant integration). Without a
+  // clock (no `time:` component, or SNTP not synced yet) it would be a few seconds since boot, which the battery
+  // may reject: wait a little for the clock, then send anyway and say so.
+  if (!system_time_valid()) {
+    if (millis() - this->start_ms_ < TIME_WAIT_MS)
+      return;
+    if (!this->time_warned_) {
+      this->time_warned_ = true;
+      ESP_LOGW(TAG,
+               "The system clock is not set: requests carry a wrong timestamp and the battery may ignore them. Add "
+               "a `time:` component (e.g. platform: sntp) to the configuration.");
+    }
+  }
   // Same sequence as the Home Assistant integration: device status, system data, settings, CT and plug lists
-  this->publish_(this->build_message_(25, 0, true, nullptr));
+  if (this->publish_(this->build_message_(25, 0, true, nullptr)))
+    this->polls_delivered_++;
   this->publish_(this->build_message_(105, 0, true, nullptr));
   this->publish_(this->build_message_(2, 0, true, nullptr));
   for (int dev_type : {2, 6}) {
@@ -308,6 +347,26 @@ void JackerySV3Hub::housekeeping_(uint32_t now) {
     else
       ESP_LOGW(TAG, "Battery %s is offline (no report for %" PRIu32 " s)", this->sn_.c_str(),
                this->offline_timeout_ms_ / 1000);
+  }
+
+  // The battery is connected and receives our requests, but nothing comes back: wrong token, or rejected timestamp
+  if (this->polls_delivered_ > 0 && this->first_delivery_ms_ != 0 &&
+      (now - this->last_noreply_warn_ms_ >= 60000 || this->last_noreply_warn_ms_ == 0)) {
+    const uint32_t silent_for = this->ever_received_ ? now - this->last_rx_ms_ : now - this->first_delivery_ms_;
+    if (silent_for >= NO_REPLY_WARN_MS) {
+      this->last_noreply_warn_ms_ = now | 1u;
+      ESP_LOGW(TAG,
+               "The battery receives our requests (%" PRIu32 " sent) but has not reported anything for %" PRIu32
+               " s. Check the token in the Jackery app and that the system clock is set (`time:` component).",
+               this->polls_delivered_, silent_for / 1000);
+    }
+  }
+
+  if (now - this->last_summary_ms_ >= SUMMARY_MS) {
+    this->last_summary_ms_ = now;
+    ESP_LOGD(TAG, "Summary: %" PRIu32 " message(s) received, %" PRIu32 " request burst(s) delivered, %u client(s), %s",
+             this->messages_, this->polls_delivered_, static_cast<unsigned>(this->clients_),
+             this->online_ ? "online" : "offline");
   }
 
   // Never heard from the battery: most likely a wrong token / serial number / topic prefix, or the app is not

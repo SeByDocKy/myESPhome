@@ -134,6 +134,12 @@ class JackerySV3Hub : public PollingComponent, public mqtt_broker::MessageSink {
   bool no_subscriber_logged_{false};
   size_t clients_{0};
   uint32_t messages_{0};
+  // diagnostics
+  uint32_t polls_delivered_{0};        // poll bursts that reached at least one subscribed client
+  uint32_t first_delivery_ms_{0};      // time of the first delivered poll burst (0 = none yet)
+  uint32_t last_noreply_warn_ms_{0};
+  uint32_t last_summary_ms_{0};
+  bool time_warned_{false};
 
   // entities
 #ifdef USE_SENSOR

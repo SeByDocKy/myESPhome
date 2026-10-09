@@ -324,4 +324,20 @@ Add `jackerysv3_id:` to every platform entry. Hubs may also use several `mqtt_br
   Python code on randomised inputs (12 000 cases, identical results). They rely on the same assumptions as
   the app (CT preferred over the system estimate, etc.).
 - **Timestamp.** The requests carry `ts`; add a `time:` component so it is a real epoch. The battery may or
-  may not check it.
+  may not check it. Without a valid clock the component waits up to 60 s after boot before sending its first
+  requests, then sends them anyway and logs a warning.
+- **Topic spelling.** Topics are matched case-insensitively; requests are published on the exact spelling the
+  battery itself uses (learned from its first message or subscription), so a serial number typed in another
+  case in the YAML does not silence the battery.
+
+## Troubleshooting
+
+Set `logger: level: DEBUG` and `log_traffic: true` on the `mqtt_broker`, then look for:
+
+- `The battery subscribed to ...`: the battery is connected and listens; the component polls it right away.
+- `No MQTT client is subscribed to ...`: the battery is not connected, or uses another topic prefix / serial number.
+- `The battery receives our requests (...) but has not reported anything for N s`: wrong `token`, or the
+  battery rejects the request timestamp (add a `time:` component).
+- `Summary: ...` (every 60 s, DEBUG): messages received, request bursts delivered, clients, online state.
+
+When reporting a problem please include this log: it shows what the battery sends and how it behaves.
