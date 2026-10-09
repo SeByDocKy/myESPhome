@@ -912,7 +912,7 @@ This component is released under the MIT License.
 ```
 MIT License
 
-Copyright (c) 2026 e-2-nomy
+Copyright (c) 2026 Sébastien PARIS
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

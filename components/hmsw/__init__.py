@@ -5,7 +5,7 @@ import esphome.config_validation as cv
 from esphome.const import CONF_ID
 
 CODEOWNERS = ["@SeByDocKy"]
-AUTO_LOAD = ["sensor", "socket"]
+AUTO_LOAD = ["sensor"]
 MULTI_CONF = True
 
 hmsw_ns = cg.esphome_ns.namespace("hmsw")
@@ -73,35 +73,18 @@ CONFIG_SCHEMA = cv.Schema(
         # validate_ipv4_literal() above and README.md.
         cv.Required(CONF_IP_ADDRESS): validate_ipv4_literal,
         cv.Optional(CONF_IP_PORT, default=10081): cv.port,
-        # 60s, not lower: per community reports on the underlying protocol
-        # (suaveolent/ha-hoymiles-wifi's README), the inverter firmware
-        # appears to enforce a ~30s minimum spacing between requests
-        # regardless of what the client asks for, and polling below ~32s
-        # (120s on newer firmware) has been reported to disable the
-        # inverter's own Hoymiles-cloud sync. On a real HMS-W (DTU
-        # V00.01.11), 30s polling + 20s heartbeat froze the DTU's local
-        # port after ~25 min (only a DTU restart recovered it), while
-        # 60s polling + 300s heartbeat ran without a single failure.
-        # Every heartbeat is one more TCP connection. See README.md.
+        # 60s / 300s / 10s defaults, field-tested on a real HMS-W (issue #8):
+        # with poll_interval 30s + heartbeat_interval 20s the DTU stopped
+        # accepting connections after ~25 minutes (errno 104), and was stable
+        # at 60s / 300s. request_timeout is 10s because the DTU can be slow to
+        # answer. Per community reports on the underlying protocol
+        # (suaveolent/ha-hoymiles-wifi's README), the inverter firmware also
+        # appears to enforce a ~30s minimum spacing between requests, and
+        # polling below ~32s (120s on newer firmware) has been reported to
+        # disable the inverter's own Hoymiles-cloud sync. See README.md.
         cv.Optional(CONF_POLL_INTERVAL, default="60s"): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_HEARTBEAT_INTERVAL, default="300s"): cv.positive_time_period_milliseconds,
-        # 10s: the DTU can take several seconds to answer.
         cv.Optional(CONF_REQUEST_TIMEOUT, default="10s"): cv.positive_time_period_milliseconds,
-        # "real_data" (0xA3 0x03, default) is the original, well-exercised
-        # command this component was first built against. "real_data_new"
-        # (0xA3 0x11) additionally exposes energy_daily, a power-limit
-        # readback, and diagnostic fields, at the cost of being newer/less
-        # tested here -- see README.md before switching. Either/or, not
-        # both, to respect the ~2s minimum spacing the DTU firmware appears
-        # to enforce between requests.
-        cv.Optional(CONF_DATA_SOURCE, default=DATA_SOURCE_REAL_DATA): cv.one_of(
-            DATA_SOURCE_REAL_DATA, DATA_SOURCE_REAL_DATA_NEW, lower=True
-        ),
-        # Alarm/warning-list feature (CMD_ACTION_ALARM_LIST), a two-step
-        # request separate from poll_interval/heartbeat_interval -- see
-        # README.md. Disabled (0, the default) unless set: warning data
-        # changes rarely, so a long interval (e.g. 10-15 min) is plenty and
-        # keeps this off the DTU firmware's ~2s minimum request spacing.
         cv.Optional(CONF_ALARM_POLL_INTERVAL, default="0s"): cv.positive_time_period_milliseconds,
         # "Hung DTU" watchdog -- ohAnd/dtuGateway's troubleshooting notes
         # describe detecting a stuck-but-still-answering DTU by watching AC
