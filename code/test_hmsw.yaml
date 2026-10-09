@@ -63,8 +63,8 @@ packages:
           hmsw_name: 'hmsw1'
           hmsw_ip_address: '192.168.1.50'
           hmsw_ip_port: 10081
-          hmsw_poll_interval: '30s'
-          hmsw_heartbeat_interval: '60s'
+          hmsw_poll_interval: '60s'
+          hmsw_heartbeat_interval: '300s'
           hmsw_data_source: 'real_data_new'
           hmsw_alarm_poll_interval: '10min'
           hmsw_data_reboot_threshold: 10
