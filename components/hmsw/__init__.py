@@ -85,6 +85,21 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_POLL_INTERVAL, default="60s"): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_HEARTBEAT_INTERVAL, default="300s"): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_REQUEST_TIMEOUT, default="10s"): cv.positive_time_period_milliseconds,
+        # "real_data" (0xA3 0x03, default) is the original, well-exercised
+        # command this component was first built against. "real_data_new"
+        # (0xA3 0x11) additionally exposes energy_today, a power-limit
+        # readback, and diagnostic fields, at the cost of being newer/less
+        # tested here -- see README.md before switching. Either/or, not
+        # both, to respect the ~2s minimum spacing the DTU firmware appears
+        # to enforce between requests.
+        cv.Optional(CONF_DATA_SOURCE, default=DATA_SOURCE_REAL_DATA): cv.one_of(
+            DATA_SOURCE_REAL_DATA, DATA_SOURCE_REAL_DATA_NEW, lower=True
+        ),
+        # Alarm/warning-list feature (CMD_ACTION_ALARM_LIST), a two-step
+        # request separate from poll_interval/heartbeat_interval -- see
+        # README.md. Disabled (0, the default) unless set: warning data
+        # changes rarely, so a long interval (e.g. 10-15 min) is plenty and
+        # keeps this off the DTU firmware's ~2s minimum request spacing.
         cv.Optional(CONF_ALARM_POLL_INTERVAL, default="0s"): cv.positive_time_period_milliseconds,
         # "Hung DTU" watchdog -- ohAnd/dtuGateway's troubleshooting notes
         # describe detecting a stuck-but-still-answering DTU by watching AC
