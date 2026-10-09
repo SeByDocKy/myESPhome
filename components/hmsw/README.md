@@ -390,7 +390,7 @@ reasonable guess, not a certainty.
 
 This poll is **off by default** (`alarm_poll_interval: 0s`) and entirely
 separate from `poll_interval`/`heartbeat_interval` -- warning data changes
-rarely, so there's no reason to fetch it on the same ~30s cadence as
+rarely, so there's no reason to fetch it on the same ~60s cadence as
 realtime telemetry:
 
 ```yaml
@@ -476,7 +476,7 @@ kept:
   `reboot_dtu()` is triggered automatically (same request as the manual
   `button:` above, same best-effort response handling). `dtuGateway`'s own
   figure was **10** consecutive readings; with the default `poll_interval`
-  of 30s that's ~5 minutes of frozen data before a reboot is sent -- adjust
+  of 60s that's ~10 minutes of frozen data before a reboot is sent -- adjust
   for your own `poll_interval` if you use a different one.
 
 Why AC/grid voltage by default, not e.g. power: it's the field
@@ -550,13 +550,26 @@ from a real hang captured and reproduced against this specific component.
 
 ## Polling interval
 
-`poll_interval` defaults to **30s**, not something shorter. Per community
+`poll_interval` defaults to **60s** and `heartbeat_interval` to **300s**.
+
+Real-hardware report (HMS-W with 2 PV inputs, DTU firmware V00.01.11): with
+the former defaults (30s poll + 20s heartbeat, i.e. a new TCP connection
+every 10-20s), the DTU stopped accepting local connections after ~25 minutes.
+Port 10081 was refused or reset (errno 104) for every client, including a PC,
+until the DTU was restarted. With 60s + 300s it was read every minute without
+a single failure, including while the inverter's AC side was switched off and
+on. The DTU only serves **one connection at a time**: don't poll it from
+another application (hoymiles-wifi, the S-Miles app on the LAN…) at the same
+time. [ohAnd/dtuGateway](https://github.com/ohAnd/dtuGateway) reports the
+same limit ("~31 second minimum polling to avoid DTU hangs").
+
+Per community
 reports on the underlying protocol
 ([suaveolent/ha-hoymiles-wifi's README](https://github.com/suaveolent/ha-hoymiles-wifi/blob/main/README.md)),
 the inverter firmware itself appears to enforce a ~30s minimum spacing
 between requests regardless of what the client asks for, and polling below
 ~32s (120s on newer firmware) has been reported to **disable the
-inverter's own sync with the Hoymiles cloud**. Going lower than 30s here
+inverter's own sync with the Hoymiles cloud**. Going lower than 60s here
 is not expected to get you fresher data -- it risks losing cloud sync for
 no benefit.
 
@@ -704,8 +717,8 @@ hmsw:
   id: my_hmsw
   ip_address: 192.168.1.50   # the inverter's own IP address
   ip_port: 10081             # default, usually no need to change
-  poll_interval: 30s   # default; see "Polling interval" above before going lower
-  heartbeat_interval: 20s
+  poll_interval: 60s   # default; see "Polling interval" above before going lower
+  heartbeat_interval: 300s
   data_source: real_data   # default; "real_data_new" adds energy_today/diagnostics, see above
 
 sensor:
@@ -775,8 +788,8 @@ external_components:
 hmsw:
   id: my_hmsw
   ip_address: 192.168.1.50
-  poll_interval: 30s
-  heartbeat_interval: 20s
+  poll_interval: 60s
+  heartbeat_interval: 300s
   data_source: real_data_new
   alarm_poll_interval: 10min   # default: 0s (disabled) -- see "Alarm/warning list" above
   stale_data_reboot_threshold: 10   # default: 0 (disabled) -- see "Hung-DTU watchdog" above
@@ -854,10 +867,10 @@ external_components:
 hmsw:
   - id: hmsw_roof
     ip_address: 192.168.1.50   # first inverter
-    poll_interval: 30s
+    poll_interval: 60s
   - id: hmsw_garage
     ip_address: 192.168.1.51   # second inverter
-    poll_interval: 30s
+    poll_interval: 60s
 
 sensor:
   - platform: hmsw

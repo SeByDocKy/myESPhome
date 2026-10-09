@@ -5,7 +5,7 @@ import esphome.config_validation as cv
 from esphome.const import CONF_ID
 
 CODEOWNERS = ["@SeByDocKy"]
-AUTO_LOAD = ["sensor"]
+AUTO_LOAD = ["sensor", "socket"]
 MULTI_CONF = True
 
 hmsw_ns = cg.esphome_ns.namespace("hmsw")
@@ -73,15 +73,20 @@ CONFIG_SCHEMA = cv.Schema(
         # validate_ipv4_literal() above and README.md.
         cv.Required(CONF_IP_ADDRESS): validate_ipv4_literal,
         cv.Optional(CONF_IP_PORT, default=10081): cv.port,
-        # 30s, not lower: per community reports on the underlying protocol
+        # 60s, not lower: per community reports on the underlying protocol
         # (suaveolent/ha-hoymiles-wifi's README), the inverter firmware
         # appears to enforce a ~30s minimum spacing between requests
         # regardless of what the client asks for, and polling below ~32s
         # (120s on newer firmware) has been reported to disable the
-        # inverter's own Hoymiles-cloud sync. See README.md.
-        cv.Optional(CONF_POLL_INTERVAL, default="30s"): cv.positive_time_period_milliseconds,
-        cv.Optional(CONF_HEARTBEAT_INTERVAL, default="20s"): cv.positive_time_period_milliseconds,
-        cv.Optional(CONF_REQUEST_TIMEOUT, default="3s"): cv.positive_time_period_milliseconds,
+        # inverter's own Hoymiles-cloud sync. On a real HMS-W (DTU
+        # V00.01.11), 30s polling + 20s heartbeat froze the DTU's local
+        # port after ~25 min (only a DTU restart recovered it), while
+        # 60s polling + 300s heartbeat ran without a single failure.
+        # Every heartbeat is one more TCP connection. See README.md.
+        cv.Optional(CONF_POLL_INTERVAL, default="60s"): cv.positive_time_period_milliseconds,
+        cv.Optional(CONF_HEARTBEAT_INTERVAL, default="300s"): cv.positive_time_period_milliseconds,
+        # 10s: the DTU can take several seconds to answer.
+        cv.Optional(CONF_REQUEST_TIMEOUT, default="10s"): cv.positive_time_period_milliseconds,
         # "real_data" (0xA3 0x03, default) is the original, well-exercised
         # command this component was first built against. "real_data_new"
         # (0xA3 0x11) additionally exposes energy_daily, a power-limit
