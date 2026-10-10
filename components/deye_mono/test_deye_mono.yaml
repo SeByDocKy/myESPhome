@@ -1,0 +1,543 @@
+substitutions:
+  name: "test_deye_mono"
+  # Hour of the day at which the "today" energies are copied to the "yesterday" ones
+  my_hours: "23"
+  my_minute: "59"
+  my_second: "30"
+
+esphome:
+  name: ${name}
+  min_version: 2026.9.0
+
+esp32:
+  board: esp32-s3-devkitc-1
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [deye_mono]
+    refresh: 10s
+
+  # Local checkout instead (e.g. while developing the component itself):
+  # - source:
+  #     type: local
+  #     path: components
+  #   components: [deye_mono]
+
+
+logger:
+  level: debug
+
+debug:
+  update_interval: 5s
+
+time:
+  - platform: homeassistant
+    id: my_time
+    on_time:
+      # Total energy part (stays in YAML, not in the component): remember the "today" energies at the end of the day
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:
+          - globals.set:
+              id: pv_energy_total_yesterday_global
+              value: !lambda return id(pv_energy_total_today).state;
+          - globals.set:
+              id: ac_output_energy_yesterday_global
+              value: !lambda return id(ac_output_energy_today).state;
+          - globals.set:
+              id: battery_charging_energy_yesterday_global
+              value: !lambda return id(battery_charging_energy_today).state;
+          - globals.set:
+              id: battery_discharging_energy_yesterday_global
+              value: !lambda return id(battery_discharging_energy_today).state;
+
+globals:
+  - id: pv_energy_total_yesterday_global
+    type: float
+    restore_value: yes
+  - id: ac_output_energy_yesterday_global
+    type: float
+    restore_value: yes
+  - id: battery_charging_energy_yesterday_global
+    type: float
+    restore_value: yes
+  - id: battery_discharging_energy_yesterday_global
+    type: float
+    restore_value: yes
+
+
+# ---------------------------------------------------------------------------
+# Modbus: the bus, and the ONE controller (and so the one update_interval) that polls the inverter
+# ---------------------------------------------------------------------------
+uart:
+  id: uart_inverter
+  tx_pin: GPIO17
+  rx_pin: GPIO18
+  baud_rate: 9600
+  stop_bits: 1
+
+modbus:
+  id: modbus_inverter
+  uart_id: uart_inverter
+  # flow_control_pin: GPIO16        # RS485 module with a DE/RE pin
+
+modbus_controller:
+  - id: deye_controller
+    modbus_id: modbus_inverter
+    address: 1
+    setup_priority: -10
+    update_interval: 10s
+
+# ---------------------------------------------------------------------------
+# The inverter: every entity below comes from the component. Remove the lines you do not need.
+# ---------------------------------------------------------------------------
+deye_mono:
+  - id: deye
+    modbus_controller_id: deye_controller
+    inverter_factor: 1.0          # multiplier of every power value (was ${inverter_factor})
+    # use_write_multiple: true    # write with function 0x10 (default) or 0x06
+    # write_hold: 5s              # values read back are ignored this long after a write
+
+sensor:
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    update_interval: 30s
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+
+  - platform: deye_mono
+    deye_mono_id: deye
+    modbus_address:
+      name: ${name}_modbus_address
+    limiter:
+      name: ${name}_limiter
+    gen_energy_today:
+      name: ${name}_gen_energy_today
+    battery_charging_energy_today:
+      name: ${name}_battery_charging_energy_today
+      id: battery_charging_energy_today
+    battery_discharging_energy_today:
+      name: ${name}_battery_discharging_energy_today
+      id: battery_discharging_energy_today
+    battery_charging_total:
+      name: ${name}_battery_charging_total
+    battery_discharging_total:
+      name: ${name}_battery_discharging_total
+    grid_energy_imported_today:
+      name: ${name}_grid_energy_imported_today
+    grid_energy_exported_today:
+      name: ${name}_grid_energy_exported_today
+    grid_energy_imported_total:
+      name: ${name}_grid_energy_imported_total
+    grid_frequency:
+      name: ${name}_grid_frequency
+    grid_energy_exported_total:
+      name: ${name}_grid_energy_exported_total
+    load_energy_today:
+      name: ${name}_load_energy_today
+    load_energy_total:
+      name: ${name}_load_energy_total
+    dc_transformer_temperature:
+      name: ${name}_dc_transformer_temperature
+    dc_radiator_temperature:
+      name: ${name}_dc_radiator_temperature
+    pv_energy_total:
+      name: ${name}_pv_energy_total
+    pv_energy_today:
+      name: ${name}_pv_energy_today
+    pv1_voltage:
+      name: ${name}_pv1_voltage
+    pv1_current:
+      name: ${name}_pv1_current
+    pv2_voltage:
+      name: ${name}_pv2_voltage
+    pv2_current:
+      name: ${name}_pv2_current
+    pv3_voltage:
+      name: ${name}_pv3_voltage
+    pv3_current:
+      name: ${name}_pv3_current
+    grid_voltage:
+      name: ${name}_grid_voltage
+    ac_output_voltage:
+      name: ${name}_ac_output_voltage
+    ac_output_current:
+      name: ${name}_ac_output_current
+    aux_output_power:
+      name: ${name}_aux_output_power
+    grid_power_167:
+      name: ${name}_grid_power_167
+    grid_power:
+      name: ${name}_grid_power
+    grid_external_power:
+      name: ${name}_grid_external_power
+    ac_output_power:
+      name: ${name}_ac_output_power
+      id: ac_output_power
+    load_power:
+      name: ${name}_load_power
+    battery_temperature:
+      name: ${name}_battery_temperature
+    battery_voltage:
+      name: ${name}_battery_voltage
+    battery_soc:
+      name: ${name}_battery_soc
+    pv1_power:
+      name: ${name}_pv1_power
+    pv2_power:
+      name: ${name}_pv2_power
+    pv3_power:
+      name: ${name}_pv3_power
+    battery_power:
+      name: ${name}_battery_power
+    battery_current:
+      name: ${name}_battery_current
+    load_frequency:
+      name: ${name}_load_frequency
+    ac_output_frequency:
+      name: ${name}_ac_output_frequency
+    grid_connexion:
+      name: ${name}_grid_connexion
+    battery_equalization_voltage:
+      name: ${name}_battery_equalization_voltage
+    battery_absorption_voltage:
+      name: ${name}_battery_absorption_voltage
+    battery_float_voltage:
+      name: ${name}_battery_float_voltage
+    battery_max_charge_current:
+      name: ${name}_battery_max_charge_current
+    battery_max_discharge_current:
+      name: ${name}_battery_max_discharge_current
+    battery_capacity_shutdown:
+      name: ${name}_battery_capacity_shutdown
+    battery_shutdown_voltage:
+      name: ${name}_battery_shutdown_voltage
+    battery_restart_voltage:
+      name: ${name}_battery_restart_voltage
+    battery_low_voltage:
+      name: ${name}_battery_low_voltage
+    grid_charge_battery_current:
+      name: ${name}_grid_charge_battery_current
+    grid_peak_shaving_power:
+      name: ${name}_grid_peak_shaving_power
+    firmware_control_board:
+      name: ${name}_firmware_control_board
+    firmware_comms_board:
+      name: ${name}_firmware_comms_board
+    setting_timezone1:
+      name: ${name}_setting_timezone1
+    setting_timezone2:
+      name: ${name}_setting_timezone2
+    setting_timezone3:
+      name: ${name}_setting_timezone3
+    setting_timezone4:
+      name: ${name}_setting_timezone4
+    setting_timezone5:
+      name: ${name}_setting_timezone5
+    setting_timezone6:
+      name: ${name}_setting_timezone6
+    power_timezone1:
+      name: ${name}_power_timezone1
+    power_timezone2:
+      name: ${name}_power_timezone2
+    power_timezone3:
+      name: ${name}_power_timezone3
+    power_timezone4:
+      name: ${name}_power_timezone4
+    power_timezone5:
+      name: ${name}_power_timezone5
+    power_timezone6:
+      name: ${name}_power_timezone6
+    battery_voltage_timezone1:
+      name: ${name}_battery_voltage_timezone1
+    battery_voltage_timezone2:
+      name: ${name}_battery_voltage_timezone2
+    battery_voltage_timezone3:
+      name: ${name}_battery_voltage_timezone3
+    battery_voltage_timezone4:
+      name: ${name}_battery_voltage_timezone4
+    battery_voltage_timezone5:
+      name: ${name}_battery_voltage_timezone5
+    battery_voltage_timezone6:
+      name: ${name}_battery_voltage_timezone6
+    setting_soc_timezone1:
+      name: ${name}_setting_soc_timezone1
+    setting_soc_timezone2:
+      name: ${name}_setting_soc_timezone2
+    setting_soc_timezone3:
+      name: ${name}_setting_soc_timezone3
+    setting_soc_timezone4:
+      name: ${name}_setting_soc_timezone4
+    setting_soc_timezone5:
+      name: ${name}_setting_soc_timezone5
+    setting_soc_timezone6:
+      name: ${name}_setting_soc_timezone6
+    battery_charging_current:
+      name: ${name}_battery_charging_current
+    battery_discharging_current:
+      name: ${name}_battery_discharging_current
+    battery_charging_power:
+      name: ${name}_battery_charging_power
+    battery_discharging_power:
+      name: ${name}_battery_discharging_power
+    pv_power_total:
+      name: ${name}_pv_power_total
+      id: pv_power_total
+    essential_power:
+      name: ${name}_essential_power
+    essential_power_1:
+      name: ${name}_essential_power_1
+    nonessential_power:
+      name: ${name}_nonessential_power
+    nonessential_power_1:
+      name: ${name}_nonessential_power_1
+
+  # ---- Total energy part (unchanged, stays in YAML) ----
+  - platform: total_daily_energy
+    name: ${name}_pv_energy_total_today
+    id: pv_energy_total_today
+    power_id: pv_power_total
+    unit_of_measurement: 'kWh'
+    icon: mdi:counter
+    accuracy_decimals: 1
+    method: trapezoid
+    filters:
+      - multiply: 0.001
+
+  - platform: total_daily_energy
+    name: ${name}_ac_output_energy_today
+    id: ac_output_energy_today
+    power_id: ac_output_power
+    unit_of_measurement: 'kWh'
+    icon: mdi:counter
+    accuracy_decimals: 1
+    method: trapezoid
+    filters:
+      - multiply: 0.001
+
+  - platform: template
+    name: ${name}_pv_energy_total_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    update_interval: 60s
+    lambda: return id(pv_energy_total_yesterday_global);
+
+  - platform: template
+    name: ${name}_ac_output_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    update_interval: 60s
+    lambda: return id(ac_output_energy_yesterday_global);
+
+  - platform: template
+    name: ${name}_battery_charging_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    update_interval: 60s
+    lambda: return id(battery_charging_energy_yesterday_global);
+
+  - platform: template
+    name: ${name}_battery_discharging_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    update_interval: 60s
+    lambda: return id(battery_discharging_energy_yesterday_global);
+
+binary_sensor:
+  - platform: deye_mono
+    deye_mono_id: deye
+    mppt_multipoint_scanning:
+      name: ${name}_mppt_multipoint_scanning
+    switch_on_off:
+      name: ${name}_switch_on_off
+    island_protection_mode:
+      name: ${name}_island_protection_mode
+    mppt_number:
+      name: ${name}_mppt_number
+    GFDI_mode:
+      name: ${name}_GFDI_mode
+    grid_connected_status:
+      name: ${name}_grid_connected_status
+    setting_grid_charge_timezone1:
+      name: ${name}_setting_grid_charge_timezone1
+    setting_grid_charge_timezone2:
+      name: ${name}_setting_grid_charge_timezone2
+    setting_grid_charge_timezone3:
+      name: ${name}_setting_grid_charge_timezone3
+    setting_grid_charge_timezone4:
+      name: ${name}_setting_grid_charge_timezone4
+    setting_grid_charge_timezone5:
+      name: ${name}_setting_grid_charge_timezone5
+    setting_grid_charge_timezone6:
+      name: ${name}_setting_grid_charge_timezone6
+    setting_gen_charge_timezone1:
+      name: ${name}_setting_gen_charge_timezone1
+    setting_gen_charge_timezone2:
+      name: ${name}_setting_gen_charge_timezone2
+    setting_gen_charge_timezone3:
+      name: ${name}_setting_gen_charge_timezone3
+    setting_gen_charge_timezone4:
+      name: ${name}_setting_gen_charge_timezone4
+    setting_gen_charge_timezone5:
+      name: ${name}_setting_gen_charge_timezone5
+    setting_gen_charge_timezone6:
+      name: ${name}_setting_gen_charge_timezone6
+
+switch:
+  - platform: deye_mono
+    deye_mono_id: deye
+    low_power_mode:
+      name: ${name}_low_power_mode
+    mppt_multipoint_scanning:
+      name: ${name}_mppt_multipoint_scanning
+    low_noise_mode:
+      name: ${name}_low_noise_mode
+    toggle_solar_sell:
+      name: ${name}_toggle_solar_sell
+    toggle_force_generator:
+      name: ${name}_toggle_force_generator
+    toggle_system_timer:
+      name: ${name}_toggle_system_timer
+
+number:
+  - platform: deye_mono
+    deye_mono_id: deye
+    battery_equalization_voltage:
+      name: ${name}_battery_equalization_voltage
+    battery_absorption_voltage:
+      name: ${name}_battery_absorption_voltage
+    battery_float_voltage:
+      name: ${name}_battery_float_voltage
+    battery_shuntdown_voltage:
+      name: ${name}_battery_shuntdown_voltage
+    battery_low_voltage:
+      name: ${name}_battery_low_voltage
+    battery_max_charge_current:
+      name: ${name}_battery_max_charge_current
+    battery_max_discharge_current:
+      name: ${name}_battery_max_discharge_current
+    grid_charge_battery_current:
+      name: ${name}_grid_charge_battery_current
+    max_sell_power:
+      name: ${name}_max_sell_power
+    grid_peak_shaving_power:
+      name: ${name}_grid_peak_shaving_power
+    set_timezone1:
+      name: ${name}_set_timezone1
+    set_timezone2:
+      name: ${name}_set_timezone2
+    set_timezone3:
+      name: ${name}_set_timezone3
+    set_timezone4:
+      name: ${name}_set_timezone4
+    set_timezone5:
+      name: ${name}_set_timezone5
+    set_timezone6:
+      name: ${name}_set_timezone6
+    set_power_timezone1:
+      name: ${name}_set_power_timezone1
+    set_power_timezone2:
+      name: ${name}_set_power_timezone2
+    set_power_timezone3:
+      name: ${name}_set_power_timezone3
+    set_power_timezone4:
+      name: ${name}_set_power_timezone4
+    set_power_timezone5:
+      name: ${name}_set_power_timezone5
+    set_power_timezone6:
+      name: ${name}_set_power_timezone6
+    set_battery_voltage_timezone1:
+      name: ${name}_set_battery_voltage_timezone1
+    set_battery_voltage_timezone2:
+      name: ${name}_set_battery_voltage_timezone2
+    set_battery_voltage_timezone3:
+      name: ${name}_set_battery_voltage_timezone3
+    set_battery_voltage_timezone4:
+      name: ${name}_set_battery_voltage_timezone4
+    set_battery_voltage_timezone5:
+      name: ${name}_set_battery_voltage_timezone5
+    set_battery_voltage_timezone6:
+      name: ${name}_set_battery_voltage_timezone6
+    set_soc_timezone1:
+      name: ${name}_set_soc_timezone1
+    set_soc_timezone2:
+      name: ${name}_set_soc_timezone2
+    set_soc_timezone3:
+      name: ${name}_set_soc_timezone3
+    set_soc_timezone4:
+      name: ${name}_set_soc_timezone4
+    set_soc_timezone5:
+      name: ${name}_set_soc_timezone5
+    set_soc_timezone6:
+      name: ${name}_set_soc_timezone6
+
+select:
+  - platform: deye_mono
+    deye_mono_id: deye
+    switch_on_off:
+      name: ${name}_switch_on_off
+    battery_operate:
+      name: ${name}_battery_operate
+    energy_pattern:
+      name: ${name}_energy_pattern
+    work_mode:
+      name: ${name}_work_mode
+    grid_peak_shaving:
+      name: ${name}_grid_peak_shaving
+    tou_jours_semaine:
+      name: ${name}_tou_jours_semaine
+    select_charge_timezone1:
+      name: ${name}_select_charge_timezone1
+    select_charge_timezone2:
+      name: ${name}_select_charge_timezone2
+    select_charge_timezone3:
+      name: ${name}_select_charge_timezone3
+    select_charge_timezone4:
+      name: ${name}_select_charge_timezone4
+    select_charge_timezone5:
+      name: ${name}_select_charge_timezone5
+    select_charge_timezone6:
+      name: ${name}_select_charge_timezone6
+
+text_sensor:
+  - platform: deye_mono
+    deye_mono_id: deye
+    overall_state:
+      name: ${name}_overall_state
+    time_slot_1:
+      name: ${name}_time_slot_1
+    time_slot_2:
+      name: ${name}_time_slot_2
+    time_slot_3:
+      name: ${name}_time_slot_3
+    time_slot_4:
+      name: ${name}_time_slot_4
+    time_slot_5:
+      name: ${name}_time_slot_5
+    time_slot_6:
+      name: ${name}_time_slot_6
