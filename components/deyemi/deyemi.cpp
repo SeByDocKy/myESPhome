@@ -524,34 +524,56 @@ void DeyeMiComponent::process_result_(JobResult *result) {
 }
 
 void DeyeMiComponent::resolve_model_(const std::vector<uint8_t> &regs, uint16_t start_reg) {
-  // "Inverter ID" is 5 registers (10 bytes) of ASCII, 2 chars/register,
-  // high byte first -- same byte order assumption as everything else here,
-  // unconfirmed. Looks for a 4-MPPT model number substring; these five
-  // digit groups cover the 4-MPPT lineup of BOTH generations at once --
-  // GEN3's SUN1300/1600/2000G3 and GEN4's SUN-M130/160/180/200/220G4 --
-  // since "130"/"160"/"200" are substrings of "1300"/"1600"/"2000" too.
-  // Defaults to (stays at) 2 MPPT if nothing matches, the conservative
-  // choice (no PV3/PV4 readings rather than false/garbage ones). None of
-  // these digit substrings collide with either generation's 2-MPPT model
-  // numbers (GEN3: 600/800/1000; GEN4: 60/80/100).
-  std::string id;
+  // Previously this guessed the MPPT count by substring-matching a model
+  // number inside the "Inverter ID" field at REG_INVERTER_ID_START. That was
+  // wrong: Deye's own Modbus protocol doc documents registers 0x0003-0x0007
+  // as "SN byte 01".."SN byte 10" -- the unit's 10-character serial number,
+  // an arbitrary alphanumeric string with no guaranteed relationship to the
+  // model name -- not an "Inverter ID"/model string at all. That's exactly
+  // what caused a real misdetection in the field: a 2-MPPT Deye
+  // SUN-M100G4-EU-Q0 was classified as 4-MPPT because its serial number
+  // happened to contain one of the matched digit substrings.
+  //
+  // REG_MPPT_COUNT (0x0012) is the register Deye's doc actually documents
+  // for this: "MPPT 路数及相数" / "MPPT number and phases", read-only, high
+  // byte = MPPT count [1,8], low byte = phase count [1,3] (e.g. 0x0503 means
+  // 5 MPPTs, 3 phases). That doc also notes (register 0x0008, bit 0) that
+  // this register is populated when that bit is set, and otherwise the MPPT
+  // count is implied by rated power instead -- so a 0x0000 (or otherwise
+  // out-of-range) reading here is treated as "not populated" and falls back
+  // to the conservative default (2 MPPT, i.e. no PV3/PV4 readings rather
+  // than false/garbage ones) instead of being trusted as "0 MPPTs".
+  uint16_t mppt_reg = get_u16_(regs, REG_MPPT_COUNT, start_reg);
+  uint8_t mppt_count = (uint8_t) ((mppt_reg >> 8) & 0xFF);
+
+  bool is_4mppt;
+  if (mppt_count >= 1 && mppt_count <= 8) {
+    is_4mppt = mppt_count > 2;
+    ESP_LOGI(TAG, "MPPT count register (0x%04X) read as %u -- detected as %s (set `model:` explicitly if this is wrong)",
+             mppt_reg, mppt_count, is_4mppt ? "4-MPPT" : "2-MPPT");
+  } else {
+    is_4mppt = false;
+    ESP_LOGW(TAG,
+             "MPPT count register (0x%04X) not populated by this unit -- defaulting to 2-MPPT (set `model:` "
+             "explicitly if this is wrong)",
+             mppt_reg);
+  }
+  this->effective_model_ = is_4mppt ? DeyeMiModel::MODEL_4MPPT : DeyeMiModel::MODEL_2MPPT;
+  this->model_resolved_ = true;
+
+  // Still decoded and logged purely as a diagnostic aid (e.g. to help
+  // identify a unit in logs) -- no longer used for model detection.
+  std::string serial;
   for (uint8_t i = 0; i < REG_INVERTER_ID_COUNT; i++) {
     uint16_t reg = get_u16_(regs, REG_INVERTER_ID_START + i, start_reg);
     char hi = (char) ((reg >> 8) & 0xFF);
     char lo = (char) (reg & 0xFF);
     if (hi >= 0x20 && hi < 0x7F)
-      id += hi;
+      serial += hi;
     if (lo >= 0x20 && lo < 0x7F)
-      id += lo;
+      serial += lo;
   }
-
-  bool is_4mppt = id.find("130") != std::string::npos || id.find("160") != std::string::npos ||
-                  id.find("180") != std::string::npos || id.find("200") != std::string::npos ||
-                  id.find("220") != std::string::npos;
-  this->effective_model_ = is_4mppt ? DeyeMiModel::MODEL_4MPPT : DeyeMiModel::MODEL_2MPPT;
-  this->model_resolved_ = true;
-  ESP_LOGI(TAG, "Inverter ID read as \"%s\" -- detected as %s (set `model:` explicitly if this is wrong)",
-           id.c_str(), is_4mppt ? "4-MPPT" : "2-MPPT");
+  ESP_LOGI(TAG, "Serial number read as \"%s\"", serial.c_str());
 }
 
 void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint16_t start_reg, uint16_t count) {
