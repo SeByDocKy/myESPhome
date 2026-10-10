@@ -3,7 +3,25 @@
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 
+#include <string>
+
 namespace esphome::jk_modbus {
+
+// Hex dump used by the log statements ("4E.57.00..."). ESPHome's own format_hex_pretty() changed
+// signature several times (the std::string overload is gone in recent nightlies), so keep a tiny
+// local helper instead of depending on it. Only evaluated when the log level is enabled.
+inline std::string hex_dump(const uint8_t *data, size_t len) {
+  static const char HEX_DIGITS[] = "0123456789ABCDEF";
+  std::string out;
+  out.reserve(len * 3);
+  for (size_t i = 0; i < len; i++) {
+    if (i > 0)
+      out += '.';
+    out += HEX_DIGITS[data[i] >> 4];
+    out += HEX_DIGITS[data[i] & 0x0F];
+  }
+  return out;
+}
 
 class JkModbusDevice;
 

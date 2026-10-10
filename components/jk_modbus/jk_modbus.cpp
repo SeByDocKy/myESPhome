@@ -1,7 +1,6 @@
 #include "jk_modbus.h"
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
-#include "esphome/core/helpers.h"
 
 #include <algorithm>
 
@@ -48,7 +47,7 @@ void JkModbus::loop() {
   if (now - this->last_jk_modbus_byte_ > this->rx_timeout_) {
     // .data() instead of &front(): front() on an empty vector is undefined behaviour
     ESP_LOGVV(TAG, "Buffer cleared due to timeout: %s",
-              format_hex_pretty(this->rx_buffer_.data(), this->rx_buffer_.size()).c_str());  // NOLINT
+              hex_dump(this->rx_buffer_.data(), this->rx_buffer_.size()).c_str());  // NOLINT
     this->rx_buffer_.clear();
     this->last_jk_modbus_byte_ = now;
   }
@@ -56,9 +55,9 @@ void JkModbus::loop() {
   // Read the UART in chunks: one available() + read_array() per chunk instead of one
   // available() + read_byte() round trip into the UART driver for every single byte.
   uint8_t chunk[READ_CHUNK_SIZE];
-  int available;
-  while ((available = this->available()) > 0) {
-    const size_t len = std::min((size_t) available, sizeof(chunk));
+  size_t available;
+  while ((available = (size_t) this->available()) > 0) {
+    const size_t len = std::min(available, sizeof(chunk));
     if (!this->read_array(chunk, len))
       break;
 
@@ -67,7 +66,7 @@ void JkModbus::loop() {
         this->last_jk_modbus_byte_ = now;
       } else {
         ESP_LOGVV(TAG, "Buffer cleared due to reset: %s",
-                  format_hex_pretty(this->rx_buffer_.data(), this->rx_buffer_.size()).c_str());  // NOLINT
+                  hex_dump(this->rx_buffer_.data(), this->rx_buffer_.size()).c_str());  // NOLINT
         this->rx_buffer_.clear();
       }
     }

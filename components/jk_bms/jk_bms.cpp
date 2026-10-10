@@ -46,7 +46,7 @@ void JkBms::on_jk_modbus_data(const uint8_t &function, const std::vector<uint8_t
 
   // data.data() instead of &data.front(): front() on an empty vector is undefined behaviour
   ESP_LOGW(TAG, "Unhandled response (%zu bytes) received: %s", data.size(),
-           format_hex_pretty(data.data(), data.size()).c_str());  // NOLINT
+           jk_modbus::hex_dump(data.data(), data.size()).c_str());  // NOLINT
 }
 
 void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
