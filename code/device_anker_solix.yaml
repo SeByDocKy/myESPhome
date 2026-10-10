@@ -1,0 +1,176 @@
+external_components:
+  - source: github://SeByDocKy/myESPhome
+    components: [anker_solix]
+    refresh: 10s
+    
+globals:
+  - id: ${anker_solix_name}_energy_yesterday_global
+    type: float
+    restore_value: yes
+    
+time:
+  - platform: sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:  
+          - globals.set:
+              id: ${anker_solix_name}_energy_yesterday_global
+              value: !lambda return ( id(${anker_solix_name}_energy_yesterday_global) =  float( id(${anker_solix_name}_energy_today).state) );
+
+# uart:
+  # id: ${anker_solix_name}_uart
+  # tx_pin: ${anker_solix_tx_pin}
+  # rx_pin: ${anker_solix_rx_pin}
+  # baud_rate: ${anker_solix_baud_rate}
+  # stop_bits: 1
+  # parity: NONE
+
+
+# modbus:
+  # - id: ${anker_solix_name}_modbus
+    # uart_id: ${anker_solix_name}_uart
+    # turnaround_time: ${anker_solix_turnaround_time}
+
+modbus_controller:
+  - id: ${anker_solix_name}_fast_modbus_controller
+    address: ${anker_solix_modbus_address}
+    modbus_id: ${anker_solix_modbus_controller}
+    update_interval: ${anker_solix_fast_update_interval}
+  # Optional: slow-changing entities (energy totals, versions, SOC limits) are polled less often
+  - id: ${anker_solix_name}_slow_modbus_controller
+    address: ${anker_solix_modbus_address}
+    modbus_id: ${anker_solix_modbus_controller}
+    update_interval: ${anker_solix_slow_update_interval}
+              
+ anker_solix:
+  id: ${anker_solix_id}
+  model: ${anker_solix_model}
+  modbus_controller_id: ${anker_solix_name}_fast_modbus_controller
+  slow_modbus_controller_id: ${anker_solix_name}_slow_modbus_controller
+  # Read-only first: keep this false and do not use the power setpoint until the readings look right
+  auto_third_party_control: false
+  # The battery reports its own maximum charge / discharge power (diagnostic sensors below). Add max_charge_power /
+  # max_discharge_power here only to limit it further.
+  # max_charge_power: 1200
+  # max_discharge_power: 1200
+  setpoint_refresh: 0ms
+  
+  
+sensor:
+  - platform: anker_solix
+    anker_solix_id: ${anker_solix_id}
+    ems_mode_mask:
+      name: ${name}_${anker_solix_name}_ems_mode_mask
+    parallel_capability_mask:
+      name: ${name}_${anker_solix_name}_parallel_capability_mask
+    dc_channels:
+      pv_power:
+        name: ${name}_${anker_solix_name}_pv_power
+      pcs_pv_power:
+        name: ${name}_${anker_solix_name}_pcs_pv_power
+      third_party_pv_power:
+        name: ${name}_${anker_solix_name}_third_party_pv_power
+      pv_total_generation:
+        name: ${name}_${anker_solix_name}_pv_total_generation
+    ac:
+      output_power:
+        name: ${name}_${anker_solix_name}_ac_output_power
+        id: ${anker_solix_name}_ac_output_power
+      load_power:
+        name: ${name}_${anker_solix_name}_load_power
+      grid_import_power:
+        name: ${name}_${anker_solix_name}_grid_import_power
+      grid_export_power:
+        name: ${name}_${anker_solix_name}_grid_export_power
+    battery:
+      soc:
+        name: ${name}_${anker_solix_name}_battery_soc
+      charging_power:
+        name: ${name}_${anker_solix_name}_battery_charging_power
+      discharging_power:
+        name: ${name}_${anker_solix_name}_battery_discharging_power
+      rated_energy:
+        name: ${name}_${anker_solix_name}_battery_rated_energy
+      total_charging_energy:
+        name: ${name}_${anker_solix_name}_battery_total_charging_energy
+      total_discharging_energy:
+        name: ${name}_${anker_solix_name}_battery_total_discharging_energy
+      max_charging_power:
+        name: ${name}_${anker_solix_name}_battery_max_charging_power
+      max_discharging_power:
+        name: ${name}_${anker_solix_name}_battery_max_discharging_power
+        
+        
+  - platform: total_daily_energy
+    name: ${name}_${anker_solix_name}_energy_today
+    id: ${anker_solix_name}_energy_today
+    power_id: ${anker_solix_name}_ac_output_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: right
+    restore: true
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+    
+  - platform: template
+    name: ${name}_${anker_solix_name}_energy_yesterday
+    id: ${anker_solix_name}_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    # update_interval: ${hms_inverter_template_update}
+    lambda: |-
+      return (id(${anker_solix_name}_energy_yesterday).state = id(${anker_solix_name}_energy_yesterday_global));        
+
+text_sensor:
+  - platform: anker_solix
+    anker_solix_id: ${anker_solix_id}
+    battery_status:
+      name: ${name}_${anker_solix_name}_battery_status
+    device_sn:
+      name: ${name}_${anker_solix_name}_device_sn
+    product_name:
+      name: ${name}_${anker_solix_name}_product_name
+    device_sw_version:
+      name: ${name}_${anker_solix_name}_device_sw_version
+    device_model:
+      name: ${name}_${anker_solix_name}_device_model
+
+binary_sensor:
+  - platform: anker_solix
+    anker_solix_id: ${anker_solix_id}
+    backup_soc_enable:
+      name: ${name}_${anker_solix_name}_backup_soc_enable
+    modbus_connection:
+      name: ${name}_${anker_solix_name}_modbus_connection
+
+number:
+  - platform: anker_solix
+    anker_solix_id: ${anker_solix_id}
+    battery_power_setpoint:
+      name: ${name}_${anker_solix_name}_battery_power_setpoint
+    charging_limit_soc:
+      name: ${name}_${anker_solix_name}_charging_limit_soc
+    discharge_limit_soc:
+      name: ${name}_${anker_solix_name}_discharge_limit_soc
+    backup_reserve_soc:
+      name: ${name}_${anker_solix_name}_backup_reserve_soc
+
+select:
+  - platform: anker_solix
+    anker_solix_id: ${anker_solix_id}
+    operating_mode:
+      name: ${name}_${anker_solix_name}_operating_mode
+
+output:
+  - platform: anker_solix
+    anker_solix_id: ${anker_solix_id}
+    charge_power:
+      id: ${anker_solix_name}_anker_charge_power
+    discharge_power:
+      id: ${anker_solix_name}_anker_discharge_power  
