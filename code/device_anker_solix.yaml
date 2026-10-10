@@ -45,7 +45,7 @@ modbus_controller:
     modbus_id: ${anker_solix_modbus_controller}
     update_interval: ${anker_solix_slow_update_interval}
               
- anker_solix:
+anker_solix:
   id: ${anker_solix_id}
   model: ${anker_solix_model}
   modbus_controller_id: ${anker_solix_name}_fast_modbus_controller
