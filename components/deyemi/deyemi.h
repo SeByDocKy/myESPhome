@@ -76,8 +76,16 @@ static const uint16_t V5_SENSOR_TYPE_MODBUS = 0x0000;
 static const uint16_t REG_BLOCK_START = 0x0001;
 static const uint16_t REG_BLOCK_COUNT = 0x7D;  // 0x0001..0x007D inclusive (125 regs)
 
-static const uint16_t REG_INVERTER_ID_START = 0x0003;  // 5 registers, ASCII string (e.g. "SUN-M160G4..." -- unconfirmed)
+static const uint16_t REG_INVERTER_ID_START = 0x0003;  // 5 registers, ASCII -- this is actually the unit's serial
+                                                         // number (confirmed by Deye's own Modbus protocol doc,
+                                                         // "SN byte 01".."SN byte 10"), NOT a model-name string. Kept
+                                                         // only for diagnostic logging -- see resolve_model_()'s
+                                                         // comment for why it's unsuitable for model detection.
 static const uint8_t REG_INVERTER_ID_COUNT = 5;
+static const uint16_t REG_MPPT_COUNT = 0x0012;          // "MPPT number and phases": high byte = MPPT count [1,8],
+                                                         // low byte = phase count [1,3] (e.g. 0x0503 = 5 MPPTs, 3
+                                                         // phases) -- Deye's own documented register for this,
+                                                         // confirmed via their official Modbus protocol doc.
 static const uint16_t REG_RATED_POWER = 0x0010;         // 0.1 W
 static const uint16_t REG_ACTIVE_POWER_REGULATION = 0x0028;  // 1 % per unit, write target for power_percent (FC16)
 static const uint16_t REG_DAILY_PRODUCTION = 0x003C;    // 0.1 kWh
