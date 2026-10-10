@@ -132,6 +132,131 @@ Retries, offline detection and the poll rate belong to the `modbus_controller` b
 belongs to the `modbus` block. Each entity block uses `anker_solix_id: anker_hub` (the hub id cannot be `anker_solix`: it would
 clash with the component name). See `test_anker_solix.yaml` for a configuration with every entity.
 
+## Complete example (every entity)
+
+The entity blocks below can be used with either transport (RS485 or serial-over-TCP): they only need the
+`anker_solix:` hub of the previous section. Every key is optional, keep the ones you need. The component has no
+`switch` or `button` platform: the battery has no on/off command in its register map (the operating mode is a `select`,
+the backup SOC function can only be read, it is enabled in the Anker app).
+
+```yaml
+substitutions:
+  name: anker-solix
+
+sensor:
+  - platform: anker_solix
+    anker_solix_id: anker_hub
+    ems_mode_mask:
+      name: ${name}_ems_mode_mask
+    parallel_capability_mask:
+      name: ${name}_parallel_capability_mask
+    dc_channels:
+      pv_power:
+        name: ${name}_pv_power
+      pcs_pv_power:
+        name: ${name}_pcs_pv_power
+      third_party_pv_power:
+        name: ${name}_third_party_pv_power
+      pv_total_generation:
+        name: ${name}_pv_total_generation
+    ac:
+      output_power:
+        name: ${name}_ac_output_power
+      load_power:
+        name: ${name}_load_power
+      grid_import_power:
+        name: ${name}_grid_import_power
+      grid_export_power:
+        name: ${name}_grid_export_power
+    battery:
+      soc:
+        name: ${name}_battery_soc
+      charging_power:
+        name: ${name}_battery_charging_power
+      discharging_power:
+        name: ${name}_battery_discharging_power
+      rated_energy:
+        name: ${name}_battery_rated_energy
+      total_charging_energy:
+        name: ${name}_battery_total_charging_energy
+      total_discharging_energy:
+        name: ${name}_battery_total_discharging_energy
+      max_charging_power:
+        name: ${name}_battery_max_charging_power
+      max_discharging_power:
+        name: ${name}_battery_max_discharging_power
+
+text_sensor:
+  - platform: anker_solix
+    anker_solix_id: anker_hub
+    battery_status:
+      name: ${name}_battery_status
+    device_sn:
+      name: ${name}_device_sn
+    product_name:
+      name: ${name}_product_name
+    device_sw_version:
+      name: ${name}_device_sw_version
+    device_model:
+      name: ${name}_device_model
+
+binary_sensor:
+  - platform: anker_solix
+    anker_solix_id: anker_hub
+    backup_soc_enable:
+      name: ${name}_backup_soc_enable
+    modbus_connection:
+      name: ${name}_modbus_connection
+
+number:
+  - platform: anker_solix
+    anker_solix_id: anker_hub
+    battery_power_setpoint:
+      id: anker_power_setpoint
+      name: ${name}_battery_power_setpoint
+    charging_limit_soc:
+      name: ${name}_charging_limit_soc
+    discharge_limit_soc:
+      name: ${name}_discharge_limit_soc
+    backup_reserve_soc:
+      name: ${name}_backup_reserve_soc
+
+select:
+  - platform: anker_solix
+    anker_solix_id: anker_hub
+    operating_mode:
+      name: ${name}_operating_mode
+
+output:
+  - platform: anker_solix
+    anker_solix_id: anker_hub
+    charge_power:
+      id: anker_charge_power
+    discharge_power:
+      id: anker_discharge_power
+```
+
+Driving the battery from your own logic (the setpoint is only applied in the "Third-Party Controlled" mode, see below):
+
+```yaml
+# Fixed power, in W: charge < 0, discharge > 0
+button:
+  - platform: template
+    name: ${name}_discharge_300w
+    on_press:
+      - number.set:
+          id: anker_power_setpoint
+          value: 300
+
+# Or with the outputs (0.0 .. 1.0 of the maximum power), e.g. from a PID loop
+interval:
+  - interval: 5s
+    then:
+      - output.set_level:
+          id: anker_discharge_power
+          level: 0.25     # 25 % of the maximum discharge power
+```
+
 ## Entities
 
 
