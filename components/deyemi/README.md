@@ -140,26 +140,33 @@ variant's 3rd/4th strings) ever publishes. Note there is deliberately no
 separate "GEN3" vs "GEN4" choice here -- the register map doesn't change
 between them, so the MPPT count is the only thing that actually matters.
 
-With `model: auto` (the default), the hub reads the "Inverter ID" string
-register (`0x0003`-`0x0007`, 5 registers / 10 ASCII bytes) on the first
-successful poll and looks for `"130"`, `"160"`, `"180"`, `"200"` or `"220"`
-in it to decide it's the 4-MPPT variant -- these substrings cover both
-generations' 4-MPPT model numbers at once (GEN3's 1300/1600/2000 and GEN4's
-130/160/180/200/220), since e.g. "160" is a substring of both "1600" and
-"M160G4". None of them collide with either generation's 2-MPPT model
-numbers (GEN3: 600/800/1000; GEN4: 60/80/100). Anything that doesn't match
-is treated as 2-MPPT, the conservative default -- worst case you're just
-missing the `pv2`/`pv3` `dc_channels` entries rather than publishing garbage
-values read from registers a 2-MPPT unit doesn't implement. **The exact
-contents and byte order of the Inverter ID string were not confirmed by any
-of the source reports**, so this detection logic is still a guess -- if it
-picks the wrong variant on your unit, set `model:` explicitly to override it
-(the startup log line "Inverter ID read as ..." will tell you what it saw
-and decided). Note this is a runtime check only: since `model: auto` isn't
-resolved until the first successful poll, YAML validation does **not**
-cross-check the number of `dc_channels` entries against it -- declaring
-`pv2`/`pv3` on what turns out to be 2-MPPT hardware isn't rejected, those
-channels just never publish.
+With `model: auto` (the default), the hub reads register `0x0012` ("MPPT
+number and phases") on the first successful poll: this register is
+documented by Deye's own Modbus protocol spec as read-only, high byte = MPPT
+count (1-8), low byte = phase count (1-3) -- e.g. `0x0503` means 5 MPPTs, 3
+phases. A decoded count of 3 or more is treated as the 4-MPPT variant,
+anything else (1-2, or a register the unit doesn't populate) as 2-MPPT, the
+conservative default -- worst case you're just missing the `pv2`/`pv3`
+`dc_channels` entries rather than publishing garbage values read from
+registers a 2-MPPT unit doesn't implement. The startup log line "MPPT count
+register (0x0012) read as N -- detected as ..." tells you what it saw and
+decided; if it ever picks the wrong variant on your unit, set `model:`
+explicitly to override it. Note this is a runtime check only: since
+`model: auto` isn't resolved until the first successful poll, YAML
+validation does **not** cross-check the number of `dc_channels` entries
+against it -- declaring `pv2`/`pv3` on what turns out to be 2-MPPT hardware
+isn't rejected, those channels just never publish.
+
+An earlier version of this detection instead substring-matched a guessed
+model number inside the field at `0x0003`-`0x0007`. That field is actually
+documented by Deye's protocol spec as the unit's 10-character **serial
+number** ("SN byte 01".."SN byte 10"), not a model-name string -- an
+arbitrary alphanumeric string with no guaranteed relationship to the model.
+That mismatch caused a real misdetection in the field: a genuinely 2-MPPT
+Deye SUN-M100G4-EU-Q0 was classified as 4-MPPT because its serial number
+happened to contain one of the matched digit substrings. The serial number
+is still decoded and logged ("Serial number read as ...") purely as a
+diagnostic aid, but no longer used for model detection.
 
 ## Known unknowns -- please report back once you have real hardware
 
@@ -169,9 +176,6 @@ channels just never publish.
   convention -- not confirmed by any source used here, GEN3 or GEN4. If
   `ac.power` or `ac.energy_total` come back wildly wrong (e.g. jumping
   by a factor of 65536), this word order is the first thing to flip.
-- **"Inverter ID" string decoding**: assumed ASCII, 2 characters per
-  register, high byte first. Never seen an actual decoded value from either
-  generation.
 - **Alternative power regulation register for true 0% output**: a
   [separate feature request](https://github.com/orgs/home-assistant/discussions/3354)
   for the SUN-M200G4-EU-Q0 (GEN4) documents that register `0x0028` (the one
