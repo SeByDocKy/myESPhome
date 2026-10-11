@@ -1,0 +1,127 @@
+substitutions:
+  name: apsystems
+  friendly_name: APsystems
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev          # any ESP32 works with a CC2530
+  framework:
+    type: esp-idf          # arduino works too
+
+logger:
+  level: DEBUG
+
+api:
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # 802.15.4 channel 16 (2430 MHz) overlaps Wi-Fi channels 3..7: use a Wi-Fi channel such as 1 or 11 on your router
+
+# UART connected to the CC2530 (Z-Stack ZNP firmware): ESP TX -> CC2530 RX, ESP RX <- CC2530 TX
+uart:
+  id: uart_zb
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 115200
+
+external_components:
+  - source: github://SeByDocKy/myESPhome
+    components: [apszb]
+
+apszb:
+  id: aps
+  radio: znp
+  uart_id: uart_zb
+  reset_pin: GPIO4              # optional: RESET_N of the CC2530
+  ecu_id: "D8A3011B9780"        # 12 hex digits, you choose it (PAN id = bytes 1,0 -> 0xA3D8)
+  channel: 16
+  poll_interval: 60s
+  auto_pair: true               # the inverters must be awake (daylight) to be paired
+  # log_frames: true            # log every ZNP command exchanged with the CC2530 (debugging)
+  inverters:
+    - id: inv1
+      serial: "408000158215"    # 12 digits printed on the inverter
+      type: yc600               # yc600 | qs1 | ds3
+      calibration: 0
+    # - id: inv2
+    #   serial: "703000021300"
+    #   type: ds3
+
+sensor:
+  - platform: apszb
+    inverter: inv1
+    ac_voltage:
+      name: ${name}_ac_voltage
+    frequency:
+      name: ${name}_frequency
+    temperature:
+      name: ${name}_temperature
+    power_total:
+      name: ${name}_power_total
+    energy_total:
+      name: ${name}_energy_total
+    dc_voltage_1:
+      name: ${name}_dc_voltage_1
+    dc_voltage_2:
+      name: ${name}_dc_voltage_2
+    dc_current_1:
+      name: ${name}_dc_current_1
+    dc_current_2:
+      name: ${name}_dc_current_2
+    power_1:
+      name: ${name}_power_1
+    power_2:
+      name: ${name}_power_2
+    energy_1:
+      name: ${name}_energy_1
+    energy_2:
+      name: ${name}_energy_2
+    link_quality:
+      name: ${name}_link_quality
+    rssi:
+      name: ${name}_rssi
+    uptime:
+      name: ${name}_uptime
+
+text_sensor:
+  - platform: apszb
+    inverter: inv1
+    status:
+      name: ${name}_status
+    serial:
+      name: ${name}_serial
+    short_address:
+      name: ${name}_short_address
+
+binary_sensor:
+  - platform: apszb
+    inverter: inv1
+    online:
+      name: ${name}_online
+
+number:
+  - platform: apszb
+    inverter: inv1
+    max_power:
+      name: ${name}_max_power
+      min_value: 30
+      max_value: 600
+      mode: slider
+
+button:
+  - platform: apszb
+    inverter: inv1
+    pair:
+      name: ${name}_pair
+    refresh:
+      name: ${name}_refresh
+    query_max_power:
+      name: ${name}_query_max_power
+    reboot_inverter:
+      name: ${name}_reboot_inverter
