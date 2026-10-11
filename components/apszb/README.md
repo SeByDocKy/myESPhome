@@ -128,7 +128,7 @@ stored in flash; you can also force it with `short_address: 0x103A`.
 | `log_frames` | `false` | log every TX/RX frame in hex (`native`: MAC frames, `znp`: ZNP commands) |
 | `promiscuous` | `false` | receive frames of every PAN (sniffer mode), `native` only |
 
-Per inverter: `serial`, `type`, `short_address` (optional), `calibration` (W added to the power limit, as in the original).
+Per inverter: `serial`, `type`, `short_address` (optional), `calibration` (W added to the power limit, as in the original), `rated_power` (optional, W: reference of the `power_limit_percent` output, default 600 for `yc600`, 1200 for `qs1`, 730 for `ds3`).
 
 ## Entities (all optional, platform `apszb`, `inverter: <id>`)
 
@@ -137,6 +137,8 @@ Per inverter: `serial`, `type`, `short_address` (optional), `calibration` (W add
 * **text_sensor**: `status` (unpaired / online / offline), `serial`, `short_address`
 * **binary_sensor**: `online`
 * **number**: `max_power` (throttling in W, read back from the inverter after each change)
+* **output**: `power_limit_percent` (float output 0.0…1.0 = 0…100 % of the inverter's `rated_power`, never below 30 W; for PID /
+  zero-injection regulators. Bursts of writes are coalesced: only the latest limit is sent to the inverter)
 * **button**: `pair`, `refresh`, `query_max_power`, `reboot_inverter`
 
 The inverters do not report an instantaneous power: like the original firmware, `power_x` is derived from the increase

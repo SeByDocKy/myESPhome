@@ -401,6 +401,15 @@ void APSZBComponent::enqueue_op(OpKind kind, uint8_t inv, int32_t arg) {
     return;
   if (kind != OpKind::THROTTLE && this->op_queued_(kind, inv))
     return;
+  if (kind == OpKind::THROTTLE) {
+    // a regulator may write often: keep only the latest requested limit of an inverter that is still waiting in the queue
+    for (auto &op : this->ops_) {
+      if (op.kind == OpKind::THROTTLE && op.inv == inv) {
+        op.arg = arg;
+        return;
+      }
+    }
+  }
   if (this->ops_.size() > 24) {
     ESP_LOGW(TAG, "operation queue full, dropping request");
     return;

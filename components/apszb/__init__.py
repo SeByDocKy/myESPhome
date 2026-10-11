@@ -34,6 +34,7 @@ CONF_ECU_ID = "ecu_id"
 CONF_SERIAL = "serial"
 CONF_SHORT_ADDRESS = "short_address"
 CONF_CALIBRATION = "calibration"
+CONF_RATED_POWER = "rated_power"
 CONF_TX_POWER = "tx_power"
 CONF_POLL_INTERVAL = "poll_interval"
 CONF_RESPONSE_TIMEOUT = "response_timeout"
@@ -54,6 +55,7 @@ RADIO_NATIVE = "native"
 RADIO_ZNP = "znp"
 
 INVERTER_TYPES = {"yc600": 0, "qs1": 1, "ds3": 2}
+DEFAULT_RATED_POWER = {"yc600": 600, "qs1": 1200, "ds3": 730}
 
 _HEX12 = re.compile(r"^[0-9A-Fa-f]{12}$")
 
@@ -79,6 +81,8 @@ INVERTER_SCHEMA = cv.Schema(
         cv.Optional(CONF_SHORT_ADDRESS): cv.hex_uint16_t,
         # offset (W) added to the power limit sent to the inverter, as in the original firmware
         cv.Optional(CONF_CALIBRATION, default=0): cv.int_range(min=-100, max=100),
+        # reference (W) of the `power_limit_percent` output; default depends on the type (yc600 600, qs1 1200, ds3 730)
+        cv.Optional(CONF_RATED_POWER): cv.int_range(min=30, max=2000),
     }
 )
 
@@ -168,6 +172,7 @@ async def to_code(config):
         cg.add(inv.set_serial(conf[CONF_SERIAL]))
         cg.add(inv.set_type(conf[CONF_TYPE]))
         cg.add(inv.set_calibration(conf[CONF_CALIBRATION]))
+        cg.add(inv.set_rated_power(conf.get(CONF_RATED_POWER, DEFAULT_RATED_POWER[conf[CONF_TYPE]])))
         if CONF_SHORT_ADDRESS in conf:
             cg.add(inv.set_short_address(conf[CONF_SHORT_ADDRESS]))
         cg.add(var.add_inverter(inv))

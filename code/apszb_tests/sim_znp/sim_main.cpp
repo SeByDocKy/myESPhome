@@ -178,6 +178,13 @@ int main() {
   setup();
   auto t0 = Clock::now();
   auto now_s = [&]() { return std::chrono::duration<double>(Clock::now() - t0).count(); };
+  // output platform: a burst of writes must end up as ONE queued throttle operation (the latest value, 50 % of 600 W)
+  apszb_limit->set_level(0.2f);
+  apszb_limit->set_level(0.5f);
+  apszb_limit->set_level(0.5f);
+  int thr = 0, thr_arg = 0;
+  for (auto &op : aps->ops_) if (op.kind == OpKind::THROTTLE && op.inv == 0) { thr++; thr_arg = op.arg; }
+  EXPECT(thr == 1 && thr_arg == 300, "output burst coalesced into one throttle of %d W (%d queued)", thr_arg, thr);
   bool night = false, did_query = false, did_throttle = false, paired_seen = false;
   float p1_before = NAN, p2_before = NAN;
   double ready_at = -1;

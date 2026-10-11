@@ -114,6 +114,14 @@ number:
       max_value: 600
       mode: slider
 
+# float output (0..1 = 0..100 % of the rated power): lets a PID / template / light regulate the inverter, e.g.
+#   zero-injection with `minipid` -> output: apszb_limit
+output:
+  - platform: apszb
+    inverter: inv1
+    power_limit_percent:
+      id: apszb_limit
+
 button:
   - platform: apszb
     inverter: inv1

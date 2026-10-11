@@ -50,6 +50,7 @@ class APSInverter {
     this->short_addr_ = addr;
   }
   void set_calibration(int watts) { this->calibration_ = watts; }
+  void set_rated_power(uint16_t watts) { this->rated_power_ = watts; }
   void set_parent(APSZBComponent *parent, uint8_t index) {
     this->parent_ = parent;
     this->index_ = index;
@@ -108,6 +109,7 @@ class APSInverter {
   bool paired() const { return this->short_addr_ != 0 && this->short_addr_ < 0xFFF8; }
   bool online() const { return this->online_state_; }
   int calibration() const { return this->calibration_; }
+  uint16_t rated_power() const { return this->rated_power_; }
   uint8_t index() const { return this->index_; }
 
   // ---- called by the hub ----
@@ -137,6 +139,7 @@ class APSInverter {
   uint16_t configured_short_{0};
   uint16_t short_addr_{0};
   int calibration_{0};
+  uint16_t rated_power_{600};  // W, reference of the power_limit_percent output (set from the YAML)
 
   // run-time state
   bool online_state_{false};
