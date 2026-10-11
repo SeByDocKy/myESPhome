@@ -147,6 +147,8 @@ Firmware numbers are formatted like the official integration (`10203` -> `1.02.0
 | Platform | Key | Points (read / write) | Gen |
 | --- | --- | --- | --- |
 | `number` | `power_setpoint` | -- / 47015 (full real-time command, see below) | 1, 2 |
+| `number` | `charging_power` (W, >= 0) | -- / 47015 (full real-time command, charging) | 1, 2 |
+| `number` | `discharging_power` (W, >= 0) | -- / 47015 (full real-time command, discharging) | 1, 2 |
 | `number` | `backup_soc` (5..100 %) | 6105 / 1142 | 2 |
 | `number` | `inverter_input_limit` (50..2400 W) | 11009 / 1138 | 2 |
 | `number` | `max_output_power` (50..2400 W) | 11011 / 1147 | 2 |
@@ -171,6 +173,12 @@ The real-time control of the official integration is a write of `[state, power, 
 exactly that:
 
 - `number: power_setpoint` -- one signed value in W: **> 0 discharge, < 0 charge, 0 standby**.
+- `number: charging_power` / `number: discharging_power` -- one number per direction, in W (>= 0), like `input_limit` /
+  `output_limit` of the `zensdk` component. Setting one starts that direction and replaces the other one; setting a
+  number to 0 only stops **its own** direction (it does not cancel a request made in the other direction). The three
+  numbers and the two outputs below always show the same request: after any of them changes it, `charging_power` and
+  `discharging_power` display the magnitude of their own direction and 0 for the other, and `power_setpoint` the signed
+  value.
 - `output: charge_power` / `discharge_power` -- two `FloatOutput`s (0.0 .. 1.0 = 0 .. `max_charge_power` /
   `max_discharge_power`). The effective request is `discharge - charge`, so two independent PID loops can drive one
   battery (same as the `zensdk` component).

@@ -59,6 +59,8 @@ enum NumberKind : uint8_t {
   NUM_SETTING = 0,        // plain integer write to `write_point` (optionally read back from `read_point`)
   NUM_REALTIME_POWER = 1, // raw write of the real-time control power (point 47016), clamped to the device limits
   NUM_POWER_SETPOINT = 2, // signed W: > 0 discharge, < 0 charge, 0 standby -> full real-time command (point 47015)
+  NUM_CHARGE_POWER = 3,   // charge power in W (>= 0) -> full real-time command; 0 only stops an ongoing charge
+  NUM_DISCHARGE_POWER = 4,  // discharge power in W (>= 0) -> full real-time command; 0 only stops an ongoing discharge
 };
 
 // Identification values read once from GET /rpc/Sys.GetConfig.
@@ -212,7 +214,8 @@ class IndevoltComponent : public PollingComponent {
   // a request smaller than `min_power` is sent as standby. Always sends the complete real-time command
   // [state, power, target SOC] to point 47015 and, when `auto_realtime_mode` is set, switches the device to
   // Real-Time Control first.
-  void set_power(int32_t watts);
+  // Returns the effective (clamped) request in W.
+  int32_t set_power(int32_t watts);
 
   // Writes `values` to `point` (SetData, function code 16).
   void write_point(uint16_t point, const std::vector<int32_t> &values);
@@ -266,6 +269,10 @@ class IndevoltComponent : public PollingComponent {
   bool enqueue_write_(const std::string &path, bool is_power);
   void enqueue_info_();
   void apply_output_requests_();
+#ifdef USE_NUMBER
+  void publish_power_numbers_(int32_t watts);
+#endif
+  int32_t requested_w_{0};  // last effective power request (> 0 discharge, < 0 charge)
 
   bool http_request_(bool post, const std::string &path, int &status, std::string &response_body);
   static bool decode_chunked_(const std::string &in, std::string &out);

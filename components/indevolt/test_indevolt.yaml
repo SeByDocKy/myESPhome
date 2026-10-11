@@ -258,6 +258,10 @@ number:
     indevolt_id: sf2000
     power_setpoint:             # signed W: > 0 discharge, < 0 charge, 0 standby (full real-time command)
       name: ${name}_power_setpoint
+    charging_power:             # W >= 0: charge at this power (full real-time command)
+      name: ${name}_charging_power
+    discharging_power:          # W >= 0: discharge at this power (full real-time command)
+      name: ${name}_discharging_power
     backup_soc:
       name: ${name}_backup_soc
     inverter_input_limit:

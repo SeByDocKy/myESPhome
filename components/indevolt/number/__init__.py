@@ -19,7 +19,7 @@ DEPENDENCIES = ["indevolt"]
 IndevoltNumber = indevolt_ns.class_("IndevoltNumber", number.Number, cg.Parented.template(IndevoltComponent))
 
 # Kind ids MUST match the NumberKind enum in indevolt.h.
-KIND_SETTING, KIND_REALTIME_POWER, KIND_POWER_SETPOINT = range(3)
+KIND_SETTING, KIND_REALTIME_POWER, KIND_POWER_SETPOINT, KIND_CHARGE_POWER, KIND_DISCHARGE_POWER = range(5)
 
 # Ranges are the widest of both generations; the hub clamps every power request to the limits configured
 # on the `indevolt:` block (`max_charge_power` / `max_discharge_power`) and publishes the clamped value back.
@@ -28,6 +28,11 @@ NUMBERS = [
     # Signed: > 0 discharge, < 0 charge, 0 standby. Sends the complete real-time command (point 47015),
     # switching the device to Real-Time Control first.
     ("power_setpoint", None, 0, KIND_POWER_SETPOINT, -MAX_REALTIME_POWER, MAX_REALTIME_POWER, 1, UNIT_WATT, "mdi:swap-vertical", None),
+    # Charge / discharge power in W (>= 0), one number per direction (like `input_limit` / `output_limit` of the
+    # zensdk component). Each sends the complete real-time command; setting one direction replaces the other, and
+    # 0 W only stops the direction it belongs to.
+    ("charging_power", None, 0, KIND_CHARGE_POWER, 0, MAX_REALTIME_POWER, 1, UNIT_WATT, "mdi:battery-arrow-up", None),
+    ("discharging_power", None, 0, KIND_DISCHARGE_POWER, 0, MAX_REALTIME_POWER, 1, UNIT_WATT, "mdi:battery-arrow-down", None),
     # Backup / emergency SOC (SolidFlex/PowerFlex 2000). Read back from point 6105.
     ("backup_soc", g2(6105), 1142, KIND_SETTING, 5, 100, 1, UNIT_PERCENT, "mdi:battery-heart-variant", ENTITY_CATEGORY_CONFIG),
     ("inverter_input_limit", g2(11009), 1138, KIND_SETTING, 50, 2400, 1, UNIT_WATT, "mdi:battery-arrow-up", ENTITY_CATEGORY_CONFIG),
@@ -39,7 +44,7 @@ NUMBERS = [
     ("soc_setting", None, 47017, KIND_SETTING, 0, 100, 1, UNIT_PERCENT, "mdi:percent", ENTITY_CATEGORY_CONFIG),
 ]
 # Entities available on both generations (the others are SolidFlex/PowerFlex 2000 only).
-_BOTH = {"power_setpoint", "power_setting", "soc_setting"}
+_BOTH = {"power_setpoint", "charging_power", "discharging_power", "power_setting", "soc_setting"}
 
 
 def _schema(icon, unit, category):

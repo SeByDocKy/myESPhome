@@ -711,13 +711,18 @@ void IndevoltComponent::write_point(uint16_t point, const std::vector<int32_t> &
   this->enqueue_write_(this->set_data_path_(point, values), false);
 }
 
-void IndevoltComponent::set_power(int32_t watts) {
+int32_t IndevoltComponent::set_power(int32_t watts) {
   if (watts > (int32_t) this->max_discharge_power_)
     watts = this->max_discharge_power_;
   if (watts < -(int32_t) this->max_charge_power_)
     watts = -(int32_t) this->max_charge_power_;
   if (std::abs(watts) < (int32_t) this->min_power_ || watts == 0)
     watts = 0;
+
+  this->requested_w_ = watts;
+#ifdef USE_NUMBER
+  this->publish_power_numbers_(watts);
+#endif
 
   int32_t state = watts > 0 ? RT_DISCHARGING : (watts < 0 ? RT_CHARGING : RT_STANDBY);
   int32_t power = std::abs(watts);
@@ -731,7 +736,7 @@ void IndevoltComponent::set_power(int32_t watts) {
   // Real-time commands are ignored outside the Real-Time Control work mode (4).
   bool need_mode = this->auto_realtime_mode_ && this->work_mode_ != WORK_MODE_REALTIME;
   if (same && !need_mode)
-    return;  // identical to the previous command, nothing to do
+    return watts;  // identical to the previous command, nothing to do
 
   if (need_mode) {
     this->write_point(POINT_WORK_MODE_WRITE, {WORK_MODE_REALTIME});
@@ -742,14 +747,44 @@ void IndevoltComponent::set_power(int32_t watts) {
     this->last_power_command_ = path;
     this->last_power_ms_ = now;
   }
+  return watts;
 }
+
+#ifdef USE_NUMBER
+// Keeps the power numbers consistent with the last request, whoever made it (a number or the outputs):
+// the charging / discharging numbers show the magnitude of their own direction and 0 for the other one.
+void IndevoltComponent::publish_power_numbers_(int32_t watts) {
+  for (auto &b : this->numbers_) {
+    if (b.kind == NUM_POWER_SETPOINT)
+      b.number->publish_state((float) watts);
+    else if (b.kind == NUM_CHARGE_POWER)
+      b.number->publish_state(watts < 0 ? (float) -watts : 0.0f);
+    else if (b.kind == NUM_DISCHARGE_POWER)
+      b.number->publish_state(watts > 0 ? (float) watts : 0.0f);
+  }
+}
+#endif
 
 float IndevoltComponent::write_number(uint8_t kind, uint16_t write_point, float value) {
   switch (kind) {
     case NUM_POWER_SETPOINT: {
       value = std::min(std::max(value, -(float) this->max_charge_power_), (float) this->max_discharge_power_);
-      this->set_power((int32_t) lroundf(value));
-      return value;
+      return (float) this->set_power((int32_t) lroundf(value));
+    }
+    case NUM_CHARGE_POWER: {
+      int32_t watts = (int32_t) lroundf(std::min(std::max(value, 0.0f), (float) this->max_charge_power_));
+      // 0 W only stops a charge in progress: it must not cancel a discharge requested elsewhere.
+      if (watts == 0 && this->requested_w_ >= 0)
+        return 0.0f;
+      int32_t effective = this->set_power(-watts);
+      return effective < 0 ? (float) -effective : 0.0f;
+    }
+    case NUM_DISCHARGE_POWER: {
+      int32_t watts = (int32_t) lroundf(std::min(std::max(value, 0.0f), (float) this->max_discharge_power_));
+      if (watts == 0 && this->requested_w_ <= 0)
+        return 0.0f;
+      int32_t effective = this->set_power(watts);
+      return effective > 0 ? (float) effective : 0.0f;
     }
     case NUM_REALTIME_POWER: {
       float max_power = (float) std::max(this->max_charge_power_, this->max_discharge_power_);
