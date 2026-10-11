@@ -1,0 +1,304 @@
+substitutions:
+  name: "test_indevolt"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  #board: esp32-s3-devkitc-1
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+    version: 'dev'
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [indevolt]
+    refresh: 10s
+
+  # - source:
+      # type: local
+      # path: components
+
+logger:
+   level: debug
+
+debug:
+  update_interval: 5s
+
+
+indevolt:
+  - id: sf2000
+    ip_address: 192.168.1.70      # fixed IP of the battery (DHCP reservation), see the INDEVOLT app or your router
+    ip_port: 8080                 # local HTTP "OpenData" API (must be enabled in the INDEVOLT app)
+    model: SF2000                 # SF2000 / PF2000 (SolidFlex / PowerFlex 2000) or BK1600 / BK1600_ULTRA
+    poll_interval: 30s
+    # timeout: 8s                 # total time budget of one HTTP transaction
+    # batch_size: 8               # points requested per GetData call
+    # max_charge_power: 2400      # optional overrides of the model limits (W), up to 10800 W for a cluster
+    # max_discharge_power: 2400
+    # min_power: 50               # requests below this power are sent as standby
+    # charge_target_soc: 100      # third value of the real-time command while charging (%)
+    # discharge_target_soc: 5     # ... while discharging / standby (%)
+    # auto_realtime_mode: true    # switch to Real-Time Control (mode 4) before a power command
+
+  # Second battery on the same ESP (MULTI_CONF), then add `indevolt_id: bk1600` on every platform entry:
+  # - id: bk1600
+  #   ip_address: 192.168.1.71
+  #   model: BK1600
+  #   poll_interval: 30s
+
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+
+  - platform: indevolt
+    indevolt_id: sf2000
+    rated_capacity:
+      name: ${name}_rated_capacity
+    dc_output_power:
+      name: ${name}_dc_output_power
+    daily_production:
+      name: ${name}_daily_production
+    # total_production:           # BK1600 only
+    #   name: ${name}_total_production
+    meter_power:
+      name: ${name}_meter_power
+    emergency_power_supply:
+      name: ${name}_emergency_power_supply
+    bypass_power:
+      name: ${name}_bypass_power
+    bypass_input_energy:
+      name: ${name}_bypass_input_energy
+
+    # One entry per PV input, 0-indexed (pv0, pv1, ...). BK1600: pv0 and pv1, power only.
+    dc_channels:
+      - pv0:
+          power:
+            name: ${name}_pv0_power
+          voltage:
+            name: ${name}_pv0_voltage
+          current:
+            name: ${name}_pv0_current
+      - pv1:
+          power:
+            name: ${name}_pv1_power
+          voltage:
+            name: ${name}_pv1_voltage
+          current:
+            name: ${name}_pv1_current
+      - pv2:
+          power:
+            name: ${name}_pv2_power
+          voltage:
+            name: ${name}_pv2_voltage
+          current:
+            name: ${name}_pv2_current
+      - pv3:
+          power:
+            name: ${name}_pv3_power
+          voltage:
+            name: ${name}_pv3_voltage
+          current:
+            name: ${name}_pv3_current
+
+    ac:
+      input_power:
+        name: ${name}_ac_input_power
+      output_power:
+        name: ${name}_ac_output_power
+      input_energy:
+        name: ${name}_ac_input_energy
+      output_energy:
+        name: ${name}_ac_output_energy
+      offgrid_output_energy:
+        name: ${name}_offgrid_output_energy
+      voltage:
+        name: ${name}_grid_voltage
+      frequency:
+        name: ${name}_grid_frequency
+
+    battery:
+      soc:
+        name: ${name}_battery_soc
+      power:
+        name: ${name}_battery_power
+      daily_charge_energy:
+        name: ${name}_battery_daily_charge_energy
+      daily_discharge_energy:
+        name: ${name}_battery_daily_discharge_energy
+      total_charge_energy:
+        name: ${name}_battery_total_charge_energy
+      total_discharge_energy:
+        name: ${name}_battery_total_discharge_energy
+      # Power-module main board readings (SolidFlex/PowerFlex 2000 only)
+      mb_soc:
+        name: ${name}_battery_mb_soc
+      mb_voltage:
+        name: ${name}_battery_mb_voltage
+      mb_current:
+        name: ${name}_battery_mb_current
+      mb_temperature:
+        name: ${name}_battery_mb_temperature
+      mb_cell1_voltage:
+        name: ${name}_battery_mb_cell1_voltage
+      mb_cell2_voltage:
+        name: ${name}_battery_mb_cell2_voltage
+      # One entry per SFA/PFA battery pack, 0-indexed (pack0, pack1, ...), up to 5.
+      packs:
+        - pack0:
+            soc:
+              name: ${name}_pack0_soc
+            voltage:
+              name: ${name}_pack0_voltage
+            current:
+              name: ${name}_pack0_current
+            temperature:
+              name: ${name}_pack0_temperature
+            cell1_voltage:
+              name: ${name}_pack0_cell1_voltage
+            cell2_voltage:
+              name: ${name}_pack0_cell2_voltage
+        - pack1:
+            soc:
+              name: ${name}_pack1_soc
+            voltage:
+              name: ${name}_pack1_voltage
+            current:
+              name: ${name}_pack1_current
+            temperature:
+              name: ${name}_pack1_temperature
+            cell1_voltage:
+              name: ${name}_pack1_cell1_voltage
+            cell2_voltage:
+              name: ${name}_pack1_cell2_voltage
+
+binary_sensor:
+  - platform: indevolt
+    indevolt_id: sf2000
+    online:
+      name: ${name}_online
+    meter_connected:
+      name: ${name}_meter_connected
+    bypass_active:
+      name: ${name}_bypass_active
+
+text_sensor:
+  - platform: indevolt
+    indevolt_id: sf2000
+    # Identification read once from Sys.GetConfig
+    device_type:
+      name: ${name}_device_type
+    serial_number:
+      name: ${name}_serial_number
+    device_firmware:
+      name: ${name}_device_firmware
+    working_mode:
+      name: ${name}_working_mode
+    state:
+      name: ${name}_state
+    role:
+      name: ${name}_role
+    ems_firmware:
+      name: ${name}_ems_firmware
+    bms_mb_firmware:
+      name: ${name}_bms_mb_firmware
+    pcs_firmware:
+      name: ${name}_pcs_firmware
+    dcdc_firmware:
+      name: ${name}_dcdc_firmware
+    battery:
+      mb_sn:
+        name: ${name}_battery_mb_sn
+      packs:
+        - pack0:
+            sn:
+              name: ${name}_pack0_sn
+            dcdc_firmware:
+              name: ${name}_pack0_dcdc_firmware
+            bms_firmware:
+              name: ${name}_pack0_bms_firmware
+        - pack1:
+            sn:
+              name: ${name}_pack1_sn
+            dcdc_firmware:
+              name: ${name}_pack1_dcdc_firmware
+            bms_firmware:
+              name: ${name}_pack1_bms_firmware
+
+number:
+  - platform: indevolt
+    indevolt_id: sf2000
+    power_setpoint:             # signed W: > 0 discharge, < 0 charge, 0 standby (full real-time command)
+      name: ${name}_power_setpoint
+    charging_power:             # W >= 0: charge at this power (full real-time command)
+      name: ${name}_charging_power
+    discharging_power:          # W >= 0: discharge at this power (full real-time command)
+      name: ${name}_discharging_power
+    backup_soc:
+      name: ${name}_backup_soc
+    inverter_input_limit:
+      name: ${name}_inverter_input_limit
+    max_output_power:
+      name: ${name}_max_output_power
+    feed_in_power_limit:
+      name: ${name}_feed_in_power_limit
+    power_setting:              # raw real-time power (point 47016)
+      name: ${name}_power_setting
+    soc_setting:                # raw real-time target SOC (point 47017)
+      name: ${name}_soc_setting
+
+select:
+  - platform: indevolt
+    indevolt_id: sf2000
+    work_mode:
+      name: ${name}_work_mode
+    realtime_state:
+      name: ${name}_realtime_state
+    load_setting:
+      name: ${name}_load_setting
+
+switch:
+  - platform: indevolt
+    indevolt_id: sf2000
+    light:
+      name: ${name}_light
+    grid_charging:
+      name: ${name}_grid_charging
+    bypass:
+      name: ${name}_bypass
+
+output:
+  - platform: indevolt
+    indevolt_id: sf2000
+    charge_power:               # 0.0 .. 1.0 -> 0 .. max charge power
+      id: ${name}_charge_power_output
+    discharge_power:            # 0.0 .. 1.0 -> 0 .. max discharge power
+      id: ${name}_discharge_power_output
