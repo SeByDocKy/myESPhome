@@ -46,8 +46,9 @@ indevolt:
     ip_address: 192.168.1.70      # fixed IP of the battery (DHCP reservation), see the INDEVOLT app or your router
     ip_port: 8080                 # local HTTP "OpenData" API (must be enabled in the INDEVOLT app)
     model: SF2000                 # SF2000 / PF2000 (SolidFlex / PowerFlex 2000) or BK1600 / BK1600_ULTRA
-    poll_interval: 10s            # fast loop: power, SOC, state, work mode
-    slow_poll_interval: 60s       # slow loop: counters, voltages, temperatures, packs, settings
+    fast_poll_interval: 10s       # power, SOC, state, work mode, PV / AC / meter power
+    normal_poll_interval: 30s     # voltages, currents, temperatures, energy counters, packs
+    slow_poll_interval: 120s      # identification, firmware, settings read-back
     # timeout: 8s                 # total time budget of one HTTP transaction
     # batch_size: 8               # points requested per GetData call
     # max_charge_power: 2400      # optional overrides of the model limits (W), up to 10800 W for a cluster
@@ -61,7 +62,7 @@ indevolt:
   # - id: bk1600
   #   ip_address: 192.168.1.71
   #   model: BK1600
-  #   poll_interval: 30s
+  #   fast_poll_interval: 30s
 
 
 sensor:
@@ -84,6 +85,7 @@ sensor:
     indevolt_id: sf2000
     rated_capacity:
       name: ${name}_rated_capacity
+      # poll: slow                 # optional per-entity override of the polling loop: fast / normal / slow
     dc_output_power:
       name: ${name}_dc_output_power
     daily_production:

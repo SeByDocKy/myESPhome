@@ -7,11 +7,13 @@ from .. import (
     CONF_INDEVOLT_ID,
     MAX_REALTIME_POWER,
     IndevoltComponent,
+    apply_poll,
     both,
     g2,
     hub_generation,
     indevolt_ns,
     make_final_validate,
+    with_poll,
 )
 
 DEPENDENCIES = ["indevolt"]
@@ -51,7 +53,7 @@ def _schema(icon, unit, category):
     kwargs = dict(icon=icon, unit_of_measurement=unit)
     if category is not None:
         kwargs["entity_category"] = category
-    return number.number_schema(IndevoltNumber, **kwargs)
+    return with_poll(number.number_schema(IndevoltNumber, **kwargs))
 
 
 CONFIG_SCHEMA = cv.Schema(
@@ -85,3 +87,4 @@ async def to_code(config):
         cg.add(var.set_write_point(write))
         read_point = read[gen] if read is not None else 0
         cg.add(hub.add_number(kind, read_point, write, var))
+        apply_poll(hub, read_point, conf)

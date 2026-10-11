@@ -45,9 +45,15 @@ CONF_DISCHARGE_TARGET_SOC = "discharge_target_soc"
 CONF_AUTO_REALTIME_MODE = "auto_realtime_mode"
 CONF_BATCH_SIZE = "batch_size"
 CONF_TIMEOUT = "timeout"
-# Named "poll_interval" (not "update_interval") to match this author's zensdk / hmsw / tsungen3 components.
-CONF_POLL_INTERVAL = "poll_interval"
+# Three polling loops, each with its own interval (see README): fast = power / SOC / state, normal =
+# measurements and counters, slow = near-static data. Named "*_poll_interval" (not "update_interval") to
+# match this author's zensdk / hmsw / tsungen3 components.
+CONF_FAST_POLL_INTERVAL = "fast_poll_interval"
+CONF_NORMAL_POLL_INTERVAL = "normal_poll_interval"
 CONF_SLOW_POLL_INTERVAL = "slow_poll_interval"
+# Optional per-entity override of the polling tier of its point.
+CONF_POLL = "poll"
+POLL_TIERS = {"fast": 0, "normal": 1, "slow": 2}
 
 # Number of battery packs (SFA/PFA) a SolidFlex/PowerFlex 2000 power module can drive.
 MAX_PACKS = 5
@@ -140,6 +146,23 @@ def make_final_validate(entries_fn):
     return _validate
 
 
+_poll_interval = cv.All(cv.positive_time_period_milliseconds, cv.Range(min=cv.TimePeriod(milliseconds=1000)))
+
+# `poll: fast | normal | slow` on an entity moves its point to another polling loop than the default one.
+POLL_SCHEMA = cv.Schema({cv.Optional(CONF_POLL): cv.enum(POLL_TIERS, lower=True)})
+
+
+def with_poll(schema):
+    """Add the optional `poll:` key to an entity schema."""
+    return schema.extend(POLL_SCHEMA)
+
+
+def apply_poll(hub, point, conf):
+    """Forward the `poll:` override of an entity (if any) to the hub for its read point."""
+    if CONF_POLL in conf and point:
+        cg.add(hub.set_point_tier(point, conf[CONF_POLL]))
+
+
 def named_list(item_schema, max_items, noun, example):
     """Validator for the `dc_channels:` / `packs:` style lists: a list of single-key mappings
     ({pv0: {...}}, {pv1: {...}}, ...) whose names must be unique."""
@@ -185,10 +208,9 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_IP_ADDRESS): cv.string_strict,
             cv.Optional(CONF_IP_PORT, default=8080): cv.port,
             cv.Required(CONF_MODEL): cv.one_of(*MODELS, upper=True),
-            cv.Optional(CONF_POLL_INTERVAL, default="30s"): cv.update_interval,
-            cv.Optional(CONF_SLOW_POLL_INTERVAL, default="60s"): cv.All(
-                cv.positive_time_period_milliseconds, cv.Range(min=cv.TimePeriod(milliseconds=1000))
-            ),
+            cv.Optional(CONF_FAST_POLL_INTERVAL, default="30s"): _poll_interval,
+            cv.Optional(CONF_NORMAL_POLL_INTERVAL, default="60s"): _poll_interval,
+            cv.Optional(CONF_SLOW_POLL_INTERVAL, default="300s"): _poll_interval,
             # Total time budget of one HTTP transaction (connect + send + receive).
             cv.Optional(CONF_TIMEOUT, default="8s"): cv.All(
                 cv.positive_time_period_milliseconds,
@@ -229,6 +251,7 @@ async def to_code(config):
     cg.add(var.set_discharge_target_soc(config[CONF_DISCHARGE_TARGET_SOC]))
     cg.add(var.set_auto_realtime_mode(config[CONF_AUTO_REALTIME_MODE]))
     # register_component() only auto-wires PollingComponent's interval when the config key is
-    # literally "update_interval" -- ours is "poll_interval", so it is set explicitly here.
-    cg.add(var.set_update_interval(config[CONF_POLL_INTERVAL]))
+    # literally "update_interval" -- ours is "fast_poll_interval", so it is set explicitly here.
+    cg.add(var.set_update_interval(config[CONF_FAST_POLL_INTERVAL].total_milliseconds))
+    cg.add(var.set_normal_poll_interval(config[CONF_NORMAL_POLL_INTERVAL].total_milliseconds))
     cg.add(var.set_slow_poll_interval(config[CONF_SLOW_POLL_INTERVAL].total_milliseconds))

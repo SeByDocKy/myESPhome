@@ -10,8 +10,10 @@ from .. import (
     both,
     g2,
     hub_generation,
+    apply_poll,
     make_final_validate,
     named_list,
+    with_poll,
 )
 
 DEPENDENCIES = ["indevolt"]
@@ -69,12 +71,12 @@ PACK_TEXT_FIELDS = [
     ("bms_firmware", [1137, 1139, 1141, 1143, 1099], TEXT_FIRMWARE, ICON_FIRMWARE, True),
 ]
 PACK_TEXT_SCHEMA = cv.Schema(
-    {cv.Optional(key): _text_schema(icon, diag) for key, _points, _conv, icon, diag in PACK_TEXT_FIELDS}
+    {cv.Optional(key): with_poll(_text_schema(icon, diag)) for key, _points, _conv, icon, diag in PACK_TEXT_FIELDS}
 )
 
 BATTERY_SCHEMA = cv.Schema(
     {
-        **{cv.Optional(key): _text_schema(icon, diag) for key, _points, _conv, icon, diag in BATTERY_TEXT_SENSORS},
+        **{cv.Optional(key): with_poll(_text_schema(icon, diag)) for key, _points, _conv, icon, diag in BATTERY_TEXT_SENSORS},
         cv.Optional(CONF_PACKS): named_list(PACK_TEXT_SCHEMA, MAX_PACKS, "pack", "pack0: {sn: {name: ...}}"),
     }
 )
@@ -84,7 +86,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_INDEVOLT_ID): cv.use_id(IndevoltComponent),
         **{cv.Optional(key): _text_schema(icon, True) for key, _kind, icon in INFO_TEXT_SENSORS},
         **{
-            cv.Optional(key): _text_schema(icon, diag)
+            cv.Optional(key): with_poll(_text_schema(icon, diag))
             for key, _points, _conv, icon, diag in ROOT_TEXT_SENSORS
         },
         cv.Optional(CONF_BATTERY): BATTERY_SCHEMA,
@@ -124,3 +126,4 @@ async def to_code(config):
     for _label, points, conf, conv in _entries(config):
         s = await text_sensor.new_text_sensor(conf)
         cg.add(hub.add_text_sensor(points[gen], conv, s))
+        apply_poll(hub, points[gen], conf)

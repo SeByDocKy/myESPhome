@@ -3,7 +3,16 @@ import esphome.config_validation as cv
 from esphome.components import binary_sensor
 from esphome.const import DEVICE_CLASS_CONNECTIVITY, ENTITY_CATEGORY_DIAGNOSTIC
 
-from .. import CONF_INDEVOLT_ID, IndevoltComponent, both, g2, hub_generation, make_final_validate
+from .. import (
+    CONF_INDEVOLT_ID,
+    IndevoltComponent,
+    apply_poll,
+    both,
+    g2,
+    hub_generation,
+    make_final_validate,
+    with_poll,
+)
 
 DEPENDENCIES = ["indevolt"]
 
@@ -26,7 +35,7 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:lan-connect",
         ),
-        **{cv.Optional(key): binary_sensor.binary_sensor_schema(**kwargs) for key, _p, _on, kwargs in BINARY_SENSORS},
+        **{cv.Optional(key): with_poll(binary_sensor.binary_sensor_schema(**kwargs)) for key, _p, _on, kwargs in BINARY_SENSORS},
     }
 )
 
@@ -49,3 +58,4 @@ async def to_code(config):
     for _label, points, conf, on_value in _entries(config):
         s = await binary_sensor.new_binary_sensor(conf)
         cg.add(hub.add_binary_sensor(points[gen], on_value, s))
+        apply_poll(hub, points[gen], conf)

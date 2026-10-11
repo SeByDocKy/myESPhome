@@ -2,7 +2,16 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import switch
 
-from .. import CONF_INDEVOLT_ID, IndevoltComponent, g2, hub_generation, indevolt_ns, make_final_validate
+from .. import (
+    CONF_INDEVOLT_ID,
+    IndevoltComponent,
+    apply_poll,
+    g2,
+    hub_generation,
+    indevolt_ns,
+    make_final_validate,
+    with_poll,
+)
 
 DEPENDENCIES = ["indevolt"]
 
@@ -21,7 +30,10 @@ SWITCHES = [
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_INDEVOLT_ID): cv.use_id(IndevoltComponent),
-        **{cv.Optional(key): switch.switch_schema(IndevoltSwitch, icon=icon) for key, _p, _r, _w, _on, icon in SWITCHES},
+        **{
+            cv.Optional(key): with_poll(switch.switch_schema(IndevoltSwitch, icon=icon))
+            for key, _p, _r, _w, _on, icon in SWITCHES
+        },
     }
 )
 
@@ -42,3 +54,4 @@ async def to_code(config):
         await cg.register_parented(s, hub)
         cg.add(s.set_write_point(write))
         cg.add(hub.add_switch(read, write, on_value, s))
+        apply_poll(hub, read, conf)

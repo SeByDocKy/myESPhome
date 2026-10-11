@@ -2,7 +2,17 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import select
 
-from .. import CONF_INDEVOLT_ID, IndevoltComponent, both, g2, hub_generation, indevolt_ns, make_final_validate
+from .. import (
+    CONF_INDEVOLT_ID,
+    IndevoltComponent,
+    apply_poll,
+    both,
+    g2,
+    hub_generation,
+    indevolt_ns,
+    make_final_validate,
+    with_poll,
+)
 
 DEPENDENCIES = ["indevolt"]
 
@@ -48,7 +58,7 @@ CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_INDEVOLT_ID): cv.use_id(IndevoltComponent),
         **{
-            cv.Optional(key): select.select_schema(IndevoltSelect, icon=icon)
+            cv.Optional(key): with_poll(select.select_schema(IndevoltSelect, icon=icon))
             for key, _avail, _read, _write, _offset, icon, _options in SELECTS
         },
     }
@@ -73,3 +83,4 @@ async def to_code(config):
         cg.add(s.set_write_point(write))
         cg.add(s.set_values(values))
         cg.add(hub.add_select(read, write, offset, values, s))
+        apply_poll(hub, read, conf)

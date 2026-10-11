@@ -29,12 +29,14 @@ from .. import (
     MAX_DC_CHANNELS,
     MAX_PACKS,
     IndevoltComponent,
+    apply_poll,
     both,
     g1,
     g2,
     hub_generation,
     make_final_validate,
     named_list,
+    with_poll,
 )
 
 DEPENDENCIES = ["indevolt"]
@@ -160,7 +162,7 @@ DC_FIELDS = [
     ("voltage", lambda i: g2(1600 + i), _voltage()),
     ("current", lambda i: g2(1632 + i), _current()),
 ]
-DC_CHANNEL_SCHEMA = cv.Schema({cv.Optional(key): schema for key, _points, schema in DC_FIELDS})
+DC_CHANNEL_SCHEMA = cv.Schema({cv.Optional(key): with_poll(schema) for key, _points, schema in DC_FIELDS})
 
 # `ac:` -- AC side of the power module.
 # (config key, points per generation, schema)
@@ -173,7 +175,7 @@ AC_FIELDS = [
     ("voltage", g2(2600), _voltage(accuracy=1)),
     ("frequency", g2(2612), _frequency()),
 ]
-AC_SCHEMA = cv.Schema({cv.Optional(key): schema for key, _points, schema in AC_FIELDS})
+AC_SCHEMA = cv.Schema({cv.Optional(key): with_poll(schema) for key, _points, schema in AC_FIELDS})
 
 # `battery:` -- global battery fields...
 # (config key, points per generation, schema)
@@ -203,11 +205,11 @@ PACK_FIELDS = [
     ("cell1_voltage", [9021, 9040, 9059, 9154, 9219], _voltage(accuracy=3)),
     ("cell2_voltage", [9023, 9042, 9061, 9156, 9222], _voltage(accuracy=3)),
 ]
-PACK_SCHEMA = cv.Schema({cv.Optional(key): schema for key, _points, schema in PACK_FIELDS})
+PACK_SCHEMA = cv.Schema({cv.Optional(key): with_poll(schema) for key, _points, schema in PACK_FIELDS})
 
 BATTERY_SCHEMA = cv.Schema(
     {
-        **{cv.Optional(key): schema for key, _points, schema in BATTERY_FIELDS},
+        **{cv.Optional(key): with_poll(schema) for key, _points, schema in BATTERY_FIELDS},
         cv.Optional(CONF_PACKS): named_list(PACK_SCHEMA, MAX_PACKS, "pack", "pack0: {soc: {name: ...}}"),
     }
 )
@@ -215,7 +217,7 @@ BATTERY_SCHEMA = cv.Schema(
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_INDEVOLT_ID): cv.use_id(IndevoltComponent),
-        **{cv.Optional(key): schema for key, _points, schema, _scale in ROOT_SENSORS},
+        **{cv.Optional(key): with_poll(schema) for key, _points, schema, _scale in ROOT_SENSORS},
         cv.Optional(CONF_DC_CHANNELS): named_list(
             DC_CHANNEL_SCHEMA, MAX_DC_CHANNELS, "channel", "pv0: {power: {name: ...}}"
         ),
@@ -262,3 +264,4 @@ async def to_code(config):
     for _label, points, conf, scale in _entries(config):
         s = await sensor.new_sensor(conf)
         cg.add(hub.add_sensor(points[gen], scale, 0.0, s))
+        apply_poll(hub, points[gen], conf)
