@@ -65,7 +65,7 @@ apszb:
       type: yc600             # yc600 | qs1 | ds3
 ```
 
-See [`code/test_apszb.yaml`](../../code/test_apszb.yaml) (native radio) and [`code/test_apszb_znp.yaml`](../../code/test_apszb_znp.yaml) (CC2530) for all entities.
+See [`test_apszb.yaml`](test_apszb.yaml) (native radio) and [`test_apszb_znp.yaml`](test_apszb_znp.yaml) (CC2530) for all entities.
 
 ### Quick start with a CC2530 (`radio: znp`)
 
