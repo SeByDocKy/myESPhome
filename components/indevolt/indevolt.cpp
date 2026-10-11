@@ -47,18 +47,42 @@ static const char *const PATH_GET_CONFIG = "/rpc/Sys.GetConfig";
 // left alone) is produced here by hand.
 // ---------------------------------------------------------------------------
 
-size_t IndevoltComponent::batch_count_() const {
-  return (this->read_points_.size() + this->batch_size_ - 1) / this->batch_size_;
+// Points that change quickly and drive automations: polled every poll_interval. All the others (energy
+// counters, voltages, temperatures, per-pack data, settings read-back, ...) are polled every slow_poll_interval.
+static const uint16_t FAST_POINTS[] = {
+    6000,   // battery power
+    6001,   // state
+    6002,   // battery SOC
+    7101,   // work mode
+    1501,   // DC (PV) output power
+    1664, 1665, 1666, 1667,  // PV input power
+    2101,   // AC input power
+    2108,   // AC output power
+    11016,  // meter power (Gen2)
+    21028,  // meter power (Gen1)
+    667,    // bypass power
+};
+
+static bool is_fast_point(uint16_t point) {
+  for (uint16_t p : FAST_POINTS)
+    if (p == point)
+      return true;
+  return false;
 }
 
-std::string IndevoltComponent::get_data_path_(size_t batch) const {
+size_t IndevoltComponent::batch_count_(bool slow) const {
+  return (this->points_(slow).size() + this->batch_size_ - 1) / this->batch_size_;
+}
+
+std::string IndevoltComponent::get_data_path_(bool slow, size_t batch) const {
+  const auto &points = this->points_(slow);
   std::string path = "/rpc/Indevolt.GetData?config=%7B%22t%22:%5B";
   size_t begin = batch * this->batch_size_;
-  size_t end = std::min(begin + (size_t) this->batch_size_, this->read_points_.size());
+  size_t end = std::min(begin + (size_t) this->batch_size_, points.size());
   for (size_t i = begin; i < end; i++) {
     if (i > begin)
       path += ',';
-    path += std::to_string(this->read_points_[i]);
+    path += std::to_string(points[i]);
   }
   path += "%5D%7D";
   return path;
@@ -245,6 +269,9 @@ void IndevoltComponent::setup() {
   if (this->auto_realtime_mode_)
     this->register_point_(POINT_WORK_MODE_READ);
 
+  for (uint16_t p : this->read_points_)
+    (is_fast_point(p) ? this->fast_points_ : this->slow_points_).push_back(p);
+
   // One cycle in flight plus a few control writes queued behind it.
   this->job_queue_ = xQueueCreate(8, sizeof(IndevoltJob *));
   this->result_queue_ = xQueueCreate(16, sizeof(IndevoltResult *));
@@ -261,16 +288,23 @@ void IndevoltComponent::setup() {
     return;
   }
 
-  // Do not wait one full poll_interval for the first values.
+  // Do not wait one full interval for the first values (fast list first, then the slow one).
   this->set_timeout("first_poll", FIRST_POLL_DELAY_MS, [this]() { this->update(); });
+  if (!this->slow_points_.empty()) {
+    this->set_timeout("first_slow_poll", FIRST_POLL_DELAY_MS + 500, [this]() { this->start_poll_(true); });
+    this->set_interval("slow_poll", this->slow_interval_ms_, [this]() { this->start_poll_(true); });
+  }
 }
 
 void IndevoltComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "INDEVOLT local HTTP API:");
   ESP_LOGCONFIG(TAG, "  Host: %s:%u", this->host_.c_str(), this->port_);
   ESP_LOGCONFIG(TAG, "  Model generation: %s", this->gen1_ ? "Gen1 (BK1600 / BK1600 Ultra)" : "Gen2 (SolidFlex / PowerFlex 2000)");
-  ESP_LOGCONFIG(TAG, "  Points polled: %u in %u request(s) of up to %u", (unsigned) this->read_points_.size(),
-                (unsigned) this->batch_count_(), (unsigned) this->batch_size_);
+  ESP_LOGCONFIG(TAG, "  Fast points (every poll_interval): %u in %u request(s) of up to %u",
+                (unsigned) this->fast_points_.size(), (unsigned) this->batch_count_(false),
+                (unsigned) this->batch_size_);
+  ESP_LOGCONFIG(TAG, "  Slow points (every %u s): %u in %u request(s)", (unsigned) (this->slow_interval_ms_ / 1000),
+                (unsigned) this->slow_points_.size(), (unsigned) this->batch_count_(true));
   ESP_LOGCONFIG(TAG, "  HTTP timeout: %u ms", (unsigned) this->timeout_ms_);
   ESP_LOGCONFIG(TAG, "  Max charge power: %u W", this->max_charge_power_);
   ESP_LOGCONFIG(TAG, "  Max discharge power: %u W", this->max_discharge_power_);
@@ -300,25 +334,31 @@ void IndevoltComponent::update() {
   if (!this->info_done_)
     this->enqueue_info_();
 
-  if (this->read_points_.empty())
+  this->start_poll_(false);
+}
+
+void IndevoltComponent::start_poll_(bool slow) {
+  if (this->job_queue_ == nullptr || this->points_(slow).empty())
     return;  // nothing to poll
+  const int idx = slow ? 1 : 0;
   uint32_t now = millis();
-  if (this->poll_pending_) {
+  if (this->poll_pending_[idx]) {
     // Watchdog: a cycle that never reported back (result queue overflow, task stuck) must not block polling forever.
-    if (now - this->poll_started_ms_ < POLL_WATCHDOG_MS)
+    if (now - this->poll_started_ms_[idx] < POLL_WATCHDOG_MS)
       return;  // the previous cycle has not finished yet
-    ESP_LOGW(TAG, "[%s] Previous poll cycle did not finish in %u s, starting a new one", this->host_.c_str(),
-             (unsigned) (POLL_WATCHDOG_MS / 1000));
+    ESP_LOGW(TAG, "[%s] Previous %s poll cycle did not finish in %u s, starting a new one", this->host_.c_str(),
+             slow ? "slow" : "fast", (unsigned) (POLL_WATCHDOG_MS / 1000));
   }
   auto *job = new IndevoltJob();
   job->type = JOB_POLL;
+  job->slow = slow;
   if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
     delete job;
-    ESP_LOGW(TAG, "[%s] Background task busy, skipping this poll cycle", this->host_.c_str());
+    ESP_LOGW(TAG, "[%s] Background task busy, skipping this %s poll cycle", this->host_.c_str(), slow ? "slow" : "fast");
     return;
   }
-  this->poll_pending_ = true;
-  this->poll_started_ms_ = now;
+  this->poll_pending_[idx] = true;
+  this->poll_started_ms_[idx] = now;
 }
 
 void IndevoltComponent::loop() {
@@ -334,20 +374,21 @@ void IndevoltComponent::loop() {
 void IndevoltComponent::task_trampoline_(void *param) { static_cast<IndevoltComponent *>(param)->run_task_(); }
 
 void IndevoltComponent::run_task_() {
-  bool polling = false;
-  size_t batch = 0;
-  const size_t total = this->batch_count_();
+  // [0] fast list, [1] slow list: a cycle in progress and the next batch to request.
+  bool polling[2] = {false, false};
+  size_t batch[2] = {0, 0};
 
   for (;;) {
     IndevoltJob *job = nullptr;
     // While a cycle is running, only peek at the queue: queued writes are served between two batches.
-    TickType_t wait = polling ? 0 : portMAX_DELAY;
+    TickType_t wait = (polling[0] || polling[1]) ? 0 : portMAX_DELAY;
     if (xQueueReceive(this->job_queue_, &job, wait) == pdTRUE) {
       if (job == nullptr)
         continue;
       if (job->type == JOB_POLL) {
-        polling = true;
-        batch = 0;
+        const int idx = job->slow ? 1 : 0;
+        polling[idx] = true;
+        batch[idx] = 0;
       } else {
         auto *result = new IndevoltResult();
         int status = 0;
@@ -373,26 +414,48 @@ void IndevoltComponent::run_task_() {
       continue;  // look for more queued writes before the next batch
     }
 
-    if (polling) {
+    // Next batch: the fast list always goes first.
+    int idx = polling[0] ? 0 : (polling[1] ? 1 : -1);
+    if (idx >= 0) {
+      const bool slow = idx == 1;
+      const size_t total = this->batch_count_(slow);
       auto *result = new IndevoltResult();
       result->type = RES_BATCH;
-      result->batch = batch;
+      result->slow = slow;
+      result->batch = batch[idx];
       int status = 0;
       std::string body;
       [[maybe_unused]] uint32_t t0 = millis();
-      bool ok = this->http_request_(true, this->get_data_path_(batch), status, body);
+      bool ok = this->http_request_(true, this->get_data_path_(slow, batch[idx]), status, body);
       result->status = status;
       result->success = ok && status == 200;
       if (result->success)
         result->body = std::move(body);
-      ESP_LOGV(TAG, "GetData batch %u/%u took %u ms", (unsigned) (batch + 1), (unsigned) total,
-               (unsigned) (millis() - t0));
-      batch++;
-      result->last = !result->success || batch >= total;
+      ESP_LOGV(TAG, "GetData %s batch %u/%u took %u ms", slow ? "slow" : "fast", (unsigned) (batch[idx] + 1),
+               (unsigned) total, (unsigned) (millis() - t0));
+      batch[idx]++;
+      result->last = !result->success || batch[idx] >= total;
       if (result->last)
-        polling = false;
+        polling[idx] = false;
+      if (!result->success) {
+        // The device is unreachable: abort the other list too (one timeout per failure, not one per list).
+        for (int k = 0; k < 2; k++) {
+          if (k != idx && polling[k]) {
+            polling[k] = false;
+            auto *abort_result = new IndevoltResult();
+            abort_result->type = RES_BATCH;
+            abort_result->slow = k == 1;
+            abort_result->success = false;
+            abort_result->last = true;
+            abort_result->aborted = true;
+            abort_result->status = status;
+            if (xQueueSend(this->result_queue_, &abort_result, pdMS_TO_TICKS(1000)) != pdTRUE)
+              delete abort_result;
+          }
+        }
+      }
       // Give the main loop a moment to drain: a lost batch result would leave the cycle unfinished
-      // (the watchdog in update() recovers from that, but only after POLL_WATCHDOG_MS).
+      // (the watchdog in start_poll_() recovers from that, but only after POLL_WATCHDOG_MS).
       if (xQueueSend(this->result_queue_, &result, pdMS_TO_TICKS(1000)) != pdTRUE)
         delete result;
     }
@@ -439,17 +502,21 @@ void IndevoltComponent::process_result_(IndevoltResult *result) {
       break;
   }
 
-  bool ok = result->success && this->parse_batch_(result->batch, result->body);
+  if (result->aborted) {
+    this->poll_pending_[result->slow ? 1 : 0] = false;
+    return;
+  }
+  bool ok = result->success && this->parse_batch_(result->slow, result->batch, result->body);
   if (!ok) {
-    ESP_LOGW(TAG, "[%s] Poll failed (batch %u, HTTP status %d)", this->host_.c_str(), (unsigned) result->batch + 1,
-             result->status);
+    ESP_LOGW(TAG, "[%s] %s poll failed (batch %u, HTTP status %d)", this->host_.c_str(), result->slow ? "Slow" : "Fast",
+             (unsigned) result->batch + 1, result->status);
     if (this->consecutive_failures_ < 255)
       this->consecutive_failures_++;
   } else if (result->last) {
     this->consecutive_failures_ = 0;
   }
   if (result->last)
-    this->poll_pending_ = false;  // a failed HTTP batch also ends the cycle on the task side
+    this->poll_pending_[result->slow ? 1 : 0] = false;  // a failed HTTP batch also ends the cycle on the task side
 
 #ifdef USE_BINARY_SENSOR
   if (this->online_sensor_ != nullptr && result->last) {
@@ -504,18 +571,19 @@ static std::string number_to_text(float f) {
   return buf;
 }
 
-bool IndevoltComponent::parse_batch_(size_t batch, const std::string &body) {
+bool IndevoltComponent::parse_batch_(bool slow, size_t batch, const std::string &body) {
+  const std::vector<uint16_t> &points = this->points_(slow);
   size_t begin = batch * this->batch_size_;
-  size_t end = std::min(begin + (size_t) this->batch_size_, this->read_points_.size());
+  size_t end = std::min(begin + (size_t) this->batch_size_, points.size());
 
-  auto in_batch = [this, begin, end](uint16_t point) {
+  auto in_batch = [&points, begin, end](uint16_t point) {
     for (size_t i = begin; i < end; i++)
-      if (this->read_points_[i] == point)
+      if (points[i] == point)
         return true;
     return false;
   };
 
-  return json::parse_json(body, [this, begin, end, &in_batch, &body](JsonObject root_obj) -> bool {
+  return json::parse_json(body, [this, &points, begin, end, &in_batch, &body](JsonObject root_obj) -> bool {
     JsonObjectConst root = root_obj;
     // Value of a point of this batch, or a null variant when the device did not report it.
     auto value_of = [&root](uint16_t point) -> JsonVariantConst {
@@ -527,7 +595,7 @@ bool IndevoltComponent::parse_batch_(size_t batch, const std::string &body) {
     // Diagnostic aid: none of the requested points came back (wrong response layout, unknown points, ...).
     bool any = false;
     for (size_t i = begin; i < end; i++) {
-      if (!value_of(this->read_points_[i]).isNull()) {
+      if (!value_of(points[i]).isNull()) {
         any = true;
         break;
       }
@@ -535,7 +603,7 @@ bool IndevoltComponent::parse_batch_(size_t batch, const std::string &body) {
     if (!any && this->empty_batch_warnings_ < 3) {
       this->empty_batch_warnings_++;
       ESP_LOGW(TAG, "[%s] None of the requested points %s..%s is in the response: %.160s", this->host_.c_str(),
-               std::to_string(this->read_points_[begin]).c_str(), std::to_string(this->read_points_[end - 1]).c_str(),
+               std::to_string(points[begin]).c_str(), std::to_string(points[end - 1]).c_str(),
                body.c_str());
     }
 

@@ -128,13 +128,14 @@ struct SwitchBinding {
 //
 // A polling cycle is a series of GetData calls of `batch_size` points each. The task runs the cycle one
 // batch at a time and serves queued writes between two batches, so a control command never waits for a
-// whole cycle. A failed batch aborts the cycle (an unreachable device costs one timeout, not one per batch).
+// whole cycle. Two lists are polled (fast / slow); a fast batch is always served before a slow one. A failed batch aborts the cycle (an unreachable device costs one timeout, not one per batch).
 enum JobType : uint8_t { JOB_POLL = 0, JOB_WRITE = 1, JOB_INFO = 2 };
 enum ResultType : uint8_t { RES_BATCH = 0, RES_WRITE = 1, RES_INFO = 2 };
 
 struct IndevoltJob {
   JobType type{JOB_POLL};
   bool is_power{false};  // WRITE only: this was a real-time power command
+  bool slow{false};      // POLL only: slow list (near-static data) instead of the fast one
   std::string path;      // WRITE: complete path + query of the SetData call
 };
 
@@ -142,6 +143,8 @@ struct IndevoltResult {
   ResultType type{RES_BATCH};
   bool success{false};
   bool last{false};      // BATCH only: last batch of the cycle (or the cycle was aborted)
+  bool slow{false};      // BATCH only: batch of the slow list
+  bool aborted{false};   // BATCH only: cycle cancelled because the other list found the device unreachable
   bool is_power{false};
   size_t batch{0};       // BATCH only
   int status{0};
@@ -155,6 +158,7 @@ class IndevoltComponent : public PollingComponent {
   void set_gen1(bool gen1) { this->gen1_ = gen1; }
   void set_timeout_ms(uint32_t ms) { this->timeout_ms_ = ms; }
   void set_batch_size(uint8_t n) { this->batch_size_ = n; }
+  void set_slow_poll_interval(uint32_t ms) { this->slow_interval_ms_ = ms; }
   void set_max_charge_power(uint16_t w) { this->max_charge_power_ = w; }
   void set_max_discharge_power(uint16_t w) { this->max_discharge_power_ = w; }
   void set_min_power(uint16_t w) { this->min_power_ = w; }
@@ -249,13 +253,21 @@ class IndevoltComponent : public PollingComponent {
   std::vector<uint16_t> read_points_;
   void register_point_(uint16_t point);
 
+  // read_points_ split in two lists, each polled on its own timer: the fast list (poll_interval) holds the
+  // time-critical points (power, SOC, state, work mode), the slow list (slow_poll_interval) everything else.
+  std::vector<uint16_t> fast_points_;
+  std::vector<uint16_t> slow_points_;
+  uint32_t slow_interval_ms_{60000};
+  const std::vector<uint16_t> &points_(bool slow) const { return slow ? this->slow_points_ : this->fast_points_; }
+  void start_poll_(bool slow);
+
   int32_t work_mode_{-1};  // last known work mode (point 7101 / 47005); -1 = unknown
   uint8_t consecutive_failures_{0};
   uint8_t empty_batch_warnings_{0};
   bool info_done_{false};
   bool info_pending_{false};
-  bool poll_pending_{false};
-  uint32_t poll_started_ms_{0};
+  bool poll_pending_[2]{false, false};  // [0] fast, [1] slow
+  uint32_t poll_started_ms_[2]{0, 0};
 
   float charge_request_w_{0.0f};
   float discharge_request_w_{0.0f};
@@ -263,8 +275,8 @@ class IndevoltComponent : public PollingComponent {
   bool last_power_valid_{false};
   uint32_t last_power_ms_{0};
 
-  size_t batch_count_() const;
-  std::string get_data_path_(size_t batch) const;
+  size_t batch_count_(bool slow) const;
+  std::string get_data_path_(bool slow, size_t batch) const;
   std::string set_data_path_(uint16_t point, const std::vector<int32_t> &values) const;
   bool enqueue_write_(const std::string &path, bool is_power);
   void enqueue_info_();
@@ -278,7 +290,7 @@ class IndevoltComponent : public PollingComponent {
   static bool decode_chunked_(const std::string &in, std::string &out);
   static long parse_content_length_(const std::string &raw, size_t header_end);
 
-  bool parse_batch_(size_t batch, const std::string &body);
+  bool parse_batch_(bool slow, size_t batch, const std::string &body);
   void parse_info_(const std::string &body);
   void process_result_(IndevoltResult *result);
 

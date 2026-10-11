@@ -47,6 +47,7 @@ CONF_BATCH_SIZE = "batch_size"
 CONF_TIMEOUT = "timeout"
 # Named "poll_interval" (not "update_interval") to match this author's zensdk / hmsw / tsungen3 components.
 CONF_POLL_INTERVAL = "poll_interval"
+CONF_SLOW_POLL_INTERVAL = "slow_poll_interval"
 
 # Number of battery packs (SFA/PFA) a SolidFlex/PowerFlex 2000 power module can drive.
 MAX_PACKS = 5
@@ -185,6 +186,9 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_IP_PORT, default=8080): cv.port,
             cv.Required(CONF_MODEL): cv.one_of(*MODELS, upper=True),
             cv.Optional(CONF_POLL_INTERVAL, default="30s"): cv.update_interval,
+            cv.Optional(CONF_SLOW_POLL_INTERVAL, default="60s"): cv.All(
+                cv.positive_time_period_milliseconds, cv.Range(min=cv.TimePeriod(milliseconds=1000))
+            ),
             # Total time budget of one HTTP transaction (connect + send + receive).
             cv.Optional(CONF_TIMEOUT, default="8s"): cv.All(
                 cv.positive_time_period_milliseconds,
@@ -227,3 +231,4 @@ async def to_code(config):
     # register_component() only auto-wires PollingComponent's interval when the config key is
     # literally "update_interval" -- ours is "poll_interval", so it is set explicitly here.
     cg.add(var.set_update_interval(config[CONF_POLL_INTERVAL]))
+    cg.add(var.set_slow_poll_interval(config[CONF_SLOW_POLL_INTERVAL].total_milliseconds))

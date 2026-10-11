@@ -47,7 +47,12 @@ How the component is built:
   requests, so a control command never waits for a whole cycle.
 - A failed request aborts the cycle (an unreachable battery costs one timeout per cycle, not one per request).
   The `online` binary sensor goes off after 3 failed cycles.
-- The first poll runs 5 s after boot, then every `poll_interval`. The identification (`Sys.GetConfig`) is read once
+- **Two polling loops.** The configured points are split in two lists: the *fast* list (battery power, state, SOC,
+  work mode, PV / AC / meter / bypass power: 6000, 6001, 6002, 7101, 1501, 1664-1667, 2101, 2108, 11016, 21028, 667)
+  is polled every `poll_interval`; everything else (energy counters, voltages, temperatures, per-pack data, settings
+  read-back, serial numbers, firmware) every `slow_poll_interval`. With a typical full configuration the fast loop
+  is 2 requests instead of ~10. The fast list is always served first.
+- The first fast poll runs 5 s after boot, the first slow one 0.5 s later, then each loop on its own interval. The identification (`Sys.GetConfig`) is read once
   (retried until it works) and logged at INFO level; the model reported by the device is checked against `model:`.
 
 ## Installation
@@ -66,7 +71,8 @@ indevolt:
   - id: sf2000
     ip_address: 192.168.1.70
     model: SF2000              # SF2000 / PF2000 / BK1600 / BK1600_ULTRA
-    poll_interval: 30s
+    poll_interval: 10s        # fast loop: power, SOC, state
+    slow_poll_interval: 60s   # slow loop: counters, voltages, temperatures, settings
 ```
 
 Several batteries on one ESP: add one `indevolt:` block per device and set `indevolt_id:` on every platform entry
@@ -77,7 +83,8 @@ Several batteries on one ESP: add one `indevolt:` block per device and set `inde
 | `ip_address` | required | IP of the battery |
 | `ip_port` | `8080` | Port of the local API |
 | `model` | required | `SF2000`, `PF2000`, `BK1600`, `BK1600_ULTRA` -- selects the point set (Gen1 / Gen2) |
-| `poll_interval` | `30s` | Time between two polling cycles (30 s is the official integration's default) |
+| `poll_interval` | `30s` | Time between two *fast* polling cycles (power, SOC, state, work mode; 30 s is the official integration's default) |
+| `slow_poll_interval` | `60s` | Time between two *slow* polling cycles (energy counters, voltages, temperatures, packs, settings; min 1 s) |
 | `timeout` | `8s` | Time budget of one HTTP transaction (0.5 s .. 60 s) |
 | `batch_size` | `8` | Points requested per `GetData` call (1 .. 16) |
 | `max_charge_power` | Gen2: 2400, Gen1: 1200 | Largest charge request, in W (up to 10800 W, e.g. for a cluster) |
