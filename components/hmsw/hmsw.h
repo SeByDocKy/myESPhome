@@ -223,6 +223,7 @@ class HMSWComponent : public Component {
   void start_request_(RequestKind kind);
   void abort_request_(const char *reason);
   void fail_request_(const char *reason);
+  void note_unusable_response_(const char *why);
   void handle_connecting_();
   void handle_sending_();
   void handle_receiving_();
@@ -264,6 +265,9 @@ class HMSWComponent : public Component {
   uint32_t last_heartbeat_{0};
 
   uint32_t consecutive_failures_{0};
+  // Consecutive responses that arrived but could not be used (bad magic/CRC,
+  // empty or undecodable payload) -- see note_unusable_response_().
+  uint32_t unusable_responses_{0};
   static const uint32_t REACHABLE_FAILURE_THRESHOLD = 3;
 
   bool power_limit_pending_{false};
