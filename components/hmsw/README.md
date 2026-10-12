@@ -536,6 +536,44 @@ sensor:
 first cut, this is ported from documented behaviour/detection logic, not
 from a real hang captured and reproduced against this specific component.
 
+## Supported DTU firmware (encryption)
+
+This component speaks the **unencrypted** local protocol only. Per community
+projects, newer Hoymiles DTU firmware encrypts the local TCP traffic (AES,
+with a key derived from an `enc_rand` value the DTU reports; the DTU may also
+change it after a restart). Firmware status as far as it is known:
+
+| DTU firmware | Local protocol | Status here |
+|---|---|---|
+| `V00.01.11` | unencrypted | **Verified** (HMS-800W-2T-class, issue #8) |
+| other `V00.x` | unencrypted ([suaveolent/hoymiles-wifi](https://github.com/suaveolent/hoymiles-wifi)) | Expected to work, not verified |
+| `V01.00.07` | reported as not encrypted ([ioBroker.hoymiles PR #82](https://github.com/Eistee82/ioBroker.hoymiles/pull/82)) | Unverified |
+| `V01.01.01` and newer, `1.02.03` (DTU-WLite-S) | **encrypted** | **Not supported** |
+
+The community sources disagree on some details (the hoymiles-wifi README says
+`v01.x` is generally encrypted, while ioBroker.hoymiles reports `V01.00.07` as
+plain, and describes AES-GCM in a PR but AES-CBC in its README), so treat the
+`V01.x` rows as indicative.
+
+An encrypted DTU is reported to answer unencrypted requests with empty or
+unusable content. When this component receives three unusable responses in a
+row (bad header, CRC mismatch, empty or undecodable payload) it logs a
+warning naming the probable cause, and repeats it every 30 occurrences:
+
+```
+The DTU at 192.168.1.50:10081 keeps answering with unusable data (...).
+If its firmware is V01.01.01 or newer, it probably uses ENCRYPTED local
+communication (AES), which this component does NOT support yet ...
+```
+
+The supported firmware range is also printed in the boot log
+(`DTU firmware: unencrypted only ...`). The warning is a hint, not a proof:
+other causes (flaky WiFi, a DTU that is still starting) can produce the same
+symptoms. A DTU that does not answer at all is a timeout and does not trigger
+it. Adding real encryption support requires the exact key derivation and
+nonce construction, which the sources above do not fully document, and a DTU
+on encrypted firmware to test against.
+
 ## What this component does NOT (yet) implement
 
 - **Encryption.** `hoymiles-wifi` supports an optional AES variant when
@@ -912,7 +950,7 @@ This component is released under the MIT License.
 ```
 MIT License
 
-Copyright (c) 2026 E-2-nomy
+Copyright (c) 2026 e-2-nomy
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
