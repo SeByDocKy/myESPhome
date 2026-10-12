@@ -227,6 +227,27 @@ void HMSWComponent::fail_request_(const char *reason) {
   this->abort_request_(reason);
 }
 
+// A response that arrived but is unusable (bad magic, CRC mismatch, empty or
+// undecodable payload). Newer Hoymiles DTU firmware (V01.01.01 and later, per
+// community reports) encrypts the local protocol (AES, key derived from the
+// DTU's "enc_rand"); this component only speaks the unencrypted protocol, and
+// as far as the community projects report, an encrypted DTU answers
+// unencrypted requests with empty or unusable content. We cannot be sure that
+// is the cause here, so after a few consecutive occurrences log ONE clear
+// warning (then again every 30th) naming the likely reason and the supported
+// firmware range, instead of leaving the user with a bare "timeout"/"CRC".
+void HMSWComponent::note_unusable_response_(const char *why) {
+  this->unusable_responses_++;
+  if (this->unusable_responses_ == 3 || (this->unusable_responses_ > 3 && this->unusable_responses_ % 30 == 0)) {
+    ESP_LOGW(TAG,
+             "The DTU at %s:%u keeps answering with unusable data (last: %s, %u in a row). If its firmware is "
+             "V01.01.01 or newer, it probably uses ENCRYPTED local communication (AES), which this component does "
+             "NOT support yet: it only works with unencrypted firmware (verified: V00.01.11). Check the DTU "
+             "firmware version in the Hoymiles app (S-Miles). See README.md, 'Supported DTU firmware'.",
+             this->ip_address_.c_str(), (unsigned) this->ip_port_, why, (unsigned) this->unusable_responses_);
+  }
+}
+
 void HMSWComponent::handle_connecting_() {
   // Non-blocking connect() completion. ESPHome's Socket::ready() means "data
   // available to read", not "connect() resolved" (using it made write() run
@@ -306,6 +327,7 @@ void HMSWComponent::handle_receiving_() {
   // Connection closed -- parse whatever we accumulated.
   if (this->rx_len_ < FRAME_HEADER_SIZE) {
     ESP_LOGD(TAG, "Response too short (%u bytes) -- discarded", (unsigned) this->rx_len_);
+    this->note_unusable_response_("response too short");
     this->consecutive_failures_++;
     this->publish_reachable_(this->consecutive_failures_ < REACHABLE_FAILURE_THRESHOLD);
     this->abort_request_(nullptr);
@@ -314,6 +336,7 @@ void HMSWComponent::handle_receiving_() {
 
   if (this->rx_buf_[0] != 'H' || this->rx_buf_[1] != 'M') {
     ESP_LOGD(TAG, "Bad magic in response header -- discarded");
+    this->note_unusable_response_("bad frame header");
     this->consecutive_failures_++;
     this->publish_reachable_(this->consecutive_failures_ < REACHABLE_FAILURE_THRESHOLD);
     this->abort_request_(nullptr);
@@ -338,6 +361,7 @@ void HMSWComponent::handle_receiving_() {
   uint16_t crc_actual = crc16_modbus_(payload, payload_len);
   if (crc_actual != crc_target) {
     ESP_LOGW(TAG, "CRC16 mismatch (got 0x%04X, expected 0x%04X) -- discarded", crc_actual, crc_target);
+    this->note_unusable_response_("CRC mismatch");
     this->consecutive_failures_++;
     this->publish_reachable_(this->consecutive_failures_ < REACHABLE_FAILURE_THRESHOLD);
     this->abort_request_(nullptr);
@@ -362,16 +386,30 @@ void HMSWComponent::on_frame_received_(const uint8_t *rx_cmd, const uint8_t *pay
     pb_istream_t stream = pb_istream_from_buffer(payload, len);
     if (!pb_decode(&stream, RealDataReqDTO_fields, &data)) {
       ESP_LOGW(TAG, "Failed to decode RealDataReqDTO (%s)", PB_GET_ERROR(&stream));
+      this->note_unusable_response_("undecodable payload");
       return;
     }
+    if (len == 0) {
+      // Decodes "successfully" but carries no data at all.
+      this->note_unusable_response_("empty payload");
+      return;
+    }
+    this->unusable_responses_ = 0;
     this->handle_real_data_(data);
   } else if (cmd[0] == CMD_REAL_DATA_NEW[0] && cmd[1] == CMD_REAL_DATA_NEW[1]) {
     RealDataNewReqDTO data = RealDataNewReqDTO_init_zero;
     pb_istream_t stream = pb_istream_from_buffer(payload, len);
     if (!pb_decode(&stream, RealDataNewReqDTO_fields, &data)) {
       ESP_LOGW(TAG, "Failed to decode RealDataNewReqDTO (%s)", PB_GET_ERROR(&stream));
+      this->note_unusable_response_("undecodable payload");
       return;
     }
+    if (len == 0) {
+      // Decodes "successfully" but carries no data at all.
+      this->note_unusable_response_("empty payload");
+      return;
+    }
+    this->unusable_responses_ = 0;
     this->handle_real_data_new_(data);
   } else if (cmd[0] == CMD_HB[0] && cmd[1] == CMD_HB[1]) {
     ESP_LOGV(TAG, "Heartbeat acknowledged");
@@ -724,6 +762,7 @@ void HMSWComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "  Poll interval: %ums", (unsigned) this->poll_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Heartbeat interval: %ums", (unsigned) this->heartbeat_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Request timeout: %ums", (unsigned) this->request_timeout_ms_);
+  ESP_LOGCONFIG(TAG, "  DTU firmware: unencrypted only (verified: V00.01.11); encrypted firmware (V01.01.01+) NOT supported");
   ESP_LOGCONFIG(TAG, "  Data source: %s", this->use_real_data_new_ ? "RealDataNew (0xA3 0x11)" : "RealData (0xA3 0x03)");
   if (this->alarm_poll_interval_ms_ > 0) {
     ESP_LOGCONFIG(TAG, "  Alarm-list poll interval: %ums", (unsigned) this->alarm_poll_interval_ms_);
