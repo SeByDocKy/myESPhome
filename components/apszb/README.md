@@ -170,6 +170,24 @@ The ZNP commands are the ones of the original project (`ZIGBEE_COORDINATOR.ino`,
 | pairing (4 broadcasts) | `AF_DATA_REQUEST_EXT`, broadcast address mode, destination PAN `0xFFFF` |
 | answers | `AF_INCOMING_MSG` (cluster `0x0106`, source = inverter short address, LQI) |
 
+The start-up is reported step by step in the log (level INFO, no `log_frames` needed):
+
+```
+ZNP: starting the CC2530 coordinator (attempt 1)
+ZNP init 1/8 startup option: clear state: OK
+ZNP init 2/8 SYS_RESET_REQ: OK (modem restarted)
+ZNP init 3/8 extended address: OK
+ZNP init 4/8 logical type: coordinator: OK
+ZNP init 5/8 PAN id: OK
+ZNP init 6/8 channel list: OK
+ZNP init 7/8 AF_REGISTER: OK
+ZNP init 8/8 ZB_START_REQUEST: accepted, waiting for the coordinator state
+CC2530 started as ZigBee coordinator (channel 16, PAN 0xA3D8)
+```
+
+A step that the modem refuses is logged as `FAILED, status 0x..` and a silent step as `no answer, continuing`. With
+`log_frames: true` every raw ZNP command and answer is logged too.
+
 If the CC2530 does not answer the first command, the component logs an error and retries every 15 s (check the TX/RX
 wiring, 115200 baud and that the ZNP firmware is flashed). Transmissions wait until the coordinator is up.
 

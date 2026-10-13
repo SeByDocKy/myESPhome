@@ -111,6 +111,10 @@ int main() {
       now += 5; z.loop(now); fr = port.frames();
     }
     CHECK(z.ready(), "coordinator ready after the answers");
+    CHECK(has_log("2:ZNP init 1/8 startup option: clear state: OK") && has_log("2:ZNP init 3/8 extended address: OK") &&
+              has_log("2:ZNP init 7/8 AF_REGISTER: OK") && has_log("2:ZNP init 8/8 ZB_START_REQUEST: accepted"),
+          "one INFO line per successful init step");
+    CHECK(has_log("ZNP init 2/8 SYS_RESET_REQ: OK (modem restarted)"), "reset indication logged");
     CHECK(has_log("started as ZigBee coordinator"), "start logged");
     // ---- transmit encoding ----
     TxFrame tf; NetworkConfig cfg = make_cfg(); FrameFactory ff(&cfg);
@@ -169,6 +173,7 @@ int main() {
     uint32_t now = 0;
     for (; now < 3000; now += 10) z.loop(now);
     CHECK(!z.ready() && has_log("does not answer"), "silent modem detected and reported");
+    CHECK(has_log("starting the CC2530 coordinator"), "start attempt logged");
     uint32_t inits = z.init_count();
     for (; now < 40000; now += 10) z.loop(now);
     CHECK(z.init_count() > inits, "initialisation is retried (%u attempts)", (unsigned) z.init_count());

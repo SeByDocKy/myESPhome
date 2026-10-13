@@ -259,6 +259,8 @@ void ZnpRadio::handle_frame_(const ZnpFrame &f, uint32_t now) {
       this->retry_at_ = now;
       this->restart_(now);
     } else if (this->state_ == INIT_WAIT && this->init_[this->init_idx_].cmd0 == TYPE_AREQ_SYS) {
+      this->log_(2, "ZNP init %u/%u %s: OK (modem restarted)", unsigned(this->init_idx_ + 1), unsigned(this->init_n_ + 1),
+                 this->init_[this->init_idx_].name);
       this->first_cmd_answered_ = true;
       this->init_idx_++;
       this->state_ = INIT_SEND;
@@ -270,12 +272,21 @@ void ZnpRadio::handle_frame_(const ZnpFrame &f, uint32_t now) {
     // SRSP: same subsystem and command as the SREQ, type bits 0x60
     if ((f.cmd0 & 0xE0) == 0x60 && (f.cmd0 & 0x1F) == (c.cmd0 & 0x1F) && f.cmd1 == c.cmd1) {
       if (f.len >= 1 && f.data[0] != 0)
-        this->log_(1, "ZNP %s: status 0x%02X", c.name, f.data[0]);
+        this->log_(1, "ZNP init %u/%u %s: FAILED, status 0x%02X", unsigned(this->init_idx_ + 1),
+                   unsigned(this->init_n_ + 1), c.name, f.data[0]);
+      else
+        this->log_(2, "ZNP init %u/%u %s: OK", unsigned(this->init_idx_ + 1), unsigned(this->init_n_ + 1), c.name);
       this->first_cmd_answered_ = true;
       this->init_idx_++;
       this->state_ = INIT_SEND;
       return;
     }
+  }
+
+  if (this->state_ == START_WAIT && f.cmd0 == 0x66 && f.cmd1 == 0x00) {
+    this->log_(2, "ZNP init %u/%u ZB_START_REQUEST: accepted, waiting for the coordinator state", unsigned(this->init_n_ + 1),
+               unsigned(this->init_n_ + 1));
+    return;
   }
 
   // ---- data path -------------------------------------------------------------------------------------------------
@@ -322,8 +333,10 @@ void ZnpRadio::loop(uint32_t now) {
   // ---- start-up state machine ----------------------------------------------------------------------------------------
   switch (this->state_) {
     case IDLE:
-      if (int32_t(now - this->retry_at_) >= 0)
+      if (int32_t(now - this->retry_at_) >= 0) {
+        this->log_(2, "ZNP: starting the CC2530 coordinator (attempt %u)", unsigned(this->init_count_ + 1));
         this->restart_(now);
+      }
       break;
     case RESET_ASSERT:
       if (now - this->state_since_ >= RESET_PULSE_MS) {
@@ -365,7 +378,8 @@ void ZnpRadio::loop(uint32_t now) {
           this->state_ = IDLE;
           break;
         }
-        this->log_(c.cmd0 == TYPE_AREQ_SYS ? 3 : 1, "ZNP %s: no answer, continuing", c.name);
+        this->log_(c.cmd0 == TYPE_AREQ_SYS ? 3 : 1, "ZNP init %u/%u %s: no answer, continuing",
+                   unsigned(this->init_idx_ + 1), unsigned(this->init_n_ + 1), c.name);
         this->init_idx_++;
         this->state_ = INIT_SEND;
       }
