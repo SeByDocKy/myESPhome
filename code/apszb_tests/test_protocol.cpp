@@ -185,6 +185,14 @@ int main() {
     CHECK(ack.aps_ok && ack.aps_type == 2 && ack.cluster == 0x0106 && ack.aps_counter == 0x42);
   }
 
+  {
+    // log formatting helpers (independent of the ESPHome core helpers)
+    const uint8_t d[3] = {0x00, 0xAB, 0x7F};
+    CHECK(hex_dump(d, 3) == "00 AB 7F");
+    CHECK(hex_dump(d, 0).empty());
+    CHECK(addr_hex(0x103A) == "0x103A" && addr_hex(0x0000) == "0x0000" && addr_hex(0xFFFF) == "0xFFFF");
+  }
+
   printf(failures ? "\n%d FAILURE(S)\n" : "\nALL TESTS PASSED\n", failures);
   return failures ? 1 : 0;
 }

@@ -583,5 +583,26 @@ bool decode_max_power(const uint8_t *a, size_t len, InverterType type, float *wa
   return false;
 }
 
+std::string hex_dump(const uint8_t *data, size_t len) {
+  static const char DIGITS[] = "0123456789ABCDEF";
+  std::string s;
+  s.reserve(len * 3);
+  for (size_t i = 0; i < len; i++) {
+    if (i != 0)
+      s += ' ';
+    s += DIGITS[data[i] >> 4];
+    s += DIGITS[data[i] & 0x0F];
+  }
+  return s;
+}
+
+std::string addr_hex(uint16_t addr) {
+  static const char DIGITS[] = "0123456789ABCDEF";
+  std::string s = "0x";
+  for (int shift = 12; shift >= 0; shift -= 4)
+    s += DIGITS[(addr >> shift) & 0x0F];
+  return s;
+}
+
 }  // namespace apszb
 }  // namespace esphome

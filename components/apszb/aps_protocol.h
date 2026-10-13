@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <string>
 
 namespace esphome {
 namespace apszb {
@@ -214,6 +215,11 @@ bool decode_max_power(const uint8_t *asdu, size_t len, InverterType type, float 
 bool asdu_has_serial(const uint8_t *asdu, size_t len, const uint8_t serial[6]);
 // serial helpers
 bool parse_hex_bytes(const char *hex, uint8_t *out, size_t n);
+
+// Formatting helpers for logs. They deliberately do not rely on the ESPHome core helpers (str_sprintf, format_hex_pretty
+// returning a std::string), which were removed from recent ESPHome versions.
+std::string hex_dump(const uint8_t *data, size_t len);  // "AA BB CC"
+std::string addr_hex(uint16_t addr);                    // "0x103A"
 
 }  // namespace apszb
 }  // namespace esphome

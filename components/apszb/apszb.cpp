@@ -57,7 +57,7 @@ void APSInverter::setup_() {
   if (this->serial_text_ != nullptr)
     this->serial_text_->publish_state(this->serial_hex_);
   if (this->short_address_text_ != nullptr && this->paired())
-    this->short_address_text_->publish_state(str_sprintf("0x%04X", this->short_addr_));
+    this->short_address_text_->publish_state(addr_hex(this->short_addr_));
 #endif
 #ifdef USE_SENSOR
   if (this->energy_total_ != nullptr && this->energy_total_wh_ > 0)
@@ -69,7 +69,7 @@ void APSInverter::setup_() {
 void APSInverter::dump_config_() {
   ESP_LOGCONFIG(TAG, "  Inverter %u: %s serial %s, short address %s, calibration %d W", this->index_,
                 type_name(this->type_), this->serial_hex_.c_str(),
-                this->paired() ? str_sprintf("0x%04X", this->short_addr_).c_str() : "unknown (not paired)",
+                this->paired() ? addr_hex(this->short_addr_).c_str() : "unknown (not paired)",
                 this->calibration_);
 }
 
@@ -116,7 +116,7 @@ void APSInverter::on_paired_(uint16_t short_addr) {
   this->save_();
 #ifdef USE_TEXT_SENSOR
   if (this->short_address_text_ != nullptr)
-    this->short_address_text_->publish_state(str_sprintf("0x%04X", short_addr));
+    this->short_address_text_->publish_state(addr_hex(short_addr));
 #endif
   this->publish_status_();
   ESP_LOGI(TAG, "inverter %s paired, short address 0x%04X", this->serial_hex_.c_str(), short_addr);
@@ -491,7 +491,7 @@ void APSZBComponent::process_tx_(uint32_t now) {
 #ifdef USE_APSZB_NATIVE
     if (this->log_frames_)
       ESP_LOGI(TAG, "TX %u bytes: %s", (unsigned) this->cur_tx_.frame.mac_len,
-               format_hex_pretty(this->cur_tx_.frame.buf + 1, this->cur_tx_.frame.mac_len).c_str());
+               hex_dump(this->cur_tx_.frame.buf + 1, this->cur_tx_.frame.mac_len).c_str());
 #endif
     if (this->radio_transmit_(this->cur_tx_.frame)) {
       this->tx_active_ = true;
@@ -531,7 +531,7 @@ void APSZBComponent::handle_rx_(const RadioRx &rx) {
   if (!parse_frame(rx.data, rx.len, f))
     return;
   if (this->log_frames_)
-    ESP_LOGI(TAG, "RX %u bytes rssi=%d lqi=%u: %s", rx.len, rx.rssi, rx.lqi, format_hex_pretty(rx.data, rx.len).c_str());
+    ESP_LOGI(TAG, "RX %u bytes rssi=%d lqi=%u: %s", rx.len, rx.rssi, rx.lqi, hex_dump(rx.data, rx.len).c_str());
   if (!f.mac_ok || f.mac_type != 1)
     return;
   if (f.nwk_ok && f.nwk_secured) {
@@ -598,7 +598,7 @@ void APSZBComponent::handle_asdu_(const RxFrame &f, const uint8_t *asdu, size_t 
   int idx = this->find_inverter_(asdu, n, pairing, &off);
   if (idx < 0) {
     ESP_LOGV(TAG, "payload from 0x%04X (cluster 0x%04X) matches no configured inverter: %s", f.nwk_src, f.cluster,
-             format_hex_pretty(asdu, n).c_str());
+             hex_dump(asdu, n).c_str());
     return;
   }
   APSInverter *inv = this->inverters_[idx];
@@ -638,7 +638,7 @@ void APSZBComponent::handle_asdu_(const RxFrame &f, const uint8_t *asdu, size_t 
     PollData d;
     if (!decode_poll(asdu, n, inv->type(), d)) {
       ESP_LOGD(TAG, "inverter %s: poll answer too short or malformed (%u bytes): %s", inv->serial_hex().c_str(),
-               (unsigned) n, format_hex_pretty(asdu, n).c_str());
+               (unsigned) n, hex_dump(asdu, n).c_str());
       return;
     }
     if (!this->plausible_(d)) {
@@ -653,7 +653,7 @@ void APSZBComponent::handle_asdu_(const RxFrame &f, const uint8_t *asdu, size_t 
     float w;
     if (!decode_max_power(asdu, n, inv->type(), &w)) {
       ESP_LOGD(TAG, "inverter %s: max power not found in the answer: %s", inv->serial_hex().c_str(),
-               format_hex_pretty(asdu, n).c_str());
+               hex_dump(asdu, n).c_str());
       return;
     }
     inv->on_max_power_(w);
