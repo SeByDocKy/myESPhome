@@ -123,6 +123,11 @@ Example with the firmware that was tested (check the GPIOs in the name of *your*
 | GND                | `GND`                        |
 | external 3V3       | `VCC`                        |
 
+Pinout of the Z-002/1 CC2530 module (debug pins `DD` = `P2.1`, `DC` = `P2.2`, `RST`; the diagram shows a CC-Debugger,
+the ESP32 programmer uses the same three signals):
+
+![CC2530 Z-002/1 module pinout](docs/cc2530_z002_pinout.png)
+
 * **Use an external 3.3 V supply** for the CC2530 (for instance the 3V3 pin of another ESP32), not the 3V3 of the
   programmer ESP32: its regulator was not sufficient during the flash phase (brown-out). Connect the grounds together.
 * On <https://mt.xyzroe.cc/> choose **TI CC25XX** and press **Connect loader**. After a few seconds the connection is
