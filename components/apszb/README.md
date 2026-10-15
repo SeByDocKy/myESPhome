@@ -100,6 +100,51 @@ Differences with the native back-end: `rssi` is not available (the CC2530 only r
 `promiscuous`, `nwk_protocol_version`, `discover_route`, `mac_ack`, `link_status_interval` and `route_request_interval`
 are ignored.
 
+### Flashing the CC2530 with an ESP32 (no CC-Debugger needed)
+
+A bare CC2530 module has to be flashed once with the Z-Stack ZNP firmware. This can be done with a spare ESP32 acting
+as a CC2530 programmer, through the web tool <https://mt.xyzroe.cc/>. It is a two-step procedure.
+
+**Step 1 – turn an ESP32 into a CC2530 flasher**
+
+1. Open <https://mt.xyzroe.cc/> and flash the special programmer firmware on the ESP32 (choose the *ESP32* option).
+   The firmware name usually contains the GPIO numbers to use for the CC2530 wiring.
+2. The ESP32 board should have a **CH340 or CP2102** USB-UART bridge, otherwise the second step may not work.
+
+**Step 2 – wire the CC2530 in flashing mode and flash it**
+
+Example with the firmware that was tested (check the GPIOs in the name of *your* firmware):
+
+| ESP32 (programmer) | CC2530 module (e.g. Z-002/1) |
+|--------------------|------------------------------|
+| GPIO16             | `P2.1` (DD, debug data)      |
+| GPIO17             | `P2.2` (DC, debug clock)     |
+| GPIO21             | `RST`                        |
+| GND                | `GND`                        |
+| external 3V3       | `VCC`                        |
+
+* **Use an external 3.3 V supply** for the CC2530 (for instance the 3V3 pin of another ESP32), not the 3V3 of the
+  programmer ESP32: its regulator was not sufficient during the flash phase (brown-out). Connect the grounds together.
+* On <https://mt.xyzroe.cc/> choose **TI CC25XX** and press **Connect loader**. After a few seconds the connection is
+  established and a MAC address of `00:00:00:00:00:00` is displayed by default.
+* Download the firmware archive
+  <https://github.com/Koenkk/zigbee2mqtt/files/10193677/discord-09-12-2022.zip> and select
+  **`CC2530ZNP_2592-with-SBL.hex`** as the file, then start the flash (about 1 minute).
+
+**Step 3 – rewire the CC2530 for normal operation**
+
+Remove the debug wiring and connect the module to the ESP32 running `apszb` according to the UART pins of your YAML:
+
+| apszb ESP32                         | CC2530 pin                 |
+|-------------------------------------|----------------------------|
+| `tx_pin` of the `uart:` component   | `P0_2` (CC2530 RX)         |
+| `rx_pin` of the `uart:` component   | `P0_3` (CC2530 TX)         |
+| `reset_pin` of `apszb` (optional)   | `RST`                      |
+| 3V3 / GND                           | `VCC` / `GND`              |
+
+The first start-up log lines `ZNP init 1/8 … 8/8` and `CC2530 started as ZigBee coordinator` confirm that the firmware
+and the wiring are correct.
+
 ### Pairing
 
 Power the inverters from the panels (daylight) and leave `auto_pair: true`: unpaired inverters are paired automatically
