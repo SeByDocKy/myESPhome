@@ -1,8 +1,15 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import number
-from esphome.const import CONF_ID, CONF_MAX_VALUE, CONF_MIN_VALUE, CONF_STEP
+from esphome.components import number, select
+from esphome.const import (
+    CONF_ID,
+    CONF_MAX_VALUE,
+    CONF_MIN_VALUE,
+    CONF_OPTIONS,
+    CONF_STEP,
+)
+from esphome.core import Lambda
 
 CODEOWNERS = ["@SeByDocKy"]
 DEPENDENCIES = ["api"]
@@ -11,11 +18,16 @@ CONF_MIN_INTERVAL = "min_interval"
 CONF_DELAY = "delay"
 CONF_NUMBER_ID = "number_id"
 CONF_CLAMP_STATE = "clamp_state"
+CONF_SELECT_ID = "select_id"
+CONF_FALLBACK_INDEX = "fallback_index"
 
 api_resync_ns = cg.esphome_ns.namespace("api_resync")
 ApiResyncComponent = api_resync_ns.class_("ApiResyncComponent", cg.Component)
 ResyncAction = api_resync_ns.class_("ResyncAction", automation.Action)
 SetNumberRangeAction = api_resync_ns.class_("SetNumberRangeAction", automation.Action)
+SetSelectOptionsAction = api_resync_ns.class_(
+    "SetSelectOptionsAction", automation.Action
+)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -77,4 +89,39 @@ async def set_number_range_action_to_code(config, action_id, template_arg, args)
     if CONF_STEP in config:
         template_ = await cg.templatable(config[CONF_STEP], args, float)
         cg.add(var.set_step(template_))
+    return var
+
+
+SET_SELECT_OPTIONS_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.use_id(ApiResyncComponent),
+        cv.Required(CONF_SELECT_ID): cv.use_id(select.Select),
+        cv.Required(CONF_OPTIONS): cv.Any(
+            cv.returning_lambda,
+            cv.All(cv.ensure_list(cv.string_strict), cv.Length(min=1)),
+        ),
+        cv.Optional(CONF_FALLBACK_INDEX, default=0): cv.positive_int,
+    }
+)
+
+
+@automation.register_action(
+    "api_resync.set_select_options",
+    SetSelectOptionsAction,
+    SET_SELECT_OPTIONS_SCHEMA,
+)
+async def set_select_options_action_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    sel = await cg.get_variable(config[CONF_SELECT_ID])
+    cg.add(var.set_select(sel))
+    cg.add(var.set_fallback_index(config[CONF_FALLBACK_INDEX]))
+    options = config[CONF_OPTIONS]
+    if isinstance(options, Lambda):
+        template_ = await cg.process_lambda(
+            options, args, return_type=cg.std_vector.template(cg.std_string)
+        )
+        cg.add(var.set_options_lambda(template_))
+    else:
+        cg.add(var.set_options_static(options))
     return var

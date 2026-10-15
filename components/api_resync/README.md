@@ -83,8 +83,51 @@ select:
             max_value: !lambda return (i == 0) ? 3680.0f : 11040.0f;
 ```
 
+### `api_resync.set_select_options`
+
+Replaces the option list of a `select`, keeps the current selection when its text is still in the new list, then schedules a resync. Does nothing if the option list is unchanged.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `select_id` | id | required | The `select` to update |
+| `options` | list of strings or lambda | required | New options. A lambda must return a `std::vector<std::string>` |
+| `fallback_index` | int | `0` | Option to select when the current one is no longer available (falls back to `0` if out of range) |
+
+```yaml
+select:
+  - platform: template
+    name: ${name}_mode
+    id: mode
+    options:
+      - eco
+      - fast
+    initial_option: eco
+    optimistic: true
+
+  - platform: template
+    name: ${name}_phases
+    id: phases
+    options:
+      - 1 phase
+      - 3 phases
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - api_resync.set_select_options:
+            select_id: mode
+            options: !lambda |-
+              if (i == 0) return {"eco", "fast"};
+              return {"eco", "fast", "turbo"};
+```
+
+How the selection is handled: a select state is only an index, so the component remembers the current option by text, swaps the list, then looks the text up in the new list. If it is found at another position, the state is republished with the new index; if it is gone, `fallback_index` is published. Either way the select's `on_value` fires, because `publish_state()` always calls the state callbacks. Empty lists are rejected.
+
 ## Notes
 
+- Option strings are owned by the action: `SelectTraits` only stores `const char *` pointers.
+- Changes made at runtime are not persistent. After a reboot, `number` ranges and `select` options come back as defined in the YAML, so re-apply them at boot (for example from the `on_value` of the entity that drives them; `restore_value` triggers it at boot).
+- With `restore_value` on a template select, the saved value is an index into the list that is active at boot, i.e. the YAML list.
 - If no client is connected when the resync fires, nothing is sent: Home Assistant lists entities when it connects anyway.
 - `restore_value` triggers `on_value` at boot, before Home Assistant connects, so the first connection already sees the right range.
 - All API clients are disconnected, not only Home Assistant.
