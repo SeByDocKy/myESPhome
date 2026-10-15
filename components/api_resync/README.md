@@ -79,8 +79,10 @@ select:
       then:
         - api_resync.set_number_range:
             number_id: power_limit
-            min_value: !lambda return (i == 0) ? 1380.0f : 4140.0f;
-            max_value: !lambda return (i == 0) ? 3680.0f : 11040.0f;
+            min_value: !lambda |-
+              return (i == 0) ? 1380.0f : 4140.0f;
+            max_value: !lambda |-
+              return (i == 0) ? 3680.0f : 11040.0f;
 ```
 
 ### `api_resync.set_select_options`
