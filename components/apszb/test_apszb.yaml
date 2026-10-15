@@ -49,7 +49,7 @@ apszb_inverter:
   #   type: ds3
 
 sensor:
-  - platform: apszb
+  - platform: apszb_inverter
     inverter: inv1
     ac_voltage:
       name: ${name}_ac_voltage
@@ -85,7 +85,7 @@ sensor:
       name: ${name}_uptime
 
 text_sensor:
-  - platform: apszb
+  - platform: apszb_inverter
     inverter: inv1
     status:
       name: ${name}_status
@@ -95,13 +95,13 @@ text_sensor:
       name: ${name}_short_address
 
 binary_sensor:
-  - platform: apszb
+  - platform: apszb_inverter
     inverter: inv1
     online:
       name: ${name}_online
 
 number:
-  - platform: apszb
+  - platform: apszb_inverter
     inverter: inv1
     max_power:
       name: ${name}_max_power
@@ -112,13 +112,13 @@ number:
 # float output (0..1 = 0..100 % of the rated power): lets a PID / template / light regulate the inverter, e.g.
 #   zero-injection with `minipid` -> output: apszb_limit
 output:
-  - platform: apszb
+  - platform: apszb_inverter
     inverter: inv1
     power_limit_percent:
       id: apszb_limit
 
 button:
-  - platform: apszb
+  - platform: apszb_inverter
     inverter: inv1
     pair:
       name: ${name}_pair

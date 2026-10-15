@@ -1,7 +1,7 @@
 """One APsystems (ZigBee) micro-inverter: YC600 / QS1 / DS3.
 
 Declare one entry per inverter; each entry is attached to the ``apszb`` hub. The entities (sensor, text_sensor,
-binary_sensor, number, button, output) are platforms of the ``apszb`` component and point to the inverter with
+binary_sensor, number, button, output) are platforms of ``apszb_inverter`` and point to the inverter with
 ``inverter: <id>``.
 
     apszb_inverter:
@@ -15,10 +15,12 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID, CONF_TYPE
 
-from ..apszb import (
+from ..apszb import (  # noqa: F401  (apszb_ns, APSInverter and CONF_INVERTER are re-used by the platforms)
     CONF_APSZB_ID,
+    CONF_INVERTER,
     APSInverter,
     APSZBComponent,
+    apszb_ns,
     hex12,
 )
 

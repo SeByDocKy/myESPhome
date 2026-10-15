@@ -198,7 +198,7 @@ with `apszb_id` (optional when there is a single `apszb:` hub). The entities the
 | `calibration` | `0` | W added to the power limit sent to the inverter, as in the original firmware (−100…100) |
 | `rated_power` | by type | W, reference of the `power_limit_percent` output: 600 for `yc600`, 1200 for `qs1`, 730 for `ds3` |
 
-## Entities (all optional, platform `apszb`, `inverter: <id>`)
+## Entities (all optional, platform `apszb_inverter`, `inverter: <id>`)
 
 * **sensor**: `ac_voltage`, `frequency`, `temperature`, `power_total`, `energy_total`, `dc_voltage_1…4`, `dc_current_1…4`,
   `power_1…4`, `energy_1…4`, `link_quality`, `rssi`, `uptime`
