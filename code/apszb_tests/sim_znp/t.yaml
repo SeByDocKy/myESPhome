@@ -32,7 +32,7 @@ apszb_inverter:
 
 sensor:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     ac_voltage:
       name: v1_ac_voltage
     frequency:
@@ -54,34 +54,34 @@ sensor:
     link_quality:
       name: v1_lq
   - platform: apszb_inverter
-    inverter: inv2
+    apszb_inverter_id: inv2
     ac_voltage:
       name: v2_ac_voltage
     power_total:
       name: v2_power_total
 text_sensor:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     status:
       name: v1_status
 binary_sensor:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     online:
       name: v1_online
 number:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     max_power:
       name: v1_max_power
 output:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     power_limit_percent:
       id: apszb_limit
 
 button:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     pair:
       name: v1_pair

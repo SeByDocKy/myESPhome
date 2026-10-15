@@ -58,7 +58,7 @@ apszb_inverter:
 
 sensor:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     ac_voltage:
       name: ${name}_ac_voltage
     frequency:
@@ -94,7 +94,7 @@ sensor:
 
 text_sensor:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     status:
       name: ${name}_status
     serial:
@@ -104,13 +104,13 @@ text_sensor:
 
 binary_sensor:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     online:
       name: ${name}_online
 
 number:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     max_power:
       name: ${name}_max_power
       min_value: 30
@@ -121,13 +121,13 @@ number:
 #   zero-injection with `minipid` -> output: apszb_limit
 output:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     power_limit_percent:
       id: apszb_limit
 
 button:
   - platform: apszb_inverter
-    inverter: inv1
+    apszb_inverter_id: inv1
     pair:
       name: ${name}_pair
     refresh:

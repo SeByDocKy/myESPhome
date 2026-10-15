@@ -30,7 +30,7 @@ APSZBComponent = apszb_ns.class_("APSZBComponent", cg.Component)
 APSInverter = apszb_ns.class_("APSInverter")
 
 CONF_APSZB_ID = "apszb_id"
-CONF_INVERTER = "inverter"
+CONF_INVERTER = "apszb_inverter_id"
 CONF_APSZB_INVERTER = "apszb_inverter"
 MAX_INVERTERS = 16
 CONF_ECU_ID = "ecu_id"

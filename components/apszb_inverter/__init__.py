@@ -2,7 +2,7 @@
 
 Declare one entry per inverter; each entry is attached to the ``apszb`` hub. The entities (sensor, text_sensor,
 binary_sensor, number, button, output) are platforms of ``apszb_inverter`` and point to the inverter with
-``inverter: <id>``.
+``apszb_inverter_id: <id>``.
 
     apszb_inverter:
       - id: inv1

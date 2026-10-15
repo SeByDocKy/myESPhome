@@ -186,11 +186,11 @@ stored in flash; you can also force it with `short_address: 0x103A`.
 
 The inverters are declared in their own `apszb_inverter:` list, one entry per inverter (up to 16), attached to the hub
 with `apszb_id` (optional when there is a single `apszb:` hub). The entities then point to an inverter with
-`inverter: <id>`.
+`apszb_inverter_id: <id>`.
 
 | Option | Default | Description |
 |---|---|---|
-| `id` | – | id of the inverter, used by the entities (`inverter: inv1`) |
+| `id` | – | id of the inverter, used by the entities (`apszb_inverter_id: inv1`) |
 | `apszb_id` | auto | id of the `apszb` hub |
 | `serial` | required | 12 digits printed on the inverter |
 | `type` | required | `yc600`, `qs1` or `ds3` |
@@ -198,7 +198,7 @@ with `apszb_id` (optional when there is a single `apszb:` hub). The entities the
 | `calibration` | `0` | W added to the power limit sent to the inverter, as in the original firmware (−100…100) |
 | `rated_power` | by type | W, reference of the `power_limit_percent` output: 600 for `yc600`, 1200 for `qs1`, 730 for `ds3` |
 
-## Entities (all optional, platform `apszb_inverter`, `inverter: <id>`)
+## Entities (all optional, platform `apszb_inverter`, `apszb_inverter_id: <id>`)
 
 * **sensor**: `ac_voltage`, `frequency`, `temperature`, `power_total`, `energy_total`, `dc_voltage_1…4`, `dc_current_1…4`,
   `power_1…4`, `energy_1…4`, `link_quality`, `rssi`, `uptime`
