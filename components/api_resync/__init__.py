@@ -54,7 +54,9 @@ RESYNC_ACTION_SCHEMA = automation.maybe_simple_id(
 )
 
 
-@automation.register_action("api_resync.resync", ResyncAction, RESYNC_ACTION_SCHEMA)
+@automation.register_action(
+    "api_resync.resync", ResyncAction, RESYNC_ACTION_SCHEMA, synchronous=True
+)
 async def resync_action_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
@@ -74,7 +76,10 @@ SET_NUMBER_RANGE_SCHEMA = cv.Schema(
 
 
 @automation.register_action(
-    "api_resync.set_number_range", SetNumberRangeAction, SET_NUMBER_RANGE_SCHEMA
+    "api_resync.set_number_range",
+    SetNumberRangeAction,
+    SET_NUMBER_RANGE_SCHEMA,
+    synchronous=True,
 )
 async def set_number_range_action_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
@@ -109,6 +114,7 @@ SET_SELECT_OPTIONS_SCHEMA = cv.Schema(
     "api_resync.set_select_options",
     SetSelectOptionsAction,
     SET_SELECT_OPTIONS_SCHEMA,
+    synchronous=True,
 )
 async def set_select_options_action_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)

@@ -1,0 +1,72 @@
+substitutions:
+  name: test-api-resync
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+external_components:
+  - source: github://SeByDocKy/myESPhome@main
+    components: [api_resync]
+    refresh: 0s  # re-download at every compile while testing; remove or use 1d later
+
+api_resync:
+  min_interval: 5s
+  delay: 500ms
+
+number:
+  - platform: template
+    name: ${name}_power_limit
+    id: power_limit
+    min_value: 1380
+    max_value: 3680
+    step: 10
+    optimistic: true
+    restore_value: true
+
+select:
+  - platform: template
+    name: ${name}_mode
+    id: mode
+    options:
+      - eco
+      - fast
+    initial_option: eco
+    optimistic: true
+
+  - platform: template
+    name: ${name}_phases
+    id: phases
+    options:
+      - 1 phase
+      - 3 phases
+    initial_option: 1 phase
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - api_resync.set_number_range:
+            number_id: power_limit
+            min_value: !lambda |-
+              return (i == 0) ? 1380.0f : 4140.0f;
+            max_value: !lambda |-
+              return (i == 0) ? 3680.0f : 11040.0f;
+        - api_resync.set_select_options:
+            select_id: mode
+            options: !lambda |-
+              if (i == 0) return {"eco", "fast"};
+              return {"eco", "fast", "turbo"};
+            fallback_index: 0
