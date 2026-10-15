@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """usage: make_ext.py <component dir> <dest>
-Copy the apszb component to <dest>/apszb and strip what only makes sense on a real ESP32 (for the host simulation)."""
+Copy the apszb and apszb_inverter components to <dest> and strip what only makes sense on a real ESP32 (for the host simulation)."""
 import re, shutil, sys, pathlib
 src, dest = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
 if dest.exists():
     shutil.rmtree(dest)
 shutil.copytree(src, dest / "apszb", ignore=shutil.ignore_patterns("__pycache__", "README.md"))
+shutil.copytree(src.parent / "apszb_inverter", dest / "apszb_inverter", ignore=shutil.ignore_patterns("__pycache__"))
 p = dest / "apszb" / "__init__.py"
 t = p.read_text()
 t = t.replace('DEPENDENCIES = ["esp32"]', "DEPENDENCIES = []")

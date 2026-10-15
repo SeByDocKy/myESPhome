@@ -52,17 +52,19 @@ esp32:
 
 external_components:
   - source: github://SeByDocKy/myESPhome
-    components: [apszb]
+    components: [apszb, apszb_inverter]
 
 apszb:
   id: aps
   ecu_id: "D8A3011B9780"      # 12 hex digits; PAN id = bytes 1,0 -> 0xA3D8
   channel: 16
   poll_interval: 60s
-  inverters:
-    - id: inv1
-      serial: "408000158215"  # printed on the inverter
-      type: yc600             # yc600 | qs1 | ds3
+
+apszb_inverter:
+  - id: inv1
+    apszb_id: aps
+    serial: "408000158215"    # printed on the inverter
+    type: yc600               # yc600 | qs1 | ds3
 ```
 
 See [`test_apszb.yaml`](test_apszb.yaml) (native radio) and [`test_apszb_znp.yaml`](test_apszb_znp.yaml) (CC2530) for all entities.
@@ -87,10 +89,12 @@ apszb:
   uart_id: uart_zb
   reset_pin: GPIO4         # optional: RESET_N of the CC2530 (driven low for 50 ms at start-up)
   ecu_id: "D8A3011B9780"
-  inverters:
-    - id: inv1
-      serial: "408000158215"
-      type: yc600
+
+apszb_inverter:
+  - id: inv1
+    apszb_id: aps
+    serial: "408000158215"
+    type: yc600
 ```
 
 Wiring: `3V3`, `GND`, ESP TX → CC2530 RX, ESP RX ← CC2530 TX, and optionally one GPIO → `RESET_N`. The component runs
@@ -178,7 +182,21 @@ stored in flash; you can also force it with `short_address: 0x103A`.
 | `log_frames` | `false` | log every TX/RX frame in hex (`native`: MAC frames, `znp`: ZNP commands) |
 | `promiscuous` | `false` | receive frames of every PAN (sniffer mode), `native` only |
 
-Per inverter: `serial`, `type`, `short_address` (optional), `calibration` (W added to the power limit, as in the original), `rated_power` (optional, W: reference of the `power_limit_percent` output, default 600 for `yc600`, 1200 for `qs1`, 730 for `ds3`).
+## Inverter options (`apszb_inverter:`)
+
+The inverters are declared in their own `apszb_inverter:` list, one entry per inverter (up to 16), attached to the hub
+with `apszb_id` (optional when there is a single `apszb:` hub). The entities then point to an inverter with
+`inverter: <id>`.
+
+| Option | Default | Description |
+|---|---|---|
+| `id` | – | id of the inverter, used by the entities (`inverter: inv1`) |
+| `apszb_id` | auto | id of the `apszb` hub |
+| `serial` | required | 12 digits printed on the inverter |
+| `type` | required | `yc600`, `qs1` or `ds3` |
+| `short_address` | – | force the ZigBee short address (normally learnt by pairing and stored in flash), e.g. `0x103A` |
+| `calibration` | `0` | W added to the power limit sent to the inverter, as in the original firmware (−100…100) |
+| `rated_power` | by type | W, reference of the `power_limit_percent` output: 600 for `yc600`, 1200 for `qs1`, 730 for `ds3` |
 
 ## Entities (all optional, platform `apszb`, `inverter: <id>`)
 

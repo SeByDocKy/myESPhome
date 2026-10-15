@@ -7,20 +7,22 @@ external_components:
   - source:
       type: local
       path: ext
-    components: [apszb]
+    components: [apszb, apszb_inverter]
 apszb:
   id: aps
   ecu_id: "D8A3011B9780"
   poll_interval: 5s
   offline_after: 2
-  inverters:
-    - id: inv1
-      serial: "408000158215"
-      type: yc600
-      short_address: 0x103A
-    - id: inv2
-      serial: "703000021300"
-      type: ds3
+
+apszb_inverter:
+  - id: inv1
+    serial: "408000158215"
+    type: yc600
+    short_address: 0x103A
+  - id: inv2
+    serial: "703000021300"
+    type: ds3
+
 sensor:
   - platform: apszb
     inverter: inv1

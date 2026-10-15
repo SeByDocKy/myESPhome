@@ -6,16 +6,18 @@
   implemented in C++ and replaces the CC2530 used by the ESP32-ECU project.
 * ``radio: znp``: a TI CC2530 running the Z-Stack ZNP firmware on an UART, exactly like the original project. Works with
   any ESP32 (and with the Arduino framework too).
+
+The inverters are declared with the companion ``apszb_inverter:`` component (one entry per inverter).
 """
 
 import re
 
 import esphome.codegen as cg
-from esphome import pins
+from esphome import final_validate as fv, pins
 from esphome.components import esp32, uart
 from esphome.components.esp32.const import VARIANT_ESP32C6, VARIANT_ESP32H2
 import esphome.config_validation as cv
-from esphome.const import CONF_CHANNEL, CONF_ID, CONF_TYPE
+from esphome.const import CONF_CHANNEL, CONF_ID
 from esphome.core import CORE
 
 CODEOWNERS = ["@SeByDocKy"]
@@ -29,12 +31,11 @@ APSInverter = apszb_ns.class_("APSInverter")
 
 CONF_APSZB_ID = "apszb_id"
 CONF_INVERTER = "inverter"
-CONF_INVERTERS = "inverters"
+CONF_APSZB_INVERTER = "apszb_inverter"
+MAX_INVERTERS = 16
 CONF_ECU_ID = "ecu_id"
 CONF_SERIAL = "serial"
 CONF_SHORT_ADDRESS = "short_address"
-CONF_CALIBRATION = "calibration"
-CONF_RATED_POWER = "rated_power"
 CONF_TX_POWER = "tx_power"
 CONF_POLL_INTERVAL = "poll_interval"
 CONF_RESPONSE_TIMEOUT = "response_timeout"
@@ -54,8 +55,6 @@ CONF_UART_ID = "uart_id"
 RADIO_NATIVE = "native"
 RADIO_ZNP = "znp"
 
-INVERTER_TYPES = {"yc600": 0, "qs1": 1, "ds3": 2}
-DEFAULT_RATED_POWER = {"yc600": 600, "qs1": 1200, "ds3": 730}
 
 _HEX12 = re.compile(r"^[0-9A-Fa-f]{12}$")
 
@@ -70,21 +69,6 @@ def hex12(value):
 def optional_period(value):
     """A time period that may be 0s (= feature disabled)."""
     return cv.positive_time_period_milliseconds(value)
-
-
-INVERTER_SCHEMA = cv.Schema(
-    {
-        cv.GenerateID(): cv.declare_id(APSInverter),
-        cv.Required(CONF_SERIAL): hex12,
-        cv.Required(CONF_TYPE): cv.enum(INVERTER_TYPES, lower=True),
-        # normally learnt by the pairing procedure and stored in flash; can be forced here
-        cv.Optional(CONF_SHORT_ADDRESS): cv.hex_uint16_t,
-        # offset (W) added to the power limit sent to the inverter, as in the original firmware
-        cv.Optional(CONF_CALIBRATION, default=0): cv.int_range(min=-100, max=100),
-        # reference (W) of the `power_limit_percent` output; default depends on the type (yc600 600, qs1 1200, ds3 730)
-        cv.Optional(CONF_RATED_POWER): cv.int_range(min=30, max=2000),
-    }
-)
 
 
 def _validate_radio(config):
@@ -103,6 +87,12 @@ def _validate_radio(config):
 
 
 def _final_validate(config):
+    # the inverters are declared with the separate `apszb_inverter:` component
+    inverters = fv.full_config.get().get(CONF_APSZB_INVERTER, [])
+    if not inverters:
+        raise cv.Invalid("apszb needs at least one inverter: declare it with the 'apszb_inverter:' component")
+    if len(inverters) > MAX_INVERTERS:
+        raise cv.Invalid(f"apszb supports at most {MAX_INVERTERS} inverters")
     if config[CONF_RADIO] == RADIO_NATIVE:
         if CORE.using_arduino:
             raise cv.Invalid("apszb with 'radio: native' requires the esp-idf framework (raw IEEE 802.15.4 driver)")
@@ -139,7 +129,6 @@ CONFIG_SCHEMA = cv.All(
             # diagnostics
             cv.Optional(CONF_PROMISCUOUS, default=False): cv.boolean,
             cv.Optional(CONF_LOG_FRAMES, default=False): cv.boolean,
-            cv.Required(CONF_INVERTERS): cv.All(cv.ensure_list(INVERTER_SCHEMA), cv.Length(min=1, max=16)),
         }
     ).extend(cv.COMPONENT_SCHEMA),
     _validate_radio,
@@ -166,16 +155,6 @@ async def to_code(config):
     cg.add(var.set_mac_ack(config[CONF_MAC_ACK]))
     cg.add(var.set_promiscuous(config[CONF_PROMISCUOUS]))
     cg.add(var.set_log_frames(config[CONF_LOG_FRAMES]))
-
-    for conf in config[CONF_INVERTERS]:
-        inv = cg.new_Pvariable(conf[CONF_ID])
-        cg.add(inv.set_serial(conf[CONF_SERIAL]))
-        cg.add(inv.set_type(conf[CONF_TYPE]))
-        cg.add(inv.set_calibration(conf[CONF_CALIBRATION]))
-        cg.add(inv.set_rated_power(conf.get(CONF_RATED_POWER, DEFAULT_RATED_POWER[conf[CONF_TYPE]])))
-        if CONF_SHORT_ADDRESS in conf:
-            cg.add(inv.set_short_address(conf[CONF_SHORT_ADDRESS]))
-        cg.add(var.add_inverter(inv))
 
     if config[CONF_RADIO] == RADIO_ZNP:
         cg.add_define("USE_APSZB_ZNP")

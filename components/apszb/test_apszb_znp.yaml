@@ -32,7 +32,7 @@ uart:
 
 external_components:
   - source: github://SeByDocKy/myESPhome
-    components: [apszb]
+    components: [apszb, apszb_inverter]
 
 apszb:
   id: aps
@@ -44,14 +44,17 @@ apszb:
   poll_interval: 60s
   auto_pair: true               # the inverters must be awake (daylight) to be paired
   # log_frames: true            # log every ZNP command exchanged with the CC2530 (debugging)
-  inverters:
-    - id: inv1
-      serial: "408000158215"    # 12 digits printed on the inverter
-      type: yc600               # yc600 | qs1 | ds3
-      calibration: 0
-    # - id: inv2
-    #   serial: "703000021300"
-    #   type: ds3
+
+apszb_inverter:
+  - id: inv1
+    apszb_id: aps
+    serial: "408000158215"    # 12 digits printed on the inverter
+    type: yc600               # yc600 | qs1 | ds3
+    calibration: 0
+  # - id: inv2
+  #   apszb_id: aps
+  #   serial: "703000021300"
+  #   type: ds3
 
 sensor:
   - platform: apszb
