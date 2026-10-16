@@ -25,7 +25,7 @@ CONFIG_SCHEMA = cv.Schema(
             APSMaxPowerNumber,
             unit_of_measurement=UNIT_WATT,
             device_class=DEVICE_CLASS_POWER,
-            icon="mdi:speedometer",
+            icon="mdi:power",
         ).extend(
             {
                 cv.Optional(CONF_MIN_VALUE, default=30): cv.float_,
