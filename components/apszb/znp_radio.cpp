@@ -21,7 +21,8 @@ static const uint8_t TYPE_SREQ_AF = 0x24, TYPE_SRSP_AF = 0x64, TYPE_AREQ_AF = 0x
                      TYPE_AREQ_SYS = 0x41;
 
 static const uint32_t RESET_PULSE_MS = 50;
-static const uint32_t RESET_SETTLE_MS = 500;
+static const uint32_t RESET_SETTLE_MS = 500;       // without reset pin: the modem is assumed to be running already
+static const uint32_t RESET_BOOT_MAX_MS = 4000;    // with reset pin: wait this long for the modem's SYS_RESET_IND
 static const uint32_t START_TIMEOUT_MS = 12000;
 static const uint32_t RETRY_DELAY_MS = 15000;
 static const uint8_t DEFAULT_RADIUS = 0x0F;
@@ -254,7 +255,16 @@ void ZnpRadio::handle_frame_(const ZnpFrame &f, uint32_t now) {
     return;
   }
   if (f.cmd0 == TYPE_AREQ_SYS && f.cmd1 == SYS_RESET_IND) {
-    if (this->state_ == READY) {
+    if (this->state_ == RESET_WAIT) {
+      // the CC2530 announces that it has finished booting (the serial bootloader makes this take 0.5 ... 1 s)
+      this->log_(2, "ZNP: the CC2530 has booted (%u ms after the reset)", unsigned(now - this->state_since_));
+      this->init_idx_ = 0;
+      this->state_ = INIT_SEND;
+    } else if (this->state_ == INIT_WAIT && this->init_idx_ == 0 && !this->first_cmd_answered_) {
+      // the modem finished booting right after the first command was sent, which was lost: send it again
+      this->log_(2, "ZNP: the CC2530 has just booted, sending the first command again");
+      this->state_ = INIT_SEND;
+    } else if (this->state_ == READY) {
       this->log_(1, "the CC2530 reset by itself, restarting the coordinator");
       this->retry_at_ = now;
       this->restart_(now);
@@ -346,7 +356,10 @@ void ZnpRadio::loop(uint32_t now) {
       }
       break;
     case RESET_WAIT:
-      if (now - this->state_since_ >= RESET_SETTLE_MS) {
+      // with a reset pin the modem reboots and sends SYS_RESET_IND when it is ready (handled in handle_frame_); the
+      // time-out only covers a modem that stays silent
+      if (now - this->state_since_ >= (this->port_ != nullptr && this->port_->has_reset() ? RESET_BOOT_MAX_MS
+                                                                                            : RESET_SETTLE_MS)) {
         this->init_idx_ = 0;
         this->state_ = INIT_SEND;
       }

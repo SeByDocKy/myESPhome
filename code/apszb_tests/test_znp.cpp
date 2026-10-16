@@ -94,10 +94,14 @@ int main() {
     CHECK(port.reset_events.size() == 1 && port.reset_events[0] == 1, "RESET asserted first");
     now += 60; z.loop(now);
     CHECK(port.reset_events.size() == 2 && port.reset_events[1] == 0, "RESET released after 50 ms");
-    now += 600; z.loop(now);   // settle
+    // the modem boots slowly (serial bootloader): nothing may be sent before it announces itself
+    now += 640; z.loop(now);
+    CHECK(port.frames().empty(), "no command is sent while the modem is still booting");
+    port.feed(0x41, 0x80, {0, 2, 0, 2, 7, 2});   // SYS_RESET_IND = boot finished
     now += 5; z.loop(now);     // -> first command
     auto fr = port.frames();
     CHECK(fr.size() == 1 && fr[0].cmd0 == 0x26 && fr[0].cmd1 == 0x05, "first command is ZB_WRITE_CONFIGURATION");
+    CHECK(has_log("the CC2530 has booted"), "boot announcement logged");
     // answer every command in turn
     int guard = 0;
     while (!z.ready() && guard++ < 40) {
@@ -164,6 +168,34 @@ int main() {
     logs.clear();
     port.feed(0x41, 0x80, {1, 2, 0, 2, 6, 3}); now += 5; z.loop(now);
     CHECK(!z.ready() && has_log("reset by itself"), "unexpected SYS_RESET_IND -> coordinator restarted");
+  }
+  // ---- boot announcement arrives after the first command (no reset pin / lost command) ---------------------------------
+  {
+    FakePort port; port.reset_pin = false;
+    ZnpRadio z; z.set_port(&port); z.set_logger(logger); logs.clear();
+    z.begin(make_cfg());
+    uint32_t now = 1000;
+    z.loop(now);
+    now += 600; z.loop(now); now += 5; z.loop(now);
+    auto fr = port.frames();
+    CHECK(fr.size() == 1 && fr[0].cmd0 == 0x26, "no reset pin: first command sent after 500 ms");
+    port.feed(0x41, 0x80, {0, 2, 0, 2, 7, 2});   // the modem finished booting after our command was lost
+    now += 5; z.loop(now); now += 5; z.loop(now);
+    fr = port.frames();
+    CHECK(fr.size() == 1 && fr[0].cmd0 == 0x26 && fr[0].cmd1 == 0x05, "first command sent again after the boot announcement");
+    port.feed(0x66, 0x05, {0}); now += 5; z.loop(now);
+    CHECK(has_log("ZNP init 1/8 startup option: clear state: OK"), "the answer to the repeated command is accepted");
+  }
+  // ---- reset pin but a modem that never announces itself -------------------------------------------------------------
+  {
+    FakePort port; port.reset_pin = true;
+    ZnpRadio z; z.set_port(&port); z.set_logger(logger); logs.clear();
+    z.begin(make_cfg());
+    uint32_t now = 0;
+    for (; now < 3500; now += 10) z.loop(now);
+    CHECK(port.frames().empty(), "reset pin: waits for the boot announcement");
+    for (; now < 4800; now += 10) z.loop(now);
+    CHECK(!port.frames().empty(), "reset pin: sends the first command after the time-out anyway");
   }
   // ---- no modem connected -------------------------------------------------------------------------------------------
   {
