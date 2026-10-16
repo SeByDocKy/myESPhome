@@ -1,0 +1,29 @@
+# APsystems ZigBee hub (YC600 / QS1 / DS3) -- package for the `apszb` component, CC2530 (radio: znp) back-end.
+# Declare the inverters with device_apszb_inverter.yaml (one package per inverter).
+#
+# Variables:
+#   apszb_id: id of the hub (e.g. aps)
+#   apszb_radio: znp  (CC2530 on an UART; `native` is only for ESP32-C6/H2 and does not use uart_id / reset_pin)
+#   apszb_uart_id: id of the uart: component wired to the CC2530 (115200 baud)
+#   apszb_reset_pin: GPIO wired to RST of the CC2530 (e.g. GPIO4)
+#   apszb_ecu_id: 12 hex digits of the ECU (e.g. D8A3011B9780, PAN id = bytes 1,0 -> 0xA3D8)
+#   apszb_channel: 802.15.4 channel (11..26, 16 in the original project)
+#   apszb_poll_interval: time between two polls of each inverter (e.g. 60s)
+#   apszb_auto_pair: true | false (the inverters must be awake, in daylight, to be paired)
+#   apszb_log_frames: true | false (log every ZNP command exchanged with the CC2530)
+
+external_components:
+  - source: github://SeByDocKy/myESPhome
+    components: [apszb]
+    refresh: 10s
+
+apszb:
+  id: ${apszb_id}
+  radio: ${apszb_radio}
+  uart_id: ${apszb_uart_id}
+  reset_pin: ${apszb_reset_pin}
+  ecu_id: "${apszb_ecu_id}"
+  channel: ${apszb_channel}
+  poll_interval: ${apszb_poll_interval}
+  auto_pair: ${apszb_auto_pair}
+  log_frames: ${apszb_log_frames}

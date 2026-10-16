@@ -1,0 +1,147 @@
+# One APsystems ZigBee micro-inverter (YC600 / QS1 / DS3) with all its entities -- package for the `apszb_inverter`
+# component. The hub is declared with device_apszb.yaml.
+#
+# Variables:
+#   apszb_inverter_name: short name used in the entity names and ids (e.g. yc600)
+#   apszb_inverter_id: id of the inverter (e.g. inv1)
+#   apszb_inverter_apszb_id: id of the hub (the `apszb_id` of device_apszb.yaml)
+#   apszb_inverter_serial: 12 digits printed on the inverter
+#   apszb_inverter_type: yc600 | qs1 | ds3
+#   apszb_inverter_calibration: W added to the power limit sent to the inverter (-100..100)
+#
+# Also needed in your main YAML: the `apszb` hub (device_apszb.yaml) and, for the "energy yesterday" sensor,
+#   time:
+#     - platform: sntp
+#       id: my_time
+# and the substitutions my_hours / my_minute / my_second (time of day at which today's energy is stored as yesterday's,
+# e.g. 23 / 59 / 50).
+
+external_components:
+  - source: github://SeByDocKy/myESPhome
+    components: [apszb_inverter]
+    refresh: 10s
+
+globals:
+  - id: ${apszb_inverter_name}_energy_yesterday_global
+    type: float
+    restore_value: yes
+
+time:
+  - platform: sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:
+          - globals.set:
+              id: ${apszb_inverter_name}_energy_yesterday_global
+              value: !lambda return id(${apszb_inverter_name}_energy_today).state;
+
+apszb_inverter:
+  - id: ${apszb_inverter_id}
+    apszb_id: ${apszb_inverter_apszb_id}
+    serial: "${apszb_inverter_serial}"
+    type: ${apszb_inverter_type}
+    calibration: ${apszb_inverter_calibration}
+
+sensor:
+  - platform: apszb_inverter
+    apszb_inverter_id: ${apszb_inverter_id}
+    ac_voltage:
+      name: ${name}_${apszb_inverter_name}_ac_voltage
+    frequency:
+      name: ${name}_${apszb_inverter_name}_frequency
+    temperature:
+      name: ${name}_${apszb_inverter_name}_temperature
+    power_total:
+      name: ${name}_${apszb_inverter_name}_power_total
+      id: ${apszb_inverter_name}_power_total
+    energy_total:
+      name: ${name}_${apszb_inverter_name}_energy_total
+    dc_voltage_1:
+      name: ${name}_${apszb_inverter_name}_dc_voltage_1
+    dc_voltage_2:
+      name: ${name}_${apszb_inverter_name}_dc_voltage_2
+    dc_current_1:
+      name: ${name}_${apszb_inverter_name}_dc_current_1
+    dc_current_2:
+      name: ${name}_${apszb_inverter_name}_dc_current_2
+    power_1:
+      name: ${name}_${apszb_inverter_name}_power_1
+    power_2:
+      name: ${name}_${apszb_inverter_name}_power_2
+    energy_1:
+      name: ${name}_${apszb_inverter_name}_energy_1
+    energy_2:
+      name: ${name}_${apszb_inverter_name}_energy_2
+    link_quality:
+      name: ${name}_${apszb_inverter_name}_link_quality
+    rssi:
+      name: ${name}_${apszb_inverter_name}_rssi
+    uptime:
+      name: ${name}_${apszb_inverter_name}_uptime
+
+  - platform: total_daily_energy
+    name: ${name}_${apszb_inverter_name}_energy_today
+    id: ${apszb_inverter_name}_energy_today
+    power_id: ${apszb_inverter_name}_power_total
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: right
+    restore: true
+    filters:
+      # multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+
+  - platform: template
+    name: ${name}_${apszb_inverter_name}_energy_yesterday
+    id: ${apszb_inverter_name}_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    lambda: |-
+      return id(${apszb_inverter_name}_energy_yesterday_global);
+
+text_sensor:
+  - platform: apszb_inverter
+    apszb_inverter_id: ${apszb_inverter_id}
+    status:
+      name: ${name}_${apszb_inverter_name}_status
+    serial:
+      name: ${name}_${apszb_inverter_name}_serial
+    short_address:
+      name: ${name}_${apszb_inverter_name}_short_address
+
+binary_sensor:
+  - platform: apszb_inverter
+    apszb_inverter_id: ${apszb_inverter_id}
+    online:
+      name: ${name}_${apszb_inverter_name}_online
+
+number:
+  - platform: apszb_inverter
+    apszb_inverter_id: ${apszb_inverter_id}
+    max_power:
+      name: ${name}_${apszb_inverter_name}_max_power
+      mode: slider
+
+# float output (0..1 = 0..100 % of the rated power): lets a PID / template / light regulate the inverter
+output:
+  - platform: apszb_inverter
+    apszb_inverter_id: ${apszb_inverter_id}
+    power_limit_percent:
+      id: ${apszb_inverter_name}_apszb_limit
+
+button:
+  - platform: apszb_inverter
+    apszb_inverter_id: ${apszb_inverter_id}
+    pair:
+      name: ${name}_${apszb_inverter_name}_pair
+    refresh:
+      name: ${name}_${apszb_inverter_name}_refresh
+    query_max_power:
+      name: ${name}_${apszb_inverter_name}_query_max_power
+    reboot_inverter:
+      name: ${name}_${apszb_inverter_name}_reboot_inverter
