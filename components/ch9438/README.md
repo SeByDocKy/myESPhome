@@ -16,7 +16,7 @@ Every configured UART is a regular ESPHome `uart` component, so anything that ac
 | | |
 |---|---|
 | UARTs | 8, 16C550 compatible, 8 data bits, 1 or 2 stop bits, none/odd/even parity |
-| Baud rate | 2930 bd … 12 Mbd (`192 MHz / divisor`, 12.4 fixed point divisor) |
+| Baud rate | 2930 bd … 12 Mbd with the internal clock (`UART clock / divisor`, 12.4 fixed point divisor, see [Crystal and baud rate range](#crystal-and-baud-rate-range)) |
 | FIFOs | 2048 bytes RX, 1536 bytes TX per UART |
 | SPI | up to 25 MHz, **mode 3 (CPOL=1, CPHA=1)**, MSB first |
 | GPIO | 8, push-pull / open-drain outputs, floating / pull-up / pull-down inputs |
@@ -24,7 +24,7 @@ Every configured UART is a regular ESPHome `uart` component, so anything that ac
 | Flow control | hardware RTS/CTS on UART1 … UART4 |
 | Interrupt | `INT#`, active low, shared by all UARTs (optional here) |
 | Supply | VCC 1.8 … 3.6 V, VIO 1.65 V … VCC |
-| Clock | internal (192 MHz PLL) or external 16 MHz crystal |
+| Clock | internal (192 MHz PLL) or external crystal (16 MHz documented), multiplied by 12 |
 
 ## Wiring
 
@@ -89,7 +89,7 @@ A complete example (flow control, GPIO, version text sensor) is in
 | `data_rate` | `4MHz` | SPI clock, 25 MHz maximum |
 | `spi_mode` | `MODE3` | Do not change unless you know what you are doing (the datasheet does not state the mode, the vendor driver uses mode 3) |
 | `irq_pin` | none | `INT#` input. With it, the chip is only read when the line is low. Without it, the status of all UARTs is read at every loop |
-| `crystal` | `false` | `true` when a 16 MHz crystal is fitted on XI/XO (this uses the chip pin shared with GPIO7) |
+| `crystal` | none | Frequency of the crystal fitted on XI/XO (`16MHz`, `11.0592MHz`, or a number of Hz); none = internal clock. `true` means 16 MHz (older syntax). Uses the chip pin shared with GPIO7. See [Crystal and baud rate range](#crystal-and-baud-rate-range) |
 | `test_mode` | `0` | `0` off, `1` loopback of a short text, `2` loopback of a 1024 byte pattern + throughput. See [Test mode](#test-mode) |
 | `uart` | required | List of UART channels, see below |
 
@@ -99,7 +99,7 @@ A complete example (flow control, GPIO, version text sensor) is in
 |---|---|---|
 | `id` | required | ID used by the consumers (`uart_id:`) |
 | `channel` | required | 0 … 7 |
-| `baud_rate` | required | 2930 … 12 000 000 |
+| `baud_rate` | required | Depends on the clock: 2930 … 12 000 000 with the internal clock (checked at validation) |
 | `data_bits` | `8` | Only 8 is supported by the chip |
 | `stop_bits` | `1` | 1 or 2 |
 | `parity` | `NONE` | `NONE`, `EVEN`, `ODD` |
@@ -180,6 +180,29 @@ max 190 us | SPI: 5330 transactions (533/s), busy 4.1 % of the time | 11520 byte
 
 Run the same test on the `weikai` component (its `test_mode` and `TEST_COMPONENT` flag) to get comparable figures.
 
+## Crystal and baud rate range
+
+The UART reference clock is 192 MHz with the internal oscillator. With an external crystal the chip multiplies it by
+12 (a 16 MHz crystal gives the same 192 MHz, only more accurate). The baud rate is `UART clock / divisor` with a 16 bit
+divisor, so:
+
+- lowest baud rate = UART clock / 65535
+- highest baud rate = UART clock / 16
+
+| `crystal` | UART clock | Lowest baud rate | Highest baud rate | 2400 Bd |
+|---|---|---|---|---|
+| none (internal) | 192 MHz | 2930 | 12 000 000 | no |
+| `16MHz` | 192 MHz | 2930 | 12 000 000 | no |
+| `14.7456MHz` | 176.9 MHz | 2701 | 11 059 200 | no |
+| `11.0592MHz` | 132.7 MHz | 2026 | 8 294 400 | yes (divisor 55296, exact) |
+| `8MHz` | 96 MHz | 1465 | 6 000 000 | yes (divisor 40000, exact) |
+
+1200 Bd cannot be reached with any crystal of 8 MHz or more.
+
+> **Only 16 MHz is documented by the vendor.** Any other frequency is untested: the PLL may not lock, and the
+> internal delays of the chip (including the SPI timings) scale with the clock. The component logs a warning, checks
+> every `baud_rate` against the range computed from the crystal and shows the range in the log at start-up.
+
 ## Shared pins
 
 Eight chip pins carry several functions, only **one** of which can be used at a time. The component checks it when
@@ -223,7 +246,7 @@ Consequences:
 ## Limitations
 
 - 8 data bits only (no 5/6/7 bits).
-- Minimum baud rate 2930 bd: 1200 and 2400 bd are not possible.
+- Minimum baud rate 2930 bd with the documented clock: 1200 and 2400 bd are not possible. 2400 bd needs a lower (undocumented) crystal frequency, see [Crystal and baud rate range](#crystal-and-baud-rate-range).
 - The hardware reset pin `RST#` and the low-power modes (`IDLE`, `SLEEP`, `SHUT`) are not used.
 - `INT#` is optional here, but the vendor Linux driver always uses it. Polling at every loop costs one 56-byte SPI
   transaction per loop iteration; `irq_pin` removes it when the chip is idle.

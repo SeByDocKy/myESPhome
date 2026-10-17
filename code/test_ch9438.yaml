@@ -66,7 +66,8 @@ ch9438:
     number: GPIO4
     mode: INPUT_PULLUP
   data_rate: 10MHz            # defaut 4MHz, 25MHz max
-  crystal: false              # true si un quartz 16MHz est monte sur XI/XO
+  # crystal: 16MHz           # quartz sur XI/XO (utilise la pin GPIO7 : incompatible avec flow_control sur UART4)
+                            # 11.0592MHz permet le 2400 bauds, mais seul 16MHz est documente (voir README)
   test_mode: 2                # 0: normal | 1: boucle courte | 2: boucle 1024 octets + debit + stats CPU/SPI toutes les 10s
   uart:
     - id: ch_uart_0           # test en boucle : relier TX0 a RX0

@@ -126,8 +126,9 @@ constexpr size_t BULK_BYTES_PER_UART = 7;  ///< IIR, LSR, MSR, RX count L/H, TX 
 constexpr size_t BULK_SIZE = BULK_BYTES_PER_UART * NUM_CHANNELS;
 constexpr size_t RX_FIFO_SIZE = 2048;
 constexpr size_t TX_FIFO_SIZE = 1536;
-constexpr uint32_t UART_REF_CLOCK = 192000000;  ///< baud = 192 MHz / divisor, divisor is a 12.4 fixed point value
-constexpr uint32_t BAUD_MIN = 2930;             ///< 192 MHz / 65535
-constexpr uint32_t BAUD_MAX = 12000000;
+constexpr uint32_t UART_REF_CLOCK = 192000000;  ///< internal clock: baud = 192 MHz / divisor (12.4 fixed point value)
+constexpr uint32_t PLL_MULTIPLIER = 12;         ///< an external crystal is multiplied by 12 (16 MHz -> 192 MHz)
+constexpr uint32_t DIVISOR_MIN = 16;            ///< smallest divisor (integer part 1)
+constexpr uint32_t DIVISOR_MAX = 0xFFFF;
 
 }  // namespace esphome::ch9438

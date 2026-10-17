@@ -157,7 +157,19 @@ class CH9438Component : public Component,
                                               spi::CLOCK_PHASE_TRAILING, spi::DATA_RATE_4MHZ> {
  public:
   // configuration (called by the generated code)
-  void set_crystal(bool crystal) { this->crystal_ = crystal; }
+  /// @param hz frequency of the external crystal in Hz, 0 = internal clock (192 MHz). The chip multiplies the
+  /// crystal by 12 to get the UART reference clock (only 16 MHz is documented by the vendor).
+  void set_crystal(uint32_t hz) {
+    this->crystal_hz_ = hz;
+    this->crystal_ = hz != 0;
+    this->uart_clock_ = hz != 0 ? hz * PLL_MULTIPLIER : UART_REF_CLOCK;
+  }
+  /// @brief reference clock of the UARTs: baud = uart_clock / divisor
+  uint32_t get_uart_clock() const { return this->uart_clock_; }
+  /// @brief lowest baud rate reachable with the 16 bit divisor
+  uint32_t get_baud_min() const { return (this->uart_clock_ + DIVISOR_MAX - 1) / DIVISOR_MAX; }
+  /// @brief highest baud rate (divisor 16)
+  uint32_t get_baud_max() const { return this->uart_clock_ / DIVISOR_MIN; }
   void set_irq_pin(InternalGPIOPin *pin) { this->irq_pin_ = pin; }
   void set_tnow_mask(uint8_t enable, uint8_t invert) {
     this->tnow_mask_ = enable;
@@ -232,6 +244,8 @@ class CH9438Component : public Component,
   uint8_t gpio_pullup_{0};  ///< for the inputs with a resistor: 1 = pull-up, 0 = pull-down
   uint8_t gpio_enabled_{0};
   bool crystal_{false};
+  uint32_t crystal_hz_{0};
+  uint32_t uart_clock_{UART_REF_CLOCK};
   /// true: the TX FIFO counter register returns the free space (datasheet); false: it returns the used space
   bool tx_counter_is_free_{true};
   int test_mode_{0};

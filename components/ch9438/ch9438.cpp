@@ -196,7 +196,7 @@ bool CH9438Component::config_clock_() {
   uint8_t const value = this->read_reg(REG_CLK_CTRL);
   ESP_LOGV(TAG, "Clock register = 0x%02X", value);
   if (this->crystal_ && (value & CLK_EXTERNAL) != CLK_EXTERNAL) {
-    ESP_LOGW(TAG, "External crystal requested but clock register reads 0x%02X (is the 16 MHz crystal fitted?)", value);
+    ESP_LOGW(TAG, "External crystal requested but clock register reads 0x%02X (is the crystal fitted?)", value);
     return false;
   }
   return true;
@@ -271,11 +271,13 @@ void CH9438Component::dump_config() {
   ESP_LOGCONFIG(TAG,
                 "CH9438 %s:\n"
                 "  Version: V%X.%02X (raw %02X %02X %02X %02X)\n"
-                "  Clock: %s\n"
+                "  Clock: %s (%" PRIu32 " Hz)\n"
+                "  UART reference clock: %" PRIu32 " Hz (baud rate range %" PRIu32 " to %" PRIu32 " Bd)\n"
                 "  UARTs: %u\n"
                 "  TNOW mask: 0x%02X (invert 0x%02X)",
                 this->name_, this->chip_ver_[1] & 0x0F, this->chip_ver_[0], this->chip_ver_[0], this->chip_ver_[1],
-                this->chip_ver_[2], this->chip_ver_[3], this->crystal_ ? "external 16 MHz crystal" : "internal",
+                this->chip_ver_[2], this->chip_ver_[3], this->crystal_ ? "external crystal" : "internal",
+                this->crystal_hz_, this->uart_clock_, this->get_baud_min(), this->get_baud_max(),
                 (unsigned) this->children_.size(), this->tnow_mask_, this->tnow_invert_);
   LOG_PIN("  CS Pin: ", this->cs_);
   if (this->irq_pin_ != nullptr) {
@@ -447,9 +449,11 @@ void CH9438Channel::setup_channel() {
 }
 
 bool CH9438Channel::change_baud_rate(uint32_t baud_rate) {
-  if (baud_rate < BAUD_MIN || baud_rate > BAUD_MAX) {
+  uint32_t const baud_min = this->parent_->get_baud_min();
+  uint32_t const baud_max = this->parent_->get_baud_max();
+  if (baud_rate < baud_min || baud_rate > baud_max) {
     ESP_LOGE(TAG, "UART%u: cannot change the baud rate to %" PRIu32 " Bd (supported range %" PRIu32 " to %" PRIu32 ")",
-             this->channel_, baud_rate, BAUD_MIN, BAUD_MAX);
+             this->channel_, baud_rate, baud_min, baud_max);
     return false;
   }
   if (baud_rate == this->baud_rate_)
@@ -499,21 +503,24 @@ void CH9438Channel::set_line_param_() {
 
 void CH9438Channel::set_baudrate_() {
   uint32_t baud = this->baud_rate_;
-  if (baud < BAUD_MIN || baud > BAUD_MAX) {
+  uint32_t const uart_clock = this->parent_->get_uart_clock();
+  uint32_t const baud_min = this->parent_->get_baud_min();
+  uint32_t const baud_max = this->parent_->get_baud_max();
+  if (baud < baud_min || baud > baud_max) {
     uint32_t const wanted = baud;
-    baud = std::min(std::max(baud, BAUD_MIN), BAUD_MAX);
+    baud = std::min(std::max(baud, baud_min), baud_max);
     ESP_LOGE(TAG, "UART%u: baud rate %" PRIu32 " is out of range, using %" PRIu32, this->channel_, wanted, baud);
   }
-  // baud = 192 MHz / divisor, the divisor is a 16 bit value in 12.4 fixed point format (DLM:DLL)
-  uint32_t divisor = (UART_REF_CLOCK + baud / 2) / baud;
-  divisor = std::min<uint32_t>(std::max<uint32_t>(divisor, 16), 0xFFFF);
+  // baud = uart_clock / divisor (192 MHz, or 12 x crystal), the divisor is a 16 bit value in 12.4 fixed point (DLM:DLL)
+  uint32_t divisor = (uart_clock + baud / 2) / baud;
+  divisor = std::min<uint32_t>(std::max<uint32_t>(divisor, DIVISOR_MIN), DIVISOR_MAX);
   auto *chip = this->parent_;
   chip->write_reg(this->reg_addr_(UART_LCR), this->lcr_ | LCR_DLAB);
   chip->write_reg(this->reg_addr_(UART_DLL), divisor & 0xFF);
   chip->write_reg(this->reg_addr_(UART_DLM), (divisor >> 8) & 0xFF);
   chip->write_reg(this->reg_addr_(UART_LCR), this->lcr_);
   ESP_LOGV(TAG, "UART%u baud rate %" PRIu32 " => divisor 0x%04" PRIX32 " (actual %" PRIu32 " Bd)", this->channel_, baud,
-           divisor, UART_REF_CLOCK / divisor);
+           divisor, uart_clock / divisor);
 }
 
 size_t CH9438Channel::tx_free_() {

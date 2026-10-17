@@ -1,6 +1,8 @@
 """WCH CH9438: SPI to 8 UART (full duplex) + 8 GPIO, native ESPHome component."""
 
 from esphome import automation, pins
+import logging
+
 import esphome.codegen as cg
 from esphome.components import spi, uart
 from esphome.components.const import CONF_DATA_BITS, CONF_PARITY, CONF_STOP_BITS
@@ -22,6 +24,8 @@ from esphome.core import ID
 from esphome.cpp_generator import MockObj, TemplateArguments
 from esphome.types import ConfigType, TemplateArgsType
 
+_LOGGER = logging.getLogger(__name__)
+
 CODEOWNERS = ["@SeByDocKy"]
 DEPENDENCIES = ["spi"]
 AUTO_LOAD = ["uart"]
@@ -41,8 +45,11 @@ CONF_TEST_MODE = "test_mode"
 
 NUM_CHANNELS = 8
 NUM_GPIO = 8
-BAUD_MIN = 2930  # 192 MHz / 65535
-BAUD_MAX = 12000000
+UART_REF_CLOCK = 192000000  # internal clock: baud = clock / divisor
+PLL_MULTIPLIER = 12  # an external crystal is multiplied by 12 (16 MHz -> 192 MHz)
+CRYSTAL_DOCUMENTED = 16000000  # the only crystal frequency documented by the vendor
+DIVISOR_MIN = 16
+DIVISOR_MAX = 0xFFFF
 MAX_DATA_RATE_HZ = 25000000
 
 FLOW_NONE = "none"
@@ -83,9 +90,36 @@ RS485_SCHEMA = cv.Schema(
 )
 
 
+def uart_clock(crystal_hz: int) -> int:
+    """UART reference clock: 192 MHz (internal) or 12 x the crystal."""
+    return crystal_hz * PLL_MULTIPLIER if crystal_hz else UART_REF_CLOCK
+
+
+def baud_limits(crystal_hz: int) -> tuple[int, int]:
+    """Lowest / highest baud rate for the 16 bit divisor (12.4 fixed point, smallest value 16)."""
+    clock = uart_clock(crystal_hz)
+    return -(-clock // DIVISOR_MAX), clock // DIVISOR_MIN
+
+
+def validate_crystal(value):
+    """`crystal: 16MHz` (or a number of Hz). `false` = internal clock, `true` = 16 MHz (older syntax)."""
+    if isinstance(value, bool):
+        return CRYSTAL_DOCUMENTED if value else 0
+    if isinstance(value, str) and value.strip().lower() in ("true", "yes", "on"):
+        return CRYSTAL_DOCUMENTED
+    if isinstance(value, str) and value.strip().lower() in ("false", "no", "off"):
+        return 0
+    hz = int(round(cv.frequency(value)))
+    if hz == 0:
+        return 0
+    if not 1000000 <= hz <= 32000000:
+        raise cv.Invalid("crystal: the frequency must be between 1 MHz and 32 MHz")
+    return hz
+
+
 def validate_baud_rate(value):
-    value = cv.int_range(min=BAUD_MIN, max=BAUD_MAX)(value)
-    return value
+    # the exact range depends on the clock, it is checked in validate_baud_rates()
+    return cv.int_range(min=1, max=12000000)(value)
 
 
 UART_CHANNEL_SCHEMA = cv.Schema(
@@ -119,7 +153,7 @@ def pin_claims(config: ConfigType) -> dict[int, list[str]]:
     if CONF_IRQ_PIN in config:
         claim(INT_PIN, "INT# (irq_pin)")
     if config[CONF_CRYSTAL]:
-        claim(XTAL_PIN, "the crystal output XO (crystal: true)")
+        claim(XTAL_PIN, "the crystal output XO (crystal)")
     for conf in config[CONF_UART]:
         channel = conf[CONF_CHANNEL]
         rs485 = conf.get(CONF_RS485)
@@ -157,6 +191,27 @@ def validate_pin_conflicts(config: ConfigType) -> ConfigType:
     return config
 
 
+def validate_baud_rates(config: ConfigType) -> ConfigType:
+    crystal = config[CONF_CRYSTAL]
+    baud_min, baud_max = baud_limits(crystal)
+    clock_mhz = uart_clock(crystal) / 1e6
+    for conf in config[CONF_UART]:
+        baud = conf[CONF_BAUD_RATE]
+        if not baud_min <= baud <= baud_max:
+            raise cv.Invalid(
+                f"UART{conf[CONF_CHANNEL]}: baud rate {baud} is not possible with the UART clock of {clock_mhz:g} MHz "
+                f"(allowed range {baud_min} to {baud_max}). "
+                "A lower crystal frequency gives lower baud rates."
+            )
+    if crystal and crystal != CRYSTAL_DOCUMENTED:
+        _LOGGER.warning(
+            "ch9438: crystal %g MHz - only 16 MHz is documented by the vendor, other values are untested "
+            "(the PLL and the internal delays of the chip may not behave as expected)",
+            crystal / 1e6,
+        )
+    return config
+
+
 def validate_data_rate(config: ConfigType) -> ConfigType:
     rate = config.get(spi.CONF_DATA_RATE)
     if rate is not None and int(rate) > MAX_DATA_RATE_HZ:
@@ -170,7 +225,7 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(CH9438Component),
-            cv.Optional(CONF_CRYSTAL, default=False): cv.boolean,
+            cv.Optional(CONF_CRYSTAL, default=0): validate_crystal,
             cv.Optional(CONF_IRQ_PIN): pins.internal_gpio_input_pin_schema,
             # 0: normal operation, 1: loopback of a short message, 2: loopback of a 1024 byte pattern with throughput
             # measurement. Modes 1 and 2 also log the bus/CPU statistics every 10 s. TX and RX of the tested UARTs
@@ -188,6 +243,7 @@ CONFIG_SCHEMA = cv.All(
     ),
     validate_channels,
     validate_pin_conflicts,
+    validate_baud_rates,
     validate_data_rate,
 )
 
@@ -250,7 +306,7 @@ CHANGE_BAUD_RATE_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_ID): cv.use_id(CH9438Channel),
         cv.Required(CONF_BAUD_RATE): cv.templatable(
-            cv.int_range(min=BAUD_MIN, max=BAUD_MAX)
+            cv.int_range(min=1, max=12000000)  # the exact limits depend on the crystal, checked at run time
         ),
     }
 )
