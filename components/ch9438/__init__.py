@@ -35,6 +35,7 @@ CONF_CH9438 = "ch9438"
 CONF_CH9438_ID = "ch9438_id"
 CONF_CRYSTAL = "crystal"
 CONF_IRQ_PIN = "irq_pin"
+CONF_RESET_PIN = "reset_pin"
 CONF_UART = "uart"
 CONF_RX_BUFFER_SIZE = "rx_buffer_size"
 CONF_FLOW_CONTROL = "flow_control"
@@ -227,6 +228,8 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(): cv.declare_id(CH9438Component),
             cv.Optional(CONF_CRYSTAL, default=0): validate_crystal,
             cv.Optional(CONF_IRQ_PIN): pins.internal_gpio_input_pin_schema,
+            # optional RST# output: the chip is reset at start-up (low 100 ms, high 100 ms) as the vendor code does
+            cv.Optional(CONF_RESET_PIN): pins.gpio_output_pin_schema,
             # 0: normal operation, 1: loopback of a short message, 2: loopback of a 1024 byte pattern with throughput
             # measurement. Modes 1 and 2 also log the bus/CPU statistics every 10 s. TX and RX of the tested UARTs
             # must be wired together.
@@ -236,9 +239,9 @@ CONFIG_SCHEMA = cv.All(
     )
     .extend(cv.COMPONENT_SCHEMA)
     .extend(
-        # the chip works in SPI mode 3 (CPOL=1, CPHA=1), MSB first
+        # SPI mode 0 (CPOL=0, CPHA=0) as required by the vendor evaluation board manual, MSB first
         spi.spi_device_schema(
-            cs_pin_required=True, default_data_rate="4MHz", default_mode="MODE3"
+            cs_pin_required=True, default_data_rate="4MHz", default_mode="MODE0"
         )
     ),
     validate_channels,
@@ -269,6 +272,10 @@ async def to_code(config: ConfigType) -> None:
     if irq_conf := config.get(CONF_IRQ_PIN):
         irq_pin = await cg.gpio_pin_expression(irq_conf)
         cg.add(var.set_irq_pin(irq_pin))
+
+    if reset_conf := config.get(CONF_RESET_PIN):
+        reset_pin = await cg.gpio_pin_expression(reset_conf)
+        cg.add(var.set_reset_pin(reset_pin))
 
     tnow_mask = tnow_invert = cts_mask = rts_mask = 0
     for conf in config[CONF_UART]:

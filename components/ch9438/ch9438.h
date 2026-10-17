@@ -153,8 +153,8 @@ class CH9438GPIOPin : public GPIOPin {
 
 /// @brief The chip itself: SPI link, pin multiplexing, clock, interrupt line and status polling
 class CH9438Component : public Component,
-                        public spi::SPIDevice<spi::BIT_ORDER_MSB_FIRST, spi::CLOCK_POLARITY_HIGH,
-                                              spi::CLOCK_PHASE_TRAILING, spi::DATA_RATE_4MHZ> {
+                        public spi::SPIDevice<spi::BIT_ORDER_MSB_FIRST, spi::CLOCK_POLARITY_LOW,
+                                              spi::CLOCK_PHASE_LEADING, spi::DATA_RATE_4MHZ> {
  public:
   // configuration (called by the generated code)
   /// @param hz frequency of the external crystal in Hz, 0 = internal clock (192 MHz). The chip multiplies the
@@ -171,6 +171,8 @@ class CH9438Component : public Component,
   /// @brief highest baud rate (divisor 16)
   uint32_t get_baud_max() const { return this->uart_clock_ / DIVISOR_MIN; }
   void set_irq_pin(InternalGPIOPin *pin) { this->irq_pin_ = pin; }
+  /// @brief optional RST# output (low level resets the chip)
+  void set_reset_pin(GPIOPin *pin) { this->reset_pin_ = pin; }
   void set_tnow_mask(uint8_t enable, uint8_t invert) {
     this->tnow_mask_ = enable;
     this->tnow_invert_ = invert;
@@ -228,6 +230,7 @@ class CH9438Component : public Component,
 
   std::vector<CH9438Channel *> children_{};
   InternalGPIOPin *irq_pin_{nullptr};
+  GPIOPin *reset_pin_{nullptr};
 #ifdef USE_TEXT_SENSOR
   text_sensor::TextSensor *version_text_sensor_{nullptr};
 #endif
@@ -238,10 +241,6 @@ class CH9438Component : public Component,
   uint8_t tnow_invert_{0};
   uint8_t cts_mask_{0};  ///< bit n: CTS of UART n used (n = 1..4)
   uint8_t rts_mask_{0};  ///< bit n: RTS of UART n used (n = 1..4)
-  uint8_t gpio_dir_{0};     ///< bit n = 1: GPIO n is an output
-  uint8_t gpio_out_{0};     ///< last level written to each output
-  uint8_t gpio_pull_{0};    ///< bit n = 1: GPIO n is an input with a pull resistor
-  uint8_t gpio_pullup_{0};  ///< for the inputs with a resistor: 1 = pull-up, 0 = pull-down
   uint8_t gpio_enabled_{0};
   bool crystal_{false};
   uint32_t crystal_hz_{0};

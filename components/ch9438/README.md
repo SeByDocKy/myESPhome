@@ -18,7 +18,7 @@ Every configured UART is a regular ESPHome `uart` component, so anything that ac
 | UARTs | 8, 16C550 compatible, 8 data bits, 1 or 2 stop bits, none/odd/even parity |
 | Baud rate | 2930 bd … 12 Mbd with the internal clock (`UART clock / divisor`, 12.4 fixed point divisor, see [Crystal and baud rate range](#crystal-and-baud-rate-range)) |
 | FIFOs | 2048 bytes RX, 1536 bytes TX per UART |
-| SPI | up to 25 MHz, **mode 3 (CPOL=1, CPHA=1)**, MSB first |
+| SPI | up to 25 MHz, **mode 0 (CPOL=0, CPHA=0)** as required by the vendor evaluation board manual, MSB first |
 | GPIO | 8, push-pull / open-drain outputs, floating / pull-up / pull-down inputs |
 | RS485 | `TNOW` direction pin per UART (automatic DE/RE, polarity selectable) |
 | Flow control | hardware RTS/CTS on UART1 … UART4 |
@@ -35,7 +35,7 @@ Every configured UART is a regular ESPHome `uart` component, so anything that ac
 | any GPIO (input, optional) | INT# (shared with the pin GPIO1 / RTS1 / TNOW1) |
 | 3.3 V / GND | VCC (+ VIO) / GND |
 
-`RST#` is not driven by the component: tie it high (or to a GPIO you control yourself).
+`RST#`: connect it to a GPIO and set `reset_pin` (recommended: the vendor code resets the chip at start-up), or tie it high.
 
 **RS485:** the CH9438 only outputs logic-level UART signals. A transceiver (SP3485, MAX485, ...) is still needed on
 each RS485 channel. The `TNOWx` pin is connected to its `DE` and `/RE` pins and the chip switches it automatically.
@@ -87,7 +87,8 @@ A complete example (flow control, GPIO, version text sensor) is in
 | `id` | — | Hub ID (`MULTI_CONF`: several chips are supported, each with its own `cs_pin`) |
 | `cs_pin` | required | SPI chip select |
 | `data_rate` | `4MHz` | SPI clock, 25 MHz maximum |
-| `spi_mode` | `MODE3` | Do not change unless you know what you are doing (the datasheet does not state the mode, the vendor driver uses mode 3) |
+| `spi_mode` | `MODE0` | The evaluation board manual and the vendor MCU example use SPI mode 0 (CPOL=0, CPHA=0). The Linux driver of the CH943x family forces mode 3, which may also be accepted by the chip |
+| `reset_pin` | none | Optional output connected to `RST#`: the chip is reset at start-up (low 100 ms, high 100 ms), like in the vendor code. Without it the component only waits until 500 ms after boot before the first access |
 | `irq_pin` | none | `INT#` input. With it, the chip is only read when the line is low. Without it, the status of all UARTs is read at every loop |
 | `crystal` | none | Frequency of the crystal fitted on XI/XO (`16MHz`, `11.0592MHz`, or a number of Hz); none = internal clock. `true` means 16 MHz (older syntax). Uses the chip pin shared with GPIO7. See [Crystal and baud rate range](#crystal-and-baud-rate-range) |
 | `test_mode` | `0` | `0` off, `1` loopback of a short text, `2` loopback of a 1024 byte pattern + throughput. See [Test mode](#test-mode) |
@@ -182,6 +183,10 @@ Run the same test on the `weikai` component (its `test_mode` and `TEST_COMPONENT
 
 ## Crystal and baud rate range
 
+The WCH evaluation board has a 16 MHz crystal (two 22 pF load capacitors) between XI and XO, and an unpopulated 0 Ω
+resistor linking the XO net to the CTS4 / TNOW7 / GPIO7 net: it is fitted only when no crystal is used and CTS4,
+TNOW7 or GPIO7 is needed.
+
 The UART reference clock is 192 MHz with the internal oscillator. With an external crystal the chip multiplies it by
 12 (a 16 MHz crystal gives the same 192 MHz, only more accurate). The baud rate is `UART clock / divisor` with a 16 bit
 divisor, so:
@@ -255,10 +260,10 @@ Consequences:
 
 These points come from the documents, not from measurements, and should be confirmed on a bench:
 
-1. SPI mode 3 and the 3 µs delays (the SPI test at boot fails with an explicit message otherwise).
+1. SPI mode 0 and the 3 µs delays (the SPI test at boot fails with an explicit message otherwise).
 2. The bulk status register `0x4C` (layout: IIR, LSR, MSR, RX count L/H, TX count L/H per UART).
 3. Behaviour of `INT#` with the receive thresholds (256 / 512 / 1024 / 1280 bytes) and the timeout interrupt.
-4. The TX FIFO counter semantic (the boot log tells which one has been detected).
+4. The TX FIFO counter semantic: the datasheet and the vendor example both use it as the free room; the boot log tells which one has been detected.
 5. TNOW polarity and timing on a real RS485 bus.
 
 Use `logger: level: VERY_VERBOSE` to trace every SPI access.
@@ -278,7 +283,7 @@ ch9438/
 
 ## Credits
 
-- WCH CH9438 datasheet V1.1.
+- WCH CH9438 datasheet V1.1 and the CH9438 evaluation package (evaluation board manual and schematic, MCU example code): used for the SPI mode, the timings, the start-up sequence, the register map and the GPIO / pin function programming. Only facts were used, no code was copied.
 - ESPHome `weikai` component (architecture reference).
 
 ## License

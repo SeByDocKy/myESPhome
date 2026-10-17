@@ -236,7 +236,20 @@ void CH9438Component::setup() {
   this->spi_setup();
   if (this->irq_pin_ != nullptr)
     this->irq_pin_->setup();
-  delay(10);  // let the chip finish its power-up
+  // The vendor reference code resets the chip (RST# low 100 ms, then high 100 ms) and waits 500 ms before the first
+  // access. Without a reset pin we only make sure that 500 ms have elapsed since the boot of the microcontroller (the
+  // chip is normally powered together with it).
+  if (this->reset_pin_ != nullptr) {
+    this->reset_pin_->setup();
+    this->reset_pin_->pin_mode(gpio::FLAG_OUTPUT);
+    this->reset_pin_->digital_write(false);
+    delay(RESET_PULSE_MS);
+    this->reset_pin_->digital_write(true);
+    delay(RESET_PULSE_MS);
+  }
+  uint32_t const uptime_ms = millis();
+  if (uptime_ms < STARTUP_WAIT_MS)
+    delay(STARTUP_WAIT_MS - uptime_ms);
 
   bool probed = false;
   for (uint8_t attempt = 0; attempt < SPI_PROBE_RETRIES && !probed; attempt++) {
@@ -280,6 +293,7 @@ void CH9438Component::dump_config() {
                 this->crystal_hz_, this->uart_clock_, this->get_baud_min(), this->get_baud_max(),
                 (unsigned) this->children_.size(), this->tnow_mask_, this->tnow_invert_);
   LOG_PIN("  CS Pin: ", this->cs_);
+  LOG_PIN("  Reset Pin: ", this->reset_pin_);
   if (this->irq_pin_ != nullptr) {
     LOG_PIN("  IRQ Pin: ", this->irq_pin_);
   } else {
@@ -359,23 +373,14 @@ void CH9438Component::gpio_set_mode(uint8_t pin, gpio::Flags flags) {
   uint8_t nibble;
   if (flags & gpio::FLAG_OUTPUT) {
     nibble = GPIO_DIR_OUTPUT | ((flags & gpio::FLAG_OPEN_DRAIN) ? GPIO_CFG_OUT_OPENDRAIN : GPIO_CFG_OUT_PUSHPULL);
-    this->gpio_dir_ |= 1 << pin;
   } else {
     bool const pull = (flags & (gpio::FLAG_PULLUP | gpio::FLAG_PULLDOWN)) != 0;
     nibble = GPIO_DIR_INPUT | (pull ? GPIO_CFG_IN_PULL : GPIO_CFG_IN_FLOATING);
-    this->gpio_dir_ &= ~(1 << pin);
-    if (pull) {
-      // for an input with a resistor, GPIO_PIN_VAL selects it: 1 = pull-up, 0 = pull-down. The register is also the
-      // output level register, so it is always rewritten as a whole from the shadow values.
-      this->gpio_pull_ |= 1 << pin;
-      if (flags & gpio::FLAG_PULLUP)
-        this->gpio_pullup_ |= 1 << pin;
-      else
-        this->gpio_pullup_ &= ~(1 << pin);
-    } else {
-      this->gpio_pull_ &= ~(1 << pin);
-    }
   }
+  // for an input with a resistor the vendor reference code selects pull-up / pull-down by writing the pin to the SET
+  // (pull-up) or RESET (pull-down) register before programming the mode
+  if (!(flags & gpio::FLAG_OUTPUT) && (flags & (gpio::FLAG_PULLUP | gpio::FLAG_PULLDOWN)))
+    this->write_reg((flags & gpio::FLAG_PULLUP) ? REG_GPIO_SET : REG_GPIO_RESET, 1 << pin);
   uint8_t const reg = REG_GPIO_DIR_MOD0 + pin / 2;
   uint8_t value = this->read_reg(reg);
   if (pin & 1)
@@ -383,9 +388,6 @@ void CH9438Component::gpio_set_mode(uint8_t pin, gpio::Flags flags) {
   else
     value = static_cast<uint8_t>((value & 0xF0) | nibble);
   this->write_reg(reg, value);
-  if (this->gpio_pull_ & (1 << pin))
-    this->write_reg(REG_GPIO_PIN_VAL, static_cast<uint8_t>((this->gpio_pullup_ & this->gpio_pull_) |
-                                                           (this->gpio_out_ & this->gpio_dir_)));
 }
 
 bool CH9438Component::gpio_read(uint8_t pin) {
@@ -398,13 +400,7 @@ void CH9438Component::gpio_write(uint8_t pin, bool value) {
   if (pin >= NUM_GPIO)
     return;
   // SET / RESET only act on the bits written to 1, so the other outputs are not disturbed
-  if (value) {
-    this->gpio_out_ |= 1 << pin;
-    this->write_reg(REG_GPIO_SET, 1 << pin);
-  } else {
-    this->gpio_out_ &= ~(1 << pin);
-    this->write_reg(REG_GPIO_RESET, 1 << pin);
-  }
+  this->write_reg(value ? REG_GPIO_SET : REG_GPIO_RESET, 1 << pin);
 }
 
 void CH9438GPIOPin::setup() {

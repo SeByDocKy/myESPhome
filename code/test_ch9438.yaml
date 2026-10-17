@@ -38,7 +38,7 @@ debug:
   update_interval: 5s
 
 # ---------------------------------------------------------------------------
-# Bus SPI : le CH9438 travaille en mode 3 (CPOL=1, CPHA=1), gere par le composant
+# Bus SPI : le CH9438 travaille en mode 0 (CPOL=0, CPHA=0), gere par le composant
 # ---------------------------------------------------------------------------
 spi:
   clk_pin: GPIO18
@@ -65,7 +65,8 @@ ch9438:
   irq_pin:                    # optionnel : sans lui, le chip est lu a chaque loop()
     number: GPIO4
     mode: INPUT_PULLUP
-  data_rate: 10MHz            # defaut 4MHz, 25MHz max
+  data_rate: 10MHz            # defaut 4MHz, 25MHz max (SPI mode 0 par defaut)
+  # reset_pin: GPIO16         # optionnel : sortie reliee a RST# du CH9438 (reset au demarrage)
   # crystal: 16MHz           # quartz sur XI/XO (utilise la pin GPIO7 : incompatible avec flow_control sur UART4)
                             # 11.0592MHz permet le 2400 bauds, mais seul 16MHz est documente (voir README)
   test_mode: 2                # 0: normal | 1: boucle courte | 2: boucle 1024 octets + debit + stats CPU/SPI toutes les 10s

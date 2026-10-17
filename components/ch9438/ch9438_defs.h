@@ -88,7 +88,7 @@ constexpr uint8_t FIFO_DIR_RX = 0 << 4;
 constexpr uint8_t FIFO_DIR_TX = 1 << 4;
 
 constexpr uint8_t CLK_INTERNAL = 0x00;
-constexpr uint8_t CLK_EXTERNAL = 0x03 << 6;
+constexpr uint8_t CLK_EXTERNAL = 0x01 << 6;  ///< [7:6] = x1: external crystal (the vendor reference code writes 0x40)
 constexpr uint32_t CLK_SETTLE_MS = 200;  ///< the vendor driver waits 200 ms after writing the clock register
 
 // GPIO direction / mode nibble: [3:2] = config, [1:0] = direction
@@ -126,6 +126,8 @@ constexpr size_t BULK_BYTES_PER_UART = 7;  ///< IIR, LSR, MSR, RX count L/H, TX 
 constexpr size_t BULK_SIZE = BULK_BYTES_PER_UART * NUM_CHANNELS;
 constexpr size_t RX_FIFO_SIZE = 2048;
 constexpr size_t TX_FIFO_SIZE = 1536;
+constexpr uint32_t STARTUP_WAIT_MS = 500;      ///< the vendor reference code waits 500 ms after power-up / reset
+constexpr uint32_t RESET_PULSE_MS = 100;       ///< RST# low time, and high time before the first access
 constexpr uint32_t UART_REF_CLOCK = 192000000;  ///< internal clock: baud = 192 MHz / divisor (12.4 fixed point value)
 constexpr uint32_t PLL_MULTIPLIER = 12;         ///< an external crystal is multiplied by 12 (16 MHz -> 192 MHz)
 constexpr uint32_t DIVISOR_MIN = 16;            ///< smallest divisor (integer part 1)
