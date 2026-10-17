@@ -101,11 +101,12 @@ A complete example (flow control, GPIO, version text sensor) is in
 | `id` | required | ID used by the consumers (`uart_id:`) |
 | `channel` | required | 0 … 7 |
 | `baud_rate` | required | Depends on the clock: 2930 … 12 000 000 with the internal clock (checked at validation) |
-| `data_bits` | `8` | Only 8 is supported by the chip |
+| `data_bits` | `8` | `8`, or `7` emulated in software (see [7 data bits](#7-data-bits-emulated-in-software)) |
 | `stop_bits` | `1` | 1 or 2 |
 | `parity` | `NONE` | `NONE`, `EVEN`, `ODD` |
 | `rx_buffer_size` | `256` | Software ring buffer in bytes (64 … 4096). Bytes that do not fit stay in the chip FIFO |
 | `flow_control` | `none` | `none`, `cts`, `rts_cts` (UART1 … UART4 only) |
+| `restore_baud_rate` | `false` | Keep the speed set by `ch9438.change_baud_rate` over a reboot (stored in flash; ignored if `baud_rate` is changed in the YAML) |
 | `rs485` | off | `true`, or `{enabled: true, invert: false}`. Activates the `TNOW` pin of the channel |
 
 ### GPIO pins
@@ -134,8 +135,10 @@ text_sensor:
 ## Action `ch9438.change_baud_rate`
 
 Changes the baud rate of one UART at run time. The bytes already queued in the transmit FIFO are sent first at the
-old speed, the bytes already received are kept. A value outside 2930 … 12 000 000 is refused (error in the log, the
-speed is not changed). The value can be a lambda.
+old speed, the bytes received before the change (chip FIFO and software buffer) are dropped, because they were received
+at the old speed. A value outside 2930 … 12 000 000 is refused, as is a change when the transmit FIFO cannot be emptied
+(error in the log, the speed is not changed). The value can be a lambda. The short form
+`- ch9438.change_baud_rate: {id: ch_uart_0, baud_rate: 9600}` is the same as the long one.
 
 ```yaml
 button:
@@ -155,6 +158,23 @@ button:
 ```
 
 A frame being received at the exact moment of the change is lost or corrupted, as with any UART.
+
+## 7 data bits (emulated in software)
+
+The chip only has 8 data bits. With `data_bits: 7` the chip stays in 8 data bits without hardware parity and the 8th
+bit is computed by the component: the even/odd parity of the 7 bits, or 1 when there is no parity. On reception the
+parity is checked, wrong frames are counted and logged (the byte is still delivered) and the 8th bit is removed.
+
+| Configuration | Frame on the line |
+|---|---|
+| `data_bits: 7`, `parity: even` | 7E1 |
+| `data_bits: 7`, `parity: odd` | 7O1 |
+| `data_bits: 7`, `parity: even`, `stop_bits: 2` | 7E2 |
+| `data_bits: 7`, `parity: odd`, `stop_bits: 2` | 7O2 |
+| `data_bits: 7`, `parity: none`, `stop_bits: 2` | 7N2 (the 8th bit is a stop level) |
+
+7N1 cannot be received correctly (the chip would see 8 data bits and 1 stop bit) unless there is a pause between the
+bytes: a warning is logged at validation. The code is compiled only if a UART uses `data_bits: 7`.
 
 ## Test mode
 
@@ -250,7 +270,7 @@ Consequences:
 
 ## Limitations
 
-- 8 data bits only (no 5/6/7 bits).
+- 8 data bits in hardware (7 data bits are emulated, no 5/6 bits).
 - Minimum baud rate 2930 bd with the documented clock: 1200 and 2400 bd are not possible. 2400 bd needs a lower (undocumented) crystal frequency, see [Crystal and baud rate range](#crystal-and-baud-rate-range).
 - The hardware reset pin `RST#` and the low-power modes (`IDLE`, `SLEEP`, `SHUT`) are not used.
 - `INT#` is optional here, but the vendor Linux driver always uses it. Polling at every loop costs one 56-byte SPI

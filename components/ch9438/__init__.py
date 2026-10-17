@@ -43,6 +43,7 @@ CONF_RS485 = "rs485"
 CONF_ENABLED = "enabled"
 CONF_INVERT = "invert"
 CONF_TEST_MODE = "test_mode"
+CONF_RESTORE_BAUD_RATE = "restore_baud_rate"
 
 NUM_CHANNELS = 8
 NUM_GPIO = 8
@@ -73,7 +74,6 @@ ch9438_ns = cg.esphome_ns.namespace("ch9438")
 CH9438Component = ch9438_ns.class_("CH9438Component", cg.Component, spi.SPIDevice)
 CH9438Channel = ch9438_ns.class_("CH9438Channel", uart.UARTComponent)
 CH9438GPIOPin = ch9438_ns.class_("CH9438GPIOPin", cg.GPIOPin)
-ChangeBaudRateAction = ch9438_ns.class_("ChangeBaudRateAction", automation.Action)
 
 
 def validate_rs485(value):
@@ -128,7 +128,7 @@ UART_CHANNEL_SCHEMA = cv.Schema(
         cv.Required(CONF_ID): cv.declare_id(CH9438Channel),
         cv.Required(CONF_CHANNEL): cv.int_range(min=0, max=NUM_CHANNELS - 1),
         cv.Required(CONF_BAUD_RATE): validate_baud_rate,
-        cv.Optional(CONF_DATA_BITS, default=8): cv.one_of(8, int=True),
+        cv.Optional(CONF_DATA_BITS, default=8): cv.one_of(7, 8, int=True),
         cv.Optional(CONF_STOP_BITS, default=1): cv.one_of(1, 2, int=True),
         cv.Optional(CONF_PARITY, default="NONE"): cv.enum(
             uart.UART_PARITY_OPTIONS, upper=True
@@ -140,6 +140,8 @@ UART_CHANNEL_SCHEMA = cv.Schema(
             *FLOW_CONTROL_OPTIONS, lower=True
         ),
         cv.Optional(CONF_RS485): validate_rs485,
+        # keep the baud rate set by ch9438.change_baud_rate over a reboot (stored in flash)
+        cv.Optional(CONF_RESTORE_BAUD_RATE, default=False): cv.boolean,
     }
 )
 
@@ -299,7 +301,20 @@ async def to_code(config: ConfigType) -> None:
         cg.add(chan.set_parent(var))
         cg.add(chan.set_channel(conf[CONF_CHANNEL]))
         cg.add(chan.set_baud_rate(conf[CONF_BAUD_RATE]))
+        if conf[CONF_DATA_BITS] == 7:
+            # the chip only has 8 data bits: 7 data bits are emulated in software with the 8th bit
+            if conf[CONF_PARITY] == "NONE" and conf[CONF_STOP_BITS] == 1:
+                _LOGGER.warning(
+                    "%s: 7 data bits without parity and with 1 stop bit: received bytes "
+                    "can only be read correctly if there is a pause between them, "
+                    "use parity or 2 stop bits",
+                    conf[CONF_ID],
+                )
+            cg.add_define("USE_CH9438_DATA_BITS_7")
         cg.add(chan.set_data_bits(conf[CONF_DATA_BITS]))
+        if conf[CONF_RESTORE_BAUD_RATE]:
+            cg.add_define("USE_CH9438_RESTORE_BAUD_RATE")
+            cg.add(chan.set_restore_baud_rate(True))
         cg.add(chan.set_stop_bits(conf[CONF_STOP_BITS]))
         cg.add(chan.set_parity(conf[CONF_PARITY]))
         cg.add(chan.set_rx_buffer_size(conf[CONF_RX_BUFFER_SIZE]))
@@ -309,14 +324,16 @@ async def to_code(config: ConfigType) -> None:
 # ---------------------------------------------------------------------------------------------------------------------
 # Action:  ch9438.change_baud_rate: {id: <uart id>, baud_rate: 9600}
 # ---------------------------------------------------------------------------------------------------------------------
-CHANGE_BAUD_RATE_SCHEMA = cv.Schema(
+CHANGE_BAUD_RATE_SCHEMA = cv.maybe_simple_value(
     {
-        cv.Required(CONF_ID): cv.use_id(CH9438Channel),
-        cv.Required(CONF_BAUD_RATE): cv.templatable(
-            cv.int_range(min=1, max=12000000)  # the exact limits depend on the crystal, checked at run time
-        ),
-    }
+        cv.GenerateID(): cv.use_id(CH9438Channel),
+        # the exact limits depend on the crystal, they are checked at run time
+        cv.Required(CONF_BAUD_RATE): cv.templatable(cv.int_range(min=1, max=12000000)),
+    },
+    key=CONF_BAUD_RATE,
 )
+
+ChangeBaudRateAction = ch9438_ns.class_("ChangeBaudRateAction", automation.Action)
 
 
 @automation.register_action(

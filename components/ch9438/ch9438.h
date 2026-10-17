@@ -12,6 +12,9 @@
 #include "esphome/core/defines.h"
 #include "esphome/core/gpio.h"
 #include "esphome/core/hal.h"
+#ifdef USE_CH9438_RESTORE_BAUD_RATE
+#include "esphome/core/preferences.h"
+#endif
 #include "esphome/components/spi/spi.h"
 #include "esphome/components/uart/uart.h"
 #ifdef USE_TEXT_SENSOR
@@ -88,9 +91,13 @@ class CH9438Channel : public uart::UARTComponent {
   /// @brief initialise the chip registers of this UART (FIFO reset, line settings, baud rate, interrupts)
   void setup_channel();
   /// @brief change the baud rate at run time (used by the ch9438.change_baud_rate action)
-  /// @details The bytes still in the transmit FIFO are sent first at the old speed. The bytes already received
-  /// are kept. Returns false (and changes nothing) when the value is outside the range supported by the chip.
+  /// @details The bytes still in the transmit FIFO are sent first at the old speed. What was received before the
+  /// change is dropped (it was received at the old speed). Returns false (and changes nothing) when the value is
+  /// outside the range supported by the chip or when the transmit FIFO could not be emptied.
   bool change_baud_rate(uint32_t baud_rate);
+#ifdef USE_CH9438_RESTORE_BAUD_RATE
+  void set_restore_baud_rate(bool restore) { this->restore_baud_rate_ = restore; }
+#endif
   void dump_channel();
 
   // uart::UARTComponent interface
@@ -113,6 +120,28 @@ class CH9438Channel : public uart::UARTComponent {
   void check_logger_conflict() override {}
   void set_line_param_();
   void set_baudrate_();
+  /// @brief reset both chip FIFOs of this UART (and keep them enabled)
+  void reset_fifo_();
+
+  /// @brief true when the channel emulates 7 data bits (the chip itself always uses 8)
+  bool seven_bits_() const {
+#ifdef USE_CH9438_DATA_BITS_7
+    return this->data_bits_ == 7;
+#else
+    return false;
+#endif
+  }
+  /// @brief number of bits of the longest frame on the line (used for the timeouts)
+  static constexpr uint32_t MAX_FRAME_BITS = 12;
+
+#ifdef USE_CH9438_DATA_BITS_7
+  /// @brief Emulate 7 data bits: the 8th bit sent by the chip carries the parity (or a stop level without parity).
+  /// @param src bytes to send (only the 7 low bits are used)
+  /// @param dst receives the bytes to give to the chip
+  void encode_7bits_(const uint8_t *src, uint8_t *dst, size_t length) const;
+  /// @brief Check the parity carried by the 8th bit, count the errors and clear that bit (in place)
+  void decode_7bits_(uint8_t *data, size_t length);
+#endif
   /// @brief number of bytes that can still be written in the chip transmit FIFO
   size_t tx_free_();
   /// @brief move up to `count` bytes from the chip receive FIFO to the ring buffer
@@ -127,6 +156,18 @@ class CH9438Channel : public uart::UARTComponent {
   bool flow_control_{false};
   uint8_t lcr_{LCR_WORD_8};  ///< line control register value currently programmed
   uint32_t last_overflow_log_{0};
+#ifdef USE_CH9438_DATA_BITS_7
+  uint32_t parity_errors_{0};  ///< parity errors seen since boot when emulating 7 data bits
+#endif
+#ifdef USE_CH9438_RESTORE_BAUD_RATE
+  struct SavedBaudRate {
+    uint32_t config_baud_rate;  ///< baud rate of the configuration when the value was saved
+    uint32_t baud_rate;
+  };
+  ESPPreferenceObject pref_;
+  uint32_t config_baud_rate_{0};
+  bool restore_baud_rate_{false};
+#endif
 };
 
 /// @brief One of the 8 GPIO of the chip

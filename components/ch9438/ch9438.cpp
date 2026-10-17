@@ -437,6 +437,20 @@ void CH9438Channel::setup_channel() {
   chip->write_reg(this->reg_addr_(UART_FCR), FCR_FIFOEN);
   this->receive_buffer_.init(this->rx_buffer_size_);
   this->set_line_param_();
+#ifdef USE_CH9438_RESTORE_BAUD_RATE
+  this->config_baud_rate_ = this->baud_rate_;
+  if (this->restore_baud_rate_) {
+    this->pref_ = global_preferences->make_preference<SavedBaudRate>(
+        fnv1_hash_extend(fnv1_hash("ch9438_baud_rate"), this->name_));
+    SavedBaudRate saved{};
+    // a value saved for another configured baud rate is ignored: the configuration has changed since
+    if (this->pref_.load(&saved) && saved.config_baud_rate == this->config_baud_rate_ && saved.baud_rate != 0 &&
+        saved.baud_rate >= this->parent_->get_baud_min() && saved.baud_rate <= this->parent_->get_baud_max()) {
+      this->baud_rate_ = saved.baud_rate;
+      ESP_LOGCONFIG(TAG, "  UART%u: baud rate restored: %" PRIu32 " Bd", this->channel_, this->baud_rate_);
+    }
+  }
+#endif
   this->set_baudrate_();
   chip->write_reg(this->reg_addr_(UART_MCR), this->flow_control_ ? (MCR_AFE | MCR_RTS) : 0);
   // receive data and line status interrupts only: the transmit side is polled and the modem lines are handled by the
@@ -455,12 +469,31 @@ bool CH9438Channel::change_baud_rate(uint32_t baud_rate) {
   if (baud_rate == this->baud_rate_)
     return true;
   // the bytes already queued must leave at the old speed
-  this->flush();
+  if (this->flush() != uart::UARTFlushResult::UART_FLUSH_RESULT_SUCCESS) {
+    ESP_LOGE(TAG, "UART%u: baud rate not changed, the transmit FIFO is not empty", this->channel_);
+    return false;
+  }
   uint32_t const old_baud = this->baud_rate_;
   this->baud_rate_ = baud_rate;
   this->set_baudrate_();
+  // what is in the receive FIFO and in the ring buffer was received at the old baud rate
+  this->reset_fifo_();
+  this->receive_buffer_.clear();
   ESP_LOGI(TAG, "UART%u: baud rate changed from %" PRIu32 " to %" PRIu32 " Bd", this->channel_, old_baud, baud_rate);
+#ifdef USE_CH9438_RESTORE_BAUD_RATE
+  if (this->restore_baud_rate_) {
+    SavedBaudRate const saved{this->config_baud_rate_, this->baud_rate_};
+    this->pref_.save(&saved);
+  }
+#endif
   return true;
+}
+
+void CH9438Channel::reset_fifo_() {
+  auto *chip = this->parent_;
+  chip->write_reg(this->reg_addr_(UART_FCR), FCR_RXRST | FCR_TXRST);
+  delay(FCR_SETTLE_MS);
+  chip->write_reg(this->reg_addr_(UART_FCR), FCR_FIFOEN);
 }
 
 void CH9438Channel::dump_channel() {
@@ -478,19 +511,25 @@ void CH9438Channel::dump_channel() {
 }
 
 void CH9438Channel::set_line_param_() {
-  this->data_bits_ = 8;  // the chip only supports 8 data bits
+  // The chip always uses 8 data bits. 7 data bits are emulated with the 8th bit (see encode_7bits_()), the chip then
+  // does not generate the parity itself.
+  if (!this->seven_bits_())
+    this->data_bits_ = 8;
   uint8_t lcr = LCR_WORD_8;
-  if (this->stop_bits_ == 2)
+  // 7 bits without parity: the 8th bit is a stop level, so one stop bit of the chip is enough for 7N2
+  if (this->stop_bits_ == 2 && !(this->seven_bits_() && this->parity_ == uart::UART_CONFIG_PARITY_NONE))
     lcr |= LCR_STOP2;
-  switch (this->parity_) {
-    case uart::UART_CONFIG_PARITY_ODD:
-      lcr |= LCR_PAREN;
-      break;
-    case uart::UART_CONFIG_PARITY_EVEN:
-      lcr |= LCR_PAREN | LCR_PAR_EVEN;
-      break;
-    default:
-      break;
+  if (!this->seven_bits_()) {
+    switch (this->parity_) {
+      case uart::UART_CONFIG_PARITY_ODD:
+        lcr |= LCR_PAREN;
+        break;
+      case uart::UART_CONFIG_PARITY_EVEN:
+        lcr |= LCR_PAREN | LCR_PAR_EVEN;
+        break;
+      default:
+        break;
+    }
   }
   this->lcr_ = lcr;
   this->parent_->write_reg(this->reg_addr_(UART_LCR), lcr);
@@ -528,6 +567,42 @@ size_t CH9438Channel::tx_free_() {
   return chip->tx_counter_is_free_ ? count : TX_FIFO_SIZE - count;
 }
 
+#ifdef USE_CH9438_DATA_BITS_7
+/// @brief 1 when the 7 low bits of the value hold an odd number of ones
+static inline uint8_t odd_parity7(uint8_t value) {
+  value ^= value >> 4;
+  return (0x6996 >> (value & 0x0F)) & 1;
+}
+
+void CH9438Channel::encode_7bits_(const uint8_t *src, uint8_t *dst, size_t length) const {
+  // 8th bit: the parity that makes the number of ones even (or odd), or a stop level without parity
+  uint8_t const flip = this->parity_ == uart::UART_CONFIG_PARITY_ODD ? 1 : 0;
+  bool const has_parity = this->parity_ != uart::UART_CONFIG_PARITY_NONE;
+  for (size_t i = 0; i < length; i++) {
+    uint8_t const value = src[i] & 0x7F;
+    uint8_t const bit8 = has_parity ? (odd_parity7(value) ^ flip) : 1;
+    dst[i] = value | (bit8 << 7);
+  }
+}
+
+void CH9438Channel::decode_7bits_(uint8_t *data, size_t length) {
+  uint8_t const flip = this->parity_ == uart::UART_CONFIG_PARITY_ODD ? 1 : 0;
+  bool const has_parity = this->parity_ != uart::UART_CONFIG_PARITY_NONE;
+  uint32_t errors = 0;
+  for (size_t i = 0; i < length; i++) {
+    uint8_t const value = data[i] & 0x7F;
+    if (has_parity && (data[i] >> 7) != (odd_parity7(value) ^ flip))
+      errors++;
+    data[i] = value;
+  }
+  if (errors != 0) {
+    this->parity_errors_ += errors;
+    ESP_LOGW(TAG, "UART%u: %" PRIu32 " parity error(s) in the last %u bytes (%" PRIu32 " since boot)", this->channel_,
+             errors, (unsigned) length, this->parity_errors_);
+  }
+}
+#endif
+
 size_t CH9438Channel::xfer_fifo_to_buffer_(size_t count) {
   size_t total = 0;
   while (count > 0) {
@@ -543,6 +618,10 @@ size_t CH9438Channel::xfer_fifo_to_buffer_(size_t count) {
     }
     // the FIFO is read directly into the ring buffer
     this->parent_->read_burst(this->reg_addr_(UART_RBR), this->receive_buffer_.write_ptr(), chunk);
+#ifdef USE_CH9438_DATA_BITS_7
+    if (this->seven_bits_())
+      this->decode_7bits_(this->receive_buffer_.write_ptr(), chunk);
+#endif
     this->receive_buffer_.commit(chunk);
     count -= chunk;
     total += chunk;
@@ -573,7 +652,7 @@ void CH9438Channel::write_array(const uint8_t *buffer, size_t length) {
     size_t const room = this->tx_free_();
     if (room == 0) {
       // transmit FIFO (1536 bytes) full: wait until the line has sent some bytes
-      uint32_t const timeout_ms = 200 + static_cast<uint32_t>((TX_FIFO_SIZE * 11000ULL) / std::max<uint32_t>(this->baud_rate_, 1));
+      uint32_t const timeout_ms = 200 + static_cast<uint32_t>((TX_FIFO_SIZE * (1000ULL * MAX_FRAME_BITS)) / std::max<uint32_t>(this->baud_rate_, 1));
       if (millis() - start_time > timeout_ms) {
         ESP_LOGE(TAG, "UART%u write_array: timeout waiting for room in the transmit FIFO - %u bytes dropped",
                  this->channel_, (unsigned) length);
@@ -583,6 +662,16 @@ void CH9438Channel::write_array(const uint8_t *buffer, size_t length) {
       continue;
     }
     size_t const chunk = std::min({length, room, XFER_MAX_SIZE});
+#ifdef USE_CH9438_DATA_BITS_7
+    if (this->seven_bits_()) {
+      uint8_t encoded[XFER_MAX_SIZE];
+      this->encode_7bits_(buffer, encoded, chunk);
+      this->parent_->write_burst(this->reg_addr_(UART_THR), encoded, chunk);
+      buffer += chunk;
+      length -= chunk;
+      continue;
+    }
+#endif
     this->parent_->write_burst(this->reg_addr_(UART_THR), buffer, chunk);
     buffer += chunk;
     length -= chunk;
@@ -590,7 +679,7 @@ void CH9438Channel::write_array(const uint8_t *buffer, size_t length) {
 }
 
 uart::UARTFlushResult CH9438Channel::flush() {
-  uint32_t const timeout_ms = 100 + static_cast<uint32_t>((TX_FIFO_SIZE * 11000ULL) / std::max<uint32_t>(this->baud_rate_, 1));
+  uint32_t const timeout_ms = 100 + static_cast<uint32_t>((TX_FIFO_SIZE * (1000ULL * MAX_FRAME_BITS)) / std::max<uint32_t>(this->baud_rate_, 1));
   uint32_t const start_time = millis();
   while (true) {
     uint8_t const lsr = this->parent_->read_reg(this->reg_addr_(UART_LSR));

@@ -75,6 +75,7 @@ ch9438:
       channel: 0
       baud_rate: 115200
       rx_buffer_size: 512
+      restore_baud_rate: true   # keep the speed set by ch9438.change_baud_rate over a reboot
 
     - id: ch_uart_1
       channel: 1
@@ -86,6 +87,12 @@ ch9438:
       baud_rate: 9600
       rs485:
         invert: false
+
+    - id: ch_uart_3           # 7 data bits emulated in software (7E1: the 8th bit carries the parity)
+      channel: 3
+      baud_rate: 9600
+      data_bits: 7
+      parity: even
 
     - id: ch_uart_4
       channel: 4
