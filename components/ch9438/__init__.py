@@ -1,6 +1,6 @@
 """WCH CH9438: SPI to 8 UART (full duplex) + 8 GPIO, native ESPHome component."""
 
-from esphome import pins
+from esphome import automation, pins
 import esphome.codegen as cg
 from esphome.components import spi, uart
 from esphome.components.const import CONF_DATA_BITS, CONF_PARITY, CONF_STOP_BITS
@@ -18,8 +18,9 @@ from esphome.const import (
     CONF_PULLDOWN,
     CONF_PULLUP,
 )
-from esphome.cpp_generator import MockObj
-from esphome.types import ConfigType
+from esphome.core import ID
+from esphome.cpp_generator import MockObj, TemplateArguments
+from esphome.types import ConfigType, TemplateArgsType
 
 CODEOWNERS = ["@SeByDocKy"]
 DEPENDENCIES = ["spi"]
@@ -36,6 +37,7 @@ CONF_FLOW_CONTROL = "flow_control"
 CONF_RS485 = "rs485"
 CONF_ENABLED = "enabled"
 CONF_INVERT = "invert"
+CONF_TEST_MODE = "test_mode"
 
 NUM_CHANNELS = 8
 NUM_GPIO = 8
@@ -63,6 +65,7 @@ ch9438_ns = cg.esphome_ns.namespace("ch9438")
 CH9438Component = ch9438_ns.class_("CH9438Component", cg.Component, spi.SPIDevice)
 CH9438Channel = ch9438_ns.class_("CH9438Channel", uart.UARTComponent)
 CH9438GPIOPin = ch9438_ns.class_("CH9438GPIOPin", cg.GPIOPin)
+ChangeBaudRateAction = ch9438_ns.class_("ChangeBaudRateAction", automation.Action)
 
 
 def validate_rs485(value):
@@ -169,6 +172,10 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(): cv.declare_id(CH9438Component),
             cv.Optional(CONF_CRYSTAL, default=False): cv.boolean,
             cv.Optional(CONF_IRQ_PIN): pins.internal_gpio_input_pin_schema,
+            # 0: normal operation, 1: loopback of a short message, 2: loopback of a 1024 byte pattern with throughput
+            # measurement. Modes 1 and 2 also log the bus/CPU statistics every 10 s. TX and RX of the tested UARTs
+            # must be wired together.
+            cv.Optional(CONF_TEST_MODE, default=0): cv.int_range(min=0, max=2),
             cv.Required(CONF_UART): cv.ensure_list(UART_CHANNEL_SCHEMA),
         }
     )
@@ -200,6 +207,9 @@ async def to_code(config: ConfigType) -> None:
     await spi.register_spi_device(var, config)
 
     cg.add(var.set_crystal(config[CONF_CRYSTAL]))
+    if config[CONF_TEST_MODE]:
+        cg.add_define("CH9438_TEST_COMPONENT")
+        cg.add(var.set_test_mode(config[CONF_TEST_MODE]))
     if irq_conf := config.get(CONF_IRQ_PIN):
         irq_pin = await cg.gpio_pin_expression(irq_conf)
         cg.add(var.set_irq_pin(irq_pin))
@@ -231,6 +241,38 @@ async def to_code(config: ConfigType) -> None:
         cg.add(chan.set_parity(conf[CONF_PARITY]))
         cg.add(chan.set_rx_buffer_size(conf[CONF_RX_BUFFER_SIZE]))
         cg.add(chan.set_flow_control(conf[CONF_FLOW_CONTROL] != FLOW_NONE))
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Action:  ch9438.change_baud_rate: {id: <uart id>, baud_rate: 9600}
+# ---------------------------------------------------------------------------------------------------------------------
+CHANGE_BAUD_RATE_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_ID): cv.use_id(CH9438Channel),
+        cv.Required(CONF_BAUD_RATE): cv.templatable(
+            cv.int_range(min=BAUD_MIN, max=BAUD_MAX)
+        ),
+    }
+)
+
+
+@automation.register_action(
+    "ch9438.change_baud_rate",
+    ChangeBaudRateAction,
+    CHANGE_BAUD_RATE_SCHEMA,
+    synchronous=True,
+)
+async def change_baud_rate_to_code(
+    config: ConfigType,
+    action_id: ID,
+    template_arg: TemplateArguments,
+    args: TemplateArgsType,
+) -> MockObj:
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    template_ = await cg.templatable(config[CONF_BAUD_RATE], args, cg.uint32)
+    cg.add(var.set_baud_rate(template_))
+    return var
 
 
 # ---------------------------------------------------------------------------------------------------------------------

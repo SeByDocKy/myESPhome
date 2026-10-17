@@ -87,6 +87,10 @@ class CH9438Channel : public uart::UARTComponent {
 
   /// @brief initialise the chip registers of this UART (FIFO reset, line settings, baud rate, interrupts)
   void setup_channel();
+  /// @brief change the baud rate at run time (used by the ch9438.change_baud_rate action)
+  /// @details The bytes still in the transmit FIFO are sent first at the old speed. The bytes already received
+  /// are kept. Returns false (and changes nothing) when the value is outside the range supported by the chip.
+  bool change_baud_rate(uint32_t baud_rate);
   void dump_channel();
 
   // uart::UARTComponent interface
@@ -163,6 +167,9 @@ class CH9438Component : public Component,
   void set_rts_mask(uint8_t mask) { this->rts_mask_ = mask; }
   void set_name(const char *name) { this->name_ = name; }
   const char *get_name() const { return this->name_; }
+  /// @param test_mode 0 = normal operation; 1 = loopback of a short message; 2 = loopback of a 1024 byte pattern.
+  /// Only effective when the component is compiled with CH9438_TEST_COMPONENT (done by the `test_mode` option).
+  void set_test_mode(int test_mode) { this->test_mode_ = test_mode; }
 #ifdef USE_TEXT_SENSOR
   void set_version_text_sensor(text_sensor::TextSensor *sensor) { this->version_text_sensor_ = sensor; }
 #endif
@@ -200,6 +207,12 @@ class CH9438Component : public Component,
   void detect_tx_counter_semantic_();
   /// @brief read the status of all UARTs in one SPI transaction and move the received bytes to the ring buffers
   void poll_();
+#ifdef CH9438_TEST_COMPONENT
+  void test_pre_loop_();
+  void test_poll_done_(uint32_t duration_us);
+  void test_run_();
+  void test_report_stats_(uint32_t now);
+#endif
 
   std::vector<CH9438Channel *> children_{};
   InternalGPIOPin *irq_pin_{nullptr};
@@ -221,6 +234,35 @@ class CH9438Component : public Component,
   bool crystal_{false};
   /// true: the TX FIFO counter register returns the free space (datasheet); false: it returns the used space
   bool tx_counter_is_free_{true};
+  int test_mode_{0};
+
+#ifdef CH9438_TEST_COMPONENT
+  // statistics (reset every report period)
+  uint32_t spi_count_{0};         ///< SPI transactions
+  uint32_t spi_us_{0};            ///< time spent in the SPI transactions (includes the mandatory chip delays)
+  uint32_t test_loops_{0};        ///< calls of loop()
+  uint32_t test_last_loop_us_{0};
+  uint32_t test_max_gap_us_{0};   ///< longest time between two calls of loop()
+  uint32_t test_polls_{0};        ///< number of status reads
+  uint32_t test_poll_us_{0};
+  uint32_t test_poll_max_us_{0};
+  uint32_t test_rx_bytes_{0};     ///< bytes moved from the chip FIFOs to the ring buffers
+  uint32_t test_stats_ms_{0};
+  // loopback test state machine (one channel at a time)
+  bool test_busy_{false};
+  size_t test_idx_{0};
+  uint32_t test_next_ms_{0};
+  uint32_t test_deadline_ms_{0};
+  uint32_t test_start_us_{0};
+  size_t test_pos_{0};
+  uint32_t test_errors_{0};
+  uint32_t test_runs_{0};
+  uint32_t test_failures_{0};
+  std::vector<uint8_t> test_tx_{};
+#endif
 };
 
 }  // namespace esphome::ch9438
+
+// actions (ch9438.change_baud_rate): included here so that the generated code finds them
+#include "esphome/components/ch9438/automation.h"

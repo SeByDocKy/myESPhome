@@ -11,6 +11,23 @@ namespace esphome::ch9438 {
 
 static const char *const TAG = "ch9438";
 
+// SPI statistics, only compiled in when the test mode is used (test_mode option)
+#ifdef CH9438_TEST_COMPONENT
+#define SPI_STAT_BEGIN() uint32_t const spi_t0 = micros()
+#define SPI_STAT_END() \
+  do { \
+    this->spi_count_++; \
+    this->spi_us_ += micros() - spi_t0; \
+  } while (0)
+#else
+#define SPI_STAT_BEGIN() \
+  do { \
+  } while (0)
+#define SPI_STAT_END() \
+  do { \
+  } while (0)
+#endif
+
 static const char *parity_name(uart::UARTParityOptions parity) {
   switch (parity) {
     case uart::UART_CONFIG_PARITY_NONE:
@@ -34,6 +51,7 @@ void CH9438Component::gap_() {
 }
 
 uint8_t CH9438Component::read_reg(uint8_t reg) {
+  SPI_STAT_BEGIN();
   this->gap_();
   this->enable();
   this->write_byte(reg & static_cast<uint8_t>(~CMD_WRITE_FLAG));
@@ -41,11 +59,13 @@ uint8_t CH9438Component::read_reg(uint8_t reg) {
   uint8_t const value = this->read_byte();
   this->disable();
   this->last_end_us_ = micros();
+  SPI_STAT_END();
   ESP_LOGVV(TAG, "read_reg(0x%02X) = 0x%02X", reg, value);
   return value;
 }
 
 void CH9438Component::write_reg(uint8_t reg, uint8_t value) {
+  SPI_STAT_BEGIN();
   this->gap_();
   this->enable();
   this->write_byte(reg | CMD_WRITE_FLAG);
@@ -53,10 +73,12 @@ void CH9438Component::write_reg(uint8_t reg, uint8_t value) {
   this->write_byte(value);
   this->disable();
   this->last_end_us_ = micros();
+  SPI_STAT_END();
   ESP_LOGVV(TAG, "write_reg(0x%02X) = 0x%02X", reg, value);
 }
 
 void CH9438Component::read_burst(uint8_t reg, uint8_t *data, size_t length, uint32_t delay_us) {
+  SPI_STAT_BEGIN();
   this->gap_();
   this->enable();
   this->write_byte(reg & static_cast<uint8_t>(~CMD_WRITE_FLAG));
@@ -64,10 +86,12 @@ void CH9438Component::read_burst(uint8_t reg, uint8_t *data, size_t length, uint
   this->read_array(data, length);
   this->disable();
   this->last_end_us_ = micros();
+  SPI_STAT_END();
   ESP_LOGVV(TAG, "read_burst(0x%02X) %u bytes", reg, (unsigned) length);
 }
 
 void CH9438Component::write_burst(uint8_t reg, const uint8_t *data, size_t length) {
+  SPI_STAT_BEGIN();
   this->gap_();
   this->enable();
   this->write_byte(reg | CMD_WRITE_FLAG);
@@ -75,6 +99,7 @@ void CH9438Component::write_burst(uint8_t reg, const uint8_t *data, size_t lengt
   this->write_array(data, length);
   this->disable();
   this->last_end_us_ = micros();
+  SPI_STAT_END();
   ESP_LOGVV(TAG, "write_burst(0x%02X) %u bytes", reg, (unsigned) length);
 }
 
@@ -272,9 +297,18 @@ void CH9438Component::loop() {
   if (this->children_.empty())
     return;
   // INT# is active low: when it is high nothing is pending and the bus is left alone
-  if (this->irq_pin_ != nullptr && this->irq_pin_->digital_read())
-    return;
-  this->poll_();
+  bool const pending = this->irq_pin_ == nullptr || !this->irq_pin_->digital_read();
+#ifdef CH9438_TEST_COMPONENT
+  this->test_pre_loop_();
+  uint32_t const poll_start_us = micros();
+#endif
+  if (pending)
+    this->poll_();
+#ifdef CH9438_TEST_COMPONENT
+  if (pending)
+    this->test_poll_done_(micros() - poll_start_us);
+  this->test_run_();
+#endif
 }
 
 void CH9438Component::poll_() {
@@ -294,6 +328,9 @@ void CH9438Component::poll_() {
       continue;
     rx_count = std::min(rx_count, RX_FIFO_SIZE);
     size_t const moved = child->xfer_fifo_to_buffer_(rx_count);
+#ifdef CH9438_TEST_COMPONENT
+    this->test_rx_bytes_ += moved;
+#endif
     if (moved > 0) {
       ESP_LOGV(TAG, "UART%u: %u of %u bytes moved to the ring buffer", child->get_channel(), (unsigned) moved,
                (unsigned) rx_count);
@@ -407,6 +444,23 @@ void CH9438Channel::setup_channel() {
   // receive data and line status interrupts only: the transmit side is polled and the modem lines are handled by the
   // automatic flow control of the chip
   chip->write_reg(this->reg_addr_(UART_IER), IER_RDI | IER_RLSI);
+}
+
+bool CH9438Channel::change_baud_rate(uint32_t baud_rate) {
+  if (baud_rate < BAUD_MIN || baud_rate > BAUD_MAX) {
+    ESP_LOGE(TAG, "UART%u: cannot change the baud rate to %" PRIu32 " Bd (supported range %" PRIu32 " to %" PRIu32 ")",
+             this->channel_, baud_rate, BAUD_MIN, BAUD_MAX);
+    return false;
+  }
+  if (baud_rate == this->baud_rate_)
+    return true;
+  // the bytes already queued must leave at the old speed
+  this->flush();
+  uint32_t const old_baud = this->baud_rate_;
+  this->baud_rate_ = baud_rate;
+  this->set_baudrate_();
+  ESP_LOGI(TAG, "UART%u: baud rate changed from %" PRIu32 " to %" PRIu32 " Bd", this->channel_, old_baud, baud_rate);
+  return true;
 }
 
 void CH9438Channel::dump_channel() {
@@ -546,5 +600,127 @@ uart::UARTFlushResult CH9438Channel::flush() {
     yield();
   }
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// TEST COMPONENT (compiled in only when the `test_mode` option is not 0)
+// ---------------------------------------------------------------------------------------------------------------------
+#ifdef CH9438_TEST_COMPONENT
+static constexpr uint32_t TEST_STATS_PERIOD_MS = 10000;
+static constexpr size_t TEST_PATTERN_SIZE = 1024;
+
+void CH9438Component::test_pre_loop_() {
+  uint32_t const now_us = micros();
+  if (this->test_last_loop_us_ != 0)
+    this->test_max_gap_us_ = std::max<uint32_t>(this->test_max_gap_us_, now_us - this->test_last_loop_us_);
+  this->test_last_loop_us_ = now_us;
+  this->test_loops_++;
+}
+
+void CH9438Component::test_poll_done_(uint32_t duration_us) {
+  this->test_polls_++;
+  this->test_poll_us_ += duration_us;
+  this->test_poll_max_us_ = std::max(this->test_poll_max_us_, duration_us);
+}
+
+void CH9438Component::test_report_stats_(uint32_t now) {
+  uint32_t const elapsed_ms = now - this->test_stats_ms_;
+  if (elapsed_ms < TEST_STATS_PERIOD_MS)
+    return;
+  uint64_t const e = std::max<uint32_t>(elapsed_ms, 1);
+  // everything is computed with integers (per mille for the percentages)
+  uint32_t const busy_pm = static_cast<uint32_t>((static_cast<uint64_t>(this->spi_us_) * 1000ULL) / (e * 1000ULL));
+  ESP_LOGI(TAG,
+           "[stats %" PRIu32 " ms] loop: %" PRIu32 " calls (%" PRIu32 "/s), longest gap between two calls %" PRIu32
+           " us | status reads: %" PRIu32 ", mean %" PRIu32 " us, max %" PRIu32 " us | SPI: %" PRIu32
+           " transactions (%" PRIu32 "/s), busy %" PRIu32 ".%" PRIu32 " %% of the time | %" PRIu32
+           " bytes moved to the ring buffers (%" PRIu32 " B/s)",
+           elapsed_ms, this->test_loops_, static_cast<uint32_t>(this->test_loops_ * 1000ULL / e), this->test_max_gap_us_,
+           this->test_polls_, this->test_polls_ ? this->test_poll_us_ / this->test_polls_ : 0, this->test_poll_max_us_,
+           this->spi_count_, static_cast<uint32_t>(this->spi_count_ * 1000ULL / e), busy_pm / 10, busy_pm % 10,
+           this->test_rx_bytes_, static_cast<uint32_t>(this->test_rx_bytes_ * 1000ULL / e));
+  this->spi_count_ = this->spi_us_ = 0;
+  this->test_loops_ = this->test_polls_ = this->test_poll_us_ = this->test_poll_max_us_ = this->test_max_gap_us_ = 0;
+  this->test_rx_bytes_ = 0;
+  this->test_stats_ms_ = now;
+}
+
+/// Loopback test: TX and RX of the tested UART must be wired together. The channels are tested one after the other
+/// without ever blocking loop(). Mode 1 sends a short text, mode 2 a 1024 byte pattern and measures the throughput.
+void CH9438Component::test_run_() {
+  uint32_t const now = millis();
+  if (this->test_stats_ms_ == 0)
+    this->test_stats_ms_ = now;
+  this->test_report_stats_(now);
+  if (this->test_mode_ == 0 || this->children_.empty())
+    return;
+
+  if (this->test_idx_ >= this->children_.size())
+    this->test_idx_ = 0;
+  CH9438Channel *ch = this->children_[this->test_idx_];
+
+  if (!this->test_busy_) {
+    if (static_cast<int32_t>(now - this->test_next_ms_) < 0)
+      return;
+    this->test_tx_.clear();
+    if (this->test_mode_ == 1) {
+      char msg[48];
+      int const len = snprintf(msg, sizeof(msg), "%s:%s:UART%u\n", this->name_, ch->get_channel_name(), ch->get_channel());
+      this->test_tx_.assign(msg, msg + std::min<int>(len, sizeof(msg) - 1));
+    } else {
+      this->test_tx_.resize(TEST_PATTERN_SIZE);
+      for (size_t i = 0; i < TEST_PATTERN_SIZE; i++)
+        this->test_tx_[i] = static_cast<uint8_t>(i % 251);  // 251 is prime: a shifted stream is always detected
+    }
+    this->test_pos_ = 0;
+    this->test_errors_ = 0;
+    // 10 bits per byte on the line (start + 8 data + stop), twice the nominal time plus a margin
+    uint32_t const line_ms = static_cast<uint32_t>(this->test_tx_.size() * 10000ULL / std::max<uint32_t>(ch->baud_rate_, 1));
+    this->test_deadline_ms_ = now + 2 * line_ms + 500;
+    this->test_start_us_ = micros();
+    ch->write_array(this->test_tx_.data(), this->test_tx_.size());
+    this->test_busy_ = true;
+    return;
+  }
+
+  // reception: the ring buffer is filled by poll_(), here it is only emptied and compared with what was sent
+  uint8_t buf[64];
+  while (true) {
+    size_t n = std::min(ch->available(), sizeof(buf));
+    if (n == 0)
+      break;
+    ch->read_array(buf, n);
+    for (size_t i = 0; i < n; i++) {
+      if (this->test_pos_ < this->test_tx_.size() && buf[i] != this->test_tx_[this->test_pos_])
+        this->test_errors_++;
+      this->test_pos_++;
+    }
+  }
+  bool const complete = this->test_pos_ >= this->test_tx_.size();
+  bool const timeout = static_cast<int32_t>(now - this->test_deadline_ms_) > 0;
+  if (!complete && !timeout)
+    return;
+
+  uint32_t const elapsed_us = std::max<uint32_t>(micros() - this->test_start_us_, 1);
+  size_t const sent = this->test_tx_.size();
+  uint32_t const rate = static_cast<uint32_t>(this->test_pos_ * 1000000ULL / elapsed_us);  // bytes per second
+  uint32_t const line_rate = ch->baud_rate_ / 10;                                           // bytes per second
+  this->test_runs_++;
+  if (complete && this->test_errors_ == 0 && this->test_pos_ == sent) {
+    ESP_LOGI(TAG, "[test %s] UART%u @ %" PRIu32 " Bd: %u bytes OK in %" PRIu32 " us -> %" PRIu32 " B/s (line limit %" PRIu32
+                  " B/s, %" PRIu32 " %%)",
+             ch->get_channel_name(), ch->get_channel(), ch->baud_rate_, (unsigned) sent, elapsed_us, rate, line_rate,
+             static_cast<uint32_t>(static_cast<uint64_t>(rate) * 100ULL / std::max<uint32_t>(line_rate, 1)));
+  } else {
+    this->test_failures_++;
+    ESP_LOGE(TAG, "[test %s] UART%u @ %" PRIu32 " Bd: FAILED, %u of %u bytes received, %" PRIu32
+                  " wrong, %s (failures %" PRIu32 " of %" PRIu32 " runs). Are TX and RX wired together?",
+             ch->get_channel_name(), ch->get_channel(), ch->baud_rate_, (unsigned) this->test_pos_, (unsigned) sent,
+             this->test_errors_, timeout ? "timeout" : "complete", this->test_failures_, this->test_runs_);
+  }
+  this->test_busy_ = false;
+  this->test_idx_++;
+  this->test_next_ms_ = millis() + (this->test_mode_ == 1 ? 2000 : 1000);
+}
+#endif  // CH9438_TEST_COMPONENT
 
 }  // namespace esphome::ch9438

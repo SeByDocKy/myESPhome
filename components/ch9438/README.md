@@ -90,6 +90,7 @@ A complete example (flow control, GPIO, version text sensor) is in
 | `spi_mode` | `MODE3` | Do not change unless you know what you are doing (the datasheet does not state the mode, the vendor driver uses mode 3) |
 | `irq_pin` | none | `INT#` input. With it, the chip is only read when the line is low. Without it, the status of all UARTs is read at every loop |
 | `crystal` | `false` | `true` when a 16 MHz crystal is fitted on XI/XO (this uses the chip pin shared with GPIO7) |
+| `test_mode` | `0` | `0` off, `1` loopback of a short text, `2` loopback of a 1024 byte pattern + throughput. See [Test mode](#test-mode) |
 | `uart` | required | List of UART channels, see below |
 
 ### UART channel (`uart:` list)
@@ -128,6 +129,56 @@ text_sensor:
     version:
       name: ${name}_chip_version
 ```
+
+## Action `ch9438.change_baud_rate`
+
+Changes the baud rate of one UART at run time. The bytes already queued in the transmit FIFO are sent first at the
+old speed, the bytes already received are kept. A value outside 2930 … 12 000 000 is refused (error in the log, the
+speed is not changed). The value can be a lambda.
+
+```yaml
+button:
+  - platform: template
+    name: ${name}_uart0_baud_9600
+    on_press:
+      - ch9438.change_baud_rate:
+          id: ch_uart_0
+          baud_rate: 9600
+
+  - platform: template
+    name: ${name}_uart0_baud_variable
+    on_press:
+      - ch9438.change_baud_rate:
+          id: ch_uart_0
+          baud_rate: !lambda 'return 921600;'
+```
+
+A frame being received at the exact moment of the change is lost or corrupted, as with any UART.
+
+## Test mode
+
+`test_mode` in the hub section enables a self-test and statistics (it is compiled in only when it is not 0, so it costs
+nothing otherwise). It is meant to compare the chip with other UART expanders (`weikai`) on the same board.
+
+| `test_mode` | Behaviour |
+|---|---|
+| `0` | Normal operation (default) |
+| `1` | Every 2 s one UART after the other sends a short text and checks what it receives back |
+| `2` | Every 1 s one UART after the other sends a 1024 byte pattern, checks it and logs the achieved throughput against the line limit |
+
+The **TX and RX pins of every configured UART must be wired together** (loopback); an unwired UART reports a
+timeout. The test never blocks `loop()`. In both modes a statistics line is logged every 10 s:
+
+```
+[stats 10000 ms] loop: 5120 calls (512/s), longest gap between two calls 2310 us | status reads: 5120, mean 74 us,
+max 190 us | SPI: 5330 transactions (533/s), busy 4.1 % of the time | 11520 bytes moved to the ring buffers (1152 B/s)
+```
+
+- *longest gap between two calls*: how late `loop()` can be. It must stay well below the time needed to fill the chip
+  FIFO (2048 bytes) at the baud rate used.
+- *SPI busy*: share of the CPU time spent in SPI transactions, including the delays imposed by the chip.
+
+Run the same test on the `weikai` component (its `test_mode` and `TEST_COMPONENT` flag) to get comparable figures.
 
 ## Shared pins
 
@@ -196,6 +247,7 @@ ch9438/
 ├── __init__.py          # hub config schema, pin conflict validation, codegen, GPIO pin schema
 ├── ch9438.h/.cpp        # hub, UART channels, GPIO pins
 ├── ch9438_defs.h        # registers and constants
+├── automation.h         # ch9438.change_baud_rate action
 ├── text_sensor/
 │   └── __init__.py      # chip version
 └── README.md
