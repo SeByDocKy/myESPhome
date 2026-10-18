@@ -39,6 +39,8 @@ api_resync:
 auto_gen:
   id: autogen_hub
   delay: 10s
+  count: 3
+  create_interval: 15s
   max_sensors: 4
   sensor_name: ${name}_autogen_test
   unit_of_measurement: W

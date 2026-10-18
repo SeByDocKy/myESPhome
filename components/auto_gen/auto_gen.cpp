@@ -12,8 +12,8 @@ static const char *const TAG = "auto_gen";
 
 void AutoGenComponent::setup() {
 #ifdef USE_SENSOR
-  // Create the demo sensor after the configured delay, from the main loop.
-  this->set_timeout("create_demo", this->delay_ms_, [this]() { this->create_demo_sensor_(); });
+  // Create the first demo sensor after the configured delay, from the main loop.
+  this->set_timeout("create_demo", this->delay_ms_, [this]() { this->create_next_demo_sensor_(); });
 #else
   ESP_LOGE(TAG, "USE_SENSOR is not defined, nothing can be created");
   this->mark_failed();
@@ -23,8 +23,9 @@ void AutoGenComponent::setup() {
 void AutoGenComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "auto_gen:");
   ESP_LOGCONFIG(TAG, "  Delay: %" PRIu32 " ms", this->delay_ms_);
+  ESP_LOGCONFIG(TAG, "  Sensors to create: %u (one every %" PRIu32 " ms)", this->count_, this->create_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Reserved sensor slots: %u", this->max_sensors_);
-  ESP_LOGCONFIG(TAG, "  Demo sensor name: %s", this->sensor_name_.c_str());
+  ESP_LOGCONFIG(TAG, "  Demo sensor base name: %s", this->sensor_name_.c_str());
 }
 
 #ifdef USE_SENSOR
@@ -57,20 +58,37 @@ sensor::Sensor *AutoGenComponent::create_sensor(const std::string &name) {
 }
 #endif
 
-void AutoGenComponent::create_demo_sensor_() {
+void AutoGenComponent::create_next_demo_sensor_() {
 #ifdef USE_SENSOR
-  this->demo_sensor_ = this->create_sensor(this->sensor_name_);
-  if (this->demo_sensor_ == nullptr)
-    return;
+  const size_t index = this->demo_sensors_.size();
 
-  // Publish a changing value so the effect is visible once Home Assistant sees the entity.
-  this->set_interval("demo_publish", 5000, [this]() {
-    this->demo_value_ += 1.0f;
-    this->demo_sensor_->publish_state(this->demo_value_);
-  });
+  // A single sensor keeps the plain name, several get a _<n> suffix.
+  std::string name = this->sensor_name_;
+  if (this->count_ > 1)
+    name += "_" + std::to_string(index + 1);
+
+  sensor::Sensor *sens = this->create_sensor(name);
+  if (sens == nullptr)
+    return;
+  this->demo_sensors_.push_back(sens);
+
+  if (index == 0) {
+    // Publish changing values so the effect is visible once Home Assistant sees the entities.
+    // Sensor n publishes the shared counter plus n * 100 so that they are easy to tell apart.
+    this->set_interval("demo_publish", 5000, [this]() {
+      this->demo_value_ += 1.0f;
+      for (size_t i = 0; i < this->demo_sensors_.size(); i++)
+        this->demo_sensors_[i]->publish_state(this->demo_value_ + 100.0f * static_cast<float>(i));
+    });
+  }
 
   // Let automations (e.g. api_resync) know that the entity list changed.
   this->registered_callback_.call();
+
+  // Schedule the next creation until the requested count is reached.
+  if (this->demo_sensors_.size() < this->count_) {
+    this->set_timeout("create_demo", this->create_interval_ms_, [this]() { this->create_next_demo_sensor_(); });
+  }
 #endif
 }
 

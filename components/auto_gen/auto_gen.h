@@ -10,6 +10,7 @@
 #endif
 
 #include <string>
+#include <vector>
 
 namespace esphome {
 namespace auto_gen {
@@ -28,6 +29,8 @@ class AutoGenComponent : public Component {
   float get_setup_priority() const override { return setup_priority::LATE; }
 
   void set_delay(uint32_t delay_ms) { this->delay_ms_ = delay_ms; }
+  void set_count(uint8_t count) { this->count_ = count; }
+  void set_create_interval(uint32_t interval_ms) { this->create_interval_ms_ = interval_ms; }
   void set_max_sensors(uint8_t max_sensors) { this->max_sensors_ = max_sensors; }
   void set_sensor_name(const std::string &name) { this->sensor_name_ = name; }
   void set_uom_index(uint8_t uom_index) { this->uom_index_ = uom_index; }
@@ -42,16 +45,19 @@ class AutoGenComponent : public Component {
 #endif
 
  protected:
-  void create_demo_sensor_();
+  /// Create the next demo sensor and schedule the following one until `count_` is reached.
+  void create_next_demo_sensor_();
 
   uint32_t delay_ms_{10000};
+  uint32_t create_interval_ms_{15000};
+  uint8_t count_{1};
   uint8_t max_sensors_{4};
   uint8_t uom_index_{0};
   uint8_t created_{0};
   std::string sensor_name_{"auto_gen_test"};
   float demo_value_{0.0f};
 #ifdef USE_SENSOR
-  sensor::Sensor *demo_sensor_{nullptr};
+  std::vector<sensor::Sensor *> demo_sensors_{};
 #endif
   CallbackManager<void()> registered_callback_{};
 };

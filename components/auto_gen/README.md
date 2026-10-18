@@ -17,7 +17,9 @@ compile time. `auto_gen` therefore does two things:
    unit of measurement in the generated string tables.
 2. **At runtime** (`auto_gen.cpp`): after `delay`, it allocates a
    `sensor::Sensor`, registers it with `App.register_sensor(...)`, publishes a
-   changing value, then fires `on_registered`.
+   changing value, then fires `on_registered`. With `count` > 1 it repeats this
+   every `create_interval` until `count` sensors exist, so the number of
+   entities visible in Home Assistant grows over time.
 
 Home Assistant only reads the entity list when the API connection is
 established. If it is already connected when the entity appears, chain the
@@ -38,6 +40,8 @@ api_resync:
 auto_gen:
   id: autogen_hub
   delay: 10s
+  count: 3
+  create_interval: 15s
   max_sensors: 4
   sensor_name: ${name}_autogen_test
   unit_of_measurement: W
@@ -48,15 +52,21 @@ auto_gen:
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `delay` | `10s` | Delay between boot and the creation of the demo sensor |
+| `delay` | `10s` | Delay between boot and the creation of the first demo sensor |
+| `count` | `1` | Number of demo sensors created at runtime (must not exceed `max_sensors`) |
+| `create_interval` | `15s` | Delay between two successive creations |
 | `max_sensors` | `4` | Sensor slots reserved at compile time (1-64) |
-| `sensor_name` | `auto_gen_test` | Name of the runtime sensor |
-| `unit_of_measurement` | `W` | Unit of the runtime sensor (must be known at compile time) |
-| `on_registered` | - | Automation fired once the entity is registered |
+| `sensor_name` | `auto_gen_test` | Base name of the runtime sensors (`_<n>` is appended when `count` > 1) |
+| `unit_of_measurement` | `W` | Unit of the runtime sensors (must be known at compile time) |
+| `on_registered` | - | Automation fired after each registered entity |
+
+`max_sensors` is only the number of reserved slots; `count` is how many
+sensors are actually created.
 
 ## What to check on the device
 
-- The log shows `Registered sensor '...' (1/4 slots used)`.
+- The log shows `Registered sensor '...' (1/4 slots used)`, then 2/4, 3/4 ...
+  every `create_interval`.
 - If Home Assistant connects **after** the registration, the entity appears
   without any resync.
 - If Home Assistant was already connected, the entity appears only after the
