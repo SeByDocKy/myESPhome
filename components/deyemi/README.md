@@ -82,9 +82,13 @@ Each poll cycle issues a single Modbus "Read Holding Registers" (function
 `0x03`) request covering `0x0001`-`0x007D` (125 registers) in one shot.
 
 References:
-- Register map, scaling, word order (GEN3 source): [StephanJoubert/home_assistant_solarman](https://github.com/StephanJoubert/home_assistant_solarman)
+- Register map, scaling (GEN3 source): [StephanJoubert/home_assistant_solarman](https://github.com/StephanJoubert/home_assistant_solarman)
   (`custom_components/solarman/inverter_definitions/deye_2mppt.yaml` and
   `deye_4mppt.yaml`)
+- 32-bit word order: the same project's `custom_components/solarman/parser.py`
+  (`try_parse_unsigned`, used for "rule 3"/"rule 1" fields) -- confirms
+  low-word-first by showing the actual register-combining code, not just the
+  YAML field labels
 - GEN4 confirmation of the same register list: [home_assistant_solarman discussion #549](https://github.com/StephanJoubert/home_assistant_solarman/discussions/549)
   (comments by `flosch-dev` and `hellafritz`, Aug 2024)
 - Model datasheets: [SUN-M60/80/100G4-EU-Q0](https://www.deyeinverter.com/deyeinverter/2025/04/29/datasheet_sun-m60-80-100g4-eu-q0_250427_en.pdf),
@@ -170,12 +174,16 @@ diagnostic aid, but no longer used for model detection.
 
 ## Known unknowns -- please report back once you have real hardware
 
-- **32-bit register word order** (`Total Production` at `0x003F`/`0x0040`,
-  `Total AC Output Power` at `0x0056`/`0x0057`): implemented as
-  **high-word-first**, this author's best guess from common Modbus/Solarman
-  convention -- not confirmed by any source used here, GEN3 or GEN4. If
-  `ac.power` or `ac.energy_total` come back wildly wrong (e.g. jumping
-  by a factor of 65536), this word order is the first thing to flip.
+- ~~32-bit register word order~~ **Fixed**: `Total Production`
+  (`0x003F`/`0x0040`) and `Total AC Output Power` (`0x0056`/`0x0057`) were
+  previously decoded high-word-first, an unconfirmed guess. That guess was
+  wrong -- it produced a real bogus `ac.power` reading in the field (over 5
+  million watts). Fixed to low-word-first, confirmed against
+  [StephanJoubert/home_assistant_solarman](https://github.com/StephanJoubert/home_assistant_solarman)'s
+  actual `parser.py` (not just its YAML field labels): `try_parse_unsigned`
+  iterates a field's `registers` list in order and shifts each successive
+  register 16 bits further left, so the first (numerically lower) register
+  address is always the low word.
 - **Alternative power regulation register for true 0% output**: a
   [separate feature request](https://github.com/orgs/home-assistant/discussions/3354)
   for the SUN-M200G4-EU-Q0 (GEN4) documents that register `0x0028` (the one
