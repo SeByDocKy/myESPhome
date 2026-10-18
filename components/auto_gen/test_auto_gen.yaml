@@ -1,0 +1,47 @@
+substitutions:
+  name: "test_auto_gen"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+ota:
+  - platform: esphome
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [auto_gen, api_resync]
+    refresh: 10s
+
+  # - source:
+      # type: local
+      # path: components
+
+logger:
+  level: debug
+
+api_resync:
+  id: resync_hub
+  min_interval: 5s
+  delay: 500ms
+
+auto_gen:
+  id: autogen_hub
+  delay: 10s
+  max_sensors: 4
+  sensor_name: ${name}_autogen_test
+  unit_of_measurement: W
+  on_registered:
+    - logger.log: "auto_gen: sensor registered, asking Home Assistant to re-read entities"
+    - api_resync.resync: resync_hub
