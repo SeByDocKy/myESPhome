@@ -220,11 +220,15 @@ class DeyeMiComponent : public PollingComponent {
 
   static uint16_t get_u16_(const std::vector<uint8_t> &regs, uint16_t reg, uint16_t start_reg);
   static int16_t get_s16_(const std::vector<uint8_t> &regs, uint16_t reg, uint16_t start_reg);
-  // High-word-first, per register pair as listed in the source project's
-  // "rule 3" fields (e.g. [0x003F, 0x0040] -> 0x003F is the high word). Same
-  // same unverified assumption discussed in README -- flagged as
-  // a value to double-check.
-  static uint32_t get_u32_hi_first_(const std::vector<uint8_t> &regs, uint16_t reg_hi, uint16_t reg_lo,
+  // Low-word-first (reg_lo is the first/lower register address, e.g.
+  // [0x003F, 0x0040] -> 0x003F is the LOW word, 0x0040 the HIGH word).
+  // Previously implemented backwards (high-word-first) as an unverified
+  // guess; confirmed wrong by a real-world misreading of ac.power
+  // (5164237 W) and fixed against StephanJoubert/home_assistant_solarman's
+  // actual parser.py (try_parse_unsigned: iterates `definition['registers']`
+  // in list order, first register contributes to bit-shift 0, i.e. is the
+  // low word) -- not just the YAML field labels, the real combining code.
+  static uint32_t get_u32_lo_first_(const std::vector<uint8_t> &regs, uint16_t reg_lo, uint16_t reg_hi,
                                      uint16_t start_reg);
 
   static const char *running_status_name_(uint16_t value);
