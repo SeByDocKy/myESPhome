@@ -55,15 +55,18 @@ int16_t DeyeMiComponent::get_s16_(const std::vector<uint8_t> &regs, uint16_t reg
   return (int16_t) get_u16_(regs, reg, start_reg);
 }
 
-// UNVERIFIED (no real hardware at time of writing): assumes the first
-// register in a "rule 3" pair (e.g. Total Production = [0x003F, 0x0040]) is
-// the HIGH word -- same assumption discussed in deyemi.h,
-// unconfirmed. If total energy readings come back wildly wrong (e.g.
-// jumping by 65536x), swap this to low-word-first.
-uint32_t DeyeMiComponent::get_u32_hi_first_(const std::vector<uint8_t> &regs, uint16_t reg_hi, uint16_t reg_lo,
+// Low-word-first: the first/lower register address (reg_lo) holds the low
+// 16 bits, the next one (reg_hi) the high 16 bits. Confirmed against
+// StephanJoubert/home_assistant_solarman's parser.py (try_parse_unsigned:
+// `definition['registers']` is iterated in list order, value += reg <<
+// shift, shift starting at 0 -- so the first-listed register, which is
+// always the numerically lower address in this component's register pairs,
+// is the low word). A previous high-word-first guess here produced a real
+// bogus ac.power reading of 5164237 W in the field.
+uint32_t DeyeMiComponent::get_u32_lo_first_(const std::vector<uint8_t> &regs, uint16_t reg_lo, uint16_t reg_hi,
                                                uint16_t start_reg) {
-  uint16_t high = get_u16_(regs, reg_hi, start_reg);
   uint16_t low = get_u16_(regs, reg_lo, start_reg);
+  uint16_t high = get_u16_(regs, reg_hi, start_reg);
   return ((uint32_t) high << 16) | (uint32_t) low;
 }
 
@@ -605,12 +608,12 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
     this->rated_power_sensor_->publish_state(get_u16_(regs, REG_RATED_POWER, start_reg) * 0.1f);
   if (this->ac_power_sensor_ != nullptr)
     this->ac_power_sensor_->publish_state(
-        get_u32_hi_first_(regs, REG_TOTAL_AC_POWER, REG_TOTAL_AC_POWER + 1, start_reg) * 0.1f);
+        get_u32_lo_first_(regs, REG_TOTAL_AC_POWER, REG_TOTAL_AC_POWER + 1, start_reg) * 0.1f);
   if (this->ac_energy_today_sensor_ != nullptr)
     this->ac_energy_today_sensor_->publish_state(get_u16_(regs, REG_DAILY_PRODUCTION, start_reg) * 0.1f);
   if (this->ac_energy_total_sensor_ != nullptr)
     this->ac_energy_total_sensor_->publish_state(
-        get_u32_hi_first_(regs, REG_TOTAL_PRODUCTION, REG_TOTAL_PRODUCTION + 1, start_reg) * 0.1f);
+        get_u32_lo_first_(regs, REG_TOTAL_PRODUCTION, REG_TOTAL_PRODUCTION + 1, start_reg) * 0.1f);
 
   static const uint16_t PV_VOLTAGE_REG[4] = {REG_PV1_VOLTAGE, REG_PV2_VOLTAGE, REG_PV3_VOLTAGE, REG_PV4_VOLTAGE};
   static const uint16_t PV_CURRENT_REG[4] = {REG_PV1_CURRENT, REG_PV2_CURRENT, REG_PV3_CURRENT, REG_PV4_CURRENT};
