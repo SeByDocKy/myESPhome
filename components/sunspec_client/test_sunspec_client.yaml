@@ -70,6 +70,8 @@ sunspec_client:
     address: 1
     name_prefix: ${name}_inv
     models: [1, 103, 160]
+    max_modules: 4
+    update_interval: 10s
     startup_delay: 5s
     scan_retry_interval: 30s
 
