@@ -12,6 +12,9 @@
 #ifdef USE_TEXT_SENSOR
 #include "esphome/components/text_sensor/text_sensor.h"
 #endif
+#ifdef USE_BINARY_SENSOR
+#include "esphome/components/binary_sensor/binary_sensor.h"
+#endif
 
 #include "sunspec_models.h"
 
@@ -71,6 +74,15 @@ struct Binding {
 #endif
 };
 
+#ifdef USE_BINARY_SENSOR
+/// A binary sensor bound to a named bit of a bitfield point.
+struct BitBinding {
+  uint16_t binding_index;  ///< index in the vector of bindings of the bitfield point
+  uint8_t bit;
+  binary_sensor::BinarySensor *sensor;
+};
+#endif
+
 /// SunSpec client on the core modbus bus.
 ///
 /// The component is itself a modbus client device. After the scan of the model headers, the models of the
@@ -88,6 +100,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void set_scan_retry_interval(uint32_t interval_ms) { this->scan_retry_interval_ms_ = interval_ms; }
   void set_update_interval(uint32_t interval_ms) { this->update_interval_ms_ = interval_ms; }
   void set_max_modules(uint8_t count) { this->max_modules_ = count; }
+  void set_bitfield_binary_sensors(bool enable) { this->bitfield_binary_sensors_ = enable; }
   void set_name_prefix(const std::string &prefix) { this->name_prefix_ = prefix; }
   void add_wanted_model(uint16_t model_id) { this->wanted_models_.push_back(model_id); }
   /// Index of a unit string in the generated table of the application (registered by codegen).
@@ -133,6 +146,9 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void discover_points_(uint8_t model_index);
   void create_entities_();
   void publish_values_(uint8_t model_index);
+#ifdef USE_BINARY_SENSOR
+  void publish_bits_(uint16_t binding_index, const Binding &b);
+#endif
   void schedule_next_cycle_();
   void request_resync_();
   void do_resync_();
@@ -143,6 +159,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   uint32_t scan_retry_interval_ms_{30000};
   uint32_t update_interval_ms_{10000};
   uint8_t max_modules_{4};
+  bool bitfield_binary_sensors_{false};
   std::string name_prefix_{};
   std::vector<uint16_t> wanted_models_{};
   std::vector<UnitIndex> unit_indices_{};
@@ -162,6 +179,9 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   std::vector<uint16_t> buffer_{};  ///< registers of the model being read
   uint16_t buffer_target_{0};       ///< registers to read for the model being read
   std::vector<Binding> bindings_{};
+#ifdef USE_BINARY_SENSOR
+  std::vector<BitBinding> bit_bindings_{};
+#endif
   std::vector<const std::string *> names_{};  ///< names given to the created entities
   uint32_t last_resync_ms_{0};
   bool has_resynced_{false};

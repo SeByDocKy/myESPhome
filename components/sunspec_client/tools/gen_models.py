@@ -72,6 +72,8 @@ def count_entries(info, entries, key):
             info["kinds"].add(kind)
         elif TYPES[p["type"]] in TEXT:
             info["text_" + key] += 1
+            if TYPES[p["type"]].startswith("BITFIELD"):
+                info["bits_" + key] += sum(1 for sym in p.get("symbols", []) if not sym["name"].startswith("RESERVED"))
 
 
 def main():
@@ -144,7 +146,7 @@ def main():
                 sf_offsets[p["name"]] = off
             off += p["size"]
         fixed, fixed_size = collect(g["points"], sf_offsets, SKIP_POINTS.get(mid, ()))
-        info[mid] = {"points": 0, "group_points": 0, "text_points": 0, "text_group_points": 0, "units": set(), "kinds": set()}
+        info[mid] = {"points": 0, "group_points": 0, "text_points": 0, "text_group_points": 0, "bits_points": 0, "bits_group_points": 0, "units": set(), "kinds": set()}
         count_entries(info[mid], fixed, "points")
         count_off = next((o for o, p in zip(
             [sum(q["size"] for q in g["points"][:i]) for i in range(len(g["points"]))], g["points"])
@@ -204,6 +206,7 @@ def main():
     for mid, i in info.items():
         py.append(f"    {mid}: {{\"points\": {i['points']}, \"group_points\": {i['group_points']}, "
                   f"\"text_points\": {i['text_points']}, \"text_group_points\": {i['text_group_points']}, "
+                  f"\"bits_points\": {i['bits_points']}, \"bits_group_points\": {i['bits_group_points']}, "
                   f"\"units\": {sorted(i['units'])!r}, \"kinds\": {sorted(i['kinds'], key=kinds.index)!r}}},")
     py += ["}", "", "# PointKind enumerators in declaration order", f"POINT_KINDS = {kinds!r}", ""]
     dst.with_name("sunspec_models_info.py").write_text("\n".join(py))

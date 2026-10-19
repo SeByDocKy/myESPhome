@@ -37,7 +37,7 @@ from esphome.types import ConfigType
 from .sunspec_models_info import MODEL_INFO, POINT_KINDS
 
 CODEOWNERS = ["@SeByDocKy"]
-AUTO_LOAD = ["modbus", "sensor", "text_sensor"]
+AUTO_LOAD = ["modbus", "sensor", "text_sensor", "binary_sensor"]
 # Several devices on the same bus (or several buses) are possible: one block per device.
 MULTI_CONF = True
 
@@ -53,6 +53,7 @@ CONF_STARTUP_DELAY = "startup_delay"
 CONF_SCAN_RETRY_INTERVAL = "scan_retry_interval"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_MAX_MODULES = "max_modules"
+CONF_BITFIELD_BINARY_SENSORS = "bitfield_binary_sensors"
 
 # Home Assistant device class of each kind of point (PointKind enumerators of the generated tables)
 DEVICE_CLASSES = {
@@ -77,6 +78,8 @@ CONFIG_SCHEMA = (
             ),
             # Instances of a repeating group (e.g. the MPPT inputs of model 160) that get entities.
             cv.Optional(CONF_MAX_MODULES, default=4): cv.int_range(min=1, max=16),
+            # Also create one binary_sensor per named bit of the bitfield points (events, states).
+            cv.Optional(CONF_BITFIELD_BINARY_SENSORS, default=False): cv.boolean,
             # Refresh period of the sensors.
             cv.Optional(
                 CONF_UPDATE_INTERVAL, default="10s"
@@ -125,9 +128,11 @@ async def to_code(config: ConfigType) -> None:
     cg.add(var.set_name_prefix(config[CONF_NAME_PREFIX]))
     cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL]))
     cg.add(var.set_max_modules(config[CONF_MAX_MODULES]))
+    cg.add(var.set_bitfield_binary_sensors(config[CONF_BITFIELD_BINARY_SENSORS]))
 
     slots = 0
     text_slots = 0
+    bit_slots = 0
     units = set()
     kinds = set()
     for model in config[CONF_MODELS]:
@@ -142,10 +147,17 @@ async def to_code(config: ConfigType) -> None:
         units.update(info["units"])
         kinds.update(info["kinds"])
 
+    if config[CONF_BITFIELD_BINARY_SENSORS]:
+        for model in config[CONF_MODELS]:
+            info = MODEL_INFO[model]
+            bit_slots += (
+                info["bits_points"] + info["bits_group_points"] * config[CONF_MAX_MODULES]
+            )
     # Reserve the sensor slots (ESPHOME_ENTITY_SENSOR_COUNT is generated from CORE.platform_counts at
     # CoroPriority.FINAL, i.e. after this to_code()).
     CORE.platform_counts["sensor"] += slots
     CORE.platform_counts["text_sensor"] += text_slots
+    CORE.platform_counts["binary_sensor"] += bit_slots
 
     # Unit and device class strings must live in the generated tables; C++ only gets their indices.
     for unit in sorted(units):

@@ -609,6 +609,40 @@ void SunSpecClient::create_entities_() {
       b.text_sensor = ts;
       created++;
 #endif
+#ifdef USE_BINARY_SENSOR
+      if (this->bitfield_binary_sensors_ && b.def->symbols != nullptr &&
+          (b.def->type == PointType::BITFIELD16 || b.def->type == PointType::BITFIELD32)) {
+        for (uint8_t i = 0; i < b.def->num_symbols; i++) {
+          const SymbolDef &sym = b.def->symbols[i];
+          if (strncmp(sym.name, "RESERVED", 8) == 0)
+            continue;
+          if (App.get_binary_sensors().size() >= ESPHOME_ENTITY_BINARY_SENSOR_COUNT) {
+            skipped++;
+            continue;
+          }
+          // "GROUND_FAULT" -> "Ground fault"
+          std::string bit_name = name + " ";
+          const size_t start = bit_name.size();
+          bit_name += sym.name;
+          for (size_t k = start; k < bit_name.size(); k++) {
+            if (bit_name[k] == '_')
+              bit_name[k] = ' ';
+            else if (k > start && bit_name[k] >= 'A' && bit_name[k] <= 'Z')
+              bit_name[k] = static_cast<char>(bit_name[k] - 'A' + 'a');
+          }
+          auto *bs = new binary_sensor::BinarySensor();  // NOLINT: entities live for the whole runtime
+          auto *bstored = new std::string(bit_name);     // NOLINT: same lifetime as the entity
+          this->names_.push_back(bstored);
+          const uint32_t bhash = fnv1_hash_object_id(bstored->c_str(), bstored->size());
+          const uint32_t bfields = static_cast<uint32_t>(ENTITY_CATEGORY_DIAGNOSTIC)
+                                   << ENTITY_FIELD_ENTITY_CATEGORY_SHIFT;
+          App.register_binary_sensor(bs, bstored->c_str(), bhash, bfields);
+          this->bit_bindings_.push_back(
+              BitBinding{static_cast<uint16_t>(&b - &this->bindings_[0]), static_cast<uint8_t>(sym.value), bs});
+          created++;
+        }
+      }
+#endif
       continue;
     }
 #ifdef USE_SENSOR
@@ -636,7 +670,7 @@ void SunSpecClient::create_entities_() {
 #endif
   }
   this->entities_created_ = true;
-  ESP_LOGI(TAG, "Created %u entities (sensors and text sensors) from %u model(s)", static_cast<unsigned>(created),
+  ESP_LOGI(TAG, "Created %u entities from %u model(s)", static_cast<unsigned>(created),
            static_cast<unsigned>(this->plan_.size()));
   if (skipped > 0)
     ESP_LOGE(TAG, "%u entities not created: no free slot (check 'models' and 'max_modules')",
@@ -646,6 +680,20 @@ void SunSpecClient::create_entities_() {
     this->request_resync_();
 }
 
+#ifdef USE_BINARY_SENSOR
+void SunSpecClient::publish_bits_(uint16_t binding_index, const Binding &b) {
+  if (b.def->size == 0 || static_cast<size_t>(b.offset) + b.def->size > this->buffer_.size())
+    return;
+  uint32_t bits = this->buffer_[b.offset];
+  if (b.def->type == PointType::BITFIELD32)
+    bits = (bits << 16) | this->buffer_[b.offset + 1];
+  for (auto &bb : this->bit_bindings_) {
+    if (bb.binding_index == binding_index)
+      bb.sensor->publish_state((bits >> bb.bit) & 1u);
+  }
+}
+#endif
+
 void SunSpecClient::publish_values_(uint8_t model_index) {
   for (auto &b : this->bindings_) {
     if (b.model_index != model_index)
@@ -654,10 +702,15 @@ void SunSpecClient::publish_values_(uint8_t model_index) {
     if (b.text_sensor != nullptr) {
       std::string text;
       // Keep the last text when the point is not readable, publish only changes
-      if (decode_text(this->buffer_, *b.def, b.offset, text) && (!b.text_sensor->has_state() || b.text_sensor->state != text)) {
-        ESP_LOGV(TAG, "model %u offset %u '%s' = %s", this->models_[model_index].id, b.offset, b.def->key,
-                 text.c_str());
-        b.text_sensor->publish_state(text);
+      if (decode_text(this->buffer_, *b.def, b.offset, text)) {
+        if (!b.text_sensor->has_state() || b.text_sensor->state != text) {
+          ESP_LOGV(TAG, "model %u offset %u '%s' = %s", this->models_[model_index].id, b.offset, b.def->key,
+                   text.c_str());
+          b.text_sensor->publish_state(text);
+        }
+#ifdef USE_BINARY_SENSOR
+        this->publish_bits_(static_cast<uint16_t>(&b - &this->bindings_[0]), b);
+#endif
       }
       continue;
     }

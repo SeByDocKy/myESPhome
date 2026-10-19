@@ -33,16 +33,26 @@ example `pv_inv module 2 DC Voltage`). If two models give the same name, ` (mode
 | `enum16` | `text_sensor` (diagnostic) | name of the enum value (the number when the value is unknown) |
 | `bitfield16`, `bitfield32` | `text_sensor` (diagnostic) | names of the bits set, separated by commas (`none` when no bit is set) |
 | `string` | `text_sensor` (diagnostic) | the text; an empty string means not implemented |
+| each named bit of a bitfield, with `bitfield_binary_sensors: true` | `binary_sensor` (diagnostic) | ON when the bit is set |
 
 A point gets an entity only when the device implements it: not the reserved "not implemented" value of its type
 (for example `0x8000` for `int16`, `0xFFFF` for `uint16`, `enum16` and `bitfield16`, NaN for `float32`). Text
 sensors are published when the text changes. The enum and bit names are the SunSpec symbol names (for example
 `MPPT`, `GROUND_FAULT`).
 
+### Bitfield binary sensors
+
+With `bitfield_binary_sensors: true` a `binary_sensor` is created for every named, non-reserved bit of each bitfield
+point the device implements (in addition to the text sensor), for example `pv_inv Event1 Ground fault`. This is
+convenient for automations and alerts, but it adds many entities (about 16 for the events of model 103, 13 per MPPT
+module for the events of model 160, 21 to 29 for the meter events). It is off by default. Bits without a name in the
+model (for example the vendor bitfields) stay in the text sensor only.
+
 ### Entity slots
 
 ESPHome entity containers are sized at compile time. The component reserves one `sensor` slot per numeric point and
-one `text_sensor` slot per enum, bitfield or string point of the models in `models:` (and `max_modules` instances
+one `text_sensor` slot per enum, bitfield or string point (and one `binary_sensor` slot per named bit when
+`bitfield_binary_sensors` is on) of the models in `models:` (and `max_modules` instances
 of repeating groups). So `models:` is the wish list: entities are only created for the models the device exposes,
 but slots are reserved for all of them. A log error tells when some entities could not be created for lack of slots.
 
@@ -70,6 +80,7 @@ sunspec_client:
     models: [1, 103, 160]
     max_modules: 4            # instances of a repeating group (MPPT inputs of model 160) with entities
     update_interval: 10s
+    bitfield_binary_sensors: false   # true: one binary_sensor per named event/state bit
     startup_delay: 5s
     scan_retry_interval: 30s
 
@@ -92,6 +103,7 @@ text_sensor:
 | `name_prefix` | – | Prefix for the entity names |
 | `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120, 122, 124, 160, 201-204, 802) |
 | `max_modules` | 4 | Instances of a repeating group that get entities (1 to 16) |
+| `bitfield_binary_sensors` | false | One binary_sensor per named bit of bitfield points |
 | `update_interval` | 10s | Refresh period of the sensors |
 | `startup_delay` | 5s | Wait before the first scan |
 | `scan_retry_interval` | 30s | Delay before a new scan after a failure |
