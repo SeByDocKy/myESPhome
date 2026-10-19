@@ -84,6 +84,7 @@ void SunSpecClient::dump_config() {
   ESP_LOGCONFIG(TAG, "  Unit address: %u", static_cast<unsigned>(this->address_));
   ESP_LOGCONFIG(TAG, "  Startup delay: %" PRIu32 " ms", this->startup_delay_ms_);
   ESP_LOGCONFIG(TAG, "  Scan retry interval: %" PRIu32 " ms", this->scan_retry_interval_ms_);
+  ESP_LOGCONFIG(TAG, "  Wait for network: %s", YESNO(this->wait_for_network_));
   ESP_LOGCONFIG(TAG, "  Update interval: %" PRIu32 " ms", this->update_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Max modules (repeating groups): %u", static_cast<unsigned>(this->max_modules_));
   ESP_LOGCONFIG(TAG, "  Name prefix: '%s'", this->name_prefix_.c_str());
@@ -100,8 +101,9 @@ void SunSpecClient::dump_config() {
 }
 
 void SunSpecClient::start_scan_() {
-  // Wait for the network: a request sent before WiFi/Ethernet is up would be dropped and wasted.
-  if (!network::is_connected()) {
+  // Modbus TCP: a request sent before WiFi/Ethernet is up would be dropped and wasted. A serial line (RS485)
+  // does not depend on the network.
+  if (this->wait_for_network_ && !network::is_connected()) {
     ESP_LOGD(TAG, "Network not connected yet, scan postponed");
     this->set_timeout("scan_start", 1000, [this]() { this->start_scan_(); });
     return;

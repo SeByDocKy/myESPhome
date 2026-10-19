@@ -80,6 +80,7 @@ sunspec_client:
     models: [1, 103, 160]
     max_modules: 4            # instances of a repeating group (MPPT inputs of model 160) with entities
     update_interval: 10s
+    wait_for_network: true           # default: true for Modbus TCP, false for RS485
     bitfield_binary_sensors: false   # true: one binary_sensor per named event/state bit
     startup_delay: 5s
     scan_retry_interval: 30s
@@ -104,6 +105,7 @@ text_sensor:
 | `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120, 122, 124, 160, 201-204, 802) |
 | `max_modules` | 4 | Instances of a repeating group that get entities (1 to 16) |
 | `bitfield_binary_sensors` | false | One binary_sensor per named bit of bitfield points |
+| `wait_for_network` | auto | Wait for WiFi/Ethernet before the first scan. Default: `true` for Modbus TCP (`modbus_tcp_uart`), `false` for a serial line (RS485) |
 | `update_interval` | 10s | Refresh period of the sensors |
 | `startup_delay` | 5s | Wait before the first scan |
 | `scan_retry_interval` | 30s | Delay before a new scan after a failure |

@@ -54,6 +54,7 @@ CONF_SCAN_RETRY_INTERVAL = "scan_retry_interval"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_MAX_MODULES = "max_modules"
 CONF_BITFIELD_BINARY_SENSORS = "bitfield_binary_sensors"
+CONF_WAIT_FOR_NETWORK = "wait_for_network"
 
 # Home Assistant device class of each kind of point (PointKind enumerators of the generated tables)
 DEVICE_CLASSES = {
@@ -80,6 +81,9 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_MAX_MODULES, default=4): cv.int_range(min=1, max=16),
             # Also create one binary_sensor per named bit of the bitfield points (events, states).
             cv.Optional(CONF_BITFIELD_BINARY_SENSORS, default=False): cv.boolean,
+            # Wait for the network (WiFi, Ethernet) before the first scan. Default: yes for Modbus TCP
+            # (tcp_uart + modbus_tcp_uart), no for a serial line (RS485), which does not depend on it.
+            cv.Optional(CONF_WAIT_FOR_NETWORK): cv.boolean,
             # Refresh period of the sensors.
             cv.Optional(
                 CONF_UPDATE_INTERVAL, default="10s"
@@ -110,6 +114,18 @@ def _validate_models(config: ConfigType) -> ConfigType:
 CONFIG_SCHEMA = cv.All(CONFIG_SCHEMA, _validate_models)
 
 
+def uses_modbus_tcp(full_config: ConfigType, modbus_id) -> bool:
+    """True when the modbus bus `modbus_id` sits on a modbus_tcp_uart (serial over TCP) instead of a UART."""
+    for bus in full_config.get("modbus", []):
+        if bus.get(CONF_ID) == modbus_id:
+            uart_id = bus.get("uart_id")
+            return any(
+                dev.get(CONF_ID) == uart_id
+                for dev in full_config.get("modbus_tcp_uart", [])
+            )
+    return False
+
+
 def _final_validate(config: ConfigType) -> None:
     modbus.final_validate_modbus_device("sunspec_client", role="client")(config)
 
@@ -129,6 +145,10 @@ async def to_code(config: ConfigType) -> None:
     cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL]))
     cg.add(var.set_max_modules(config[CONF_MAX_MODULES]))
     cg.add(var.set_bitfield_binary_sensors(config[CONF_BITFIELD_BINARY_SENSORS]))
+    wait_for_network = config.get(CONF_WAIT_FOR_NETWORK)
+    if wait_for_network is None:
+        wait_for_network = uses_modbus_tcp(CORE.config, config[modbus.CONF_MODBUS_ID])
+    cg.add(var.set_wait_for_network(wait_for_network))
 
     slots = 0
     text_slots = 0

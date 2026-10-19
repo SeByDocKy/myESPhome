@@ -100,6 +100,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void set_scan_retry_interval(uint32_t interval_ms) { this->scan_retry_interval_ms_ = interval_ms; }
   void set_update_interval(uint32_t interval_ms) { this->update_interval_ms_ = interval_ms; }
   void set_max_modules(uint8_t count) { this->max_modules_ = count; }
+  void set_wait_for_network(bool wait) { this->wait_for_network_ = wait; }
   void set_bitfield_binary_sensors(bool enable) { this->bitfield_binary_sensors_ = enable; }
   void set_name_prefix(const std::string &prefix) { this->name_prefix_ = prefix; }
   void add_wanted_model(uint16_t model_id) { this->wanted_models_.push_back(model_id); }
@@ -160,6 +161,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   uint32_t update_interval_ms_{10000};
   uint8_t max_modules_{4};
   bool bitfield_binary_sensors_{false};
+  bool wait_for_network_{false};
   std::string name_prefix_{};
   std::vector<uint16_t> wanted_models_{};
   std::vector<UnitIndex> unit_indices_{};
