@@ -193,13 +193,20 @@ Models reported by manufacturers (documentation or SunSpec certification registr
 | Sigenergy (Sigen inverter) | 1, 704, 715 | [SunSpec certification registry](https://sunspec.org/product-certification-registry/) |
 | Afore (Afore inverter) | 1, 213, 701, 702, 703, 704, 713, 714, 715 | [SunSpec certification registry](https://sunspec.org/product-certification-registry/) |
 | Atmoce (M-Gateway) | 1, 703, 704 | [SunSpec certification registry](https://sunspec.org/product-certification-registry/) |
+| Sungrow (SG60KU, SG125HV inverters) | 1, 103 | [SunSpec certification registry](https://sunspec.org/contributing-members/sungrow-sunspec-alliance/) |
+| Sungrow (Intelligent Gateway) | 1, 701, 702, 704, 713, 715 | [SunSpec certification registry](https://sunspec.org/contributing-members/sungrow-sunspec-alliance/) |
+| Ginlong Solis (single-phase certificates) | 1, 101, 120, 121, 122, 123, 126, 127, 128, 132, 201; some also 124 and 160 | [SunSpec certification registry](https://sunspec.org/contributing-members/ginlong-technologies-co-ltd/) |
+| Ginlong Solis (three-phase certificates) | 1, 103, 120, 121, 122, 123, 126, 127, 128, 132; some also 160 | [SunSpec certification registry](https://sunspec.org/contributing-members/ginlong-technologies-co-ltd/) |
+| Delta Electronics (M6A to M125HV, M24U to M42U, M88H) | 1, 103, 120, 121, 122, 123, 126-132, 135, 136, 139, 140, 160, 401 | [SunSpec certification registry](https://sunspec.org/contributing-members/delta-electronics/) |
+| Delta Electronics (RPI H7U, H10U, M30A, M50A) | 1, 103, 120, 121, 122, 123, 127, 160 | [SunSpec certification registry](https://sunspec.org/contributing-members/delta-electronics/) |
+| SolarEdge | 1, 101-103, 160 (Synergy inverters, firmware 4.13 or later), 201-204 (up to three external meters) | [third-party compatibility page](https://taphome.com/en/compatibility/solaredge-sunspec/), not the manufacturer note |
 
-With a recent device only the common block (1) and some of the 7xx models are read by this component.
+Models of these lists that this component does not support (for example 126 to 132, 135, 136, 139, 140 and 401) are ignored. With a recent device, only the common block (1) and some of the 7xx models are read by this component.
 
 Other members of the alliance publish SunSpec certificates (the registry gives, for each product, a certificate
-and a PICS file with the models): for example Sungrow, Solis (Ginlong), Yaskawa Solectria, Alpha ESS, Fox ESS,
-Carlo Gavazzi and APsystems. Their model ids are not listed here because they could not be checked: look the
-product up in the [certification registry](https://sunspec.org/product-certification-registry/), or scan it.
+and a PICS file with the models): for example Alpha ESS, Fox ESS, Carlo Gavazzi and APsystems. Their model ids are
+not listed here because they could not be checked: look the product up in the
+[certification registry](https://sunspec.org/product-certification-registry/), or scan it.
 
 ## Options
 
