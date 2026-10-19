@@ -175,7 +175,7 @@ sunspec_client:
     modbus_id: modbus_sunspec
     address: 1                # Modbus unit id
     name_prefix: pv_inv       # prefix of the name of every created entity
-    trim_naming: false   # true: "Phase A current (W)" becomes "phase_a_current_w"
+    trim_naming: false        # true: "Phase A current (W)" becomes "phase_a_current_w"
     models: [1, 103, 160]
     controls: [123]           # optional: writable points of these models become number / select
     max_modules: 4            # instances of a repeating group (MPPT inputs of model 160) with entities
@@ -293,20 +293,46 @@ No test of the writes (`controls`) on a real device has been reported yet.
 
 ## Options
 
-| Option | Default | Description |
+Everything the component accepts in YAML: the `sunspec_client:` hub, the `text_sensor` platform and what can be
+called from a lambda. The entities themselves (sensors, text sensors, numbers, selects, binary sensors) are not
+declared in YAML: they are created after the scan, see [Entity names](#entity-names) and
+[Entity types](#entity-types).
+
+### Hub: `sunspec_client:`
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `id` | id | – | Id of the hub, used by the `text_sensor` platform and by lambdas |
+| `modbus_id` | id | – | **Required.** The core `modbus:` bus the device is on (RS485 `uart:`, or `modbus_tcp_uart` for Modbus TCP) |
+| `address` | 0 to 255 | `1` | Modbus unit id of the device. Many inverters answer at 1, some at another value (71 on the tested Kostal) |
+| `models` | list of model ids | `[]` | SunSpec models **wanted**. Compile-time wish list: entities are created for the models that are both in this list and exposed by the device. Allowed ids: 1, 101-103, 111-113, 120-124, 160, 201-204, 701-704, 713-715, 802. No duplicates. A model that is wanted but not exposed is only logged as a warning |
+| `controls` | list of model ids | `[]` | Models whose writable points become `number` / `select` controls (writes enabled) instead of read-only sensors. Each id must be in `models` and the model must have a writable point (121, 123, 124, 802, and the 16-bit points of 704 and 715). See [Controls](#controls-writes) |
+| `name_prefix` | string | `""` | Text put in front of the name of every entity, separated by a space |
+| `trim_naming` | boolean | `false` | Names in lower case with `_` between the words: spaces and special characters are removed, prefix included (`Phase A current (W)` becomes `phase_a_current_w`) |
+| `max_modules` | 1 to 16 | `4` | How many instances of a repeating group get entities (for example the MPPT inputs of model 160, the ports of model 714). Slots are reserved at compile time for this many |
+| `bitfield_binary_sensors` | boolean | `false` | Also create one diagnostic `binary_sensor` per named bit of the bitfield points (events, states, alarms) |
+| `update_interval` | time | `10s` | Period of a read cycle of the wanted models |
+| `wait_for_network` | boolean | auto | Wait for WiFi / Ethernet before the first scan. Default: `true` with Modbus TCP (`modbus_tcp_uart`), `false` with a serial line (RS485), which does not depend on the network |
+| `startup_delay` | time | `5s` | Wait before the first request, so that the link (WiFi, TCP) is up |
+| `scan_retry_interval` | time | `30s` | Wait before scanning again when a scan fails (no marker found, no answer) |
+
+### Text sensor platform: `text_sensor: - platform: sunspec_client`
+
+| Option | Type | Description |
 |---|---|---|
-| `modbus_id` | – | Core `modbus` bus |
-| `address` | 1 | Modbus unit id |
-| `name_prefix` | – | Prefix for the entity names |
-| `trim_naming` | false | Entity names in lower case with `_` between the words: spaces and special characters are removed, prefix included (`Phase A current (W)` becomes `phase_a_current_w`) |
-| `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120-124, 160, 201-204, 701-704, 713-715, 802) |
-| `controls` | – | Models whose writable points become `number` / `select` controls (writes enabled), subset of `models` |
-| `max_modules` | 4 | Instances of a repeating group that get entities (1 to 16) |
-| `bitfield_binary_sensors` | false | One binary_sensor per named bit of bitfield points |
-| `wait_for_network` | auto | Wait for WiFi/Ethernet before the first scan. Default: `true` for Modbus TCP (`modbus_tcp_uart`), `false` for a serial line (RS485) |
-| `update_interval` | 10s | Refresh period of the sensors |
-| `startup_delay` | 5s | Wait before the first scan |
-| `scan_retry_interval` | 30s | Delay before a new scan after a failure |
+| `sunspec_client_id` | id | The hub. Optional when there is only one `sunspec_client` |
+| `models` | text sensor | Ids of the SunSpec models the device exposes, found by the scan, for example `1, 103, 160`. It reads `scanning` while the scan runs and `scan failed` when it failed (a new attempt follows after `scan_retry_interval`). Diagnostic entity with the icon `mdi:format-list-numbered`; accepts the usual text sensor options (`name`, `id`, `internal`, `filters`...) |
+
+This is the way to find out which ids to put in `models` for a new device: start with a wide wish list, read this
+sensor after the first scan, then narrow the list down.
+
+### From a lambda
+
+| Call | Description |
+|---|---|
+| `id(<hub>)->set_point("WMaxLimPct", 50.0f)` | Write a value to the `number` control built on the SunSpec point of that name, as if it had been set from Home Assistant. Returns `false` when there is no such control. Needs the model in `controls` |
+| `id(<hub>)->is_scan_done()` | `true` once a scan has succeeded |
+| `id(<hub>)->get_models()` | Models found by the last scan (vector of id, length and register address), empty until then |
 
 ## Model tables and attribution
 
