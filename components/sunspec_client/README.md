@@ -271,6 +271,19 @@ and a PICS file with the models): for example Alpha ESS, Fox ESS, Carlo Gavazzi 
 not listed here because they could not be checked: look the product up in the
 [certification registry](https://sunspec.org/product-certification-registry/), or scan it.
 
+## Tested setups
+
+Reported by the author of the component, on real devices (the first tests on real hardware; before that the
+component had only been checked against a simulator):
+
+| Device | Transport | `models` | Result |
+|---|---|---|---|
+| Kostal PLENTICORE plus G3 inverter | Modbus TCP (`tcp_uart` + `modbus_tcp_uart`) | `[1, 103, 123, 160, 802]` | scan, entities and values work |
+| BYD battery, read through model 802 | same | same | works |
+| Kostal PLENTICORE plus G3 inverter, through a Tailscale tunnel | Modbus TCP over the tunnel of the [esphome-tailscale](https://github.com/Csontikka/esphome-tailscale) component | `[1, 103, 123, 160, 802]` | works |
+
+No test of the writes (`controls`) on a real device has been reported yet.
+
 ## Options
 
 | Option | Default | Description |
