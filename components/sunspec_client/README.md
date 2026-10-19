@@ -57,6 +57,18 @@ are not writable in this version.
 
 **Warning:** writes act on power electronics (for example `Conn` can disconnect an inverter from the grid and
 `WMaxLimPct` limits its output). Enable `controls` only for the models you need, and check the effect on your device.
+Recent devices (hybrid inverters, batteries, gateways) often expose the SunSpec 7xx "DER" series instead of
+101-124: 701 (AC measurements), 702 (capacity), 703 (enter service), 704 (AC controls), 713 (storage capacity),
+714 (DC measurements, one group per port) and 715 (control). These are read, with the same entities as the other
+models. Limits for now:
+
+- The 32-bit writable points (for example `WSet`, `VarSet` and the revert times of model 704) stay read only: only
+  16-bit points are written. The 16-bit ones of 704 and 715 can be listed in `controls`, but the DER models are
+  written in pairs (value + enable, with a revert time), so check the SunSpec specification before using them.
+- The curve models 705 to 712 (volt-var, trip curves, ...) are not supported.
+- 64-bit counters (for example `TotWhInj`) are published as a 32-bit float: beyond a few million Wh the
+  resolution is coarser than 1 Wh.
+
 Models with writable points: 121 (basic settings), 123 (immediate controls), 124 (basic storage controls) and
 802 (battery). Each model of `controls` must also be in `models`.
 
@@ -133,6 +145,7 @@ text sensor after the first scan, then narrow the list.
 | Inverter with floating point values | 111, 112 or 113 instead of 101, 102 or 103 | exposed by some brands |
 | Energy meter | `[1, 201]` | 201 single phase, 202 split phase, 203 three-phase wye, 204 three-phase delta |
 | Battery | `[1, 802]` | 124 for the charge / discharge controls |
+| Recent DER device (SunSpec 7xx series) | `[1, 701, 713, 714]` | read only for now, see below |
 
 To get controls, the model must be in **both** lists: add it to `models` (so that it is read) and its id to
 `controls`. A model of `controls` that is not in `models` is refused when the configuration is validated, and so
@@ -147,6 +160,47 @@ sunspec_client:
 Models with writable points: 123 (immediate controls: power limit, connection, power factor), 121 (settings),
 124 (storage controls). Controls act on the device: enable them one model at a time, see the warning above.
 
+## Devices and the models they expose
+
+The SunSpec Alliance defines the models (the tables of this component come from its public definitions). Which
+models a given product exposes is up to the manufacturer. The table below only lists what could be checked in
+published documentation; everything else must be read from the device with the `models` text sensor.
+
+| Kind of device | Models of the standard | Supported by this component |
+|---|---|---|
+| Common block (every device) | 1 | yes |
+| Inverter, integer values with scale factors | 101 single phase, 102 split phase, 103 three phase | yes |
+| Inverter, floating point values | 111, 112, 113 | yes |
+| Inverter settings, status, controls | 120 nameplate, 121 settings, 122 status, 123 immediate controls | yes |
+| Storage controls | 124 | yes |
+| MPPT inputs | 160 | yes |
+| Energy meter, integer | 201 single phase, 202 split phase, 203 wye, 204 delta | yes |
+| Energy meter, floating point | 211, 212, 213, 214 | no |
+| Battery | 802 | yes |
+| Network (Ethernet, IP) | 11, 12 | no |
+| Advanced inverter functions | 126 to 132 | no |
+| Recent "DER" series | 701 AC measurement, 702 capacity, 703 enter service, 704 AC controls, 713 storage capacity, 714 DC measurement, 715 control | yes, mostly read only |
+| DER curves and trips | 705 to 712 | no |
+
+Models the component does not support are ignored during the scan, they only appear in the `models` text sensor.
+
+Models reported by manufacturers (documentation or SunSpec certification registry, checked on 2026-10-19):
+
+| Manufacturer / product | Models | Source |
+|---|---|---|
+| SMA (Sunny Boy, Tripower, Data Manager, EDMM) | 1, 11, 12, 101-103, 120-123, 126-132, 160, 201-204, 211-214 | [SMA, SunSpec Modbus profile](https://manuals.sma.de/EDMM-20/en-US/14259660939.html) |
+| Fronius (Symo, Primo, GEN24) | 1, 111-113 (float, default) or 101-103 (integer), 120, 121, 122, 123, 160; 124 on storage systems only; meters through Modbus unit ids 200-204; 701-713 on Primo GEN24 208-240 V 3.8-10 kW with the RTU interface set to Slave | [Fronius manual](https://manuals.fronius.com/html/4204102649/en-US.html) |
+| Sigenergy (Sigen inverter) | 1, 704, 715 | [SunSpec certification registry](https://sunspec.org/product-certification-registry/) |
+| Afore (Afore inverter) | 1, 213, 701, 702, 703, 704, 713, 714, 715 | [SunSpec certification registry](https://sunspec.org/product-certification-registry/) |
+| Atmoce (M-Gateway) | 1, 703, 704 | [SunSpec certification registry](https://sunspec.org/product-certification-registry/) |
+
+With a recent device only the common block (1) and some of the 7xx models are read by this component.
+
+Other members of the alliance publish SunSpec certificates (the registry gives, for each product, a certificate
+and a PICS file with the models): for example Sungrow, Solis (Ginlong), Yaskawa Solectria, Alpha ESS, Fox ESS,
+Carlo Gavazzi and APsystems. Their model ids are not listed here because they could not be checked: look the
+product up in the [certification registry](https://sunspec.org/product-certification-registry/), or scan it.
+
 ## Options
 
 | Option | Default | Description |
@@ -154,7 +208,7 @@ Models with writable points: 123 (immediate controls: power limit, connection, p
 | `modbus_id` | – | Core `modbus` bus |
 | `address` | 1 | Modbus unit id |
 | `name_prefix` | – | Prefix for the entity names |
-| `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120-124, 160, 201-204, 802) |
+| `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120-124, 160, 201-204, 701-704, 713-715, 802) |
 | `controls` | – | Models whose writable points become `number` / `select` controls (writes enabled), subset of `models` |
 | `max_modules` | 4 | Instances of a repeating group that get entities (1 to 16) |
 | `bitfield_binary_sensors` | false | One binary_sensor per named bit of bitfield points |
