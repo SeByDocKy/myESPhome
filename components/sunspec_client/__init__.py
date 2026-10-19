@@ -37,7 +37,7 @@ from esphome.types import ConfigType
 from .sunspec_models_info import MODEL_INFO, POINT_KINDS
 
 CODEOWNERS = ["@SeByDocKy"]
-AUTO_LOAD = ["modbus", "sensor", "text_sensor", "binary_sensor"]
+AUTO_LOAD = ["modbus", "network", "sensor", "text_sensor", "binary_sensor"]
 # Several devices on the same bus (or several buses) are possible: one block per device.
 MULTI_CONF = True
 

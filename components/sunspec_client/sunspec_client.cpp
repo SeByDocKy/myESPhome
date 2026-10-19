@@ -6,6 +6,7 @@
 #include <iterator>
 #include <limits>
 
+#include "esphome/components/network/util.h"
 #include "esphome/core/application.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
@@ -99,6 +100,12 @@ void SunSpecClient::dump_config() {
 }
 
 void SunSpecClient::start_scan_() {
+  // Wait for the network: a request sent before WiFi/Ethernet is up would be dropped and wasted.
+  if (!network::is_connected()) {
+    ESP_LOGD(TAG, "Network not connected yet, scan postponed");
+    this->set_timeout("scan_start", 1000, [this]() { this->start_scan_(); });
+    return;
+  }
   this->models_.clear();
   this->scan_done_ = false;
   this->base_index_ = 0;
