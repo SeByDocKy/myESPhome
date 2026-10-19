@@ -30,6 +30,7 @@ from esphome.const import CONF_ID
 from esphome.core import CORE
 from esphome.core.entity_helpers import (
     register_device_class,
+    register_icon,
     register_unit_of_measurement,
 )
 from esphome.types import ConfigType
@@ -68,6 +69,22 @@ DEVICE_CLASSES = {
     "FREQUENCY": "frequency",
     "TEMPERATURE": "temperature",
 }
+
+# Icons, same conventions as the other components: one per kind of point, then % / status / alarms.
+# Slots follow the PointKind order of the generated tables, then ICON_PERCENT, ICON_INFO, ICON_ALERT.
+ICONS = {
+    "CURRENT": "mdi:current-ac",
+    "VOLTAGE": "mdi:sine-wave",
+    "POWER": "mdi:power",
+    "ENERGY": "mdi:counter",
+    "APPARENT_POWER": "mdi:flash",
+    "REACTIVE_POWER": "mdi:flash-outline",
+    "FREQUENCY": "mdi:metronome",
+    "TEMPERATURE": "mdi:thermometer",
+}
+ICON_PERCENT = "mdi:percent"
+ICON_INFO = "mdi:information-outline"
+ICON_ALERT = "mdi:alert-circle-outline"
 
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -210,3 +227,12 @@ async def to_code(config: ConfigType) -> None:
                     register_device_class(DEVICE_CLASSES[kind]),
                 )
             )
+
+    # Entity icons (stored as an index in the packed entity fields, like the units).
+    cg.add_define("USE_ENTITY_ICON")
+    for kind, icon in ICONS.items():
+        cg.add(var.set_icon_index(POINT_KINDS.index(kind), register_icon(icon)))
+    n = len(POINT_KINDS)
+    cg.add(var.set_icon_index(n, register_icon(ICON_PERCENT)))
+    cg.add(var.set_icon_index(n + 1, register_icon(ICON_INFO)))
+    cg.add(var.set_icon_index(n + 2, register_icon(ICON_ALERT)))

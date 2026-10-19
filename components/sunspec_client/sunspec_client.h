@@ -48,6 +48,11 @@ static constexpr uint16_t MAX_REGISTERS_PER_REQUEST = 100;
 static constexpr uint16_t MAX_MODEL_REGISTERS = 256;
 // Number of PointKind enumerators
 static constexpr size_t POINT_KIND_COUNT = 9;
+// Icon slots: one per PointKind, then percentage, status text and event/alarm text
+static constexpr size_t ICON_PERCENT = POINT_KIND_COUNT;
+static constexpr size_t ICON_INFO = POINT_KIND_COUNT + 1;
+static constexpr size_t ICON_ALERT = POINT_KIND_COUNT + 2;
+static constexpr size_t ICON_SLOT_COUNT = POINT_KIND_COUNT + 3;
 
 /// One model found during the scan.
 struct ModelInfo {
@@ -155,6 +160,11 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void write_select(uint16_t binding_index, size_t index);
   /// Index of a unit string in the generated table of the application (registered by codegen).
   void add_unit_index(const char *unit, uint8_t index) { this->unit_indices_.push_back(UnitIndex{unit, index}); }
+  /// Index of an icon string in the generated table of the application (registered by codegen).
+  void set_icon_index(uint8_t slot, uint8_t index) {
+    if (slot < ICON_SLOT_COUNT)
+      this->icon_indices_[slot] = index;
+  }
   void set_device_class_index(uint8_t kind, uint8_t index) {
     if (kind < POINT_KIND_COUNT)
       this->device_class_indices_[kind] = index;
@@ -204,6 +214,8 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void request_resync_();
   void do_resync_();
   uint8_t unit_index_(const char *unit) const;
+  uint32_t icon_field_(size_t slot) const;
+  size_t icon_slot_(const PointDef &def) const;
   bool is_control_model_(uint16_t id) const;
   bool write_raw_(uint16_t binding_index, uint16_t raw);
   std::string make_name_(const PointDef &def, const ModelDef &model, const char *group_name, uint8_t instance) const;
@@ -219,6 +231,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   std::vector<uint16_t> control_models_{};
   std::vector<UnitIndex> unit_indices_{};
   uint8_t device_class_indices_[POINT_KIND_COUNT]{};
+  uint8_t icon_indices_[ICON_SLOT_COUNT]{};
 
   ScanState state_{ScanState::IDLE};
   bool scan_done_{false};

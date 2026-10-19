@@ -1,0 +1,86 @@
+substitutions:
+  name: "test_sunspec_client"
+  sunspec_ip: "192.168.1.50"
+  sunspec_port: "502"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+ota:
+  - platform: esphome
+
+external_components:
+  # Serial-over-TCP and Modbus-over-TCP components (same as the anker_solix TCP test)
+  - source: github://pr#20061
+    components: [modbus_tcp_uart]
+    refresh: 1h
+  - source: github://pr#20198
+    components: [ble_nus, tcp_uart, uart, usb_cdc_acm, usb_uart]
+    refresh: 1h
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [sunspec_client]
+    refresh: 10s
+
+  # - source:
+      # type: local
+      # path: components
+
+logger:
+  level: debug
+
+# --- Transport: Modbus TCP -------------------------------------------------
+tcp_uart:
+  - id: sunspec_link
+    host: ${sunspec_ip}
+    port: ${sunspec_port}
+
+modbus_tcp_uart:
+  - id: sunspec_uart
+    tcp_uart_id: sunspec_link
+
+# --- Transport: RS485 (use this block instead of the three above) -----------
+# uart:
+#   - id: sunspec_uart
+#     tx_pin: GPIO17
+#     rx_pin: GPIO16
+#     baud_rate: 9600
+#     stop_bits: 1
+
+modbus:
+  - id: modbus_sunspec
+    uart_id: sunspec_uart
+    turnaround_time: 100ms
+
+sunspec_client:
+  - id: inverter
+    modbus_id: modbus_sunspec
+    address: 1
+    name_prefix: ${name}_inv
+    # Model 123 (immediate controls) must be in `models` to be listed in `controls`.
+    models: [1, 103, 123, 160]
+    controls: [123]
+    max_modules: 4
+    update_interval: 10s
+    bitfield_binary_sensors: false
+    startup_delay: 5s
+    scan_retry_interval: 30s
+    wait_for_network: true
+
+text_sensor:
+  - platform: sunspec_client
+    sunspec_client_id: inverter
+    models:
+      name: ${name}_models

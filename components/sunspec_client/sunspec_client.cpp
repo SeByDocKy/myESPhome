@@ -608,6 +608,18 @@ uint8_t SunSpecClient::unit_index_(const char *unit) const {
   return 0;
 }
 
+uint32_t SunSpecClient::icon_field_(size_t slot) const {
+  return static_cast<uint32_t>(this->icon_indices_[slot < ICON_SLOT_COUNT ? slot : 0]) << ENTITY_FIELD_ICON_SHIFT;
+}
+
+// Icon slot of a numeric point: its kind, or percent when it has none but the unit is %.
+size_t SunSpecClient::icon_slot_(const PointDef &def) const {
+  const size_t kind = static_cast<size_t>(def.kind);
+  if (kind != 0 && kind < POINT_KIND_COUNT)
+    return kind;
+  return (def.unit[0] == '%' && def.unit[1] == '\0') ? ICON_PERCENT : 0;
+}
+
 void SunSpecClient::create_entities_() {
   size_t created = 0, skipped = 0;
   for (auto &b : this->bindings_) {
@@ -626,7 +638,8 @@ void SunSpecClient::create_entities_() {
                                                              ? static_cast<size_t>(b.def->kind)
                                                              : 0];
     const uint32_t unit_fields = (static_cast<uint32_t>(dc_index) << ENTITY_FIELD_DC_SHIFT) |
-                                 (static_cast<uint32_t>(this->unit_index_(b.def->unit)) << ENTITY_FIELD_UOM_SHIFT);
+                                 (static_cast<uint32_t>(this->unit_index_(b.def->unit)) << ENTITY_FIELD_UOM_SHIFT) |
+                                 this->icon_field_(this->icon_slot_(*b.def));
     if (b.control == 1) {
 #ifdef USE_NUMBER
       if (App.get_numbers().size() >= ESPHOME_ENTITY_NUMBER_COUNT) {
@@ -670,7 +683,7 @@ void SunSpecClient::create_entities_() {
       for (uint8_t i = 0; i < b.def->num_symbols; i++)
         options.push_back(b.def->symbols[i].name);  // static strings of the generated tables
       sel->traits.set_options(options);
-      App.register_select(sel, stored->c_str(), fnv1_hash_object_id(stored->c_str(), stored->size()), 0);
+      App.register_select(sel, stored->c_str(), fnv1_hash_object_id(stored->c_str(), stored->size()), this->icon_field_(ICON_INFO));
       b.select = sel;
       created++;
 #endif
@@ -687,7 +700,9 @@ void SunSpecClient::create_entities_() {
       this->names_.push_back(stored);
       const uint32_t hash = fnv1_hash_object_id(stored->c_str(), stored->size());
       // Diagnostic category: these are status, events and identification strings
-      const uint32_t fields = static_cast<uint32_t>(ENTITY_CATEGORY_DIAGNOSTIC) << ENTITY_FIELD_ENTITY_CATEGORY_SHIFT;
+      const bool is_bits = b.def->type == PointType::BITFIELD16 || b.def->type == PointType::BITFIELD32;
+      const uint32_t fields = (static_cast<uint32_t>(ENTITY_CATEGORY_DIAGNOSTIC) << ENTITY_FIELD_ENTITY_CATEGORY_SHIFT) |
+                              this->icon_field_(is_bits ? ICON_ALERT : ICON_INFO);
       App.register_text_sensor(ts, stored->c_str(), hash, fields);
       b.text_sensor = ts;
       created++;
@@ -717,8 +732,9 @@ void SunSpecClient::create_entities_() {
           auto *bstored = new std::string(bit_name);     // NOLINT: same lifetime as the entity
           this->names_.push_back(bstored);
           const uint32_t bhash = fnv1_hash_object_id(bstored->c_str(), bstored->size());
-          const uint32_t bfields = static_cast<uint32_t>(ENTITY_CATEGORY_DIAGNOSTIC)
-                                   << ENTITY_FIELD_ENTITY_CATEGORY_SHIFT;
+          const uint32_t bfields = (static_cast<uint32_t>(ENTITY_CATEGORY_DIAGNOSTIC)
+                                    << ENTITY_FIELD_ENTITY_CATEGORY_SHIFT) |
+                                   this->icon_field_(ICON_ALERT);
           App.register_binary_sensor(bs, bstored->c_str(), bhash, bfields);
           this->bit_bindings_.push_back(
               BitBinding{static_cast<uint16_t>(&b - &this->bindings_[0]), static_cast<uint8_t>(sym.value), bs});
