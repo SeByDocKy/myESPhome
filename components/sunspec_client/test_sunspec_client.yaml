@@ -69,6 +69,7 @@ sunspec_client:
     modbus_id: modbus_sunspec
     address: 1
     name_prefix: ${name}_inv
+    trim_naming: false
     models: [1, 103, 160]
     # controls: [123]   # writes: uncomment (and add 123 to models) to get number / select controls
     max_modules: 4

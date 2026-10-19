@@ -150,6 +150,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void set_wait_for_network(bool wait) { this->wait_for_network_ = wait; }
   void set_bitfield_binary_sensors(bool enable) { this->bitfield_binary_sensors_ = enable; }
   void set_name_prefix(const std::string &prefix) { this->name_prefix_ = prefix; }
+  void set_trim_naming(bool enable) { this->trim_naming_ = enable; }
   void add_wanted_model(uint16_t model_id) { this->wanted_models_.push_back(model_id); }
   /// Model whose writable points become number / select controls.
   void add_control_model(uint16_t model_id) { this->control_models_.push_back(model_id); }
@@ -219,6 +220,9 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   bool is_control_model_(uint16_t id) const;
   bool write_raw_(uint16_t binding_index, uint16_t raw);
   std::string make_name_(const PointDef &def, const ModelDef &model, const char *group_name, uint8_t instance) const;
+  /// With trim_naming: lower case, and every run of characters other than letters and digits (spaces, brackets,
+  /// "/", "-", "%" ...) becomes a single "_" ("Phase A current (W)" -> "phase_a_current_w").
+  void style_name_(std::string &name) const;
 
   uint32_t startup_delay_ms_{5000};
   uint32_t scan_retry_interval_ms_{30000};
@@ -226,6 +230,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   uint8_t max_modules_{4};
   bool bitfield_binary_sensors_{false};
   bool wait_for_network_{false};
+  bool trim_naming_{false};
   std::string name_prefix_{};
   std::vector<uint16_t> wanted_models_{};
   std::vector<uint16_t> control_models_{};

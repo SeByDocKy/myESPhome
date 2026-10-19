@@ -125,6 +125,7 @@ void SunSpecClient::dump_config() {
   ESP_LOGCONFIG(TAG, "  Update interval: %" PRIu32 " ms", this->update_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Max modules (repeating groups): %u", static_cast<unsigned>(this->max_modules_));
   ESP_LOGCONFIG(TAG, "  Name prefix: '%s'", this->name_prefix_.c_str());
+  ESP_LOGCONFIG(TAG, "  Trim naming: %s", YESNO(this->trim_naming_));
   std::string wanted;
   for (uint16_t id : this->wanted_models_) {
     if (!wanted.empty())
@@ -625,7 +626,28 @@ std::string SunSpecClient::make_name_(const PointDef &def, const ModelDef &model
     name += ' ';
   }
   name += def.label;
+  this->style_name_(name);
   return name;
+}
+
+void SunSpecClient::style_name_(std::string &name) const {
+  if (!this->trim_naming_)
+    return;
+  std::string out;
+  out.reserve(name.size());
+  bool pending = false;  // a run of separators waits for the next letter or digit
+  for (const char ch : name) {
+    const bool upper = ch >= 'A' && ch <= 'Z';
+    if (!upper && !(ch >= 'a' && ch <= 'z') && !(ch >= '0' && ch <= '9')) {
+      pending = !out.empty();
+      continue;
+    }
+    if (pending)
+      out += '_';
+    pending = false;
+    out += upper ? static_cast<char>(ch - 'A' + 'a') : ch;
+  }
+  name = out;
 }
 
 uint8_t SunSpecClient::unit_index_(const char *unit) const {
@@ -659,7 +681,8 @@ void SunSpecClient::create_entities_() {
     // Several models can carry the same label (e.g. 101 and 103): keep names unique.
     for (const std::string *used : this->names_) {
       if (*used == name) {
-        name += " (model " + std::to_string(info.id) + ")";
+        name += this->trim_naming_ ? "_model_" + std::to_string(info.id)
+                                             : " (model " + std::to_string(info.id) + ")";
         break;
       }
     }
@@ -758,6 +781,7 @@ void SunSpecClient::create_entities_() {
             else if (k > start && bit_name[k] >= 'A' && bit_name[k] <= 'Z')
               bit_name[k] = static_cast<char>(bit_name[k] - 'A' + 'a');
           }
+          this->style_name_(bit_name);
           auto *bs = new binary_sensor::BinarySensor();  // NOLINT: entities live for the whole runtime
           auto *bstored = new std::string(bit_name);     // NOLINT: same lifetime as the entity
           this->names_.push_back(bstored);

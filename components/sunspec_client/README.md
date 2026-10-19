@@ -81,6 +81,12 @@ device. The name of a sensor is `name_prefix` + the SunSpec label of the point (
 or missing `name_prefix` adds nothing. Points of a repeating group get `<group> <n>` in front of the label (for
 example `pv_inv module 2 DC Voltage`). If two models give the same name, ` (model <id>)` is appended.
 
+With `trim_naming: true` every name (prefix, labels and bit names included) is put in lower case, and each run of
+characters other than letters and digits (spaces, brackets, `/`, `-`, `%`, accented letters...) becomes a single `_`,
+with none at the start or the end. For example `pv_inv module 2 DC Voltage` becomes `pv_inv_module_2_dc_voltage` and
+`Active power setpoint (W)` becomes `active_power_setpoint_w`. The suffix for duplicate names becomes `_model_<id>`.
+The default (`false`) keeps the names as they are.
+
 ### Entity types
 
 | SunSpec point type | Entity | State |
@@ -169,6 +175,7 @@ sunspec_client:
     modbus_id: modbus_sunspec
     address: 1                # Modbus unit id
     name_prefix: pv_inv       # prefix of the name of every created entity
+    trim_naming: false   # true: "Phase A current (W)" becomes "phase_a_current_w"
     models: [1, 103, 160]
     controls: [123]           # optional: writable points of these models become number / select
     max_modules: 4            # instances of a repeating group (MPPT inputs of model 160) with entities
@@ -291,6 +298,7 @@ No test of the writes (`controls`) on a real device has been reported yet.
 | `modbus_id` | – | Core `modbus` bus |
 | `address` | 1 | Modbus unit id |
 | `name_prefix` | – | Prefix for the entity names |
+| `trim_naming` | false | Entity names in lower case with `_` between the words: spaces and special characters are removed, prefix included (`Phase A current (W)` becomes `phase_a_current_w`) |
 | `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120-124, 160, 201-204, 701-704, 713-715, 802) |
 | `controls` | – | Models whose writable points become `number` / `select` controls (writes enabled), subset of `models` |
 | `max_modules` | 4 | Instances of a repeating group that get entities (1 to 16) |

@@ -69,6 +69,7 @@ sunspec_client:
     modbus_id: modbus_sunspec
     address: 1
     name_prefix: ${name}_inv
+    trim_naming: false
     # Model 123 (immediate controls) must be in `models` to be listed in `controls`.
     models: [1, 103, 123, 160]
     controls: [123]

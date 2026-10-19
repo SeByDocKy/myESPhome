@@ -50,6 +50,7 @@ SunSpecClient = sunspec_client_ns.class_(
 CONF_SUNSPEC_CLIENT_ID = "sunspec_client_id"
 CONF_MODELS = "models"
 CONF_NAME_PREFIX = "name_prefix"
+CONF_TRIM_NAMING = "trim_naming"
 CONF_STARTUP_DELAY = "startup_delay"
 CONF_SCAN_RETRY_INTERVAL = "scan_retry_interval"
 CONF_UPDATE_INTERVAL = "update_interval"
@@ -113,6 +114,9 @@ CONFIG_SCHEMA = (
             ): cv.positive_time_period_milliseconds,
             # Prefix of the name of every entity created by this component.
             cv.Optional(CONF_NAME_PREFIX, default=""): cv.string,
+            # Entity names in lower case with "_" between the words: spaces and special characters are removed
+            # ("Phase A current (W)" -> "phase_a_current_w"), prefix included.
+            cv.Optional(CONF_TRIM_NAMING, default=False): cv.boolean,
             # Wait before the first request, so that the link (WiFi / TCP) is up.
             cv.Optional(
                 CONF_STARTUP_DELAY, default="5s"
@@ -171,6 +175,7 @@ async def to_code(config: ConfigType) -> None:
     cg.add(var.set_startup_delay(config[CONF_STARTUP_DELAY]))
     cg.add(var.set_scan_retry_interval(config[CONF_SCAN_RETRY_INTERVAL]))
     cg.add(var.set_name_prefix(config[CONF_NAME_PREFIX]))
+    cg.add(var.set_trim_naming(config[CONF_TRIM_NAMING]))
     cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL]))
     cg.add(var.set_max_modules(config[CONF_MAX_MODULES]))
     cg.add(var.set_bitfield_binary_sensors(config[CONF_BITFIELD_BINARY_SENSORS]))
