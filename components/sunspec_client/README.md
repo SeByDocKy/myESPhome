@@ -248,8 +248,10 @@ Models reported by manufacturers (documentation or SunSpec certification registr
 | Ginlong Solis (three-phase certificates) | 1, 103, 120, 121, 122, 123, 126, 127, 128, 132; some also 160 | [SunSpec certification registry](https://sunspec.org/contributing-members/ginlong-technologies-co-ltd/) |
 | Delta Electronics (M6A to M125HV, M24U to M42U, M88H) | 1, 103, 120, 121, 122, 123, 126-132, 135, 136, 139, 140, 160, 401 | [SunSpec certification registry](https://sunspec.org/contributing-members/delta-electronics/) |
 | Delta Electronics (RPI H7U, H10U, M30A, M50A) | 1, 103, 120, 121, 122, 123, 127, 160 | [SunSpec certification registry](https://sunspec.org/contributing-members/delta-electronics/) |
-| Deye (product line SUN, certificate SM-000007) | 1, 103, 120, 121, 122, 123, 126, 127, 128, 131, 132 | [SunSpec certification registry](https://sunspec.org/contributing-members/deye/) |
+| Deye (certificate SM-000007: string inverters, single-phase hybrids SG02LP1, SG04LP1, SG05LP1 and SG06LP1, and the SUN-BK80 battery) | 1, 103, 120, 121, 122, 123, 126, 127, 128, 131, 132 for the certificate as a whole (the models per product are not detailed) | [SunSpec certification registry](https://sunspec.org/contributing-members/deye/), [certificate](https://sunspec.org/wp-content/uploads/2009/03/Updated_Deye_Modbus_Certificate_SM000007.pdf) |
 | SolarEdge | 1, 101-103, 160 (Synergy inverters, firmware 4.13 or later), 201-204 (up to three external meters) | [third-party compatibility page](https://taphome.com/en/compatibility/solaredge-sunspec/), not the manufacturer note |
+
+A SunSpec certificate does not say that the interface is enabled on your unit or firmware. For Deye, the SG01LP1 and SG04LP3 hybrids are not on the certificate: scan the device to know.
 
 Models of these lists that this component does not support (for example 126 to 132, 135, 136, 139, 140 and 401) are ignored. With a recent device, only the common block (1) and some of the 7xx models are read by this component.
 
