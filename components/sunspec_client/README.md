@@ -248,6 +248,7 @@ Models reported by manufacturers (documentation or SunSpec certification registr
 | Ginlong Solis (three-phase certificates) | 1, 103, 120, 121, 122, 123, 126, 127, 128, 132; some also 160 | [SunSpec certification registry](https://sunspec.org/contributing-members/ginlong-technologies-co-ltd/) |
 | Delta Electronics (M6A to M125HV, M24U to M42U, M88H) | 1, 103, 120, 121, 122, 123, 126-132, 135, 136, 139, 140, 160, 401 | [SunSpec certification registry](https://sunspec.org/contributing-members/delta-electronics/) |
 | Delta Electronics (RPI H7U, H10U, M30A, M50A) | 1, 103, 120, 121, 122, 123, 127, 160 | [SunSpec certification registry](https://sunspec.org/contributing-members/delta-electronics/) |
+| Deye (product line SUN, certificate SM-000007) | 1, 103, 120, 121, 122, 123, 126, 127, 128, 131, 132 | [SunSpec certification registry](https://sunspec.org/contributing-members/deye/) |
 | SolarEdge | 1, 101-103, 160 (Synergy inverters, firmware 4.13 or later), 201-204 (up to three external meters) | [third-party compatibility page](https://taphome.com/en/compatibility/solaredge-sunspec/), not the manufacturer note |
 
 Models of these lists that this component does not support (for example 126 to 132, 135, 136, 139, 140 and 401) are ignored. With a recent device, only the common block (1) and some of the 7xx models are read by this component.
