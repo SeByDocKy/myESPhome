@@ -3,6 +3,55 @@
 Native ESPHome **SunSpec** client for the core `modbus` bus (RS485 or Modbus TCP through
 `tcp_uart` + `modbus_tcp_uart`).
 
+## What is SunSpec?
+
+[SunSpec](https://sunspec.org/) is an open standard of the SunSpec Alliance, an industry association of
+manufacturers of solar inverters, batteries, meters and other distributed energy resources. Its goal is
+interoperability: a monitoring or control system should be able to read a device without a register map written
+for that brand.
+
+**Transport.** SunSpec does not define a new bus. It is an information model carried by **Modbus**, the usual
+protocol of this equipment:
+
+- Modbus RTU on a serial line (RS485), or
+- Modbus TCP on the network (port 502 by default).
+
+Both use the same registers (16 bits each) and the same read function (holding registers), so the data model is
+identical on the two transports. This component reaches them through the core `modbus` bus of ESPHome.
+
+**A device that describes itself.** Instead of a fixed register list, a SunSpec device starts with the marker
+`SunS` (at register 40000 in most devices) followed by a chain of **models**. Each model is a standardized block
+of points (measurements, settings, status, controls) introduced by a two-register header (model id, length), and
+the chain ends with the id `0xFFFF`. For example model 1 is the identification of the device (present
+everywhere), 101 to 103 are the measurements of an inverter (single, split and three phase), 160 gives the MPPT
+inputs, 201 to 204 are energy meters and 802 is a battery. Values come with **scale factors** (a power of ten
+stored in another register), so the same point can be read with the right resolution on any device.
+
+**Interest.** One client can read inverters, meters and batteries of different brands, because the points have the
+same meaning, units and layout everywhere, and because the device tells which models it implements. Points a
+device does not support are marked with a reserved "not implemented" value.
+
+**Limits.** The standard fixes the models, but each manufacturer chooses which ones to expose and which points to
+fill in, and on some devices the SunSpec / Modbus interface has to be enabled in the settings first. Manufacturers
+may also add vendor models (id 64000 and above), which are not supported here. See
+[Devices and the models they expose](#devices-and-the-models-they-expose).
+
+## Why this component?
+
+- **No register map to write.** With `modbus_controller`, every register has to be described in YAML by hand, per
+  device. Here the device is scanned and the entities of the points it really implements are created
+  automatically, with their name, unit, device class and icon, and the scale factors applied.
+- **Native ESPHome, local only.** An ESP32 on the RS485 line, or on the network, reads the device directly and
+  publishes to Home Assistant through the ESPHome API: no cloud account and no extra gateway.
+- **One component for several kinds of device.** Inverters, MPPT inputs, energy meters and batteries are all models
+  of the same standard. Choose the ones you want with `models`.
+- **RS485 or Modbus TCP.** The same configuration works on a serial line or on the network, only the bus below
+  changes (see [Configuration](#configuration)).
+- **Optional controls.** The writable points of the models listed in `controls` become `number` and `select`
+  entities, for example to limit the output power of an inverter. They are off by default.
+- **Events and states.** Enums, bitfields (alarms, events) and strings become text sensors, with optional binary
+  sensors for each bit.
+
 ## How it works
 
 1. After `startup_delay`, the component looks for the `SunS` marker at registers 40000, 0 and 50000 and
