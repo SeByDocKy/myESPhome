@@ -31,6 +31,14 @@ stored in another register), so the same point can be read with the right resolu
 same meaning, units and layout everywhere, and because the device tells which models it implements. Points a
 device does not support are marked with a reserved "not implemented" value.
 
+**Adoption.** The alliance does not publish a yearly count of new members, so no growth rate can be given. What
+can be read on [sunspec.org](https://sunspec.org/) (checked on 2026-10-19): the members page lists about 177
+contributing organizations (a count made from the page, not an official figure) from Asia, Europe and North America,
+and the [certification registry](https://sunspec.org/product-certification-registry/) holds SunSpec Modbus
+certificates numbered up to at least SM-000063. Recent entries, such as SOFARSOLAR and Carlo Gavazzi in
+November 2025, show that new products keep being certified. Several of the newest certificates (Sigenergy, Afore,
+Atmoce, the Sungrow gateway) list the 7xx "DER" models, so recent devices tend to expose that series.
+
 **Limits.** The standard fixes the models, but each manufacturer chooses which ones to expose and which points to
 fill in, and on some devices the SunSpec / Modbus interface has to be enabled in the settings first. Manufacturers
 may also add vendor models (id 64000 and above), which are not supported here. See
