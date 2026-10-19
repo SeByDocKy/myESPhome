@@ -119,6 +119,34 @@ text_sensor:
 `tcp_uart` / `modbus_tcp_uart` are not in a stable release yet (PR #20198 / #20061), see
 `test_sunspec_client.yaml`. With RS485, use a regular `uart:` instead.
 
+## Starting points
+
+`models` is a compile-time wish list: the entities created are the models of the list that the device really
+exposes. The usual models by kind of device are below. They are typical starting points of the SunSpec
+standard, not profiles checked brand by brand: devices differ, so start with a wide list, read the `models`
+text sensor after the first scan, then narrow the list.
+
+| Device | `models` to start with | Notes |
+|---|---|---|
+| Single-phase inverter | `[1, 101, 120, 122, 160]` | 102 for a split-phase inverter |
+| Three-phase inverter | `[1, 103, 120, 122, 160]` | 160 gives the MPPT inputs |
+| Inverter with floating point values | 111, 112 or 113 instead of 101, 102 or 103 | exposed by some brands |
+| Energy meter | `[1, 201]` | 201 single phase, 202 split phase, 203 three-phase wye, 204 three-phase delta |
+| Battery | `[1, 802]` | 124 for the charge / discharge controls |
+
+To get controls, the model must be in **both** lists: add it to `models` (so that it is read) and its id to
+`controls`. A model of `controls` that is not in `models` is refused when the configuration is validated, and so
+is a model without writable points (1, 101 to 103 and 201 to 204 have none):
+
+```yaml
+sunspec_client:
+  models: [1, 103, 123, 160]
+  controls: [123]   # 123 is also in models
+```
+
+Models with writable points: 123 (immediate controls: power limit, connection, power factor), 121 (settings),
+124 (storage controls). Controls act on the device: enable them one model at a time, see the warning above.
+
 ## Options
 
 | Option | Default | Description |
