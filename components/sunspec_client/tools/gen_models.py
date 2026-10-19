@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-MODELS = [1, 101, 102, 103, 111, 112, 113, 120, 122, 124, 160, 201, 202, 203, 204, 802]
+MODELS = [1, 101, 102, 103, 111, 112, 113, 120, 121, 122, 123, 124, 160, 201, 202, 203, 204, 802]
 
 # SunSpec type -> (C++ enumerator, becomes a sensor)
 TYPES = {
@@ -37,7 +37,8 @@ UNITS = {
     "VArh": ("varh", "NONE"), "var": ("var", "REACTIVE_POWER"), "varh": ("varh", "NONE"),
     "AH": ("Ah", "NONE"), "ohms": ("Ω", "NONE"), "cos()": ("", "NONE"),
     "%WHRtg": ("%", "NONE"), "% WChaMax/sec": ("%/s", "NONE"), "% WChaMax": ("%", "NONE"),
-    " % WChaMax": ("%", "NONE"), "% WDisChaMax": ("%", "NONE"), "% AhrRtg": ("%", "NONE"),
+    " % WChaMax": ("%", "NONE"), "% WMax/sec": ("%/s", "NONE"), "% WMax": ("%", "NONE"),
+    "% WGra": ("%", "NONE"), "% VArMax": ("%", "NONE"), "% VArAval": ("%", "NONE"), "% WDisChaMax": ("%", "NONE"), "% AhrRtg": ("%", "NONE"),
 }
 
 
@@ -65,6 +66,12 @@ def collect(points, sf_offsets, skip=()):
 
 def count_entries(info, entries, key):
     for p, _o, _size, unit, kind, _sfo in entries:
+        rw = p.get("access") == "RW"
+        if rw and key == "points":
+            if TYPES[p["type"]] in ("INT16", "UINT16"):
+                info["rw_numbers"] += 1
+            elif TYPES[p["type"]] == "ENUM16":
+                info["rw_selects"] += 1
         if TYPES[p["type"]] in NUMERIC:
             info[key] += 1
             if unit:
@@ -115,6 +122,7 @@ def main():
         "  PointKind kind;",
         "  const SymbolDef *symbols;  // enum values or bitfield bit names, nullptr when none",
         "  uint8_t num_symbols;",
+        "  bool writable;      // access RW in the SunSpec definition",
         "};",
         "",
         "/// Repeating group (e.g. the MPPT modules of model 160).",
@@ -146,7 +154,7 @@ def main():
                 sf_offsets[p["name"]] = off
             off += p["size"]
         fixed, fixed_size = collect(g["points"], sf_offsets, SKIP_POINTS.get(mid, ()))
-        info[mid] = {"points": 0, "group_points": 0, "text_points": 0, "text_group_points": 0, "bits_points": 0, "bits_group_points": 0, "units": set(), "kinds": set()}
+        info[mid] = {"points": 0, "group_points": 0, "text_points": 0, "text_group_points": 0, "bits_points": 0, "bits_group_points": 0, "rw_numbers": 0, "rw_selects": 0, "units": set(), "kinds": set()}
         count_entries(info[mid], fixed, "points")
         count_off = next((o for o, p in zip(
             [sum(q["size"] for q in g["points"][:i]) for i in range(len(g["points"]))], g["points"])
@@ -169,7 +177,8 @@ def main():
                 else:
                     sym = "nullptr, 0"
                 lines.append(f"    {{{cstr(p['name'])}, {cstr(p.get('label', p['name']))}, {o}, PointType::{TYPES[p['type']]}, "
-                             f"{size}, {sfo}, {cstr(unit)}, PointKind::{kind}, {sym}}},")
+                             f"{size}, {sfo}, {cstr(unit)}, PointKind::{kind}, {sym}, "
+                             f"{'true' if p.get('access') == 'RW' else 'false'}}},")
             lines.append("};")
 
         emit(f"MODEL_{mid}_POINTS", fixed)
@@ -207,6 +216,7 @@ def main():
         py.append(f"    {mid}: {{\"points\": {i['points']}, \"group_points\": {i['group_points']}, "
                   f"\"text_points\": {i['text_points']}, \"text_group_points\": {i['text_group_points']}, "
                   f"\"bits_points\": {i['bits_points']}, \"bits_group_points\": {i['bits_group_points']}, "
+                  f"\"rw_numbers\": {i['rw_numbers']}, \"rw_selects\": {i['rw_selects']}, "
                   f"\"units\": {sorted(i['units'])!r}, \"kinds\": {sorted(i['kinds'], key=kinds.index)!r}}},")
     py += ["}", "", "# PointKind enumerators in declaration order", f"POINT_KINDS = {kinds!r}", ""]
     dst.with_name("sunspec_models_info.py").write_text("\n".join(py))

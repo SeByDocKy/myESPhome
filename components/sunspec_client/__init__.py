@@ -37,7 +37,7 @@ from esphome.types import ConfigType
 from .sunspec_models_info import MODEL_INFO, POINT_KINDS
 
 CODEOWNERS = ["@SeByDocKy"]
-AUTO_LOAD = ["modbus", "network", "sensor", "text_sensor", "binary_sensor"]
+AUTO_LOAD = ["modbus", "network", "sensor", "text_sensor", "binary_sensor", "number", "select"]
 # Several devices on the same bus (or several buses) are possible: one block per device.
 MULTI_CONF = True
 
@@ -55,6 +55,7 @@ CONF_UPDATE_INTERVAL = "update_interval"
 CONF_MAX_MODULES = "max_modules"
 CONF_BITFIELD_BINARY_SENSORS = "bitfield_binary_sensors"
 CONF_WAIT_FOR_NETWORK = "wait_for_network"
+CONF_CONTROLS = "controls"
 
 # Home Assistant device class of each kind of point (PointKind enumerators of the generated tables)
 DEVICE_CLASSES = {
@@ -81,6 +82,11 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_MAX_MODULES, default=4): cv.int_range(min=1, max=16),
             # Also create one binary_sensor per named bit of the bitfield points (events, states).
             cv.Optional(CONF_BITFIELD_BINARY_SENSORS, default=False): cv.boolean,
+            # Models whose writable points (access RW in the SunSpec definition) become number / select
+            # controls instead of read-only sensors. Writes act on the device: off by default, opt in per model.
+            cv.Optional(CONF_CONTROLS, default=[]): cv.ensure_list(
+                cv.one_of(*MODEL_INFO, int=True)
+            ),
             # Wait for the network (WiFi, Ethernet) before the first scan. Default: yes for Modbus TCP
             # (tcp_uart + modbus_tcp_uart), no for a serial line (RS485), which does not depend on it.
             cv.Optional(CONF_WAIT_FOR_NETWORK): cv.boolean,
@@ -108,6 +114,12 @@ CONFIG_SCHEMA = (
 def _validate_models(config: ConfigType) -> ConfigType:
     if len(set(config[CONF_MODELS])) != len(config[CONF_MODELS]):
         raise cv.Invalid(f"'{CONF_MODELS}' contains duplicated ids")
+    for model in config[CONF_CONTROLS]:
+        if model not in config[CONF_MODELS]:
+            raise cv.Invalid(f"'{CONF_CONTROLS}': model {model} is not in '{CONF_MODELS}'")
+        info = MODEL_INFO[model]
+        if info["rw_numbers"] + info["rw_selects"] == 0:
+            raise cv.Invalid(f"'{CONF_CONTROLS}': model {model} has no writable point")
     return config
 
 
@@ -149,6 +161,14 @@ async def to_code(config: ConfigType) -> None:
     if wait_for_network is None:
         wait_for_network = uses_modbus_tcp(CORE.config, config[modbus.CONF_MODBUS_ID])
     cg.add(var.set_wait_for_network(wait_for_network))
+    number_slots = 0
+    select_slots = 0
+    for model in config[CONF_CONTROLS]:
+        cg.add(var.add_control_model(model))
+        number_slots += MODEL_INFO[model]["rw_numbers"]
+        select_slots += MODEL_INFO[model]["rw_selects"]
+    CORE.platform_counts["number"] += number_slots
+    CORE.platform_counts["select"] += select_slots
 
     slots = 0
     text_slots = 0

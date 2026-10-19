@@ -84,6 +84,13 @@ void SunSpecClient::dump_config() {
   ESP_LOGCONFIG(TAG, "  Unit address: %u", static_cast<unsigned>(this->address_));
   ESP_LOGCONFIG(TAG, "  Startup delay: %" PRIu32 " ms", this->startup_delay_ms_);
   ESP_LOGCONFIG(TAG, "  Scan retry interval: %" PRIu32 " ms", this->scan_retry_interval_ms_);
+  std::string controls;
+  for (uint16_t id : this->control_models_) {
+    if (!controls.empty())
+      controls += ", ";
+    controls += std::to_string(id);
+  }
+  ESP_LOGCONFIG(TAG, "  Control models (writes enabled): %s", controls.empty() ? "(none)" : controls.c_str());
   ESP_LOGCONFIG(TAG, "  Wait for network: %s", YESNO(this->wait_for_network_));
   ESP_LOGCONFIG(TAG, "  Update interval: %" PRIu32 " ms", this->update_interval_ms_);
   ESP_LOGCONFIG(TAG, "  Max modules (repeating groups): %u", static_cast<unsigned>(this->max_modules_));
@@ -209,6 +216,11 @@ void SunSpecClient::on_read_holding_registers(uint16_t start_address, std::span<
 }
 
 bool SunSpecClient::on_no_response(std::span<const uint8_t> request_pdu) {
+  // A write that got no answer (function code 0x06): the next update shows the real value of the register.
+  if (!request_pdu.empty() && request_pdu[0] == 0x06) {
+    ESP_LOGW(TAG, "No answer to a register write");
+    return false;
+  }
   if (this->state_ == ScanState::IDLE)
     return false;
   if (this->retries_ < MAX_NO_RESPONSE_RETRIES) {
@@ -519,6 +531,9 @@ void SunSpecClient::discover_points_(uint8_t model_index) {
       b.sf_offset = -1;
       b.instance = instance;
       b.in_group = in_group;
+      if (pt.writable && pt.type == PointType::ENUM16 && !in_group && pt.num_symbols > 0 &&
+          this->is_control_model_(info.id))
+        b.control = 2;
       this->bindings_.push_back(b);
       return;
     }
@@ -542,6 +557,10 @@ void SunSpecClient::discover_points_(uint8_t model_index) {
     b.instance = instance;
     b.in_group = in_group;
     b.decimals = decimals;
+    b.sf_value = pt.sf_offset >= 0 ? static_cast<int16_t>(this->buffer_[pt.sf_offset]) : 0;
+    if (pt.writable && (pt.type == PointType::INT16 || pt.type == PointType::UINT16) && !in_group &&
+        this->is_control_model_(info.id))
+      b.control = 1;
     this->bindings_.push_back(b);
   };
 
@@ -601,6 +620,61 @@ void SunSpecClient::create_entities_() {
         name += " (model " + std::to_string(info.id) + ")";
         break;
       }
+    }
+    const uint16_t binding_index = static_cast<uint16_t>(&b - &this->bindings_[0]);
+    const uint8_t dc_index = this->device_class_indices_[static_cast<size_t>(b.def->kind) < POINT_KIND_COUNT
+                                                             ? static_cast<size_t>(b.def->kind)
+                                                             : 0];
+    const uint32_t unit_fields = (static_cast<uint32_t>(dc_index) << ENTITY_FIELD_DC_SHIFT) |
+                                 (static_cast<uint32_t>(this->unit_index_(b.def->unit)) << ENTITY_FIELD_UOM_SHIFT);
+    if (b.control == 1) {
+#ifdef USE_NUMBER
+      if (App.get_numbers().size() >= ESPHOME_ENTITY_NUMBER_COUNT) {
+        skipped++;
+        continue;
+      }
+      auto *num = new SunSpecNumber(this, binding_index);  // NOLINT: entities live for the whole runtime
+      auto *stored = new std::string(name);                // NOLINT: same lifetime as the entity
+      this->names_.push_back(stored);
+      // Range: the 16-bit register scaled by the scale factor, 0 to 100 for percentages.
+      const float scale = std::pow(10.0f, static_cast<float>(b.sf_value));
+      const bool percent = b.def->unit[0] == '%' && b.def->unit[1] == '\0';
+      const bool is_signed = b.def->type == PointType::INT16;
+      float lo = is_signed ? -32767.0f * scale : 0.0f;
+      float hi = is_signed ? 32767.0f * scale : 65534.0f * scale;
+      if (percent) {
+        lo = is_signed ? -100.0f : 0.0f;
+        hi = 100.0f;
+      }
+      num->traits.set_min_value(lo);
+      num->traits.set_max_value(hi);
+      num->traits.set_step(scale);
+      num->traits.set_mode(number::NUMBER_MODE_BOX);
+      App.register_number(num, stored->c_str(), fnv1_hash_object_id(stored->c_str(), stored->size()), unit_fields);
+      b.number = num;
+      created++;
+#endif
+      continue;
+    }
+    if (b.control == 2) {
+#ifdef USE_SELECT
+      if (App.get_selects().size() >= ESPHOME_ENTITY_SELECT_COUNT) {
+        skipped++;
+        continue;
+      }
+      auto *sel = new SunSpecSelect(this, binding_index);  // NOLINT: entities live for the whole runtime
+      auto *stored = new std::string(name);                // NOLINT: same lifetime as the entity
+      this->names_.push_back(stored);
+      FixedVector<const char *> options;
+      options.init(b.def->num_symbols);
+      for (uint8_t i = 0; i < b.def->num_symbols; i++)
+        options.push_back(b.def->symbols[i].name);  // static strings of the generated tables
+      sel->traits.set_options(options);
+      App.register_select(sel, stored->c_str(), fnv1_hash_object_id(stored->c_str(), stored->size()), 0);
+      b.select = sel;
+      created++;
+#endif
+      continue;
     }
     if (is_text(b.def->type)) {
 #ifdef USE_TEXT_SENSOR
@@ -707,6 +781,29 @@ void SunSpecClient::publish_values_(uint8_t model_index) {
   for (auto &b : this->bindings_) {
     if (b.model_index != model_index)
       continue;
+    if (b.control != 0) {
+      float value;
+      if (b.sf_offset >= 0 && static_cast<size_t>(b.sf_offset) < this->buffer_.size() &&
+          this->buffer_[b.sf_offset] != 0x8000)
+        b.sf_value = static_cast<int16_t>(this->buffer_[b.sf_offset]);
+#ifdef USE_NUMBER
+      if (b.control == 1 && b.number != nullptr &&
+          decode_point(this->buffer_, *b.def, b.offset, b.sf_offset, false, value))
+        b.number->publish_state(value);
+#endif
+#ifdef USE_SELECT
+      if (b.control == 2 && b.select != nullptr && static_cast<size_t>(b.offset) < this->buffer_.size()) {
+        const uint16_t raw = this->buffer_[b.offset];
+        for (uint8_t i = 0; i < b.def->num_symbols; i++) {
+          if (b.def->symbols[i].value == raw) {
+            b.select->publish_state(static_cast<size_t>(i));
+            break;
+          }
+        }
+      }
+#endif
+      continue;
+    }
 #ifdef USE_TEXT_SENSOR
     if (b.text_sensor != nullptr) {
       std::string text;
@@ -737,6 +834,78 @@ void SunSpecClient::publish_values_(uint8_t model_index) {
 #endif
   }
 }
+
+// ---------------------------------------------------------------------------------------------------------
+// Controls: writes to the writable points of the models listed in `controls`
+
+bool SunSpecClient::is_control_model_(uint16_t id) const {
+  return std::find(this->control_models_.begin(), this->control_models_.end(), id) != this->control_models_.end();
+}
+
+bool SunSpecClient::write_raw_(uint16_t binding_index, uint16_t raw) {
+  const Binding &b = this->bindings_[binding_index];
+  const uint16_t address = static_cast<uint16_t>(this->models_[b.model_index].address + b.offset);
+  ESP_LOGI(TAG, "Writing register %u (model %u point %s) = %u", address, this->models_[b.model_index].id, b.def->key,
+           raw);
+  if (!this->write_single_register(address, raw)) {
+    ESP_LOGW(TAG, "Write refused by the Modbus hub");
+    return false;
+  }
+  return true;
+}
+
+void SunSpecClient::write_number(uint16_t binding_index, float value) {
+#ifdef USE_NUMBER
+  Binding &b = this->bindings_[binding_index];
+  const float scale = std::pow(10.0f, static_cast<float>(b.sf_value));
+  long raw = std::lround(value / scale);
+  if (b.def->type == PointType::INT16)
+    raw = std::max(-32767L, std::min(32767L, raw));
+  else
+    raw = std::max(0L, std::min(65534L, raw));
+  if (this->write_raw_(binding_index, static_cast<uint16_t>(static_cast<int16_t>(raw))) && b.number != nullptr)
+    b.number->publish_state(value);  // optimistic: the next update shows the value really held by the device
+#endif
+}
+
+void SunSpecClient::write_select(uint16_t binding_index, size_t index) {
+#ifdef USE_SELECT
+  Binding &b = this->bindings_[binding_index];
+  if (index >= b.def->num_symbols)
+    return;
+  if (this->write_raw_(binding_index, b.def->symbols[index].value) && b.select != nullptr)
+    b.select->publish_state(index);
+#endif
+}
+
+bool SunSpecClient::set_point(const char *key, float value) {
+#ifdef USE_NUMBER
+  for (auto &b : this->bindings_) {
+    if (b.control == 1 && b.number != nullptr && strcmp(b.def->key, key) == 0) {
+      b.number->make_call().set_value(value).perform();
+      return true;
+    }
+  }
+#endif
+  return false;
+}
+
+void SunSpecClient::on_write_single_register(uint16_t address, uint16_t value, modbus::ResponseStatus status) {
+  if (modbus::succeeded(status))
+    ESP_LOGD(TAG, "Register %u written (%u)", address, value);
+  else
+    ESP_LOGW(TAG, "Write of register %u failed", address);
+  // Read the models again soon to show what the device really holds (unless a cycle is running).
+  if (this->entities_created_ && this->state_ == ScanState::IDLE)
+    this->set_timeout("cycle", 500, [this]() { this->start_cycle_(); });
+}
+
+#ifdef USE_NUMBER
+void SunSpecNumber::control(float value) { this->parent_->write_number(this->binding_index_, value); }
+#endif
+#ifdef USE_SELECT
+void SunSpecSelect::control(size_t index) { this->parent_->write_select(this->binding_index_, index); }
+#endif
 
 // ---------------------------------------------------------------------------------------------------------
 // Home Assistant resync: HA only reads the entity list when it connects, so the API clients are asked to

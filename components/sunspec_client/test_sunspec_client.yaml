@@ -70,6 +70,7 @@ sunspec_client:
     address: 1
     name_prefix: ${name}_inv
     models: [1, 103, 160]
+    # controls: [123]   # writes: uncomment (and add 123 to models) to get number / select controls
     max_modules: 4
     update_interval: 10s
     bitfield_binary_sensors: false

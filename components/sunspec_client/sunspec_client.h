@@ -15,6 +15,12 @@
 #ifdef USE_BINARY_SENSOR
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #endif
+#ifdef USE_NUMBER
+#include "esphome/components/number/number.h"
+#endif
+#ifdef USE_SELECT
+#include "esphome/components/select/select.h"
+#endif
 
 #include "sunspec_models.h"
 
@@ -66,6 +72,14 @@ struct Binding {
   uint8_t instance;     ///< instance of the repeating group (0 for the fixed block)
   bool in_group;        ///< point of the repeating group
   uint8_t decimals;     ///< accuracy decimals of the sensor
+  int16_t sf_value;     ///< scale factor (power of ten) seen at the last read
+  uint8_t control;      ///< 0: read only, 1: number, 2: select (writable point of a model of `controls`)
+#ifdef USE_NUMBER
+  number::Number *number;
+#endif
+#ifdef USE_SELECT
+  select::Select *select;
+#endif
 #ifdef USE_SENSOR
   sensor::Sensor *sensor;
 #endif
@@ -80,6 +94,34 @@ struct BitBinding {
   uint16_t binding_index;  ///< index in the vector of bindings of the bitfield point
   uint8_t bit;
   binary_sensor::BinarySensor *sensor;
+};
+#endif
+
+class SunSpecClient;
+
+#ifdef USE_NUMBER
+/// Number bound to a writable numeric point: a change writes the register (scale factor applied).
+class SunSpecNumber : public number::Number {
+ public:
+  SunSpecNumber(SunSpecClient *parent, uint16_t binding_index) : parent_(parent), binding_index_(binding_index) {}
+
+ protected:
+  void control(float value) override;
+  SunSpecClient *parent_;
+  uint16_t binding_index_;
+};
+#endif
+
+#ifdef USE_SELECT
+/// Select bound to a writable enum point: the options are the symbols of the enum.
+class SunSpecSelect : public select::Select {
+ public:
+  SunSpecSelect(SunSpecClient *parent, uint16_t binding_index) : parent_(parent), binding_index_(binding_index) {}
+
+ protected:
+  void control(size_t index) override;
+  SunSpecClient *parent_;
+  uint16_t binding_index_;
 };
 #endif
 
@@ -104,6 +146,13 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void set_bitfield_binary_sensors(bool enable) { this->bitfield_binary_sensors_ = enable; }
   void set_name_prefix(const std::string &prefix) { this->name_prefix_ = prefix; }
   void add_wanted_model(uint16_t model_id) { this->wanted_models_.push_back(model_id); }
+  /// Model whose writable points become number / select controls.
+  void add_control_model(uint16_t model_id) { this->control_models_.push_back(model_id); }
+  /// Write a value to the first number control built on the point `key` (SunSpec point name, for example
+  /// "WMaxLimPct"), as if it were set from Home Assistant. Usable from lambdas. Returns false when there is none.
+  bool set_point(const char *key, float value);
+  void write_number(uint16_t binding_index, float value);
+  void write_select(uint16_t binding_index, size_t index);
   /// Index of a unit string in the generated table of the application (registered by codegen).
   void add_unit_index(const char *unit, uint8_t index) { this->unit_indices_.push_back(UnitIndex{unit, index}); }
   void set_device_class_index(uint8_t kind, uint8_t index) {
@@ -122,6 +171,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void on_read_holding_registers(uint16_t start_address, std::span<const uint16_t> registers,
                                  modbus::ResponseStatus status) override;
   bool on_no_response(std::span<const uint8_t> request_pdu) override;
+  void on_write_single_register(uint16_t address, uint16_t value, modbus::ResponseStatus status) override;
 
  protected:
   struct UnitIndex {
@@ -154,6 +204,8 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   void request_resync_();
   void do_resync_();
   uint8_t unit_index_(const char *unit) const;
+  bool is_control_model_(uint16_t id) const;
+  bool write_raw_(uint16_t binding_index, uint16_t raw);
   std::string make_name_(const PointDef &def, const ModelDef &model, const char *group_name, uint8_t instance) const;
 
   uint32_t startup_delay_ms_{5000};
@@ -164,6 +216,7 @@ class SunSpecClient final : public Component, public modbus::ModbusClientDevice 
   bool wait_for_network_{false};
   std::string name_prefix_{};
   std::vector<uint16_t> wanted_models_{};
+  std::vector<uint16_t> control_models_{};
   std::vector<UnitIndex> unit_indices_{};
   uint8_t device_class_indices_[POINT_KIND_COUNT]{};
 

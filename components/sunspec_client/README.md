@@ -40,6 +40,29 @@ A point gets an entity only when the device implements it: not the reserved "not
 sensors are published when the text changes. The enum and bit names are the SunSpec symbol names (for example
 `MPPT`, `GROUND_FAULT`).
 
+### Controls (writes)
+
+By default the component only reads. With `controls: [<model ids>]` the **writable** points (`access: RW` in the
+SunSpec definition) of those models become controls instead of read-only sensors:
+
+| SunSpec point | Entity | Write |
+|---|---|---|
+| `int16`, `uint16` | `number` | the value divided by the scale factor, written with function code 0x06 |
+| `enum16` | `select` (options = enum symbols) | the value of the selected symbol |
+
+Range of a `number`: the 16-bit register scaled by the scale factor, `0` to `100` for percentages. These are only
+generic limits: the device refuses values it does not accept (the device value is read back shortly after every
+write, so the entity shows what the device really holds). Points of a repeating group, `bitfield` and 32-bit points
+are not writable in this version.
+
+**Warning:** writes act on power electronics (for example `Conn` can disconnect an inverter from the grid and
+`WMaxLimPct` limits its output). Enable `controls` only for the models you need, and check the effect on your device.
+Models with writable points: 121 (basic settings), 123 (immediate controls), 124 (basic storage controls) and
+802 (battery). Each model of `controls` must also be in `models`.
+
+From a lambda, `id(<hub>)->set_point("WMaxLimPct", 50.0f)` writes a number control as if it was set from Home
+Assistant.
+
 ### Bitfield binary sensors
 
 With `bitfield_binary_sensors: true` a `binary_sensor` is created for every named, non-reserved bit of each bitfield
@@ -78,6 +101,7 @@ sunspec_client:
     address: 1                # Modbus unit id
     name_prefix: pv_inv       # prefix of the name of every created entity
     models: [1, 103, 160]
+    controls: [123]           # optional: writable points of these models become number / select
     max_modules: 4            # instances of a repeating group (MPPT inputs of model 160) with entities
     update_interval: 10s
     wait_for_network: true           # default: true for Modbus TCP, false for RS485
@@ -102,7 +126,8 @@ text_sensor:
 | `modbus_id` | – | Core `modbus` bus |
 | `address` | 1 | Modbus unit id |
 | `name_prefix` | – | Prefix for the entity names |
-| `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120, 122, 124, 160, 201-204, 802) |
+| `models` | – | SunSpec model ids wanted (1, 101-103, 111-113, 120-124, 160, 201-204, 802) |
+| `controls` | – | Models whose writable points become `number` / `select` controls (writes enabled), subset of `models` |
 | `max_modules` | 4 | Instances of a repeating group that get entities (1 to 16) |
 | `bitfield_binary_sensors` | false | One binary_sensor per named bit of bitfield points |
 | `wait_for_network` | auto | Wait for WiFi/Ethernet before the first scan. Default: `true` for Modbus TCP (`modbus_tcp_uart`), `false` for a serial line (RS485) |
