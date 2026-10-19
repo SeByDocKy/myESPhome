@@ -351,6 +351,75 @@ static bool is_numeric(PointType t) {
   }
 }
 
+static bool is_text(PointType t) {
+  return t == PointType::ENUM16 || t == PointType::BITFIELD16 || t == PointType::BITFIELD32 ||
+         t == PointType::STRING;
+}
+
+/// Text of an enum, bitfield or string point. Returns false when the point is not implemented by the device
+/// (reserved value of its type, empty string) or outside the registers read.
+static bool decode_text(const std::vector<uint16_t> &regs, const PointDef &def, uint16_t offset, std::string &out) {
+  if (static_cast<size_t>(offset) + def.size > regs.size())
+    return false;
+  const uint16_t *r = &regs[offset];
+  out.clear();
+  if (def.type == PointType::STRING) {
+    // Two characters per register, high byte first, padded with NUL
+    for (uint8_t i = 0; i < def.size; i++) {
+      for (int shift = 8; shift >= 0; shift -= 8) {
+        const char c = static_cast<char>((r[i] >> shift) & 0xFF);
+        if (c == '\0')
+          goto end_of_string;
+        out += c;
+      }
+    }
+  end_of_string:
+    while (!out.empty() && out.back() == ' ')
+      out.pop_back();
+    return !out.empty();
+  }
+  if (def.type == PointType::ENUM16) {
+    if (r[0] == 0xFFFF)
+      return false;
+    for (uint8_t i = 0; i < def.num_symbols; i++) {
+      if (def.symbols[i].value == r[0]) {
+        out = def.symbols[i].name;
+        return true;
+      }
+    }
+    out = std::to_string(r[0]);
+    return true;
+  }
+  // Bitfield: names of the bits set
+  uint32_t bits = r[0];
+  uint8_t nbits = 16;
+  if (def.type == PointType::BITFIELD32) {
+    bits = (static_cast<uint32_t>(r[0]) << 16) | r[1];
+    nbits = 32;
+  }
+  if (bits == (nbits == 16 ? 0xFFFFu : 0xFFFFFFFFu))
+    return false;
+  for (uint8_t bit = 0; bit < nbits; bit++) {
+    if (!(bits & (1u << bit)))
+      continue;
+    if (!out.empty())
+      out += ", ";
+    const char *name = nullptr;
+    for (uint8_t i = 0; i < def.num_symbols; i++) {
+      if (def.symbols[i].value == bit)
+        name = def.symbols[i].name;
+    }
+    out += name != nullptr ? std::string(name) : "bit " + std::to_string(bit);
+  }
+  if (out.empty())
+    out = "none";
+  if (out.size() > MAX_TEXT_STATE_LENGTH) {
+    out.resize(MAX_TEXT_STATE_LENGTH - 3);
+    out += "...";
+  }
+  return true;
+}
+
 /// Value of a point. Returns false when the point is not implemented by the device (reserved "not
 /// implemented" value of its type, or scale factor not implemented) or outside the registers read.
 /// An accumulator that reads 0 is "not accumulated": implemented only once it counts (checked at discovery).
@@ -430,6 +499,20 @@ void SunSpecClient::discover_points_(uint8_t model_index) {
     return;
 
   auto add = [&](const PointDef &pt, uint16_t offset, uint8_t instance, bool in_group) {
+    if (is_text(pt.type)) {
+      std::string text;
+      if (!decode_text(this->buffer_, pt, offset, text))
+        return;  // not implemented by this device: no entity
+      Binding b{};
+      b.model_index = model_index;
+      b.def = &pt;
+      b.offset = offset;
+      b.sf_offset = -1;
+      b.instance = instance;
+      b.in_group = in_group;
+      this->bindings_.push_back(b);
+      return;
+    }
     if (!is_numeric(pt.type))
       return;
     float value;
@@ -498,7 +581,6 @@ uint8_t SunSpecClient::unit_index_(const char *unit) const {
 }
 
 void SunSpecClient::create_entities_() {
-#ifdef USE_SENSOR
   size_t created = 0, skipped = 0;
   for (auto &b : this->bindings_) {
     const ModelInfo &info = this->models_[b.model_index];
@@ -511,6 +593,25 @@ void SunSpecClient::create_entities_() {
         break;
       }
     }
+    if (is_text(b.def->type)) {
+#ifdef USE_TEXT_SENSOR
+      if (App.get_text_sensors().size() >= ESPHOME_ENTITY_TEXT_SENSOR_COUNT) {
+        skipped++;
+        continue;
+      }
+      auto *ts = new text_sensor::TextSensor();  // NOLINT: entities live for the whole runtime, never freed
+      auto *stored = new std::string(name);      // NOLINT: same lifetime as the entity
+      this->names_.push_back(stored);
+      const uint32_t hash = fnv1_hash_object_id(stored->c_str(), stored->size());
+      // Diagnostic category: these are status, events and identification strings
+      const uint32_t fields = static_cast<uint32_t>(ENTITY_CATEGORY_DIAGNOSTIC) << ENTITY_FIELD_ENTITY_CATEGORY_SHIFT;
+      App.register_text_sensor(ts, stored->c_str(), hash, fields);
+      b.text_sensor = ts;
+      created++;
+#endif
+      continue;
+    }
+#ifdef USE_SENSOR
     // The Application containers silently drop pushes beyond their compile-time size.
     if (App.get_sensors().size() >= ESPHOME_ENTITY_SENSOR_COUNT) {
       skipped++;
@@ -532,23 +633,37 @@ void SunSpecClient::create_entities_() {
     App.register_sensor(sens, stored->c_str(), hash, fields);
     b.sensor = sens;
     created++;
+#endif
   }
   this->entities_created_ = true;
-  ESP_LOGI(TAG, "Created %u sensor(s) from %u model(s)", static_cast<unsigned>(created),
+  ESP_LOGI(TAG, "Created %u entities (sensors and text sensors) from %u model(s)", static_cast<unsigned>(created),
            static_cast<unsigned>(this->plan_.size()));
   if (skipped > 0)
-    ESP_LOGE(TAG, "%u sensor(s) not created: no free sensor slot (check 'models' and 'max_modules')",
+    ESP_LOGE(TAG, "%u entities not created: no free slot (check 'models' and 'max_modules')",
              static_cast<unsigned>(skipped));
   // One single resync for the whole batch.
   if (created > 0)
     this->request_resync_();
-#endif
 }
 
 void SunSpecClient::publish_values_(uint8_t model_index) {
-#ifdef USE_SENSOR
   for (auto &b : this->bindings_) {
-    if (b.model_index != model_index || b.sensor == nullptr)
+    if (b.model_index != model_index)
+      continue;
+#ifdef USE_TEXT_SENSOR
+    if (b.text_sensor != nullptr) {
+      std::string text;
+      // Keep the last text when the point is not readable, publish only changes
+      if (decode_text(this->buffer_, *b.def, b.offset, text) && (!b.text_sensor->has_state() || b.text_sensor->state != text)) {
+        ESP_LOGV(TAG, "model %u offset %u '%s' = %s", this->models_[model_index].id, b.offset, b.def->key,
+                 text.c_str());
+        b.text_sensor->publish_state(text);
+      }
+      continue;
+    }
+#endif
+#ifdef USE_SENSOR
+    if (b.sensor == nullptr)
       continue;
     float value;
     if (decode_point(this->buffer_, *b.def, b.offset, b.sf_offset, false, value)) {
@@ -557,8 +672,8 @@ void SunSpecClient::publish_values_(uint8_t model_index) {
       b.sensor->publish_state(value);
     } else
       b.sensor->publish_state(std::numeric_limits<float>::quiet_NaN());
-  }
 #endif
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------------

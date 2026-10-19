@@ -15,7 +15,8 @@ implements are created all at once at runtime, and Home Assistant is asked to
 re-read the entity list a single time (the API client is asked to reconnect).
 The sensors are then refreshed every ``update_interval``.
 
-Sensor slots must exist at compile time (ESPHome entity containers are fixed
+Enum, bitfield and string points become text sensors (the enum symbol, the names of the set bits, the
+string). Sensor slots must exist at compile time (ESPHome entity containers are fixed
 size), so they are reserved here from the ``models`` list and ``max_modules``.
 
 NOTE: this relies on ``esphome.core.entity_helpers`` which is an internal
@@ -36,7 +37,7 @@ from esphome.types import ConfigType
 from .sunspec_models_info import MODEL_INFO, POINT_KINDS
 
 CODEOWNERS = ["@SeByDocKy"]
-AUTO_LOAD = ["modbus", "sensor"]
+AUTO_LOAD = ["modbus", "sensor", "text_sensor"]
 # Several devices on the same bus (or several buses) are possible: one block per device.
 MULTI_CONF = True
 
@@ -126,6 +127,7 @@ async def to_code(config: ConfigType) -> None:
     cg.add(var.set_max_modules(config[CONF_MAX_MODULES]))
 
     slots = 0
+    text_slots = 0
     units = set()
     kinds = set()
     for model in config[CONF_MODELS]:
@@ -134,12 +136,16 @@ async def to_code(config: ConfigType) -> None:
         cg.add_define(f"SUNSPEC_MODEL_{model}")
         info = MODEL_INFO[model]
         slots += info["points"] + info["group_points"] * config[CONF_MAX_MODULES]
+        text_slots += (
+            info["text_points"] + info["text_group_points"] * config[CONF_MAX_MODULES]
+        )
         units.update(info["units"])
         kinds.update(info["kinds"])
 
     # Reserve the sensor slots (ESPHOME_ENTITY_SENSOR_COUNT is generated from CORE.platform_counts at
     # CoroPriority.FINAL, i.e. after this to_code()).
     CORE.platform_counts["sensor"] += slots
+    CORE.platform_counts["text_sensor"] += text_slots
 
     # Unit and device class strings must live in the generated tables; C++ only gets their indices.
     for unit in sorted(units):

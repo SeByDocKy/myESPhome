@@ -66,6 +66,9 @@ struct Binding {
 #ifdef USE_SENSOR
   sensor::Sensor *sensor;
 #endif
+#ifdef USE_TEXT_SENSOR
+  text_sensor::TextSensor *text_sensor;  ///< set for enum, bitfield and string points
+#endif
 };
 
 /// SunSpec client on the core modbus bus.
