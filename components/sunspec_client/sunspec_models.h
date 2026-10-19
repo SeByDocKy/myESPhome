@@ -678,7 +678,7 @@ static constexpr PointDef MODEL_124_POINTS[] = {
     {"WChaMax", "WChaMax", 2, PointType::UINT16, 1, 18, "W", PointKind::POWER, nullptr, 0, true},
     {"WChaGra", "WChaGra", 3, PointType::UINT16, 1, 19, "%/s", PointKind::NONE, nullptr, 0, true},
     {"WDisChaGra", "WDisChaGra", 4, PointType::UINT16, 1, 19, "%/s", PointKind::NONE, nullptr, 0, true},
-    {"StorCtl_Mod", "StorCtl_Mod", 5, PointType::BITFIELD16, 1, -1, "", PointKind::NONE, MODEL_124_POINTS_SYM_StorCtl_Mod, 2, true},
+    {"StorCtl_Mod", "StorCtl_Mod", 5, PointType::BITFIELD16, 1, -1, "", PointKind::NONE, MODEL_124_POINTS_SYM_StorCtl_Mod, 2, false},
     {"VAChaMax", "VAChaMax", 6, PointType::UINT16, 1, 20, "VA", PointKind::APPARENT_POWER, nullptr, 0, true},
     {"MinRsvPct", "MinRsvPct", 7, PointType::UINT16, 1, 21, "%", PointKind::NONE, nullptr, 0, true},
     {"ChaState", "ChaState", 8, PointType::UINT16, 1, 22, "%", PointKind::NONE, nullptr, 0, false},
@@ -1170,6 +1170,471 @@ static constexpr PointDef MODEL_204_POINTS[] = {
 static constexpr ModelDef MODEL_204 = {204, "ac_meter_abc", MODEL_204_POINTS, 62, nullptr};
 #endif
 
+#ifdef SUNSPEC_MODEL_701
+// Model 701: DER AC Measurement
+static constexpr SymbolDef MODEL_701_POINTS_SYM_ACType[] = {
+    {0, "SINGLE_PHASE"},
+    {1, "SPLIT_PHASE"},
+    {2, "THREE_PHASE"},
+};
+static constexpr SymbolDef MODEL_701_POINTS_SYM_St[] = {
+    {0, "OFF"},
+    {1, "ON"},
+};
+static constexpr SymbolDef MODEL_701_POINTS_SYM_InvSt[] = {
+    {0, "OFF"},
+    {1, "SLEEPING"},
+    {2, "STARTING"},
+    {3, "RUNNING"},
+    {4, "THROTTLED"},
+    {5, "SHUTTING_DOWN"},
+    {6, "FAULT"},
+    {7, "STANDBY"},
+};
+static constexpr SymbolDef MODEL_701_POINTS_SYM_ConnSt[] = {
+    {0, "DISCONNECTED"},
+    {1, "CONNECTED"},
+};
+static constexpr SymbolDef MODEL_701_POINTS_SYM_Alrm[] = {
+    {0, "GROUND_FAULT"},
+    {1, "DC_OVER_VOLT"},
+    {2, "AC_DISCONNECT"},
+    {3, "DC_DISCONNECT"},
+    {4, "GRID_DISCONNECT"},
+    {5, "CABINET_OPEN"},
+    {6, "MANUAL_SHUTDOWN"},
+    {7, "OVER_TEMP"},
+    {8, "OVER_FREQUENCY"},
+    {9, "UNDER_FREQUENCY"},
+    {10, "AC_OVER_VOLT"},
+    {11, "AC_UNDER_VOLT"},
+    {12, "BLOWN_STRING_FUSE"},
+    {13, "UNDER_TEMP"},
+    {14, "MEMORY_LOSS"},
+    {15, "HW_TEST_FAILURE"},
+    {16, "MANUFACTURER_ALRM"},
+};
+static constexpr SymbolDef MODEL_701_POINTS_SYM_DERMode[] = {
+    {0, "GRID_FOLLOWING"},
+    {1, "GRID_FORMING"},
+    {2, "PV_CLIPPED"},
+};
+static constexpr SymbolDef MODEL_701_POINTS_SYM_ThrotSrc[] = {
+    {0, "MAX_W"},
+    {1, "FIXED_W"},
+    {2, "FIXED_VAR"},
+    {3, "FIXED_PF"},
+    {4, "VOLT_VAR"},
+    {5, "FREQ_WATT"},
+    {6, "DYN_REACT_CURR"},
+    {7, "LVRT"},
+    {8, "HVRT"},
+    {9, "WATT_VAR"},
+    {10, "VOLT_WATT"},
+    {11, "SCHEDULED"},
+    {12, "LFRT"},
+    {13, "HFRT"},
+    {14, "DERATED"},
+};
+static constexpr PointDef MODEL_701_POINTS[] = {
+    {"ACType", "AC Wiring Type", 2, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_701_POINTS_SYM_ACType, 3, false},
+    {"St", "Operating State", 3, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_701_POINTS_SYM_St, 2, false},
+    {"InvSt", "Inverter State", 4, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_701_POINTS_SYM_InvSt, 8, false},
+    {"ConnSt", "Grid Connection State", 5, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_701_POINTS_SYM_ConnSt, 2, false},
+    {"Alrm", "Alarm Bitfield", 6, PointType::BITFIELD32, 2, -1, "", PointKind::NONE, MODEL_701_POINTS_SYM_Alrm, 17, false},
+    {"DERMode", "DER Operational Characteristics", 8, PointType::BITFIELD32, 2, -1, "", PointKind::NONE, MODEL_701_POINTS_SYM_DERMode, 3, false},
+    {"W", "Active Power", 10, PointType::INT16, 1, 116, "W", PointKind::POWER, nullptr, 0, false},
+    {"VA", "Apparent Power", 11, PointType::INT16, 1, 118, "VA", PointKind::APPARENT_POWER, nullptr, 0, false},
+    {"Var", "Reactive Power", 12, PointType::INT16, 1, 119, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"PF", "Power Factor", 13, PointType::INT16, 1, 117, "", PointKind::NONE, nullptr, 0, false},
+    {"A", "Total AC Current", 14, PointType::INT16, 1, 113, "A", PointKind::CURRENT, nullptr, 0, false},
+    {"LLV", "Voltage LL", 15, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"LNV", "Voltage LN", 16, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"Hz", "Frequency", 17, PointType::UINT32, 2, 115, "Hz", PointKind::FREQUENCY, nullptr, 0, false},
+    {"TotWhInj", "Total Energy Injected", 19, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotWhAbs", "Total Energy Absorbed", 23, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotVarhInj", "Total Reactive Energy Inj", 27, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"TotVarhAbs", "Total Reactive Energy Abs", 31, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"TmpAmb", "Ambient Temperature", 35, PointType::INT16, 1, 122, "°C", PointKind::TEMPERATURE, nullptr, 0, false},
+    {"TmpCab", "Cabinet Temperature", 36, PointType::INT16, 1, 122, "°C", PointKind::TEMPERATURE, nullptr, 0, false},
+    {"TmpSnk", "Heat Sink Temperature", 37, PointType::INT16, 1, 122, "°C", PointKind::TEMPERATURE, nullptr, 0, false},
+    {"TmpTrns", "Transformer Temperature", 38, PointType::INT16, 1, 122, "°C", PointKind::TEMPERATURE, nullptr, 0, false},
+    {"TmpSw", "IGBT/MOSFET Temperature", 39, PointType::INT16, 1, 122, "°C", PointKind::TEMPERATURE, nullptr, 0, false},
+    {"TmpOt", "Other Temperature", 40, PointType::INT16, 1, 122, "°C", PointKind::TEMPERATURE, nullptr, 0, false},
+    {"WL1", "Watts L1", 41, PointType::INT16, 1, 116, "W", PointKind::POWER, nullptr, 0, false},
+    {"VAL1", "VA L1", 42, PointType::INT16, 1, 118, "VA", PointKind::APPARENT_POWER, nullptr, 0, false},
+    {"VarL1", "Var L1", 43, PointType::INT16, 1, 119, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"PFL1", "PF L1", 44, PointType::INT16, 1, 117, "", PointKind::NONE, nullptr, 0, false},
+    {"AL1", "Amps L1", 45, PointType::INT16, 1, 113, "A", PointKind::CURRENT, nullptr, 0, false},
+    {"VL1L2", "Phase Voltage L1-L2", 46, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"VL1", "Phase Voltage L1-N", 47, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"TotWhInjL1", "Total Watt-Hours Inj L1", 48, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotWhAbsL1", "Total Watt-Hours Abs L1", 52, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotVarhInjL1", "Total Var-Hours Inj L1", 56, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"TotVarhAbsL1", "Total Var-Hours Abs L1", 60, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"WL2", "Watts L2", 64, PointType::INT16, 1, 116, "W", PointKind::POWER, nullptr, 0, false},
+    {"VAL2", "VA L2", 65, PointType::INT16, 1, 118, "VA", PointKind::APPARENT_POWER, nullptr, 0, false},
+    {"VarL2", "Var L2", 66, PointType::INT16, 1, 119, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"PFL2", "PF L2", 67, PointType::INT16, 1, 117, "", PointKind::NONE, nullptr, 0, false},
+    {"AL2", "Amps L2", 68, PointType::INT16, 1, 113, "A", PointKind::CURRENT, nullptr, 0, false},
+    {"VL2L3", "Phase Voltage L2-L3", 69, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"VL2", "Phase Voltage L2-N", 70, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"TotWhInjL2", "Total Watt-Hours Inj L2", 71, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotWhAbsL2", "Total Watt-Hours Abs L2", 75, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotVarhInjL2", "Total Var-Hours Inj L2", 79, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"TotVarhAbsL2", "Total Var-Hours Abs L2", 83, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"WL3", "Watts L3", 87, PointType::INT16, 1, 116, "W", PointKind::POWER, nullptr, 0, false},
+    {"VAL3", "VA L3", 88, PointType::INT16, 1, 118, "VA", PointKind::APPARENT_POWER, nullptr, 0, false},
+    {"VarL3", "Var L3", 89, PointType::INT16, 1, 119, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"PFL3", "PF L3", 90, PointType::INT16, 1, 117, "", PointKind::NONE, nullptr, 0, false},
+    {"AL3", "Amps L3", 91, PointType::INT16, 1, 113, "A", PointKind::CURRENT, nullptr, 0, false},
+    {"VL3L1", "Phase Voltage L3-L1", 92, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"VL3", "Phase Voltage L3-N", 93, PointType::UINT16, 1, 114, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"TotWhInjL3", "Total Watt-Hours Inj L3", 94, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotWhAbsL3", "Total Watt-Hours Abs L3", 98, PointType::UINT64, 4, 120, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"TotVarhInjL3", "Total Var-Hours Inj L3", 102, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"TotVarhAbsL3", "Total Var-Hours Abs L3", 106, PointType::UINT64, 4, 121, "varh", PointKind::NONE, nullptr, 0, false},
+    {"ThrotPct", "Throttling In Pct", 110, PointType::UINT16, 1, -1, "%", PointKind::NONE, nullptr, 0, false},
+    {"ThrotSrc", "Throttle Source Information", 111, PointType::BITFIELD32, 2, -1, "", PointKind::NONE, MODEL_701_POINTS_SYM_ThrotSrc, 15, false},
+    {"MnAlrmInfo", "Manufacturer Alarm Info", 123, PointType::STRING, 32, -1, "", PointKind::NONE, nullptr, 0, false},
+};
+static constexpr ModelDef MODEL_701 = {701, "DERMeasureAC", MODEL_701_POINTS, 60, nullptr};
+#endif
+
+#ifdef SUNSPEC_MODEL_702
+// Model 702: DER Capacity
+static constexpr SymbolDef MODEL_702_POINTS_SYM_NorOpCatRtg[] = {
+    {0, "CAT_A"},
+    {1, "CAT_B"},
+};
+static constexpr SymbolDef MODEL_702_POINTS_SYM_AbnOpCatRtg[] = {
+    {0, "CAT_1"},
+    {1, "CAT_2"},
+    {2, "CAT_3"},
+};
+static constexpr SymbolDef MODEL_702_POINTS_SYM_CtrlModes[] = {
+    {0, "MAX_W"},
+    {1, "FIXED_W"},
+    {2, "FIXED_VAR"},
+    {3, "FIXED_PF"},
+    {4, "VOLT_VAR"},
+    {5, "FREQ_WATT"},
+    {6, "DYN_REACT_CURR"},
+    {7, "LV_TRIP"},
+    {8, "HV_TRIP"},
+    {9, "WATT_VAR"},
+    {10, "VOLT_WATT"},
+    {11, "SCHEDULED"},
+    {12, "LF_TRIP"},
+    {13, "HF_TRIP"},
+};
+static constexpr SymbolDef MODEL_702_POINTS_SYM_IntIslandCatRtg[] = {
+    {0, "UNCATEGORIZED"},
+    {1, "INT_ISL_CAPABLE"},
+    {2, "BLACK_START_CAPABLE"},
+    {3, "ISOCH_CAPABLE"},
+};
+static constexpr SymbolDef MODEL_702_POINTS_SYM_IntIslandCat[] = {
+    {0, "UNCATEGORIZED"},
+    {1, "INT_ISL_CAPABLE"},
+    {2, "BLACK_START_CAPABLE"},
+    {3, "ISOCH_CAPABLE"},
+};
+static constexpr PointDef MODEL_702_POINTS[] = {
+    {"WMaxRtg", "Active Power Max Rating", 2, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, false},
+    {"WOvrExtRtg", "Active Power (Over-Excited) Rating", 3, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, false},
+    {"WOvrExtRtgPF", "Specified Over-Excited PF", 4, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, false},
+    {"WUndExtRtg", "Active Power (Under-Excited) Rating", 5, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, false},
+    {"WUndExtRtgPF", "Specified Under-Excited PF", 6, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, false},
+    {"VAMaxRtg", "Apparent Power Max Rating", 7, PointType::UINT16, 1, 47, "VA", PointKind::APPARENT_POWER, nullptr, 0, false},
+    {"VarMaxInjRtg", "Reactive Power Injected Rating", 8, PointType::UINT16, 1, 48, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"VarMaxAbsRtg", "Reactive Power Absorbed Rating", 9, PointType::UINT16, 1, 48, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"WChaRteMaxRtg", "Charge Rate Max Rating", 10, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, false},
+    {"WDisChaRteMaxRtg", "Discharge Rate Max Rating", 11, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, false},
+    {"VAChaRteMaxRtg", "Charge Rate Max VA Rating", 12, PointType::UINT16, 1, 47, "VA", PointKind::APPARENT_POWER, nullptr, 0, false},
+    {"VADisChaRteMaxRtg", "Discharge Rate Max VA Rating", 13, PointType::UINT16, 1, 47, "VA", PointKind::APPARENT_POWER, nullptr, 0, false},
+    {"VNomRtg", "AC Voltage Nominal Rating", 14, PointType::UINT16, 1, 49, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"VMaxRtg", "AC Voltage Max Rating", 15, PointType::UINT16, 1, 49, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"VMinRtg", "AC Voltage Min Rating", 16, PointType::UINT16, 1, 49, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"AMaxRtg", "AC Current Max Rating", 17, PointType::UINT16, 1, 50, "A", PointKind::CURRENT, nullptr, 0, false},
+    {"PFOvrExtRtg", "PF Over-Excited Rating (Unused)", 18, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, false},
+    {"PFUndExtRtg", "PF Under-Excited Rating (Unused)", 19, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, false},
+    {"ReactSusceptRtg", "Reactive Susceptance", 20, PointType::UINT16, 1, 51, "S", PointKind::NONE, nullptr, 0, false},
+    {"NorOpCatRtg", "Normal Operating Category", 21, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_702_POINTS_SYM_NorOpCatRtg, 2, false},
+    {"AbnOpCatRtg", "Abnormal Operating Category", 22, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_702_POINTS_SYM_AbnOpCatRtg, 3, false},
+    {"CtrlModes", "Supported Control Modes", 23, PointType::BITFIELD32, 2, -1, "", PointKind::NONE, MODEL_702_POINTS_SYM_CtrlModes, 14, false},
+    {"IntIslandCatRtg", "Intentional Island Categories", 25, PointType::BITFIELD16, 1, -1, "", PointKind::NONE, MODEL_702_POINTS_SYM_IntIslandCatRtg, 4, false},
+    {"WMax", "Active Power Max Setting", 26, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, true},
+    {"WMaxOvrExt", "Active Power (Over-Excited) Setting", 27, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, true},
+    {"WOvrExtPF", "Specified Over-Excited PF", 28, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, true},
+    {"WMaxUndExt", "Active Power (Under-Excited) Setting", 29, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, true},
+    {"WUndExtPF", "Specified Under-Excited PF", 30, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, true},
+    {"VAMax", "Apparent Power Max Setting", 31, PointType::UINT16, 1, 47, "VA", PointKind::APPARENT_POWER, nullptr, 0, true},
+    {"VarMaxInj", "Reactive Power Injected Setting", 32, PointType::UINT16, 1, 48, "var", PointKind::REACTIVE_POWER, nullptr, 0, true},
+    {"VarMaxAbs", "Reactive Power Absorbed Setting", 33, PointType::UINT16, 1, 48, "var", PointKind::REACTIVE_POWER, nullptr, 0, true},
+    {"WChaRteMax", "Charge Rate Max Setting", 34, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, true},
+    {"WDisChaRteMax", "Discharge Rate Max Setting", 35, PointType::UINT16, 1, 45, "W", PointKind::POWER, nullptr, 0, true},
+    {"VAChaRteMax", "Charge Rate Max VA Setting", 36, PointType::UINT16, 1, 47, "VA", PointKind::APPARENT_POWER, nullptr, 0, true},
+    {"VADisChaRteMax", "Discharge Rate Max VA Setting", 37, PointType::UINT16, 1, 47, "VA", PointKind::APPARENT_POWER, nullptr, 0, true},
+    {"VNom", "Nominal AC Voltage Setting", 38, PointType::UINT16, 1, 49, "V", PointKind::VOLTAGE, nullptr, 0, true},
+    {"VMax", "AC Voltage Max Setting", 39, PointType::UINT16, 1, 49, "V", PointKind::VOLTAGE, nullptr, 0, true},
+    {"VMin", "AC Voltage Min Setting", 40, PointType::UINT16, 1, 49, "V", PointKind::VOLTAGE, nullptr, 0, true},
+    {"AMax", "AC Current Max Setting", 41, PointType::UINT16, 1, 50, "A", PointKind::CURRENT, nullptr, 0, true},
+    {"PFOvrExt", "PF Over-Excited Setting (Unused)", 42, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, true},
+    {"PFUndExt", "PF Under-Excited Setting (Unused)", 43, PointType::UINT16, 1, 46, "", PointKind::NONE, nullptr, 0, true},
+    {"IntIslandCat", "Intentional Island Categories", 44, PointType::BITFIELD16, 1, -1, "", PointKind::NONE, MODEL_702_POINTS_SYM_IntIslandCat, 4, false},
+};
+static constexpr ModelDef MODEL_702 = {702, "DERCapacity", MODEL_702_POINTS, 42, nullptr};
+#endif
+
+#ifdef SUNSPEC_MODEL_703
+// Model 703: Enter Service
+static constexpr SymbolDef MODEL_703_POINTS_SYM_ES[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr PointDef MODEL_703_POINTS[] = {
+    {"ES", "Permit Enter Service", 2, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_703_POINTS_SYM_ES, 2, true},
+    {"ESVHi", "Enter Service Voltage High", 3, PointType::UINT16, 1, 17, "%", PointKind::NONE, nullptr, 0, true},
+    {"ESVLo", "Enter Service Voltage Low", 4, PointType::UINT16, 1, 17, "%", PointKind::NONE, nullptr, 0, true},
+    {"ESHzHi", "Enter Service Frequency High", 5, PointType::UINT32, 2, 18, "Hz", PointKind::FREQUENCY, nullptr, 0, false},
+    {"ESHzLo", "Enter Service Frequency Low", 7, PointType::UINT32, 2, 18, "Hz", PointKind::FREQUENCY, nullptr, 0, false},
+    {"ESDlyTms", "Enter Service Delay Time", 9, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"ESRndTms", "Enter Service Random Delay", 11, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"ESRmpTms", "Enter Service Ramp Time", 13, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"ESDlyRemTms", "Enter Service Delay Remaining", 15, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+};
+static constexpr ModelDef MODEL_703 = {703, "DEREnterService", MODEL_703_POINTS, 9, nullptr};
+#endif
+
+#ifdef SUNSPEC_MODEL_704
+// Model 704: DER AC Controls
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWInjEna[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWInjEnaRvrt[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWAbsEna[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWAbsEnaRvrt[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_WMaxLimPctEna[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_WMaxLimPctEnaRvrt[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_WSetEna[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_WSetMod[] = {
+    {0, "W_MAX_PCT"},
+    {1, "WATTS"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_WSetEnaRvrt[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_VarSetEna[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_VarSetMod[] = {
+    {0, "W_MAX_PCT"},
+    {1, "VAR_MAX_PCT"},
+    {2, "VAR_AVAIL_PCT"},
+    {3, "VA_MAX_PCT"},
+    {4, "VARS"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_VarSetPri[] = {
+    {0, "ACTIVE"},
+    {1, "REACTIVE"},
+    {2, "VENDOR"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_VarSetEnaRvrt[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_WRmpRef[] = {
+    {0, "A_MAX"},
+    {1, "W_MAX"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_AntiIslEna[] = {
+    {0, "DISABLED"},
+    {1, "ENABLED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWInj_Ext[] = {
+    {0, "OVER_EXCITED"},
+    {1, "UNDER_EXCITED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWInjRvrt_Ext[] = {
+    {0, "OVER_EXCITED"},
+    {1, "UNDER_EXCITED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWAbs_Ext[] = {
+    {0, "OVER_EXCITED"},
+    {1, "UNDER_EXCITED"},
+};
+static constexpr SymbolDef MODEL_704_POINTS_SYM_PFWAbsRvrt_Ext[] = {
+    {0, "OVER_EXCITED"},
+    {1, "UNDER_EXCITED"},
+};
+static constexpr PointDef MODEL_704_POINTS[] = {
+    {"PFWInjEna", "Power Factor Enable (W Inj) Enable", 2, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWInjEna, 2, true},
+    {"PFWInjEnaRvrt", "Power Factor Reversion Enable (W Inj)", 3, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWInjEnaRvrt, 2, true},
+    {"PFWInjRvrtTms", "PF Reversion Time (W Inj)", 4, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"PFWInjRvrtRem", "PF Reversion Time Rem (W Inj)", 6, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"PFWAbsEna", "Power Factor Enable (W Abs) Enable", 8, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWAbsEna, 2, true},
+    {"PFWAbsEnaRvrt", "Power Factor Reversion Enable (W Abs)", 9, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWAbsEnaRvrt, 2, true},
+    {"PFWAbsRvrtTms", "PF Reversion Time (W Abs)", 10, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"PFWAbsRvrtRem", "PF Reversion Time Rem (W Abs)", 12, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"WMaxLimPctEna", "Limit Max Power Pct Enable", 14, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_WMaxLimPctEna, 2, true},
+    {"WMaxLimPct", "Limit Max Power Pct Setpoint", 15, PointType::UINT16, 1, 54, "%", PointKind::NONE, nullptr, 0, true},
+    {"WMaxLimPctRvrt", "Reversion Limit Max Power Pct", 16, PointType::UINT16, 1, 54, "%", PointKind::NONE, nullptr, 0, true},
+    {"WMaxLimPctEnaRvrt", "Reversion Limit Max Power Pct Enable", 17, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_WMaxLimPctEnaRvrt, 2, true},
+    {"WMaxLimPctRvrtTms", "Limit Max Power Pct Reversion Time", 18, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"WMaxLimPctRvrtRem", "Limit Max Power Pct Rev Time Rem", 20, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"WSetEna", "Set Active Power Enable", 22, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_WSetEna, 2, true},
+    {"WSetMod", "Set Active Power Mode", 23, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_WSetMod, 2, true},
+    {"WSet", "Active Power Setpoint (W)", 24, PointType::INT32, 2, 55, "W", PointKind::POWER, nullptr, 0, false},
+    {"WSetRvrt", "Reversion Active Power (W)", 26, PointType::INT32, 2, 55, "W", PointKind::POWER, nullptr, 0, false},
+    {"WSetPct", "Active Power Setpoint (Pct)", 28, PointType::INT16, 1, 56, "%", PointKind::NONE, nullptr, 0, true},
+    {"WSetPctRvrt", "Reversion Active Power (Pct)", 29, PointType::INT16, 1, 56, "%", PointKind::NONE, nullptr, 0, true},
+    {"WSetEnaRvrt", "Reversion Active Power Enable", 30, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_WSetEnaRvrt, 2, true},
+    {"WSetRvrtTms", "Active Power Reversion Time", 31, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"WSetRvrtRem", "Active Power Rev Time Rem", 33, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"VarSetEna", "Set Reactive Power Enable", 35, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_VarSetEna, 2, true},
+    {"VarSetMod", "Set Reactive Power Mode", 36, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_VarSetMod, 5, true},
+    {"VarSetPri", "Reactive Power Priority", 37, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_VarSetPri, 3, true},
+    {"VarSet", "Reactive Power Setpoint (Vars)", 38, PointType::INT32, 2, 57, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"VarSetRvrt", "Reversion Reactive Power (Vars)", 40, PointType::INT32, 2, 57, "var", PointKind::REACTIVE_POWER, nullptr, 0, false},
+    {"VarSetPct", "Reactive Power Setpoint (Pct)", 42, PointType::INT16, 1, 58, "%", PointKind::NONE, nullptr, 0, true},
+    {"VarSetPctRvrt", "Reversion Reactive Power (Pct)", 43, PointType::INT16, 1, 58, "%", PointKind::NONE, nullptr, 0, true},
+    {"VarSetEnaRvrt", "Reversion Reactive Power Enable", 44, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_VarSetEnaRvrt, 2, true},
+    {"VarSetRvrtTms", "Reactive Power Reversion Time", 45, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"VarSetRvrtRem", "Reactive Power Rev Time Rem", 47, PointType::UINT32, 2, -1, "s", PointKind::NONE, nullptr, 0, false},
+    {"WRmp", "Normal Ramp Rate", 49, PointType::UINT16, 1, -1, "%/s", PointKind::NONE, nullptr, 0, true},
+    {"WRmpRef", "Normal Ramp Rate Reference", 50, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_WRmpRef, 2, true},
+    {"VarRmp", "Reactive Power Ramp Rate", 51, PointType::UINT16, 1, -1, "%/s", PointKind::NONE, nullptr, 0, true},
+    {"AntiIslEna", "Anti-Islanding Enable", 52, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_AntiIslEna, 2, true},
+    {"PFWInj.PF", "Power Factor (W Inj)  (PFWInj)", 59, PointType::UINT16, 1, 53, "", PointKind::NONE, nullptr, 0, true},
+    {"PFWInj.Ext", "Power Factor Excitation (W Inj) (PFWInj)", 60, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWInj_Ext, 2, true},
+    {"PFWInjRvrt.PF", "Reversion Power Factor (W Inj)  (PFWInjRvrt)", 61, PointType::UINT16, 1, 53, "", PointKind::NONE, nullptr, 0, true},
+    {"PFWInjRvrt.Ext", "Reversion PF Excitation (W Inj) (PFWInjRvrt)", 62, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWInjRvrt_Ext, 2, true},
+    {"PFWAbs.PF", "Power Factor (W Abs)  (PFWAbs)", 63, PointType::UINT16, 1, 53, "", PointKind::NONE, nullptr, 0, true},
+    {"PFWAbs.Ext", "Power Factor Excitation (W Abs) (PFWAbs)", 64, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWAbs_Ext, 2, true},
+    {"PFWAbsRvrt.PF", "Reversion Power Factor (W Abs)  (PFWAbsRvrt)", 65, PointType::UINT16, 1, 53, "", PointKind::NONE, nullptr, 0, true},
+    {"PFWAbsRvrt.Ext", "Reversion PF Excitation (W Abs) (PFWAbsRvrt)", 66, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_704_POINTS_SYM_PFWAbsRvrt_Ext, 2, true},
+};
+static constexpr ModelDef MODEL_704 = {704, "DERCtlAC", MODEL_704_POINTS, 45, nullptr};
+#endif
+
+#ifdef SUNSPEC_MODEL_713
+// Model 713: DER Storage Capacity
+static constexpr SymbolDef MODEL_713_POINTS_SYM_Sta[] = {
+    {0, "OK"},
+    {1, "WARNING"},
+    {2, "ERROR"},
+};
+static constexpr PointDef MODEL_713_POINTS[] = {
+    {"WHRtg", "Energy Rating", 2, PointType::UINT16, 1, 7, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"WHAvail", "Energy Available", 3, PointType::UINT16, 1, 7, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"SoC", "State of Charge", 4, PointType::UINT16, 1, 8, "%", PointKind::NONE, nullptr, 0, false},
+    {"SoH", "State of Health", 5, PointType::UINT16, 1, 8, "%", PointKind::NONE, nullptr, 0, false},
+    {"Sta", "Status", 6, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_713_POINTS_SYM_Sta, 3, false},
+};
+static constexpr ModelDef MODEL_713 = {713, "DERStorageCapacity", MODEL_713_POINTS, 5, nullptr};
+#endif
+
+#ifdef SUNSPEC_MODEL_714
+// Model 714: DER DC Measurement
+static constexpr PointDef MODEL_714_POINTS[] = {
+    {"PrtAlrms", "Port Alarms", 2, PointType::BITFIELD32, 2, -1, "", PointKind::NONE, nullptr, 0, false},
+    {"NPrt", "Number Of Ports", 4, PointType::UINT16, 1, -1, "", PointKind::NONE, nullptr, 0, false},
+    {"DCA", "DC Current", 5, PointType::INT16, 1, 15, "A", PointKind::CURRENT, nullptr, 0, false},
+    {"DCW", "DC Power", 6, PointType::INT16, 1, 17, "W", PointKind::POWER, nullptr, 0, false},
+    {"DCWhInj", "DC Energy Injected", 7, PointType::UINT64, 4, 18, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"DCWhAbs", "DC Energy Absorbed", 11, PointType::UINT64, 4, 18, "Wh", PointKind::ENERGY, nullptr, 0, false},
+};
+static constexpr SymbolDef MODEL_714_GROUP_POINTS_SYM_PrtTyp[] = {
+    {0, "PV"},
+    {1, "ESS"},
+    {2, "EV"},
+    {3, "INJ"},
+    {4, "ABS"},
+    {5, "BIDIR"},
+    {6, "DC_DC"},
+};
+static constexpr SymbolDef MODEL_714_GROUP_POINTS_SYM_DCSta[] = {
+    {0, "OFF"},
+    {1, "ON"},
+    {2, "WARNING"},
+    {3, "ERROR"},
+};
+static constexpr SymbolDef MODEL_714_GROUP_POINTS_SYM_DCAlrm[] = {
+    {0, "GROUND_FAULT"},
+    {1, "INPUT_OVER_VOLTAGE"},
+    {3, "DC_DISCONNECT"},
+    {5, "CABINET_OPEN"},
+    {6, "MANUAL_SHUTDOWN"},
+    {7, "OVER_TEMP"},
+    {12, "BLOWN_FUSE"},
+    {13, "UNDER_TEMP"},
+    {14, "MEMORY_LOSS"},
+    {15, "ARC_DETECTION"},
+    {19, "RESERVED"},
+    {20, "TEST_FAILED"},
+    {21, "INPUT_UNDER_VOLTAGE"},
+    {22, "INPUT_OVER_CURRENT"},
+};
+static constexpr PointDef MODEL_714_GROUP_POINTS[] = {
+    {"PrtTyp", "Port Type", 0, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_714_GROUP_POINTS_SYM_PrtTyp, 7, false},
+    {"IDStr", "Port ID String", 2, PointType::STRING, 8, -1, "", PointKind::NONE, nullptr, 0, false},
+    {"DCA", "DC Current", 10, PointType::INT16, 1, 15, "A", PointKind::CURRENT, nullptr, 0, false},
+    {"DCV", "DC Voltage", 11, PointType::UINT16, 1, 16, "V", PointKind::VOLTAGE, nullptr, 0, false},
+    {"DCW", "DC Power", 12, PointType::INT16, 1, 17, "W", PointKind::POWER, nullptr, 0, false},
+    {"DCWhInj", "DC Energy Injected", 13, PointType::UINT64, 4, 18, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"DCWhAbs", "DC Energy Absorbed", 17, PointType::UINT64, 4, 18, "Wh", PointKind::ENERGY, nullptr, 0, false},
+    {"Tmp", "DC Port Temperature", 21, PointType::INT16, 1, 19, "°C", PointKind::TEMPERATURE, nullptr, 0, false},
+    {"DCSta", "DC Port Status", 22, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_714_GROUP_POINTS_SYM_DCSta, 4, false},
+    {"DCAlrm", "DC Port Alarm", 23, PointType::BITFIELD32, 2, -1, "", PointKind::NONE, MODEL_714_GROUP_POINTS_SYM_DCAlrm, 14, false},
+};
+static constexpr GroupDef MODEL_714_GROUP = {4, 20, 25, "Prt", MODEL_714_GROUP_POINTS, 10};
+static constexpr ModelDef MODEL_714 = {714, "DERMeasureDC", MODEL_714_POINTS, 6, &MODEL_714_GROUP};
+#endif
+
+#ifdef SUNSPEC_MODEL_715
+// Model 715: DERCtl
+static constexpr SymbolDef MODEL_715_POINTS_SYM_LocRemCtl[] = {
+    {0, "REMOTE"},
+    {1, "LOCAL"},
+};
+static constexpr SymbolDef MODEL_715_POINTS_SYM_OpCtl[] = {
+    {0, "STOP"},
+    {1, "START"},
+    {2, "ENTER_STANDBY"},
+    {3, "EXIT_STANDBY"},
+};
+static constexpr PointDef MODEL_715_POINTS[] = {
+    {"LocRemCtl", "Control Mode", 2, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_715_POINTS_SYM_LocRemCtl, 2, false},
+    {"DERHb", "DER Heartbeat", 3, PointType::UINT32, 2, -1, "", PointKind::NONE, nullptr, 0, false},
+    {"ControllerHb", "Controller Heartbeat", 5, PointType::UINT32, 2, -1, "", PointKind::NONE, nullptr, 0, false},
+    {"AlarmReset", "Alarm Reset", 7, PointType::UINT16, 1, -1, "", PointKind::NONE, nullptr, 0, true},
+    {"OpCtl", "Set Operation", 8, PointType::ENUM16, 1, -1, "", PointKind::NONE, MODEL_715_POINTS_SYM_OpCtl, 4, true},
+};
+static constexpr ModelDef MODEL_715 = {715, "DERCtl", MODEL_715_POINTS, 5, nullptr};
+#endif
+
 #ifdef SUNSPEC_MODEL_802
 // Model 802: Battery Base Model
 static constexpr SymbolDef MODEL_802_POINTS_SYM_ChaSt[] = {
@@ -1373,6 +1838,34 @@ inline const ModelDef *find_model_def(uint16_t id) {
 #ifdef SUNSPEC_MODEL_204
     case 204:
       return &MODEL_204;
+#endif
+#ifdef SUNSPEC_MODEL_701
+    case 701:
+      return &MODEL_701;
+#endif
+#ifdef SUNSPEC_MODEL_702
+    case 702:
+      return &MODEL_702;
+#endif
+#ifdef SUNSPEC_MODEL_703
+    case 703:
+      return &MODEL_703;
+#endif
+#ifdef SUNSPEC_MODEL_704
+    case 704:
+      return &MODEL_704;
+#endif
+#ifdef SUNSPEC_MODEL_713
+    case 713:
+      return &MODEL_713;
+#endif
+#ifdef SUNSPEC_MODEL_714
+    case 714:
+      return &MODEL_714;
+#endif
+#ifdef SUNSPEC_MODEL_715
+    case 715:
+      return &MODEL_715;
 #endif
 #ifdef SUNSPEC_MODEL_802
     case 802:

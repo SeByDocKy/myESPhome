@@ -67,6 +67,36 @@ static const char *model_name(uint16_t id) {
       return "Meter, wye three phase";
     case 204:
       return "Meter, delta three phase";
+    case 701:
+      return "DER AC measurement";
+    case 702:
+      return "DER capacity";
+    case 703:
+      return "DER enter service";
+    case 704:
+      return "DER AC controls";
+    case 705:
+      return "DER volt-var";
+    case 706:
+      return "DER volt-watt";
+    case 707:
+      return "DER trip low voltage";
+    case 708:
+      return "DER trip high voltage";
+    case 709:
+      return "DER trip low frequency";
+    case 710:
+      return "DER trip high frequency";
+    case 711:
+      return "DER frequency droop";
+    case 712:
+      return "DER watt-var";
+    case 713:
+      return "DER storage capacity";
+    case 714:
+      return "DER DC measurement";
+    case 715:
+      return "DER control";
     case 802:
       return "Battery base";
     default:

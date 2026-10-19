@@ -13,12 +13,12 @@ import json
 import sys
 from pathlib import Path
 
-MODELS = [1, 101, 102, 103, 111, 112, 113, 120, 121, 122, 123, 124, 160, 201, 202, 203, 204, 802]
+MODELS = [1, 101, 102, 103, 111, 112, 113, 120, 121, 122, 123, 124, 160, 201, 202, 203, 204, 701, 702, 703, 704, 713, 714, 715, 802]
 
 # SunSpec type -> (C++ enumerator, becomes a sensor)
 TYPES = {
     "int16": "INT16", "uint16": "UINT16", "acc16": "UINT16", "int32": "INT32", "uint32": "UINT32",
-    "acc32": "ACC32", "acc64": "ACC64", "int64": "INT64", "float32": "FLOAT32",
+    "acc32": "ACC32", "acc64": "ACC64", "int64": "INT64", "uint64": "UINT64", "float32": "FLOAT32",
     "enum16": "ENUM16", "bitfield16": "BITFIELD16", "bitfield32": "BITFIELD32", "string": "STRING",
 }
 SKIP_NAMES = {"ID", "L"}
@@ -36,14 +36,40 @@ UNITS = {
     "Ah": ("Ah", "NONE"), "Deg": ("°", "NONE"), "kWh": ("kWh", "ENERGY"), "VAh": ("VAh", "NONE"),
     "VArh": ("varh", "NONE"), "var": ("var", "REACTIVE_POWER"), "varh": ("varh", "NONE"),
     "AH": ("Ah", "NONE"), "ohms": ("Ω", "NONE"), "cos()": ("", "NONE"),
+    "%Max/Sec": ("%/s", "NONE"), "S": ("S", "NONE"), "Var": ("var", "REACTIVE_POWER"), "Varh": ("varh", "NONE"),
+    "WH": ("Wh", "ENERGY"),
     "%WHRtg": ("%", "NONE"), "% WChaMax/sec": ("%/s", "NONE"), "% WChaMax": ("%", "NONE"),
     " % WChaMax": ("%", "NONE"), "% WMax/sec": ("%/s", "NONE"), "% WMax": ("%", "NONE"),
     "% WGra": ("%", "NONE"), "% VArMax": ("%", "NONE"), "% VArAval": ("%", "NONE"), "% WDisChaMax": ("%", "NONE"), "% AhrRtg": ("%", "NONE"),
 }
 
 
+def ident(name):
+    """C++ identifier part of a point name (GROUP.POINT of the flattened sync groups -> GROUP_POINT)."""
+    return name.replace(".", "_")
+
+
 def cstr(text):
     return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def flatten(group):
+    """Points of the fixed block: the points of the group, then those of its `sync` sub groups (fixed layout,
+    e.g. PFWInj of model 704), renamed GROUP.POINT so that the keys stay unique."""
+    points = list(group["points"])
+    for sub in group.get("groups", []):
+        if sub.get("type") == "sync":
+            for p in flatten(sub):
+                q = dict(p)
+                q["name"] = f"{sub['name']}.{p['name']}"
+                q["label"] = f"{p.get('label', p['name'])} ({sub['name']})"
+                points.append(q)
+    return points
+
+
+def is_writable(p):
+    """Only 16-bit points are written (FC06): a 32-bit point is left read-only."""
+    return p.get("access") == "RW" and TYPES.get(p["type"]) in ("INT16", "UINT16", "ENUM16")
 
 
 def collect(points, sf_offsets, skip=()):
@@ -66,7 +92,7 @@ def collect(points, sf_offsets, skip=()):
 
 def count_entries(info, entries, key):
     for p, _o, _size, unit, kind, _sfo in entries:
-        rw = p.get("access") == "RW"
+        rw = is_writable(p)
         if rw and key == "points":
             if TYPES[p["type"]] in ("INT16", "UINT16"):
                 info["rw_numbers"] += 1
@@ -148,17 +174,27 @@ def main():
     info = {}
     for mid in MODELS:
         g = json.loads((src / f"model_{mid}.json").read_text())["group"]
+        points = flatten(g)
         sf_offsets, off = {}, 0
-        for p in g["points"]:
+        for p in points:
             if p["type"] == "sunssf":
                 sf_offsets[p["name"]] = off
             off += p["size"]
-        fixed, fixed_size = collect(g["points"], sf_offsets, SKIP_POINTS.get(mid, ()))
+        fixed, fixed_size = collect(points, sf_offsets, SKIP_POINTS.get(mid, ()))
         info[mid] = {"points": 0, "group_points": 0, "text_points": 0, "text_group_points": 0, "bits_points": 0, "bits_group_points": 0, "rw_numbers": 0, "rw_selects": 0, "units": set(), "kinds": set()}
         count_entries(info[mid], fixed, "points")
-        count_off = next((o for o, p in zip(
-            [sum(q["size"] for q in g["points"][:i]) for i in range(len(g["points"]))], g["points"])
-            if p["type"] == "count"), None)
+        subs = [x for x in g.get("groups", []) if x.get("type") != "sync"]
+        count_off = None
+        if subs:
+            # The number of instances is held by the point named by the `count` of the group (or of type count)
+            cname = subs[0].get("count") if isinstance(subs[0].get("count"), str) else None
+            offs, o = {}, 0
+            for p in g["points"]:
+                offs[p["name"]] = o
+                if p["type"] == "count" and cname is None:
+                    cname = p["name"]
+                o += p["size"]
+            count_off = offs.get(cname)
         lines.append(f"#ifdef SUNSPEC_MODEL_{mid}")
         lines.append(f"// Model {mid}: {g.get('label', g['name'])}")
 
@@ -166,24 +202,23 @@ def main():
             # Symbol tables first (enum values, bit names)
             for p, *_ in entries:
                 if TYPES[p["type"]] in TEXT and p.get("symbols"):
-                    lines.append(f"static constexpr SymbolDef {var}_SYM_{p['name']}[] = {{")
+                    lines.append(f"static constexpr SymbolDef {var}_SYM_{ident(p['name'])}[] = {{")
                     for sym in p["symbols"]:
                         lines.append(f"    {{{sym['value']}, {cstr(sym['name'])}}},")
                     lines.append("};")
             lines.append(f"static constexpr PointDef {var}[] = {{")
             for p, o, size, unit, kind, sfo in entries:
                 if TYPES[p["type"]] in TEXT and p.get("symbols"):
-                    sym = f"{var}_SYM_{p['name']}, {len(p['symbols'])}"
+                    sym = f"{var}_SYM_{ident(p['name'])}, {len(p['symbols'])}"
                 else:
                     sym = "nullptr, 0"
                 lines.append(f"    {{{cstr(p['name'])}, {cstr(p.get('label', p['name']))}, {o}, PointType::{TYPES[p['type']]}, "
                              f"{size}, {sfo}, {cstr(unit)}, PointKind::{kind}, {sym}, "
-                             f"{'true' if p.get('access') == 'RW' else 'false'}}},")
+                             f"{'true' if is_writable(p) else 'false'}}},")
             lines.append("};")
 
         emit(f"MODEL_{mid}_POINTS", fixed)
         group_ref = "nullptr"
-        subs = g.get("groups", [])
         if subs:
             if len(subs) != 1 or count_off is None:
                 raise SystemExit(f"model {mid}: unsupported group layout")
