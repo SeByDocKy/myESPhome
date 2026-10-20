@@ -160,14 +160,71 @@ The uart settings above are checked at validation time.
 
 See [`test_faikin.yaml`](../../code/test_faikin.yaml) for a complete example. Every platform is configured with `platform: faikin`; each entity key is optional.
 
-| Platform | Keys |
+## Entities
+
+Every platform is configured with `platform: faikin` and `faikin_id`; every key is optional, so you only create the entities you need.
+
+### Climate
+
+A single entity (`climate`, `platform: faikin`).
+
+| Feature | Values |
 |---|---|
-| `climate` | (single entity) power, mode, target temperature 18-30 °C in 0.5 °C steps, fan, swing, room temperature, action |
-| `sensor` | `home_temperature`, `outside_temperature`, `liquid_temperature`, `fan_speed`, `compressor` |
-| `binary_sensor` | `connected` |
-| `text_sensor` | `protocol_version`, `model_code` |
-| `switch` | `econo`, `powerful`, `comfort`, `quiet`, `streamer`, `sensor` |
-| `number` | `demand` |
+| Modes | `off`, `heat_cool` (the unit's auto), `cool`, `heat`, `dry`, `fan_only` |
+| Target temperature | 18 to 30 °C, step 0.5 °C (used in auto, cool and heat) |
+| Current temperature | the room temperature (same value as `home_temperature`) |
+| Fan modes | `auto`, `quiet`, plus custom fan modes `1`, `2`, `3`, `4`, `5` |
+| Swing modes | `off`, `vertical`, `horizontal`, `both` |
+| Action | inferred: `off`, `idle`, `cooling`, `heating`, `drying`, `fan` (see the notes below) |
+
+### Sensors (`sensor`)
+
+| Key | Unit | Device class | Source command | Notes |
+|---|---|---|---|---|
+| `home_temperature` | °C | temperature | `RH` (`F9` as fallback) | Room temperature measured by the indoor unit. |
+| `outside_temperature` | °C | temperature | `Ra` | Outdoor temperature. |
+| `liquid_temperature` | °C | temperature | `RI` | Liquid / coil temperature, exact meaning not fully confirmed. |
+| `fan_speed` | rpm | | `RL` | Indoor fan speed. |
+| `compressor` | | | `Rd` | Raw compressor value, unit not confirmed. |
+
+All of them use the measurement state class.
+
+### Binary sensors (`binary_sensor`)
+
+| Key | Device class | Category | Description |
+|---|---|---|---|
+| `connected` | connectivity | diagnostic | On while the unit answers on the S21 port (three consecutive failures turn it off). |
+
+### Text sensors (`text_sensor`)
+
+| Key | Category | Source command | Description |
+|---|---|---|---|
+| `protocol_version` | diagnostic | `FY00`, or `F8` on older units | S21 protocol version found by the boot probe (for example `3.20`). |
+| `model_code` | diagnostic | `FC` | Model code found by the boot probe. |
+
+### Switches (`switch`)
+
+| Key | Icon | Write command | Description |
+|---|---|---|---|
+| `econo` | `mdi:leaf` | `D7` | Econo mode. Written together with the demand limit. |
+| `powerful` | `mdi:flash` | `D6` | Powerful mode. |
+| `comfort` | `mdi:sofa` | `D6` | Comfort mode. |
+| `quiet` | `mdi:volume-low` | `D6` | Outdoor unit quiet mode. |
+| `streamer` | `mdi:air-filter` | `D6` | Streamer (air purifier). |
+| `sensor` | `mdi:motion-sensor` | `D6` | Sensor LED flag. |
+
+### Numbers (`number`)
+
+| Key | Unit | Default range | Write command | Description |
+|---|---|---|---|---|
+| `demand` | % | `min_value: 40`, `max_value: 100`, `step: 5` (all configurable) | `D7` | Power limit (demand control). 100 means no limit. |
+
+### Actions
+
+| Action | Description |
+|---|---|
+| `faikin.probe` | Runs the boot probe again and logs the raw answers. |
+| `faikin.send_raw` | Sends one command (`command`, two characters, and an optional ASCII `payload`) and logs the answer. |
 
 Notes:
 
