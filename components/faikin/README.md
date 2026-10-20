@@ -16,13 +16,106 @@ Phase 1 covers **S21 only**.
 
 This is new code that has been unit-tested on a host (protocol layer) but not yet run against a real unit. Expect to adjust things on first use, and use the boot probe described below.
 
-## Hardware
+## Hardware and wiring
 
-- The S21 port is 2400 baud, 8 data bits, even parity, 2 stop bits.
-- Community reports say the lines need 5 V logic levels. Use an interface designed for it (for example a Faikin board) or a proper level shifter, not bare 3.3 V GPIOs.
-- Some interface boards invert the Tx and/or Rx line. The original firmware detects this automatically; here you set `inverted: true` on the corresponding uart pin.
-- The S403 connector is not isolated. It should only be used through a Daikin S21 adapter.
-- Working on an air conditioner can be dangerous: isolate the power first, and do it at your own risk.
+Only the **S21** port is supported in this phase (see the status table). The other Daikin connectors are listed below so you can recognise them, but they use different protocols.
+
+> Working inside an air conditioner can be dangerous (mains voltage, risk of damaging the unit). Isolate the power first, never plug or unplug a lead with the unit powered, and do it at your own risk.
+
+### Which connector does my unit have?
+
+| Port | Protocol | Typical connector on the unit | Supported here |
+|---|---|---|---|
+| **S21** | S21 serial | 5-way JST EH (2.5 mm pitch, older units, "type A") or JST PAP / PA family (2.0 mm pitch, locking, newer units, "type B") | yes |
+| X403 / S403 | S21 serial, **not isolated** | JST XAP ("type D") or JST PBVP-10 / modified PAP ("type E"), modern splits | wiring only through a Daikin S21 adapter, see below |
+| X50A (+ X35A for power) | X50A | Molex Micro-Lock or JST ZHR for X50A, XHP for X35A; ducted units and cassettes | not yet |
+| CN_WIRED | CN_WIRED | JST PH series | not yet |
+
+Pin numbers for X403, X50A and X35A are only published as pictures by the original project, so they are not repeated here.
+
+**Perfera FTXM (for example FTXM35).** The community reports that these units have an S21 header on the indoor unit main board, 5 pins, 2.0 mm pitch, locking (JST PA family, so the same family as the "type B" lead), often not populated with the mating plug. The stock Wi-Fi adapter (BRP069C4x) uses a different connector, S801, which is not the one to use. Reports of pin 1 differ from one unit to another, so measure before connecting (see below). The official Daikin EKRS21 lead has been reported to fit, but it is short and expensive.
+
+### S21 pinout
+
+The original project wires the S21 port 1:1 (pin 1 to pin 1, and so on). Pin 1 is marked with a triangle or an arrow on the board.
+
+| Pin | Function | Notes |
+|---|---|---|
+| 1 | 5 V reference | Not always connected, and it is **not** GND. Used by the unit as pull-up for its Tx line. |
+| 2 | Tx from the air conditioner | 5 V logic, connect to the ESP32 **Rx** pin |
+| 3 | Rx to the air conditioner | 5 V logic (most units also accept 3.3 V), connect to the ESP32 **Tx** pin |
+| 4 | Power, nominally 12 V | Measured values between 12 V and 14.5 V are reported |
+| 5 | GND | |
+
+Reports for some FTXM boards read pin 1 as GND and pin 5 as 5 V, others the opposite, and wire colours are not reliable (one end of a lead may need its wire order reversed). **Always check with a multimeter** which pin is GND and which pin carries the 12-14 V before connecting anything.
+
+### Do I need a level shifter?
+
+The S21 data lines idle at 5 V. An ESP32 input is 3.3 V and is not rated for 5 V, so the unit Tx line (pin 2) should not go straight to an ESP32 pin.
+
+- **Unit Tx (pin 2) to ESP32 Rx: yes, protect the input.** Either a resistor divider (for example 1 kOhm in series with the pin and 2 kOhm to GND, which gives about 3.3 V from 5 V) or a bidirectional level shifter.
+- **ESP32 Tx to unit Rx (pin 3): usually not needed.** Most units are reported to accept 3.3 V on this line. If a unit does not answer, put a level shifter on this line too.
+- **Module:** any 4-channel bidirectional I2C-style converter built on BSS138 MOSFETs (for example the Adafruit 757 or the SparkFun BOB-12009, or the many compatible clones) is fast enough for a 2400 baud link. Feed its HV side from the 5 V rail and its LV side from the ESP32 3.3 V.
+- The original Faikin board uses one FET per direction (the signal is inverted by the board), and is the reference design: if you do not want to build the interface, a Faikin board is the simplest option. Its inversion is why some boards need `inverted: true` on the uart pins here.
+
+I could not find a Daikin document describing the exact electrical characteristics of the S21 lines, so treat the values above as community practice. If nothing is received, try the pin inversion, then a 5 V pull-up on the unit Tx line (pin 1 is meant for it).
+
+### Wiring diagram
+
+Logical wiring only: the physical position of the pins on the plug is not drawn, check the pin numbers (and the triangle marking pin 1) on your own connector, with a multimeter.
+
+```text
+ Daikin S21 port                                         ESP32 (3.3 V logic)
+ ---------------                                         -------------------
+
+ pin 4  (12-14.5 V) ------+------ Vin  +-----------+  5 V ------ 5V / VIN
+                          |            | Mini560   |
+ pin 5  (GND) ------------+------ GND --+ (buck 5V) +-- GND ---- GND
+                          |            +-----------+
+                          |
+                          +-------------------------------- common GND
+
+ pin 2  (unit Tx, 5 V) ---[ 1 kOhm ]---+--------------------- GPIO16  (uart rx_pin)
+                                        |
+                                     [ 2 kOhm ]
+                                        |
+                                       GND
+
+ pin 3  (unit Rx) <------------------------------------------ GPIO17  (uart tx_pin)
+                          (3.3 V is accepted by most units)
+
+ pin 1  (5 V reference, not always connected): leave open at first
+```
+
+Variant with a BSS138 bidirectional level shifter instead of the divider:
+
+```text
+ S21 pin 1 or Mini560 5 V ---- HV          LV ---- ESP32 3V3
+ S21 pin 5 (GND) ------------- GND         GND --- ESP32 GND
+ S21 pin 2 (unit Tx) --------- HV1         LV1 --- GPIO16 (rx_pin)
+ S21 pin 3 (unit Rx) --------- HV2         LV2 --- GPIO17 (tx_pin)
+```
+
+If nothing is received, first swap the roles of pins 2 and 3 if you wired them the other way round, then try `inverted: true` on the uart pins.
+
+### Power supply
+
+The ESP32 can be powered from the unit through pins 4 and 5: use a small step-down converter (12-14.5 V to 5 V, then the board regulator, or directly 3.3 V), for example a Mini560 5 V module or an equivalent buck converter rated for at least 20 V input. Check the output with a multimeter before connecting the ESP32; one user reports a Mini560 that did not deliver 5 V from these pins, so do not skip that test. Some units do not provide the 12 V on pin 4: on those the 5 V of pin 1 may be usable to power the ESP32 (very small current, an ESP32 with Wi-Fi may be too much for it), otherwise power it separately and share only the GND.
+
+### Isolation
+
+- **S21:** the original project only warns about the non-isolated X403 variant, which suggests the S21 port is isolated from the mains side, but I found no Daikin statement confirming it. No isolator is required by the community builds; if you want one anyway, use a digital isolator or optocouplers on the two data lines and an isolated DC-DC converter for the supply, and remember the 5 V levels.
+- **X403 / S403:** this port is **not isolated** and can be at mains potential. The original project recommends going through a Daikin S21 adapter board and keeping everything inside the unit case. Do not connect an ESP32 directly to it.
+
+### Connector parts (S21)
+
+| Part | Reference |
+|---|---|
+| Female housing, type A (EH) | JST EHR-5, crimp SEH-001T-P0.6 |
+| Female housing, type B (PAP) | JST PAP-05V-S, crimp SPHD-001T-P0.5 |
+| Ready-made leads | EH leads (ASEHSEH22K305 12", ASEHSEH22K152 6"), PAP leads (APAPA22K305 12", APAPA22K152 6"), Daikin EKRS21 (PAP to EH adapter lead) |
+
+JST crimping tools are expensive; pre-crimped leads are easier. Jumper wires and header pins work for a bench test but do not hold in a unit.
 
 ## Configuration
 
