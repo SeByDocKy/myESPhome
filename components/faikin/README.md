@@ -49,6 +49,16 @@ The original project wires the S21 port 1:1 (pin 1 to pin 1, and so on). Pin 1 i
 
 Reports for some FTXM boards read pin 1 as GND and pin 5 as 5 V, others the opposite, and wire colours are not reliable (one end of a lead may need its wire order reversed). **Always check with a multimeter** which pin is GND and which pin carries the 12-14 V before connecting anything.
 
+### Ready-made interface board (Faikin / Faikout PCB)
+
+If you would rather not build the interface yourself, the original project has a dedicated PCB, called **Faikin** or **Faikout** (the name depends on the batch and the seller). It is an ESP32 board with the S21 interface already built in: one FET per direction for the level conversion, a power input accepting 4 V to 36 V on the pin that is the 12 V of the S21 port (so no separate buck converter), and a 5-way JST EH connector that matches the 1:1 S21 wiring above. Variants with Ethernet (FaikoutETH) and opto-isolated PoE (FaikoutPOE) also exist.
+
+- Where to buy: the [RevK shop](https://shop.revk.uk/), the [Faikout page on Lectronz](https://lectronz.com/products/1735), and [RevK on Tindie](https://www.tindie.com/products/revk/faikin-alternative-wifi-daikin-air-con-controller/). The same shops sell ready-made leads (generic and type B) and a case.
+- Design files: the KiCad project, with JLCPCB production files, is in the `PCB` folder of the [ESP32-Faikout repository](https://codeberg.org/RevK/ESP32-Faikout), so you can also have it made yourself.
+- The original project notes that the board needs an ESP32 of hardware revision 3 or later.
+
+These boards ship with the Faikin firmware. To use them with this component, flash ESPHome instead and read the schematic in the `PCB` folder for the GPIOs wired to the S21 Tx and Rx. Because the FETs invert the signal, you will most likely need `inverted: true` on both uart pins; I have not verified the GPIO numbers or this inversion on a real board, so check them against the schematic.
+
 ### Do I need a level shifter?
 
 The S21 data lines idle at 5 V. An ESP32 input is 3.3 V and is not rated for 5 V, so the unit Tx line (pin 2) should not go straight to an ESP32 pin.
