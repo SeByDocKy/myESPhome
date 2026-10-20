@@ -1,0 +1,112 @@
+substitutions:
+  name: pelletstove
+  friendly_name: Pellet Stove
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Native USB is owned by TinyUSB, so the logger must use UART0.
+logger:
+  hardware_uart: UART0
+  level: DEBUG
+
+wifi:
+  ssid: test
+  password: testtesttest
+
+api:
+ota:
+  - platform: esphome
+
+external_components:
+  - source: github://SeByDocKy/myESPhome
+    components: [openfirenet]
+    refresh: 10s
+
+tinyusb:
+  usb_vendor_id: 0x303A
+  usb_product_id: 0x819A
+
+usb_cdc_acm:
+  rx_buffer_size: 2048
+  tx_buffer_size: 1024
+  interfaces:
+    - id: cdc_stove
+
+openfirenet:
+  id: stove
+  uart_id: cdc_stove
+  update_interval: 2s
+  frame_gap: 100ms
+
+sensor:
+  - platform: openfirenet
+    openfirenet_id: stove
+    room_temperature:
+      name: ${name}_room_temperature
+    target_temperature:
+      name: ${name}_target_temperature
+    heating_power:
+      name: ${name}_heating_power
+    flame_temperature:
+      name: ${name}_flame_temperature
+    rssi:
+      name: ${name}_rssi
+    pellet_hours:
+      name: ${name}_pellet_hours
+    pellets_total:
+      name: ${name}_pellets_total
+    ignition_count:
+      name: ${name}_ignition_count
+
+text_sensor:
+  - platform: openfirenet
+    openfirenet_id: stove
+    state:
+      name: ${name}_state
+    error:
+      name: ${name}_error
+    model:
+      name: ${name}_model
+    firmware:
+      name: ${name}_firmware
+    mode:
+      name: ${name}_mode
+
+binary_sensor:
+  - platform: openfirenet
+    openfirenet_id: stove
+    connected:
+      name: ${name}_connected
+    burning:
+      name: ${name}_burning
+    error:
+      name: ${name}_error_active
+    hopper_lid_open:
+      name: ${name}_hopper_lid_open
+
+switch:
+  - platform: openfirenet
+    openfirenet_id: stove
+    power:
+      name: ${name}_power
+
+number:
+  - platform: openfirenet
+    openfirenet_id: stove
+    target_temperature:
+      name: ${name}_target_temperature_set
+    heating_power:
+      name: ${name}_heating_power_set
+
+select:
+  - platform: openfirenet
+    openfirenet_id: stove
+    mode:
+      name: ${name}_mode_select
