@@ -1,0 +1,115 @@
+substitutions:
+  name: apsystems
+  friendly_name: APsystems
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59'
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  
+
+esp32:
+  board: esp32dev          # any ESP32 works with a CC2530
+  framework:
+    type: esp-idf          # arduino works too
+
+logger:
+  level: DEBUG
+  
+debug:
+  update_interval: 5s  
+
+time:
+  - platform: sntp
+    id: my_time
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # 802.15.4 channel 16 (2430 MHz) overlaps Wi-Fi channels 3..7: use a Wi-Fi channel such as 1 or 11 on your router
+
+# UART connected to the CC2530 (Z-Stack ZNP firmware): ESP TX -> CC2530 RX, ESP RX <- CC2530 TX
+uart:
+  id: uart_zb
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 115200
+
+packages:
+
+  apszb:
+    url: https://github.com/SeByDocKy/myESPhome
+    ref: main
+    refresh: 0s
+    files: 
+      - path: 'code/device_apszb.yaml'
+        vars:
+          apszb_id: 'aps'
+          apszb_radio: 'znp'
+          apszb_uart_id: 'uart_zb'
+          apszb_reset_pin: 'GPIO4'
+          apszb_ecu_id: 'D8A3011B9780'
+          apszb_channel: 16
+          apszb_poll_interval: '15s'
+          apszb_auto_pair: true
+          apszb_log_frames: false
+  
+  apszb_inverter:
+    url: https://github.com/SeByDocKy/myESPhome/
+    ref: main
+    refresh: 0s
+    files:
+      - path: 'code/device_apszb_inverter.yaml'
+        vars:
+          apszb_inverter_name: 'yc600'
+          apszb_inverter_id: 'inv1'
+          apszb_inverter_apszb_id: 'aps'
+          apszb_inverter_serial: '408000158215'
+          apszb_inverter_type: 'yc600'
+          apszb_inverter_calibration: 0
+
+sensor:
+
+  - platform: wifi_signal
+    name: ${name}_wifi_power
+    id: wifi_power
+    update_interval: 5s
+
+  - platform: uptime
+    id: uptime_sec
+
+  - platform: debug
+    free:
+      name: ${name}_heap_free
+    loop_time:
+      name: ${name}_loop_time
+
+text_sensor:
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }  
+    icon: mdi:clock-start
+    update_interval: 113s
