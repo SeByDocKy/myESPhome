@@ -11,6 +11,20 @@ independent implementation written from that specification (no code copied).
 > **Status: experimental.** The protocol layer is unit tested on a PC, the YAML schema is validated and the
 > component compiles, but it has **not been validated against a real stove yet**. See *Known uncertainties*.
 
+## Compatible stoves
+
+The `model` text sensor decodes the model identifier reported by the stove. The protocol tables of the
+[open-firenet](https://github.com/openfirenet/open-firenet) project list two brands, both from the same
+manufacturer (Rika Innovative Ofentechnik):
+
+* **RIKA** — INDUO, TOPO, ROCO, ROCO MULTIAIR, ROCO RAO, KAPO, MIRO, COMO, REVO, INTERNO, FILO, SUMO, DOMO,
+  CORSO, INDUO II, REVIVO, PARO, LIVO, COMO II, REVO II, COSMO, SONO, DOMO BACK, PK E, SUMO MULTIAIR, CONNECT.
+* **ANIMO** — AVITO, AVITO SLIM, AVITO RAO, ADEVO, PURE, ADUO, AMITO, ARONDO, ADUO 2.
+
+Being listed in the protocol tables does **not** mean a model has been tested: the open-firenet project
+itself names no tested models, and this component has not been validated on a real stove yet. A stove needs
+the Firenet 2.0 USB-A socket; older models or other USB variants may not work. Reports are welcome.
+
 ## Requirements
 
 * ESP32-S3 board with the native USB port wired to the stove's USB-A socket (device mode, no host).
