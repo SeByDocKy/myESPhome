@@ -219,6 +219,24 @@ All of them use the measurement state class.
 |---|---|---|---|---|
 | `demand` | % | `min_value: 40`, `max_value: 100`, `step: 5` (all configurable) | `D7` | Power limit (demand control). 100 means no limit. |
 
+### Outputs (`output`)
+
+| Key | Range | Write command | Description |
+|---|---|---|---|
+| (float output, with an `id`) | 0.0 to 1.0 | `D7` | Demand control as a float output: 0.0 is `min_demand` (40 % by default) and 1.0 is `max_demand` (100 % by default), linear in between and rounded to `step` (5 % by default). Meant to be driven by a `pid` controller or any float source. |
+
+```yaml
+output:
+  - platform: faikin
+    faikin_id: ac
+    id: ac_demand_output
+    min_demand: 40   # output 0.0
+    max_demand: 100  # output 1.0
+    step: 5
+```
+
+With the defaults, 0.0 gives 40 %, 0.25 gives 55 %, 0.5 gives 70 %, 0.75 gives 85 % and 1.0 gives 100 %. A command is only sent when the resulting percentage changes, so a controller can write every cycle. It controls the same limit as the `demand` number: use one or the other, not both at once.
+
 ### Actions
 
 | Action | Description |

@@ -109,6 +109,16 @@ number:
       max_value: 100
       step: 5
 
+# Float output for the demand control: 0.0 = 40 % power, 1.0 = 100 % power (rounded to the step).
+# Use it as the output of a `pid` / `slow_pwm` style controller, or any float source.
+output:
+  - platform: faikin
+    faikin_id: ac
+    id: ${name}_demand_output
+    min_demand: 40
+    max_demand: 100
+    step: 5
+
 # Debug helpers: read the identification / capability commands again, or send a raw query.
 # Answers are written to the log at INFO level.
 button:

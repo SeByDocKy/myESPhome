@@ -1,0 +1,137 @@
+# Test configuration for the faikin component with the demand float output (Daikin Perfera FTXM35).
+# 0.0 on the output = 40 % power, 1.0 = 100 % power. A template number (slider) drives the output
+# so that it can be tried from Home Assistant before connecting a PID.
+
+substitutions:
+  name: faikin
+  friendly_name: Faikin
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+external_components:
+
+  - source: "github://SeByDocKy/myESPhome/"
+    components: [faikin]
+    refresh: 10s
+
+# S21 port: 2400 baud, 8 data bits, even parity, 2 stop bits.
+# Add `inverted: true` on both pins if your interface board inverts the lines (Faikin board).
+uart:
+  id: s21_uart
+  tx_pin: ${tx_pin}
+  rx_pin: ${rx_pin}
+  baud_rate: 2400
+  data_bits: 8
+  parity: EVEN
+  stop_bits: 2
+
+faikin:
+  id: ac
+  uart_id: s21_uart
+  probe: true
+
+climate:
+  - platform: faikin
+    faikin_id: ac
+    name: ${name}_climate
+
+sensor:
+  - platform: faikin
+    faikin_id: ac
+    home_temperature:
+      name: ${name}_home_temperature
+    outside_temperature:
+      name: ${name}_outside_temperature
+    liquid_temperature:
+      name: ${name}_liquid_temperature
+    fan_speed:
+      name: ${name}_fan_speed
+    compressor:
+      name: ${name}_compressor
+
+binary_sensor:
+  - platform: faikin
+    faikin_id: ac
+    connected:
+      name: ${name}_connected
+
+text_sensor:
+  - platform: faikin
+    faikin_id: ac
+    protocol_version:
+      name: ${name}_protocol_version
+    model_code:
+      name: ${name}_model_code
+
+switch:
+  - platform: faikin
+    faikin_id: ac
+    econo:
+      name: ${name}_econo
+    powerful:
+      name: ${name}_powerful
+    quiet:
+      name: ${name}_quiet
+
+# Demand float output: 0.0 -> 40 %, 1.0 -> 100 % (rounded to 5 %).
+output:
+  - platform: faikin
+    faikin_id: ac
+    id: demand_output
+    min_demand: 40
+    max_demand: 100
+    step: 5
+
+# Slider from 0 to 1 driving the output. Do not use it together with the `demand` number of the
+# faikin platform: both control the same limit.
+number:
+  - platform: template
+    name: ${name}_demand_level
+    id: demand_level
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.05
+    initial_value: 1.0
+    optimistic: true
+    restore_value: false
+    on_value:
+      - output.set_level:
+          id: demand_output
+          level: !lambda "return x;"
+
+# Debug helpers: boot probe again, and a raw read of the demand frame (answers in the log).
+button:
+  - platform: template
+    name: ${name}_probe
+    entity_category: diagnostic
+    on_press:
+      - faikin.probe:
+          id: ac
+  - platform: template
+    name: ${name}_read_demand
+    entity_category: diagnostic
+    on_press:
+      - faikin.send_raw:
+          id: ac
+          command: "F7"
