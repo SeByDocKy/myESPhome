@@ -51,8 +51,6 @@ openfirenet:
   frame_gap: 100ms           # pause between two frames sent to the stove
 ```
 
-A complete example with every entity is in `code/test_openfirenet.yaml` in this repository.
-
 ## Hub options
 
 | Option | Default | Description |
@@ -63,28 +61,195 @@ A complete example with every entity is in `code/test_openfirenet.yaml` in this 
 
 ## Entities
 
-All platforms take `openfirenet_id` (the hub id) and every key is optional.
+All platforms take `openfirenet_id` (the hub id), every key is optional, and each entity accepts the usual
+ESPHome options of its platform (`name`, `id`, `icon`, `filters`, `on_value`…).
 
-**sensor** — `room_temperature`, `target_temperature`, `heating_power`, `flame_temperature`,
-`id_fan_measured`, `id_fan_set`, `board_temperature`, `rssi`, `pellet_hours`, `pellets_total`,
-`service_countdown`, `ignition_count`, `on_off_cycles`, `error_code`.
+### sensor
 
-**text_sensor** — `state` (Off, Standby, Ignition, Heating…), `error`, `model`, `firmware`, `mode`.
+| Key | Unit | Description |
+|---|---|---|
+| `room_temperature` | °C | Room temperature measured by the stove (wire value ÷ 10). |
+| `target_temperature` | °C | Room temperature set point currently applied. |
+| `heating_power` | % | Heating power stage currently requested. |
+| `flame_temperature` | – | Flame / combustion temperature as reported by the stove (raw value). |
+| `id_fan_measured` | – | Induced-draft fan speed, measured (diagnostic). |
+| `id_fan_set` | – | Induced-draft fan speed, set point (diagnostic). |
+| `board_temperature` | °C | Mainboard temperature (diagnostic, scale ÷ 10 to be confirmed). |
+| `rssi` | dBm | WiFi signal level as stored by the stove (diagnostic). |
+| `pellet_hours` | h | Pellet operating hours counter. |
+| `pellets_total` | kg | Total pellet consumption counter. |
+| `service_countdown` | – | Countdown until the next service (diagnostic). |
+| `ignition_count` | – | Number of ignitions (diagnostic). |
+| `on_off_cycles` | – | Number of on/off cycles (diagnostic). |
+| `error_code` | – | Raw error bitmask, 0 when no error (diagnostic). |
 
-**binary_sensor** — `connected` (handshake done), `burning`, `error`, `hopper_lid_open`.
+### text_sensor
 
-**switch** — `power`.
+| Key | Description |
+|---|---|
+| `state` | Operating state: Off, Standby, Ignition, Flame Start, Heating, Grate Cleaning, Burn Off, Split Log… |
+| `error` | Active errors decoded from the bitmask, `None` when there is no error. |
+| `model` | Stove make and model (e.g. `RIKA ROCO`) (diagnostic). |
+| `firmware` | Mainboard firmware version, e.g. `V2.29.585.12` (diagnostic). |
+| `mode` | Current operating mode: Manual, Auto, Comfort or Setback. |
 
-**number** — `target_temperature` (14–28 °C, step 0.5), `heating_power` (30–100 %).
+### binary_sensor
 
-**select** — `mode` (Manual, Auto, Comfort, Setback).
+| Key | Device class | Description |
+|---|---|---|
+| `connected` | connectivity | ON once the USB handshake with the stove is complete (diagnostic). |
+| `burning` | running | ON while the stove is in a combustion phase (ignition to burn-off). |
+| `error` | problem | ON when at least one error bit is set. |
+| `hopper_lid_open` | opening | ON when the pellet hopper lid is open. |
+
+### switch
+
+| Key | Description |
+|---|---|
+| `power` | Switches the stove on / off. |
+
+### number
+
+| Key | Range | Description |
+|---|---|---|
+| `target_temperature` | 14 – 28 °C, step 0.5 | Room temperature set point. |
+| `heating_power` | 30 – 100 %, step 1 | Heating power stage (used in manual mode). |
+
+### select
+
+| Key | Options | Description |
+|---|---|---|
+| `mode` | Manual, Auto, Comfort, Setback | Operating mode of the stove. |
+
+## Full example
+
+Every hub option and every entity (same file as `code/test_openfirenet.yaml`):
 
 ```yaml
+substitutions:
+  name: pelletstove
+  friendly_name: Pellet Stove
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Native USB is owned by TinyUSB, so the logger must use UART0.
+logger:
+  hardware_uart: UART0
+  level: DEBUG
+
+wifi:
+  ssid: test
+  password: testtesttest
+
+api:
+ota:
+  - platform: esphome
+
+external_components:
+  - source: github://SeByDocKy/myESPhome
+    components: [openfirenet]
+    refresh: 10s
+
+tinyusb:
+  usb_vendor_id: 0x303A
+  usb_product_id: 0x819A
+
+usb_cdc_acm:
+  rx_buffer_size: 2048
+  tx_buffer_size: 1024
+  interfaces:
+    - id: cdc_stove
+
+openfirenet:
+  id: stove
+  uart_id: cdc_stove
+  update_interval: 2s
+  frame_gap: 100ms
+
+sensor:
+  - platform: openfirenet
+    openfirenet_id: stove
+    room_temperature:
+      name: ${name}_room_temperature
+    target_temperature:
+      name: ${name}_target_temperature
+    heating_power:
+      name: ${name}_heating_power
+    flame_temperature:
+      name: ${name}_flame_temperature
+    id_fan_measured:
+      name: ${name}_id_fan_measured
+    id_fan_set:
+      name: ${name}_id_fan_set
+    board_temperature:
+      name: ${name}_board_temperature
+    rssi:
+      name: ${name}_rssi
+    pellet_hours:
+      name: ${name}_pellet_hours
+    pellets_total:
+      name: ${name}_pellets_total
+    service_countdown:
+      name: ${name}_service_countdown
+    ignition_count:
+      name: ${name}_ignition_count
+    on_off_cycles:
+      name: ${name}_on_off_cycles
+    error_code:
+      name: ${name}_error_code
+
+text_sensor:
+  - platform: openfirenet
+    openfirenet_id: stove
+    state:
+      name: ${name}_state
+    error:
+      name: ${name}_error
+    model:
+      name: ${name}_model
+    firmware:
+      name: ${name}_firmware
+    mode:
+      name: ${name}_mode
+
+binary_sensor:
+  - platform: openfirenet
+    openfirenet_id: stove
+    connected:
+      name: ${name}_connected
+    burning:
+      name: ${name}_burning
+    error:
+      name: ${name}_error_active
+    hopper_lid_open:
+      name: ${name}_hopper_lid_open
+
 switch:
   - platform: openfirenet
     openfirenet_id: stove
     power:
       name: ${name}_power
+
+number:
+  - platform: openfirenet
+    openfirenet_id: stove
+    target_temperature:
+      name: ${name}_target_temperature_set
+    heating_power:
+      name: ${name}_heating_power_set
+
+select:
+  - platform: openfirenet
+    openfirenet_id: stove
+    mode:
+      name: ${name}_mode_select
 ```
 
 ## How it works (short)

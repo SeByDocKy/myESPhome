@@ -56,14 +56,26 @@ sensor:
       name: ${name}_heating_power
     flame_temperature:
       name: ${name}_flame_temperature
+    id_fan_measured:
+      name: ${name}_id_fan_measured
+    id_fan_set:
+      name: ${name}_id_fan_set
+    board_temperature:
+      name: ${name}_board_temperature
     rssi:
       name: ${name}_rssi
     pellet_hours:
       name: ${name}_pellet_hours
     pellets_total:
       name: ${name}_pellets_total
+    service_countdown:
+      name: ${name}_service_countdown
     ignition_count:
       name: ${name}_ignition_count
+    on_off_cycles:
+      name: ${name}_on_off_cycles
+    error_code:
+      name: ${name}_error_code
 
 text_sensor:
   - platform: openfirenet
