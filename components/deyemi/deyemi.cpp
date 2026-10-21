@@ -479,12 +479,12 @@ void DeyeMiComponent::run_task_() {
       }
       case JobType::WRITE_POWER_PERCENT: {
         result->reg_value = job.reg_value;
-        std::vector<uint8_t> request = this->build_write_request_(REG_ACTIVE_POWER_REGULATION, job.reg_value);
+        std::vector<uint8_t> request = this->build_write_request_(this->power_reg_, job.reg_value);
         std::vector<uint8_t> response;
         if (this->connect_and_transact_(request, response)) {
           ESP_LOGD(TAG, "Write response raw (%u bytes): %s", (unsigned) response.size(),
                    format_hex_pretty(response).c_str());
-          if (this->parse_write_response_(response, REG_ACTIVE_POWER_REGULATION)) {
+          if (this->parse_write_response_(response, this->power_reg_)) {
             result->success = true;
           }
         }
@@ -520,7 +520,8 @@ void DeyeMiComponent::process_result_(JobResult *result) {
                  this->port_);
         break;
       }
-      ESP_LOGI(TAG, "power_percent set to %u%% (register 0x%04X)", result->reg_value, REG_ACTIVE_POWER_REGULATION);
+      this->last_power_reg_ = (int32_t) result->reg_value;
+      ESP_LOGI(TAG, "power_percent set to %u%% (register 0x%04X)", result->reg_value, this->power_reg_);
       break;
     }
   }
@@ -580,6 +581,10 @@ void DeyeMiComponent::resolve_model_(const std::vector<uint8_t> &regs, uint16_t 
 }
 
 void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint16_t start_reg, uint16_t count) {
+  // Track the register's real value (used to skip redundant, EEPROM-wearing
+  // writes in set_power_percent()).
+  this->last_power_reg_ = (int32_t) get_u16_(regs, this->power_reg_, start_reg);
+
 #ifdef USE_TEXT_SENSOR
   if (this->inverter_status_text_sensor_ != nullptr) {
     uint16_t status = get_u16_(regs, REG_RUNNING_STATUS, start_reg);
@@ -641,7 +646,7 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
   // displayed value if the register was changed from elsewhere (the Deye
   // app, another controller) rather than through this number.
   if (this->power_percent_number_ != nullptr)
-    this->power_percent_number_->publish_state(get_u16_(regs, REG_ACTIVE_POWER_REGULATION, start_reg));
+    this->power_percent_number_->publish_state(get_u16_(regs, this->power_reg_, start_reg));
 #endif
 }
 
@@ -675,6 +680,14 @@ void DeyeMiComponent::set_power_percent(float percent) {
   // 1% rather than reaching a true 0% on at least the SUN-M200G4-EU-Q0 --
   // not something this component works around.
   uint16_t reg_value = (uint16_t) lroundf(percent);
+
+  // This register is persistent (inverter non-volatile memory): skip the
+  // write if it already holds this value, to avoid needless EEPROM wear
+  // (e.g. a PID/automation re-sending the same setpoint every cycle).
+  if (this->last_power_reg_ == (int32_t) reg_value) {
+    ESP_LOGD(TAG, "power_percent already %u%% in the register, write skipped (EEPROM wear)", reg_value);
+    return;
+  }
 
   Job job{JobType::WRITE_POWER_PERCENT, reg_value};
   if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {

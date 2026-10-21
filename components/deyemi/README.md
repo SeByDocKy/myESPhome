@@ -125,6 +125,50 @@ References:
   is documented to floor this register at 1% rather than reaching a true 0%
   output -- see "Known unknowns" for a possible alternative register this
   component does not yet use.
+- ⚠️ **The power write is PERSISTENT (non-volatile), not a temporary
+  setpoint.** Confirmed in the field: after the microinverter restarts (e.g.
+  at sunrise), it comes back up with the last value written to register
+  `0x0028`, not with 100%. Third-party projects state the same (e.g.
+  [SchulteDev/deye-microinverter-power-limit](https://github.com/SchulteDev/deye-microinverter-power-limit):
+  *"Register 40 writes are persisted to EEPROM"*, with a wear warning for
+  anything that writes continuously). Consequences:
+  - Do **not** drive this `number`/`output` from a fast control loop
+    (zero-injection PID, etc.) that rewrites it every second -- EEPROM/flash
+    endurance is finite (typically 100k-1M cycles, not documented by Deye for
+    this register). Prefer coarse steps (e.g. 5%), writes only on change, and
+    several tens of seconds between writes.
+  - This component already skips a write when the register is known to hold
+    the requested value (the register is read on every poll), so re-sending
+    an unchanged setpoint costs nothing -- but every *distinct* value is a
+    real write.
+  - After a restart the inverter keeps the last limit, so remember to raise
+    it again if you throttled it (the `number` shows the real register value
+    after the first poll).
+  - **No volatile/RAM-only alternative is documented.** Deye's own Modbus
+    protocol document (rev. V118) lists register 40 (`0x0028`, "Active power
+    regulation", R/W, range `[0,1200]`) with no write-mode distinction.
+    Registers 53 (`0x0035`) and 55 (`0x0037`) are reported by users on a
+    SUN-M200G4 as "gradual" and "immediate" power control
+    ([home-assistant discussion #3354](https://github.com/orgs/home-assistant/discussions/3354)),
+    but nobody states whether they are volatile -- and in Deye's official
+    document those addresses are *"Hardware Matching"* and *"Factory only"*
+    system-configuration registers.
+  - **Opt-in: `power_register: register_55`** (hub option, default
+    `active_power_regulation` = `0x0028`) makes `power_percent` write register
+    55 (`0x0037`) instead, with the same FC16 write and the same readback.
+    **Unverified**: unit/scale (assumed 1 %/unit like `0x0028`), range and
+    especially persistence are undocumented -- only one user report (SUN-M200G4,
+    firmware `MW3_16U_5406_1.59`) says it reduces power immediately. Deye's own
+    protocol document lists address 55 as "Factory only", so use it at your
+    own risk, and please report back whether the value survives a restart.
+    Register 53 (`0x0035`) is not offered.
+    ```yaml
+    deyemi:
+      - id: deyemi_1
+        ip_address: 192.168.1.60
+        sn: 1234567890
+        power_register: register_55   # default: active_power_regulation
+    ```
 - No reset/AT+ equivalent is known for this protocol -- no `button`
   platform.
 - All blocking network I/O runs on a dedicated FreeRTOS background task --

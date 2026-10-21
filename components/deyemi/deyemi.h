@@ -88,6 +88,12 @@ static const uint16_t REG_MPPT_COUNT = 0x0012;          // "MPPT number and phas
                                                          // confirmed via their official Modbus protocol doc.
 static const uint16_t REG_RATED_POWER = 0x0010;         // 0.1 W
 static const uint16_t REG_ACTIVE_POWER_REGULATION = 0x0028;  // 1 % per unit, write target for power_percent (FC16)
+// UNVERIFIED alternative target (opt-in via `power_register: register_55`):
+// user-reported on a SUN-M200G4-EU-Q0 (fw MW3_16U_5406_1.59) as reducing power
+// immediately (home-assistant discussion #3354). Unit/scale/range/persistence
+// are NOT documented -- assumed to be the same 1 %/unit as 0x0028. Deye's own
+// protocol doc (V118) lists address 55 as "Factory only".
+static const uint16_t REG_POWER_LIMIT_ALT55 = 0x0037;
 static const uint16_t REG_DAILY_PRODUCTION = 0x003C;    // 0.1 kWh
 static const uint16_t REG_RUNNING_STATUS = 0x003B;      // enum: 0=Stand-by 1=Self-check 2=Normal 3=Warning 4=Fault
 static const uint16_t REG_TOTAL_PRODUCTION = 0x003F;    // + 0x0040, 32-bit, 0.1 kWh
@@ -136,6 +142,9 @@ class DeyeMiComponent : public PollingComponent {
   void set_modbus_address(uint8_t address) { this->modbus_address_ = address; }
   void set_sn(uint32_t serial) { this->sn_ = serial; }
   void set_model(DeyeMiModel model) { this->configured_model_ = model; }
+  // Register targeted by power_percent: REG_ACTIVE_POWER_REGULATION (0x0028,
+  // default) or REG_POWER_LIMIT_ALT55 (0x0037, opt-in, see README).
+  void set_power_register(uint16_t reg) { this->power_reg_ = reg; }
 
   void setup() override;
   void update() override;
@@ -149,6 +158,10 @@ class DeyeMiComponent : public PollingComponent {
   // Writes the Active Power Regulations register (percent of rated power,
   // 0-100). Called by the `number` and `output` platforms. Fire-and-forget:
   // enqueues a job for the background task and returns almost immediately.
+  // NOTE: this register is PERSISTENT (stored in the inverter's non-volatile
+  // memory, survives reboots -- confirmed in the field). To limit flash/EEPROM
+  // wear, a write is skipped when the requested value already equals the last
+  // value known to be in the register.
   void set_power_percent(float percent);
 
 #ifdef USE_SENSOR
@@ -281,6 +294,12 @@ class DeyeMiComponent : public PollingComponent {
 #ifdef USE_NUMBER
   number::Number *power_percent_number_{nullptr};
 #endif
+
+  // Last known raw value of REG_ACTIVE_POWER_REGULATION (from every poll and
+  // every successful write); -1 = unknown yet. Used to skip redundant
+  // (EEPROM-wearing) writes.
+  int32_t last_power_reg_{-1};
+  uint16_t power_reg_{REG_ACTIVE_POWER_REGULATION};
 };
 
 #ifdef USE_NUMBER
