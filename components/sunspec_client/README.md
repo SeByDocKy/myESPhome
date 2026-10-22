@@ -195,6 +195,45 @@ text_sensor:
 `tcp_uart` / `modbus_tcp_uart` are not in a stable release yet (PR #20198 / #20061), see
 `test_sunspec_client.yaml`. With RS485, use a regular `uart:` instead.
 
+## Several devices
+
+The hub accepts several instances: one `sunspec_client:` entry per device, each with its own `address`, `models`
+and `name_prefix`. Two cases:
+
+- **Same bus** (several unit ids on one RS485 line, or several unit ids behind one Modbus TCP gateway): one
+  `uart:` (or `tcp_uart` + `modbus_tcp_uart`) and one `modbus:`, shared by all the instances.
+- **Different hosts** (Modbus TCP, one IP address per device): one `tcp_uart` + `modbus_tcp_uart` + `modbus:`
+  chain per device.
+
+```yaml
+uart:
+  - id: rs485
+    tx_pin: GPIO17
+    rx_pin: GPIO16
+    baud_rate: 9600
+
+modbus:
+  - id: modbus_rs485
+    uart_id: rs485
+
+sunspec_client:
+  - id: inverter
+    modbus_id: modbus_rs485
+    address: 1
+    name_prefix: inverter
+    models: [1, 103]
+  - id: meter
+    modbus_id: modbus_rs485
+    address: 2
+    name_prefix: meter
+    models: [1, 201]
+```
+
+Give every instance a different `name_prefix`: without it the entities of two devices get the same names. Each
+instance scans and refreshes its own device, one request at a time on the shared bus. A `text_sensor` platform
+entry is declared per instance (`sunspec_client_id`). Checked against a simulated RTU bus with two unit ids (both
+scanned, 15 entities each, no stray replies, see `test_sunspec_client_multi.yaml`); not tested on a real bus.
+
 ## Starting points
 
 `models` is a compile-time wish list: the entities created are the models of the list that the device really
@@ -302,7 +341,7 @@ declared in YAML: they are created after the scan, see [Entity names](#entity-na
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `id` | id | – | Id of the hub, used by the `text_sensor` platform and by lambdas |
+| `id` | id | – | Id of the hub, used by the `text_sensor` platform and by lambdas. Several hubs can be declared, see [Several devices](#several-devices) |
 | `modbus_id` | id | – | **Required.** The core `modbus:` bus the device is on (RS485 `uart:`, or `modbus_tcp_uart` for Modbus TCP) |
 | `address` | 0 to 255 | `1` | Modbus unit id of the device. Many inverters answer at 1, some at another value (71 on the tested Kostal) |
 | `models` | list of model ids | `[]` | SunSpec models **wanted**. Compile-time wish list: entities are created for the models that are both in this list and exposed by the device. Allowed ids: 1, 101-103, 111-113, 120-124, 160, 201-204, 701-704, 713-715, 802. No duplicates. A model that is wanted but not exposed is only logged as a warning |

@@ -1,0 +1,56 @@
+# Two SunSpec devices (unit ids 1 and 2) on the same RS485 bus.
+substitutions:
+  name: "test_sunspec_client_multi"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+ota:
+  - platform: esphome
+
+logger:
+  level: DEBUG
+
+uart:
+  - id: rs485
+    tx_pin: GPIO17
+    rx_pin: GPIO16
+    baud_rate: 9600
+
+modbus:
+  - id: modbus_rs485
+    uart_id: rs485
+
+sunspec_client:
+  - id: inverter
+    modbus_id: modbus_rs485
+    address: 1
+    name_prefix: ${name}_inverter
+    models: [1, 103, 160]
+  - id: meter
+    modbus_id: modbus_rs485
+    address: 2
+    name_prefix: ${name}_meter
+    models: [1, 201]
+
+text_sensor:
+  - platform: sunspec_client
+    sunspec_client_id: inverter
+    models:
+      name: ${name}_inverter_models
+  - platform: sunspec_client
+    sunspec_client_id: meter
+    models:
+      name: ${name}_meter_models
