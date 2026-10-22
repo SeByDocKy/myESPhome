@@ -507,7 +507,7 @@ void JkRS485Bms::on_jk_rs485_sniffer_data(const uint8_t &origin_address, const u
         break;
       default:
         ESP_LOGW(TAG, "Unsupported FRAME TYPE (0x%02X)", frame_type);
-        ESP_LOGD(TAG, "  %s", format_hex_pretty(&data.front(), 150).c_str());
+        ESP_LOGD(TAG, "  %s", jk_rs485_sniffer::hex_dump(&data.front(), 150).c_str());
     }
 
     if (this->cell_count_real_sensor_->state>0 && this->cell_count_settings_number_->state>0)
@@ -544,8 +544,8 @@ void JkRS485Bms::decode_jk02_cell_info_(const std::vector<uint8_t> &data) {
   }
 
   ESP_LOGI(TAG, "Decoding cell info frame.... [ADDRESS: %02X] %d bytes received", this->address_, data.size());
-  //ESP_LOGVV(TAG, "  %s", format_hex_pretty(&data.front(), 150).c_str());
-  //ESP_LOGVV(TAG, "  %s", format_hex_pretty(&data.front() + 150, data.size() - 150).c_str());
+  //ESP_LOGVV(TAG, "  %s", jk_rs485_sniffer::hex_dump(&data.front(), 150).c_str());
+  //ESP_LOGVV(TAG, "  %s", jk_rs485_sniffer::hex_dump(&data.front() + 150, data.size() - 150).c_str());
 
   // 6 example responses (128+128+44 = 300 bytes per frame)
   //
@@ -1007,8 +1007,8 @@ void JkRS485Bms::decode_jk02_cell_info_(const std::vector<uint8_t> &data) {
 void JkRS485Bms::decode_jk02_settings_(const std::vector<uint8_t> &data)
 {
   ESP_LOGI(TAG, "Decoding settings  frame.... [ADDRESS: %02X] %d bytes received", this->address_, data.size());
-  // ESP_LOGVV(TAG, "  %s", format_hex_pretty(&data.front(), 160).c_str());
-  // ESP_LOGVV(TAG, "  %s", format_hex_pretty(&data.front() + 160, data.size() - 160).c_str());
+  // ESP_LOGVV(TAG, "  %s", jk_rs485_sniffer::hex_dump(&data.front(), 160).c_str());
+  // ESP_LOGVV(TAG, "  %s", jk_rs485_sniffer::hex_dump(&data.front() + 160, data.size() - 160).c_str());
 
   float temp_param_value;
 
@@ -1360,8 +1360,8 @@ void JkRS485Bms::update() { this->track_status_online_(); }
 void JkRS485Bms::decode_device_info_(const std::vector<uint8_t> &data)
 {
   ESP_LOGI(TAG, "Device info frame (%d bytes) received", data.size());
-  ESP_LOGVV(TAG, "  %s", format_hex_pretty(&data.front(), 160).c_str());
-  ESP_LOGVV(TAG, "  %s", format_hex_pretty(&data.front() + 160, data.size() - 160).c_str());
+  ESP_LOGVV(TAG, "  %s", jk_rs485_sniffer::hex_dump(&data.front(), 160).c_str());
+  ESP_LOGVV(TAG, "  %s", jk_rs485_sniffer::hex_dump(&data.front() + 160, data.size() - 160).c_str());
 
   // ESP_LOGV(TAG, "  Vendor ID: %s", std::string(data.begin() + 6, data.begin() + 6 + 16).c_str());
   // ESP_LOGV(TAG, "  Hardware version: %s", std::string(data.begin() + 22, data.begin() + 22 + 8).c_str());

@@ -24,9 +24,26 @@
 #include "esphome/components/uart/uart.h"
 #include "talk_pin.h"
 
+#include <string>
+
 
 namespace esphome {
 namespace jk_rs485_sniffer {
+
+// Hex dump used by the log statements ("4E.57.00..."). ESPHome's own format_hex_pretty() lost its
+// std::string overload in recent dev versions, so keep a tiny local helper instead of depending on it.
+inline std::string hex_dump(const uint8_t *data, size_t len) {
+  static const char HEX_DIGITS[] = "0123456789ABCDEF";
+  std::string out;
+  out.reserve(len * 3);
+  for (size_t i = 0; i < len; i++) {
+    if (i > 0)
+      out += '.';
+    out += HEX_DIGITS[data[i] >> 4];
+    out += HEX_DIGITS[data[i] & 0x0F];
+  }
+  return out;
+}
 
 enum ProtocolVersion
 {
