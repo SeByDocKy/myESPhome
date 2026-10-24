@@ -13,6 +13,9 @@
 #ifdef USE_BINARY_SENSOR
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #endif
+#ifdef USE_SELECT
+#include "esphome/components/select/select.h"
+#endif
 
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
@@ -50,6 +53,10 @@ SUB_NUMBER(kd)
 SUB_NUMBER(output_min)
 SUB_NUMBER(output_max)
 SUB_NUMBER(output_restart)
+#endif
+
+#ifdef USE_SELECT
+SUB_SELECT(coeff_multiplier)
 #endif
 
  public:
@@ -111,6 +118,10 @@ SUB_NUMBER(output_restart)
   float get_output_restart(void){return this->current_output_restart_;}
 #endif
 
+  // Multiplier applied to coeffP, coeffI and coeffD (selected by the coeff_multiplier select)
+  void set_coeff_multiplier(float value) {this->current_coeff_multiplier_ = value;}
+  float get_coeff_multiplier(void){return this->current_coeff_multiplier_;}
+
 #ifdef USE_BINARY_SENSOR
   bool get_thermostat_cut(void){return this->current_thermostat_cut_;}
 #endif
@@ -137,7 +148,8 @@ SUB_NUMBER(output_restart)
   float current_power_ = 0.0f;
   float current_battery_voltage_ = 53.5f;
   float current_device_output_ = 0.0f;
-  
+  float current_coeff_multiplier_ = 1.0f;
+
   sensor::Sensor *battery_voltage_sensor_;
   sensor::Sensor *battery_current_sensor_;
   sensor::Sensor *power_sensor_;
