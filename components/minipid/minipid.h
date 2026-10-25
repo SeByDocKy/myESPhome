@@ -10,6 +10,9 @@
 #ifdef USE_NUMBER
 #include "esphome/components/number/number.h"
 #endif
+#ifdef USE_SELECT
+#include "esphome/components/select/select.h"
+#endif
 
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
@@ -39,6 +42,10 @@ SUB_NUMBER(kd)
 SUB_NUMBER(output_min)
 SUB_NUMBER(output_max)
 
+#endif
+
+#ifdef USE_SELECT
+SUB_SELECT(coeff_multiplier)
 #endif
 
  public:
@@ -83,6 +90,10 @@ SUB_NUMBER(output_max)
   float get_output_max(void){return this->current_output_max_;}
 #endif
 
+  // Multiplier applied to coeffP, coeffI and coeffD (selected by the coeff_multiplier select)
+  void set_coeff_multiplier(float value) {this->current_coeff_multiplier_ = value;}
+  float get_coeff_multiplier(void){return this->current_coeff_multiplier_;}
+
 #ifdef USE_SENSOR
   float get_error(void) { return this->current_error_; }
   float get_output(void) { return this->current_output_; }
@@ -101,6 +112,7 @@ SUB_NUMBER(output_max)
   
   float current_input_ = 0.0f;
   float current_device_output_ = 0.0f;
+  float current_coeff_multiplier_ = 1.0f;
   
   sensor::Sensor *input_sensor_;
   output::FloatOutput *device_output_;

@@ -39,6 +39,7 @@ components/minipid/
 ├── sensor/              # error, output, target sensors
 ├── switch/              # activation, manual_override, pid_mode, reverse
 ├── number/              # setpoint, kp, ki, kd, output_min, output_max
+├── select/              # coeff_multiplier
 ├── test_minipid.yaml    # minimal self-contained test configuration
 └── README.md
 ```
@@ -108,7 +109,8 @@ expressed in **percent**. The output is only written when its value changes.
   while the error keeps pushing in the same direction. It can still unwind when
   the error changes sign.
 - The integral is additionally bounded to
-  `(output_max - output_min) / (0.0001 * |Ki|)`.
+  `(output_max - output_min) / (0.0001 * m * |Ki|)`, where `m` is the
+  [`coeff_multiplier`](#select-platform) (1 by default).
 
 ### Switch behaviour
 
@@ -214,6 +216,23 @@ is restored at boot. All numbers belong to the `config` entity category.
 The `setpoint` entity is declared in watts (power device class). The controller
 itself is unit-agnostic: only the scaling of the gains depends on the order of
 magnitude of your input signal.
+
+### `select:` platform
+
+```yaml
+select:
+  - platform: minipid
+    minipid_id: my_minipid
+    coeff_multiplier:
+      name: ${name}_coeff_multiplier
+```
+
+| Option             | Options              | Default | Description |
+|--------------------|----------------------|---------|-------------|
+| `coeff_multiplier` | `10`, `1`, `0.1`, `0.01` | `1` | Multiplier applied to the three internal scaling coefficients (`coeffP`, `coeffI`, `coeffD`), i.e. to the effective gains: `Kp`, `Ki` and `Kd` act as `coeff * multiplier * K`. It gives a coarse range selector on top of the fine `kp` / `ki` / `kd` numbers. |
+
+The selected option is stored in flash and restored at boot. The entity belongs to
+the `config` entity category.
 
 ## Tuning hints
 

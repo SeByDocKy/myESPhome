@@ -124,7 +124,7 @@ void MINIPIDComponent::pid_update() {
       const float output_span =
           std::max(0.0f, this->current_output_max_ - this->current_output_min_);
       const float integral_limit =
-          output_span / (coeffI * std::fabs(this->current_ki_));
+          output_span / (coeffI * this->current_coeff_multiplier_ * std::fabs(this->current_ki_));
 
       if (std::isfinite(integral_limit) && integral_limit > 0.0f) {
         candidate_integral = std::min(
@@ -133,8 +133,8 @@ void MINIPIDComponent::pid_update() {
     }
 
     /* P and D are independent of the integral candidate. */
-    alphaP = coeffP * this->current_kp_ * this->error_;
-    alphaD = coeffD * this->current_kd_ * this->derivative_;
+    alphaP = coeffP * this->current_coeff_multiplier_ * this->current_kp_ * this->error_;
+    alphaD = coeffD * this->current_coeff_multiplier_ * this->current_kd_ * this->derivative_;
 
     /* Previous output is used only in incremental mode. */
     float base_output = 0.0f;
@@ -145,7 +145,7 @@ void MINIPIDComponent::pid_update() {
     /* Test whether the new integral would drive the output further into saturation. */
     bool accept_integral = true;
     if (this->dt_ > 0.0f && this->current_ki_ != 0.0f) {
-      const float candidate_alphaI = coeffI * this->current_ki_ * candidate_integral;
+      const float candidate_alphaI = coeffI * this->current_coeff_multiplier_ * this->current_ki_ * candidate_integral;
       const float candidate_output = base_output + alphaP + candidate_alphaI + alphaD;
 
       if (candidate_output > this->current_output_max_ && this->error_ > 0.0f) {
@@ -159,7 +159,7 @@ void MINIPIDComponent::pid_update() {
       this->integral_ = candidate_integral;
     }
 
-    alphaI = coeffI * this->current_ki_ * this->integral_;
+    alphaI = coeffI * this->current_coeff_multiplier_ * this->current_ki_ * this->integral_;
     alpha = alphaP + alphaI + alphaD;
 
     this->output_ = std::min(
@@ -183,8 +183,8 @@ void MINIPIDComponent::pid_update() {
     ESP_LOGVV(
         TAG,
         "full pid update: setpoint %3.2f, Kp=%3.2f, Ki=%3.2f, Kd=%3.2f, output_min = %3.2f, output_max = %3.2f, previous_output_ = %3.2f, output_ = %3.2f, error_ = %3.2f, integral = %3.2f, derivative = %3.2f",
-        this->current_setpoint_, coeffP * this->current_kp_,
-        coeffI * this->current_ki_, coeffD * this->current_kd_,
+        this->current_setpoint_, coeffP * this->current_coeff_multiplier_ * this->current_kp_,
+        coeffI * this->current_coeff_multiplier_ * this->current_ki_, coeffD * this->current_coeff_multiplier_ * this->current_kd_,
         this->current_output_min_, this->current_output_max_,
         this->previous_output_, this->output_, this->error_, this->integral_,
         this->derivative_);
