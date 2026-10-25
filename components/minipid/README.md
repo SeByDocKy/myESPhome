@@ -23,6 +23,8 @@ at a target by modulating the level of an inverter, a dimmer or a PWM/DAC output
   **integral controller** (incremental form, switch off, where `Kp` acts as an integral gain).
 - Reverse-acting mode (inverts the sign of the error).
 - Configurable output limits (`output_min` / `output_max`, in %).
+- `coeff_multiplier` select: coarse range selector (`10`, `1`, `0.1`, `0.01`) applied to the
+  internal scaling of the gains.
 - Anti-windup: conditional integration plus a bound on the integral term.
 - Manual override: freezes the controller so the output can be driven by something else.
 - Activation switch: when off, the output is forced to `0` and the internal state is reset.
@@ -306,6 +308,12 @@ switch:
       name: ${name}_pid_mode
     reverse:
       name: ${name}_reverse
+
+select:
+  - platform: minipid
+    minipid_id: my_minipid
+    coeff_multiplier:
+      name: ${name}_coeff_multiplier
 
 number:
   - platform: minipid
