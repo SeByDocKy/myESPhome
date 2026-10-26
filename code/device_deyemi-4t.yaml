@@ -116,17 +116,34 @@ text_sensor:
     # event_faults:
     #   name: ${name}_event_faults
 
+# number:
+#   - platform: deyemi
+#     deyemi_id: ${deyemi_id}
+#     power_percent:
+#       name: ${name}_${deyemi_name}_power_percent
+
+# output:
+#   - platform: deyemi
+#     deyemi_id: ${deyemi_id}
+#     power_percent:
+#       id: ${deyemi_name}_power_percent_output
+
 number:
   - platform: deyemi
-    deyemi_id: ${deyemi_id}
-    power_percent:
-      name: ${name}_${deyemi_name}_power_percent
-
+    deyemi_id: deye1
+    power_persistent:
+      name: ${name}_${deyemi_name}_power_persistent
+    power_${deyemi_name}_non_persistent:
+      name: ${name}_${deyemi_name}_power_non_persistent
+ 
+ 
 output:
   - platform: deyemi
-    deyemi_id: ${deyemi_id}
-    power_percent:
-      id: ${deyemi_name}_power_percent_output
+    deyemi_id: deye1
+    power_${deyemi_name}_persistent:
+      id: ${name}_power_persistent_output
+    power_${deyemi_name}_non_persistent:
+      id: ${name}_power_non_persistent_output      
 
 # button:
 #   - platform: deyemi
