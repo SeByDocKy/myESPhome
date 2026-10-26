@@ -105,9 +105,9 @@ static const uint16_t REG_PV3_CURRENT = 0x0072;
 static const uint16_t REG_PV4_VOLTAGE = 0x0073;
 static const uint16_t REG_PV4_CURRENT = 0x0074;
 
-// Second power regulation register, 0x0035 (decimal 53): per the author's own
-// reverse-engineering (Ghidra) of the firmware it is NOT persisted to
-// EEPROM/flash (RAM only, so it falls back after an inverter restart and
+// Second power regulation register, 0x0035 (decimal 53): confirmed by the
+// author's Ghidra analysis of a decompiled Deye G4 micro-inverter firmware,
+// it is NOT persisted to EEPROM/flash (RAM only, so it falls back after an inverter restart and
 // costs no flash wear), and it is reported (home-assistant/discussions#3354,
 // Deye SUN-M200G4-EU-Q0) to allow throttling down to 0% unlike 0x0028 which
 // floors at 1%. Unit/range are NOT documented: assumed to be the same

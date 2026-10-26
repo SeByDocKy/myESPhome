@@ -151,13 +151,14 @@ References:
       it again if you throttled it (the `power_persistent` number shows the
       real register value after the first poll).
   - **`power_non_persistent` (`0x0035`) is the one to use for automatic /
-    frequent regulation**: per the component author's own reverse
-    engineering (Ghidra) of the firmware, this register is not stored in
-    EEPROM/flash, so it causes no flash wear and the inverter falls back
-    after a restart. It is also reported to allow a true 0% output
+    frequent regulation**: its non-persistence was **confirmed by the
+    component author's analysis of a Deye G4 micro-inverter firmware,
+    decompiled with Ghidra** -- this register is not written to EEPROM/flash,
+    so it causes no flash wear and the inverter falls back after a restart
+    (`0x0028`, by contrast, is persisted). It is also reported to allow a true 0% output
     ([home-assistant discussion #3354](https://github.com/orgs/home-assistant/discussions/3354),
-    SUN-M200G4-EU-Q0). **Unverified on hardware**: unit/scale and range are
-    assumed identical to `0x0028` (1 %/unit, 0-120), and no redundant-write
+    SUN-M200G4-EU-Q0). **Not covered by that analysis / unverified on
+    hardware**: unit/scale and range are assumed identical to `0x0028` (1 %/unit, 0-120), and no redundant-write
     filtering is applied to it. In Deye's older public Modbus document
     (rev. V118) address 53 is listed as "Hardware Matching" (a system
     configuration register), so please report back whether it behaves as
@@ -227,9 +228,10 @@ diagnostic aid, but no longer used for model detection.
   register 16 bits further left, so the first (numerically lower) register
   address is always the low word.
 - **Register `0x0035` (`power_non_persistent`)**: implemented from the
-  author's own firmware reverse engineering (RAM only, not persisted) and a
-  user report that it reaches a true 0% on a SUN-M200G4-EU-Q0, but not yet
-  confirmed on real hardware here: unit/range assumed identical to `0x0028`,
+  author's Ghidra analysis of a decompiled Deye G4 micro-inverter firmware
+  (confirms it is RAM only, not persisted) and a user report that it reaches
+  a true 0% on a SUN-M200G4-EU-Q0, but not yet tested on real hardware here:
+  unit/range assumed identical to `0x0028`,
   persistence behaviour across a restart, interaction with `0x0028`, and
   whether it exists/works on GEN3 units are all unverified.
 - **`sn` mechanism**: the *requirement* (real logger serial, not
