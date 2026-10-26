@@ -88,12 +88,6 @@ static const uint16_t REG_MPPT_COUNT = 0x0012;          // "MPPT number and phas
                                                          // confirmed via their official Modbus protocol doc.
 static const uint16_t REG_RATED_POWER = 0x0010;         // 0.1 W
 static const uint16_t REG_ACTIVE_POWER_REGULATION = 0x0028;  // 1 % per unit, write target for power_percent (FC16)
-// UNVERIFIED alternative target (opt-in via `power_register: register_55`):
-// user-reported on a SUN-M200G4-EU-Q0 (fw MW3_16U_5406_1.59) as reducing power
-// immediately (home-assistant discussion #3354). Unit/scale/range/persistence
-// are NOT documented -- assumed to be the same 1 %/unit as 0x0028. Deye's own
-// protocol doc (V118) lists address 55 as "Factory only".
-static const uint16_t REG_POWER_LIMIT_ALT55 = 0x0037;
 static const uint16_t REG_DAILY_PRODUCTION = 0x003C;    // 0.1 kWh
 static const uint16_t REG_RUNNING_STATUS = 0x003B;      // enum: 0=Stand-by 1=Self-check 2=Normal 3=Warning 4=Fault
 static const uint16_t REG_TOTAL_PRODUCTION = 0x003F;    // + 0x0040, 32-bit, 0.1 kWh
@@ -111,13 +105,15 @@ static const uint16_t REG_PV3_CURRENT = 0x0072;
 static const uint16_t REG_PV4_VOLTAGE = 0x0073;
 static const uint16_t REG_PV4_CURRENT = 0x0074;
 
-// Not implemented (see README "Known unknowns"): a second, GEN4-specific
-// power regulation register reportedly exists at 0x0035 (decimal 53) that
-// allows throttling all the way down to 0% output, unlike 0x0028 which is
-// documented (home-assistant/discussions#3354, Deye SUN-M200G4-EU-Q0) to
-// floor at 1%. This component writes 0x0028 only, since it's the
-// better-evidenced (and generation-agnostic) of the two -- 0x0035 is a
-// plausible future improvement once someone can test it.
+// Second power regulation register, 0x0035 (decimal 53): per the author's own
+// reverse-engineering (Ghidra) of the firmware it is NOT persisted to
+// EEPROM/flash (RAM only, so it falls back after an inverter restart and
+// costs no flash wear), and it is reported (home-assistant/discussions#3354,
+// Deye SUN-M200G4-EU-Q0) to allow throttling down to 0% unlike 0x0028 which
+// floors at 1%. Unit/range are NOT documented: assumed to be the same
+// 1 %/unit, 0-120 as 0x0028 (UNVERIFIED). 0x0028 is exposed as
+// `power_persistent` (number/output), 0x0035 as `power_non_persistent`.
+static const uint16_t REG_POWER_NON_PERSISTENT = 0x0035;
 
 // No PV per-string power register exists in the register map -- pv*_power
 // is computed in software as voltage * current.
@@ -142,9 +138,6 @@ class DeyeMiComponent : public PollingComponent {
   void set_modbus_address(uint8_t address) { this->modbus_address_ = address; }
   void set_sn(uint32_t serial) { this->sn_ = serial; }
   void set_model(DeyeMiModel model) { this->configured_model_ = model; }
-  // Register targeted by power_percent: REG_ACTIVE_POWER_REGULATION (0x0028,
-  // default) or REG_POWER_LIMIT_ALT55 (0x0037, opt-in, see README).
-  void set_power_register(uint16_t reg) { this->power_reg_ = reg; }
 
   void setup() override;
   void update() override;
@@ -163,6 +156,9 @@ class DeyeMiComponent : public PollingComponent {
   // wear, a write is skipped when the requested value already equals the last
   // value known to be in the register.
   void set_power_percent(float percent);
+  // Same, but targets REG_POWER_NON_PERSISTENT (0x0035): RAM-only, no flash
+  // wear, so no redundant-write filtering is applied to it.
+  void set_power_non_persistent(float percent);
 
 #ifdef USE_SENSOR
   void set_ac_voltage_sensor(sensor::Sensor *s) { this->ac_voltage_sensor_ = s; }
@@ -257,11 +253,13 @@ class DeyeMiComponent : public PollingComponent {
   struct Job {
     JobType type;
     uint16_t reg_value{0};
+    uint16_t reg{0};  // target register of a WRITE_POWER_PERCENT job
   };
   struct JobResult {
     JobType type;
     bool success{false};
     uint16_t reg_value{0};
+    uint16_t reg{0};
     std::vector<uint8_t> register_data;
   };
 
@@ -299,31 +297,52 @@ class DeyeMiComponent : public PollingComponent {
   // every successful write); -1 = unknown yet. Used to skip redundant
   // (EEPROM-wearing) writes.
   int32_t last_power_reg_{-1};
-  uint16_t power_reg_{REG_ACTIVE_POWER_REGULATION};
+
+  void write_power_(float percent, uint16_t reg);
 };
 
 #ifdef USE_NUMBER
-// power_percent: sets the Active Power Regulations register (max output
-// power, as a percent of Rated Power). Optimistic: publishes the requested
-// value right away rather than waiting to read it back on the next poll.
-class DeyeMiPowerPercentNumber : public number::Number, public Parented<DeyeMiComponent> {
+// power_persistent: sets register 0x0028 (max output power, percent of rated
+// power; stored in the inverter's non-volatile memory). Optimistic: publishes
+// the requested value right away; the hub also republishes the register's real
+// value on every poll.
+class DeyeMiPowerPersistentNumber : public number::Number, public Parented<DeyeMiComponent> {
  protected:
   void control(float value) override {
     this->parent_->set_power_percent(value);
     this->publish_state(value);
   }
 };
+
+// power_non_persistent: sets register 0x0035 (RAM only, not persisted).
+// Optimistic only: no readback (the register's read semantics are
+// undocumented), so after an ESP reboot it shows its default until set again.
+class DeyeMiPowerNonPersistentNumber : public number::Number, public Parented<DeyeMiComponent> {
+ protected:
+  void control(float value) override {
+    this->parent_->set_power_non_persistent(value);
+    this->publish_state(value);
+  }
+};
 #endif
 
 #ifdef USE_OUTPUT
-// Same underlying write as the number above, exposed as a plain FloatOutput
-// (0.0-1.0) for use as a write_action target from other components/automations.
-// 1.0 maps to 120% (the register's actual high limit -- see
-// set_power_percent()'s comment), not 100%, so this output's full range
-// matches the number's full range.
-class DeyeMiPowerPercentOutput : public output::FloatOutput, public Parented<DeyeMiComponent> {
+// Both outputs are plain FloatOutputs (0.0-1.0), for use as write_action
+// targets from other components/automations. 1.0 maps to 120% (the register's
+// high limit -- see write_power_()'s comment), not 100%, so the full range
+// matches the numbers'.
+//
+// power_persistent: register 0x0028, stored in the inverter's non-volatile
+// memory (survives restarts, wears flash -- avoid fast control loops).
+class DeyeMiPowerPersistentOutput : public output::FloatOutput, public Parented<DeyeMiComponent> {
  protected:
   void write_state(float state) override { this->parent_->set_power_percent(state * 120.0f); }
+};
+
+// power_non_persistent: register 0x0035, RAM only (not persisted, no wear).
+class DeyeMiPowerNonPersistentOutput : public output::FloatOutput, public Parented<DeyeMiComponent> {
+ protected:
+  void write_state(float state) override { this->parent_->set_power_non_persistent(state * 120.0f); }
 };
 #endif
 

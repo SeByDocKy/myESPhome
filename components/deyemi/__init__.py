@@ -22,9 +22,10 @@ envelope wrapping standard Modbus RTU, port 8899, one short-lived TCP
 connection per poll.
 
 v1 scope: read-only telemetry via a single Modbus function 0x03 request
-covering registers 0x0001..0x007D, plus a `power_percent` write path
-(function 0x10, register 0x0028 "Active Power Regulations" by default, or the
-unverified register 0x0037 via `power_register: register_55`). No reset/AT+
+covering registers 0x0001..0x007D, plus power write paths
+(function 0x10): the `power_percent` number and `power_persistent` output write
+register 0x0028 (persistent), the `power_non_persistent` output writes
+register 0x0035 (RAM only). No reset/AT+
 equivalent is known to exist for this protocol, so no `button` platform.
 """
 
@@ -71,15 +72,6 @@ CONF_IP_PORT = "ip_port"
 CONF_MODBUS_ADDRESS = "modbus_address"
 CONF_SN = "sn"
 CONF_MODEL = "model"
-CONF_POWER_REGISTER = "power_register"
-# Register written by power_percent (number/output). Default = documented
-# "Active power regulation" (0x0028, 0-120 %, floors at 1 % on some G4).
-# register_55 = user-reported alternative (0x0037) on some G4 firmware,
-# UNVERIFIED unit/range/persistence -- see README.
-POWER_REGISTERS = {
-    "active_power_regulation": 0x0028,
-    "register_55": 0x0037,
-}
 # Named "poll_interval" (not "update_interval") to match this author's other
 # components' naming.
 CONF_POLL_INTERVAL = "poll_interval"
@@ -99,9 +91,6 @@ CONFIG_SCHEMA = cv.Schema(
         # at startup if left at the default of 0.
         cv.Optional(CONF_SN, default=0): cv.uint32_t,
         cv.Optional(CONF_MODEL, default="auto"): cv.enum(MODELS, lower=True),
-        cv.Optional(CONF_POWER_REGISTER, default="active_power_regulation"): cv.one_of(
-            *POWER_REGISTERS, lower=True
-        ),
         cv.Optional(CONF_POLL_INTERVAL, default="30s"): cv.update_interval,
     }
 ).extend(cv.COMPONENT_SCHEMA)
@@ -116,7 +105,6 @@ async def to_code(config):
     cg.add(var.set_modbus_address(config[CONF_MODBUS_ADDRESS]))
     cg.add(var.set_sn(config[CONF_SN]))
     cg.add(var.set_model(config[CONF_MODEL]))
-    cg.add(var.set_power_register(POWER_REGISTERS[config[CONF_POWER_REGISTER]]))
     # register_component() only auto-wires PollingComponent's interval when the
     # config key is literally "update_interval" -- ours is "poll_interval", so
     # it's set explicitly here.

@@ -122,12 +122,16 @@ text_sensor:
 number:
   - platform: deyemi
     deyemi_id: deye1
-    power_percent:
-      name: ${name}_power_percent
+    power_persistent:
+      name: ${name}_power_persistent
+    power_non_persistent:
+      name: ${name}_power_non_persistent
 
 
 output:
   - platform: deyemi
     deyemi_id: deye1
-    power_percent:
-      id: ${name}_power_percent_output
+    power_persistent:
+      id: ${name}_power_persistent_output
+    power_non_persistent:
+      id: ${name}_power_non_persistent_output

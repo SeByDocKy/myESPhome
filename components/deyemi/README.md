@@ -106,73 +106,71 @@ References:
   No separate alarm/fault bitmask register is known to exist for this
   protocol, so there's no `event_alarms`/`event_faults` equivalent here
   (unlike `tsungen3`).
-- **Write path**: `power_percent` (`number` and `output` platforms) writes
-  the "Active Power Regulations" register (`0x0028`) as a direct percent
-  value, using Modbus function `0x10` (Write Multiple Registers, quantity 1)
-  -- **not** `0x06` (Write Single Register). Confirmed by field testing on a
+- **Write path**: four entities (a `number` and an `output` for each register) write the inverter's power limit, always
+  with Modbus function `0x10` (Write Multiple Registers, quantity 1) --
+  **not** `0x06` (Write Single Register). Confirmed by field testing on a
   real M100-G4-EU-Q0: `0x06` gets rejected at the V5 envelope level (status
   `0x05`, "inverter did not answer"), never reaching the inverter's Modbus
   stack. This matches an independently documented Deye/Sunsynk quirk
   (https://github.com/SunReye/SunReye pull #253): these inverters ignore
-  `0x06` on settings registers. A GEN3-specific register table
-  (https://github.com/dmaj/deye-controller's `sun_x_g3_registers.py`)
-  independently confirms the same register, same FC16-quantity-1 write
-  pattern, and gives the register's actual range as **0-120%**, not 0-100%
-  -- `number` and `output` are set accordingly (`output`'s `1.0` maps to
-  `120%`, not `100%`). No source consulted here explains the >100% headroom,
-  but it's consistent with overpaneled installs (DC array rated above the
-  inverter's AC nameplate). Note: at least one GEN4 model (SUN-M200G4-EU-Q0)
-  is documented to floor this register at 1% rather than reaching a true 0%
-  output -- see "Known unknowns" for a possible alternative register this
-  component does not yet use.
-- ⚠️ **The power write is PERSISTENT (non-volatile), not a temporary
-  setpoint.** Confirmed in the field: after the microinverter restarts (e.g.
-  at sunrise), it comes back up with the last value written to register
-  `0x0028`, not with 100%. Third-party projects state the same (e.g.
-  [SchulteDev/deye-microinverter-power-limit](https://github.com/SchulteDev/deye-microinverter-power-limit):
-  *"Register 40 writes are persisted to EEPROM"*, with a wear warning for
-  anything that writes continuously). Consequences:
-  - Do **not** drive this `number`/`output` from a fast control loop
-    (zero-injection PID, etc.) that rewrites it every second -- EEPROM/flash
-    endurance is finite (typically 100k-1M cycles, not documented by Deye for
-    this register). Prefer coarse steps (e.g. 5%), writes only on change, and
-    several tens of seconds between writes.
-  - This component already skips a write when the register is known to hold
-    the requested value (the register is read on every poll), so re-sending
-    an unchanged setpoint costs nothing -- but every *distinct* value is a
-    real write.
-  - After a restart the inverter keeps the last limit, so remember to raise
-    it again if you throttled it (the `number` shows the real register value
-    after the first poll).
-  - **No volatile/RAM-only alternative is documented.** Deye's own Modbus
-    protocol document (rev. V118) lists register 40 (`0x0028`, "Active power
-    regulation", R/W, range `[0,1200]`) with no write-mode distinction.
-    Registers 53 (`0x0035`) and 55 (`0x0037`) are reported by users on a
-    SUN-M200G4 as "gradual" and "immediate" power control
-    ([home-assistant discussion #3354](https://github.com/orgs/home-assistant/discussions/3354)),
-    but nobody states whether they are volatile -- and in Deye's official
-    document those addresses are *"Hardware Matching"* and *"Factory only"*
-    system-configuration registers.
-  - **Opt-in: `power_register: register_55`** (hub option, default
-    `active_power_regulation` = `0x0028`) makes `power_percent` write register
-    55 (`0x0037`) instead, with the same FC16 write and the same readback.
-    **Unverified**: unit/scale (assumed 1 %/unit like `0x0028`), range and
-    especially persistence are undocumented -- only one user report (SUN-M200G4,
-    firmware `MW3_16U_5406_1.59`) says it reduces power immediately. Deye's own
-    protocol document lists address 55 as "Factory only", so use it at your
-    own risk, and please report back whether the value survives a restart.
-    Register 53 (`0x0035`) is not offered.
-    ```yaml
-    deyemi:
-      - id: deyemi_1
-        ip_address: 192.168.1.60
-        sn: 1234567890
-        power_register: register_55   # default: active_power_regulation
-    ```
+  `0x06` on settings registers.
+
+  | Entity | Platform | Register | Persisted in the inverter? |
+  |---|---|---|---|
+  | `power_persistent` | `number` | `0x0028` | **Yes** (flash/EEPROM) |
+  | `power_non_persistent` | `number` | `0x0035` | **No** (RAM only) |
+  | `power_persistent` | `output` | `0x0028` | **Yes** (flash/EEPROM) |
+  | `power_non_persistent` | `output` | `0x0035` | **No** (RAM only) |
+
+  - **Range / scaling**: percent of rated power, 0-120% (`output`'s `0.0-1.0`
+    maps to `0-120%`, so `1.0` = `120%`, not `100%`). For `0x0028`, a
+    GEN3-specific register table
+    (https://github.com/dmaj/deye-controller's `sun_x_g3_registers.py`)
+    independently confirms the register, the FC16-quantity-1 write pattern
+    and the **0-120%** range. The >100% headroom is consistent with overpaneled
+    installs (DC array rated above the inverter's AC nameplate). At least one
+    GEN4 model (SUN-M200G4-EU-Q0) is documented to floor `0x0028` at 1%
+    rather than reaching a true 0% output.
+  - ⚠️ **`power_persistent` (`0x0028`, number and output) is PERSISTENT.**
+    Confirmed in the field: after the microinverter restarts (e.g. at
+    sunrise), it comes back up with the last value written, not with 100%.
+    Third-party projects state the same (e.g.
+    [SchulteDev/deye-microinverter-power-limit](https://github.com/SchulteDev/deye-microinverter-power-limit):
+    *"Register 40 writes are persisted to EEPROM"*, with a wear warning for
+    anything that writes continuously). Consequences:
+    - Do **not** drive them from a fast control loop (zero-injection PID,
+      etc.) that rewrites them every second -- EEPROM/flash endurance is
+      finite (typically 100k-1M cycles, not documented by Deye for this
+      register). Prefer coarse steps (e.g. 5%), writes only on change, and
+      several tens of seconds between writes.
+    - The component skips a `0x0028` write when the register is known to
+      already hold the requested value (it is read on every poll), so
+      re-sending an unchanged setpoint costs nothing -- but every *distinct*
+      value is a real write.
+    - After a restart the inverter keeps the last limit, so remember to raise
+      it again if you throttled it (the `power_persistent` number shows the
+      real register value after the first poll).
+  - **`power_non_persistent` (`0x0035`) is the one to use for automatic /
+    frequent regulation**: per the component author's own reverse
+    engineering (Ghidra) of the firmware, this register is not stored in
+    EEPROM/flash, so it causes no flash wear and the inverter falls back
+    after a restart. It is also reported to allow a true 0% output
+    ([home-assistant discussion #3354](https://github.com/orgs/home-assistant/discussions/3354),
+    SUN-M200G4-EU-Q0). **Unverified on hardware**: unit/scale and range are
+    assumed identical to `0x0028` (1 %/unit, 0-120), and no redundant-write
+    filtering is applied to it. In Deye's older public Modbus document
+    (rev. V118) address 53 is listed as "Hardware Matching" (a system
+    configuration register), so please report back whether it behaves as
+    described on your unit, and whether the value is really lost after a
+    restart. The two registers are independent: no information is available
+    on how the inverter combines them when both are set, so prefer using one.
+    The `power_non_persistent` number is optimistic only (no readback of `0x0035`): it shows its default after an ESP reboot until set again.
+  - Register 55 (`0x0037`), reported by one user as "immediate" control, is
+    not used.
 - No reset/AT+ equivalent is known for this protocol -- no `button`
   platform.
 - All blocking network I/O runs on a dedicated FreeRTOS background task --
-  `update()`/`set_power_percent()` only enqueue a job and return almost
+  `update()`/`set_power_percent()`/`set_power_non_persistent()` only enqueue a job and return almost
   instantly; `loop()` drains the result queue on the main thread, which is
   the only place `publish_state()`/`ESP_LOGx` are called for poll/write
   outcomes. See `tsungen3`'s README for the full rationale and the
@@ -228,15 +226,12 @@ diagnostic aid, but no longer used for model detection.
   iterates a field's `registers` list in order and shifts each successive
   register 16 bits further left, so the first (numerically lower) register
   address is always the low word.
-- **Alternative power regulation register for true 0% output**: a
-  [separate feature request](https://github.com/orgs/home-assistant/discussions/3354)
-  for the SUN-M200G4-EU-Q0 (GEN4) documents that register `0x0028` (the one
-  this component writes) floors at 1% output, and proposes register `0x0035`
-  (decimal 53) as supporting the full 0-100% range instead. This component
-  does **not** implement `0x0035` -- it wasn't confirmed working by anyone at
-  the time of writing, just requested -- but it's a plausible follow-up if
-  you need a true zero-injection shutdown and can test it safely. Whether
-  this register also exists/works on GEN3 units is unknown.
+- **Register `0x0035` (`power_non_persistent`)**: implemented from the
+  author's own firmware reverse engineering (RAM only, not persisted) and a
+  user report that it reaches a true 0% on a SUN-M200G4-EU-Q0, but not yet
+  confirmed on real hardware here: unit/range assumed identical to `0x0028`,
+  persistence behaviour across a restart, interaction with `0x0028`, and
+  whether it exists/works on GEN3 units are all unverified.
 - **`sn` mechanism**: the *requirement* (real logger serial, not
   the inverter's) is confirmed for GEN4 by real users (see the warning
   above); *why* the default of `0` gets rejected, and whether GEN3 behaves
@@ -345,14 +340,18 @@ text_sensor:
 number:
   - platform: deyemi
     deyemi_id: deye1
-    power_percent:
-      name: "Deye1 Power Percent"
+    power_persistent:           # register 0x0028, persisted (flash wear!)
+      name: "Deye1 Power Persistent"
+    power_non_persistent:       # register 0x0035, RAM only
+      name: "Deye1 Power Non Persistent"
 
 output:
   - platform: deyemi
     deyemi_id: deye1
-    power_percent:
-      id: deye1_power_percent_output
+    power_persistent:           # register 0x0028, persisted (flash wear!)
+      id: deye1_power_persistent_output
+    power_non_persistent:       # register 0x0035, RAM only
+      id: deye1_power_non_persistent_output
 ```
 
 ## Directory layout
@@ -366,8 +365,8 @@ deyemi/
 ├── text_sensor/
 │   └── __init__.py
 ├── number/
-│   └── __init__.py      # power_percent (writes Active Power Regulations, 0x0028)
+│   └── __init__.py      # power_persistent (0x0028) + power_non_persistent (0x0035), numbers
 ├── output/
-│   └── __init__.py      # power_percent (same write, as a FloatOutput)
+│   └── __init__.py      # power_persistent (0x0028) + power_non_persistent (0x0035), FloatOutputs
 └── README.md
 ```
