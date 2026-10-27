@@ -55,7 +55,6 @@ class ModbusSnifferHub : public Component, public uart::UARTDevice {
   // Buffer de réception UART
   std::vector<uint8_t> rx_buffer_;
   uint32_t last_byte_time_{0};
-  uint32_t last_frame_time_{0};
   
   // Configuration
   uint8_t slave_address_{0};
@@ -74,12 +73,10 @@ class ModbusSnifferHub : public Component, public uart::UARTDevice {
   std::vector<ModbusRegisterData> captured_data_;
   
   // Timeout Modbus (temps entre les octets)
-  static const uint32_t MODBUS_FRAME_TIMEOUT = 10; // ms - Réduit pour séparer requête/réponse
-  static const uint32_t MODBUS_INTER_FRAME_DELAY = 3; // ms - Temps minimum entre deux trames
+  static const uint32_t MODBUS_FRAME_TIMEOUT = 50; // ms
   
   // Méthodes de traitement des trames
   void process_frame();
-  bool is_frame_complete();
   uint16_t calculate_crc(const uint8_t *data, uint8_t len);
   bool verify_crc(const std::vector<uint8_t> &frame);
   void parse_modbus_frame(const std::vector<uint8_t> &frame);
