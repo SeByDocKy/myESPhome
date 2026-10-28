@@ -206,6 +206,8 @@ number:
       name: ${name}_floating_epoint
     starting_battery_voltage: 
       name: ${name}_starting_battery_voltage
+    stopping_battery_voltage: 
+      name: ${name}_stopping_battery_voltage
     charged_battery_voltage: 
       name: ${name}_charged_battery_voltage
     discharged_battery_voltage: 

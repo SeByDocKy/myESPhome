@@ -13,11 +13,15 @@ void DUALPIDBinarySensor::setup() {
 void DUALPIDBinarySensor::dump_config() {
   ESP_LOGCONFIG(TAG, "DUALPID Binary Sensor:");
   LOG_BINARY_SENSOR("  ", "deadband", this->deadband_binary_sensor_);
+  LOG_BINARY_SENSOR("  ", "undervoltage_lockout", this->undervoltage_lockout_binary_sensor_);
 }	
 
 void DUALPIDBinarySensor::publish_data_() {
   if (this->deadband_binary_sensor_ != nullptr)
     this->deadband_binary_sensor_->publish_state(this->parent_->get_deadband());  
+
+  if (this->undervoltage_lockout_binary_sensor_ != nullptr)
+    this->undervoltage_lockout_binary_sensor_->publish_state(this->parent_->get_undervoltage_lockout());
 }
 
 } // esphome

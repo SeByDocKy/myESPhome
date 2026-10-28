@@ -215,27 +215,22 @@ void DUALPIDComponent::pid_update() {
         return;
     }
 
-    // ── Protection sous-tension batterie ─────────────────────────────
+    // ── Protection sous-tension batterie (hystérésis) ─────────────────
+    // Latch à deux seuils : V < stopping → verrou ON ; V >= starting → verrou OFF ;
+    // entre les deux on garde l'état. Le verrou n'inhibe QUE la décharge
+    // (cf. discharge_gate(), exactement comme le switch allow_discharging) :
+    // la CHARGE reste autorisée, c'est elle qui fait remonter la tension
+    // jusqu'au seuil haut. Bloquer aussi la charge rendait le verrou définitif
+    // (pas de redémarrage possible au petit matin).
     if (!std::isnan(this->current_battery_voltage_)) {
-        ESP_LOGI(TAG, "battery_voltage=%.2f, starting=%.2f",
-                 this->current_battery_voltage_, this->current_starting_battery_voltage_);
-        if (this->current_battery_voltage_ < this->current_starting_battery_voltage_) {
-            this->set_charging_level(0.0f);
-            this->set_discharging_level(HMS_MIN_LEVEL);
-            this->output_charging_             = 0.0f;
-            this->output_discharging_          = HMS_MIN_LEVEL;
-            this->current_output_              = this->current_epoint_;
-            this->previous_output_             = this->current_epoint_;
-            this->previous_mode_               = 0;
-            this->current_mode_                = 0;
-            this->current_output_charging_     = 0.0f;
-            this->current_output_discharging_  = HMS_MIN_LEVEL;
-            this->previous_output_charging_    = 0.0f;
-            this->previous_output_discharging_ = HMS_MIN_LEVEL;
-            this->last_time_                   = now;
-            this->pid_computed_callback_.call();
-            return;
+        if (this->current_battery_voltage_ < this->current_stopping_battery_voltage_) {
+            this->undervoltage_lockout_ = true;
+        } else if (this->current_battery_voltage_ >= this->current_starting_battery_voltage_) {
+            this->undervoltage_lockout_ = false;
         }
+        ESP_LOGI(TAG, "battery_voltage=%.2f, stop=%.2f, start=%.2f, lockout=%d",
+                 this->current_battery_voltage_, this->current_stopping_battery_voltage_,
+                 this->current_starting_battery_voltage_, (int)this->undervoltage_lockout_);
     }
 
     // ── Calcul deadband asymétrique ───────────────────────────────────
@@ -426,7 +421,7 @@ void DUALPIDComponent::pid_update() {
         case 0:  // IDLE
             if ((this->error_ < -(Pstart_charging * DEADBAND_FACTOR)) && this->current_allow_charging_)
                 this->current_mode_ = 1;   // → CHARGE
-            else if ((this->current_output_ >= eub) && this->current_allow_discharging_)
+            else if ((this->current_output_ >= eub) && this->discharge_gate())
                 this->current_mode_ = 2;   // → DISCHARGE
             break;
 
@@ -440,7 +435,7 @@ void DUALPIDComponent::pid_update() {
             break;
 
         case 2:  // DISCHARGE
-            if (!this->current_allow_discharging_) {
+            if (!this->discharge_gate()) {
                 this->current_mode_ = 0;
             }
             else if (!in_startup && (this->output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (this->error_ < -(Pmin_ch * DEADBAND_FACTOR)) ) {    
@@ -571,7 +566,7 @@ void DUALPIDComponent::pid_update() {
     // on double-verrouille ici l'envoi physique par cohérence défensive.
     if (this->current_activation_) {
         this->set_charging_level(this->current_allow_charging_ ? this->output_charging_ : 0.0f);
-        this->set_discharging_level(this->current_allow_discharging_ ? this->output_discharging_ : HMS_MIN_LEVEL);
+        this->set_discharging_level(this->discharge_gate() ? this->output_discharging_ : HMS_MIN_LEVEL);
     }
 
     ESP_LOGI(TAG, "out=%.4f Oc=%.4f Od=%.4f mode=%d deadband=%d allow_c=%d allow_d=%d",

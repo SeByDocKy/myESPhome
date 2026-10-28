@@ -36,6 +36,7 @@ SUB_NUMBER(absorbing_epoint)
 SUB_NUMBER(floating_epoint)
 
 SUB_NUMBER(starting_battery_voltage)
+SUB_NUMBER(stopping_battery_voltage)
 SUB_NUMBER(charged_battery_voltage)
 SUB_NUMBER(discharged_battery_voltage)
 
@@ -101,6 +102,14 @@ SUB_NUMBER(delta_idle_charging)
   
   void set_starting_battery_voltage(float value) {this->current_starting_battery_voltage_ = value;}
   float get_starting_battery_voltage(void){return this->current_starting_battery_voltage_;}
+  void set_stopping_battery_voltage(float value) {this->current_stopping_battery_voltage_ = value;}
+  float get_stopping_battery_voltage(void){return this->current_stopping_battery_voltage_;}
+  bool get_undervoltage_lockout(void){return this->undervoltage_lockout_;}
+
+  // Discharge really allowed = user intent AND no undervoltage lockout.
+  // Charging is never gated by the lockout: it is the only way to raise the
+  // battery voltage and therefore to release the lockout.
+  bool discharge_gate(void){return this->current_allow_discharging_ && !this->undervoltage_lockout_;}
   
   void set_charged_battery_voltage(float value) {this->current_charged_battery_voltage_ = value;}
   float get_charged_battery_voltage(void){return this->current_charged_battery_voltage_;}
@@ -223,7 +232,13 @@ SUB_NUMBER(delta_idle_charging)
   bool current_reverse_ = false;
 
   float current_setpoint_ = 0.0f;
-  float current_starting_battery_voltage_ = 50.0f;
+  // Undervoltage lockout (hysteresis latch):
+  //   V < stopping  -> lockout ON  (discharge inhibited, charge still allowed)
+  //   V >= starting -> lockout OFF
+  //   in between    -> state kept
+  float current_starting_battery_voltage_ = 51.0f;
+  float current_stopping_battery_voltage_ = 49.5f;
+  bool  undervoltage_lockout_ = false;
   float current_charged_battery_voltage_ = 55.8f;
   float current_discharged_battery_voltage_ = 55.6f;
   

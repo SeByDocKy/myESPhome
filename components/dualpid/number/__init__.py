@@ -27,6 +27,7 @@ AbsorbingEpointNumber = dualpid_ns.class_("AbsorbingEpointNumber", number.Number
 FloatingEpointNumber = dualpid_ns.class_("FloatingEpointNumber", number.Number, cg.Component)
 
 StartingBatteryVoltageNumber = dualpid_ns.class_("StartingBatteryVoltageNumber", number.Number, cg.Component)
+StoppingBatteryVoltageNumber = dualpid_ns.class_("StoppingBatteryVoltageNumber", number.Number, cg.Component)
 ChargedBatteryVoltageNumber = dualpid_ns.class_("ChargedBatteryVoltageNumber", number.Number, cg.Component)
 DischargedBatteryVoltageNumber = dualpid_ns.class_("DischargedBatteryVoltageNumber", number.Number, cg.Component)
 
@@ -58,6 +59,7 @@ CONF_ABSORBING_EPOINT = "absorbing_epoint"
 CONF_FLOATING_EPOINT = "floating_epoint"
 
 CONF_STARTING_BATTERY_VOLTAGE = "starting_battery_voltage"
+CONF_STOPPING_BATTERY_VOLTAGE = "stopping_battery_voltage"
 CONF_CHARGED_BATTERY_VOLTAGE = "charged_battery_voltage"
 CONF_DISCHARGED_BATTERY_VOLTAGE = "discharged_battery_voltage"
 
@@ -119,6 +121,14 @@ CONFIG_SCHEMA = {
     
     cv.Optional(CONF_STARTING_BATTERY_VOLTAGE): number.number_schema(
         StartingBatteryVoltageNumber,
+        device_class=DEVICE_CLASS_VOLTAGE,
+        icon = ICON_SINE_WAVE,
+        unit_of_measurement=UNIT_VOLT,
+        entity_category=ENTITY_CATEGORY_CONFIG
+    ).extend(cv.COMPONENT_SCHEMA),
+
+    cv.Optional(CONF_STOPPING_BATTERY_VOLTAGE): number.number_schema(
+        StoppingBatteryVoltageNumber,
         device_class=DEVICE_CLASS_VOLTAGE,
         icon = ICON_SINE_WAVE,
         unit_of_measurement=UNIT_VOLT,
@@ -273,6 +283,15 @@ async def to_code(config):
         await cg.register_component(n, starting_battery_voltage_config)
         await cg.register_parented(n, dualpid_component)
         cg.add(dualpid_component.set_starting_battery_voltage_number(n))
+
+  if stopping_battery_voltage_config := config.get(CONF_STOPPING_BATTERY_VOLTAGE):
+        n = await number.new_number(
+            # min 49.5 so that the C++ default (current_stopping_battery_voltage_) is reachable
+            stopping_battery_voltage_config, min_value=49.5, max_value=60.0, step=0.1
+        )
+        await cg.register_component(n, stopping_battery_voltage_config)
+        await cg.register_parented(n, dualpid_component)
+        cg.add(dualpid_component.set_stopping_battery_voltage_number(n))
 
   if charged_battery_voltage_config := config.get(CONF_CHARGED_BATTERY_VOLTAGE):
         n = await number.new_number(
