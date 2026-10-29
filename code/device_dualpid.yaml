@@ -84,6 +84,10 @@ number:
       name: ${name}_${dualpid_name}_floating_epoint
     starting_battery_voltage: 
       name: ${name}_${dualpid_name}_starting_battery_voltage
+      id: ${dualpid_name}_starting_battery_voltage
+    stopping_battery_voltage:                     # seuil BAS (arrêt)
+      name: ${name}_${dualpid_name}_stopping_battery_voltage
+      id: ${dualpid_name}_stopping_battery_voltage  
     charged_battery_voltage: 
       name: ${name}_${dualpid_name}_charged_battery_voltage
     discharged_battery_voltage: 
