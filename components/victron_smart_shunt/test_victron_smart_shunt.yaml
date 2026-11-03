@@ -1,0 +1,89 @@
+substitutions:
+  name: "test_victron_smart_shunt"
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome@main"
+    components: [victron_smart_shunt]
+    refresh: 10s
+
+  # - source:
+      # type: local
+      # path: components
+
+logger:
+  level: debug
+
+uart:
+  id: uart_shunt
+  rx_pin: GPIO16        # VE.Direct TX of the SmartShunt (3.3 V logic)
+  tx_pin: GPIO17        # not used by this component (text protocol is receive only)
+  baud_rate: 19200      # VE.Direct text protocol: 19200 8N1
+  rx_buffer_size: 1024  # a block is ~300 bytes, the default 256 can overflow when loop() stalls
+
+victron_smart_shunt:
+  - id: shunt
+    uart_id: uart_shunt
+
+sensor:
+  - platform: victron_smart_shunt
+    victron_smart_shunt_id: shunt
+    battery_voltage:
+      name: ${name}_battery_voltage
+    battery_current:
+      name: ${name}_battery_current
+    instantaneous_power:
+      name: ${name}_instantaneous_power
+    state_of_charge:
+      name: ${name}_state_of_charge
+    time_to_go:
+      name: ${name}_time_to_go
+    consumed_amp_hours:
+      name: ${name}_consumed_amp_hours
+    min_battery_voltage:
+      name: ${name}_min_battery_voltage
+    max_battery_voltage:
+      name: ${name}_max_battery_voltage
+    amount_of_charged:
+      name: ${name}_amount_of_charged
+    discharged_energy:
+      name: ${name}_discharged_energy
+    last_full_charge:
+      name: ${name}_last_full_charge
+    deepest_discharge:
+      name: ${name}_deepest_discharge
+    last_discharge:
+      name: ${name}_last_discharge
+    number_of_charge_cycles:
+      name: ${name}_number_of_charge_cycles
+    number_of_full_dis:
+      name: ${name}_number_of_full_dis
+    # the text sensors are declared in the same sensor platform
+    pid:
+      name: ${name}_pid
+    fw_version:
+      name: ${name}_fw_version
+    bmv_text:
+      name: ${name}_bmv_text
+    bmv_alarm_text:
+      name: ${name}_bmv_alarm_text
+    alarm_reason_text:
+      name: ${name}_alarm_reason_text

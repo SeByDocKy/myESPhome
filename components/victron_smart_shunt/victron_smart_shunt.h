@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstdint>
+#include <cstring>
+#include <string>
+
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
@@ -102,7 +106,68 @@ class VictronSmartShuntComponent : public uart::UARTDevice, public Component {
   float get_setup_priority() const override { return setup_priority::DATA; }
 
  protected:
-  void handle_value_();
+  // One entry per VE.Direct label this component understands. The numeric fields come first and
+  // double as an index into cache_ (publish-on-change), F_NUM_SENSORS marks the end of that range.
+  enum Field : uint8_t {
+    F_MAX_POWER_YESTERDAY = 0,
+    F_MAX_POWER_TODAY,
+    F_YIELD_TOTAL,
+    F_YIELD_YESTERDAY,
+    F_YIELD_TODAY,
+    F_PANEL_VOLTAGE,
+    F_PANEL_POWER,
+    F_BATTERY_VOLTAGE,
+    F_BATTERY_CURRENT,
+    F_LOAD_CURRENT,
+    F_DAY_NUMBER,
+    F_CHARGER_STATUS,
+    F_ERROR_CODE,
+    F_TRACKER_OPERATION,
+    F_INSTANTANEOUS_POWER,
+    F_TIME_TO_GO,
+    F_STATE_OF_CHARGE,
+    F_CONSUMED_AMP_HOURS,
+    F_MIN_BATTERY_VOLTAGE,
+    F_MAX_BATTERY_VOLTAGE,
+    F_AMOUNT_OF_CHARGED,
+    F_LAST_FULL_CHARGE,
+    F_DEPTH_DEEPEST_DIS,
+    F_DEPTH_LAST_DIS,
+    F_AMOUNT_OF_DISCHARGED,
+    F_NUMBER_OF_FULL_DIS,
+    F_NUMBER_OF_CHARGE_CYCLES,
+    F_NUM_SENSORS,  // marker, not a field
+    F_BMV = F_NUM_SENSORS,
+    F_ALARM,
+    F_ALARM_REASON,
+    F_FW,
+    F_PID,
+    F_UNKNOWN,
+  };
+
+  // VE.Direct text protocol buffer sizes: the spec recommends 9 bytes for a label and 33 for a value,
+  // a little margin is kept here. A longer field is dropped instead of being truncated.
+  static constexpr size_t LABEL_MAX = 15;
+  static constexpr size_t VALUE_MAX = 47;
+  // The fields of a block are kept here until its checksum has been verified (as "label\0value\0").
+  static constexpr size_t PENDING_BYTES = 768;
+
+  struct PubCache {
+    float value;
+    uint32_t ms;
+    bool valid;
+  };
+
+  void process_byte_(uint8_t c);
+  void reset_parser_();
+  void store_field_();
+  void finish_block_(bool checksum_ok);
+  void handle_value_(const char *label, const char *value);
+  sensor::Sensor *sensor_for_(Field field) const;
+  static Field lookup_field_(const char *label);
+  // Publish only if the value changed or the last publish is older than REFRESH_INTERVAL_MS.
+  void publish_(Field field, sensor::Sensor *sens, float value);
+  void publish_text_(text_sensor::TextSensor *sens, const char *value);
 
   sensor::Sensor *max_power_yesterday_sensor_{nullptr};
   sensor::Sensor *max_power_today_sensor_{nullptr};
@@ -143,10 +208,21 @@ class VictronSmartShuntComponent : public uart::UARTDevice, public Component {
   text_sensor::TextSensor *fw_version_sensor_{nullptr};
   text_sensor::TextSensor *pid_sensor_{nullptr};
 
+  // 0: between fields, 1: reading a label, 2: reading a value, 3: next byte is the checksum
   int state_{0};
-  std::string label_;
-  std::string value_;
+  bool in_hex_{false};  // inside an asynchronous HEX frame (":...\n"), ignored
+  uint8_t sum_{0};      // running modulo 256 sum of the bytes of the current block
+  char pending_[PENDING_BYTES]{};
+  size_t pending_len_{0};
+  bool pending_overflow_{false};
+  uint32_t checksum_errors_{0};
+  char label_[LABEL_MAX + 1]{};
+  char value_[VALUE_MAX + 1]{};
+  size_t label_len_{0};
+  size_t value_len_{0};
+  bool overflow_{false};
   uint32_t last_transmission_{0};
+  PubCache cache_[F_NUM_SENSORS]{};
 };
 
 }  // namespace victron_smart_shunt
