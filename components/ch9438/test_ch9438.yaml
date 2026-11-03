@@ -23,7 +23,7 @@ ota:
 
 external_components:
 
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [ch9438]
     refresh: 10s
 

@@ -67,7 +67,7 @@ How the component is built:
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [indevolt]
     refresh: 10s
 ```

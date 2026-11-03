@@ -255,7 +255,7 @@ diagnostic aid, but no longer used for model detection.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [deyemi]
     refresh: 10s
 

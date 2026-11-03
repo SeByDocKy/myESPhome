@@ -217,7 +217,7 @@ wiki; no other AT+ commands are wired up here.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [tsungen3]
     refresh: 10s
 

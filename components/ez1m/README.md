@@ -16,7 +16,7 @@ the original lambda, every sensor/number/switch/text_sensor is opt-in.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [ez1m]
     refresh: 10s
 ```

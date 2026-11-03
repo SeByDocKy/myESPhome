@@ -29,7 +29,7 @@ repository), so all three must be listed:
 
 ```yaml
 external_components:
-  - source: github://SeByDocKy/myESPhome/
+  - source: github://SeByDocKy/myESPhome@main
     components: [modbustcp, modbustcp_controller, marstek]
     refresh: 10s
 ```

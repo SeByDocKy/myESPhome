@@ -35,7 +35,7 @@ wifi:
     password: "OpHFaf5UmP0c"
 
 external_components:
-  - source: github://SeByDocKy/myESPhome/
+  - source: github://SeByDocKy/myESPhome@main
     components: [jsy22x]
     refresh: 0s
 

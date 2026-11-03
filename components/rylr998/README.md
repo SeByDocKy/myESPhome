@@ -83,7 +83,7 @@ Add the following block to your ESPHome YAML — no local file copy is needed:
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
 ```
@@ -242,7 +242,7 @@ Sends a fixed heartbeat packet every 30 seconds to all nodes on the network.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
 
@@ -289,7 +289,7 @@ Logs every incoming packet and exposes RSSI, SNR and error code in Home Assistan
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
 
@@ -345,7 +345,7 @@ A node that both sends and receives, with runtime TX power control from Home Ass
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
 
@@ -425,7 +425,7 @@ The gateway decodes the floats in its own `on_packet` lambda.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
 
@@ -508,7 +508,7 @@ interval:
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
 
@@ -598,7 +598,7 @@ Node A sends on network 5; node B sends on network 10. They cannot hear each oth
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
 

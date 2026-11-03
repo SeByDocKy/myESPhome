@@ -756,7 +756,7 @@ you're not actively iterating on the component itself):
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [hmsw]
     refresh: 10s
 ```
@@ -837,7 +837,7 @@ above).
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [hmsw]
     refresh: 10s
 
@@ -916,7 +916,7 @@ for either unit -- the IP address alone routes each TCP connection (see
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [hmsw]
     refresh: 10s
 

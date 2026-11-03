@@ -13,7 +13,7 @@ unchanged for well over a decade).
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [nrf24l01]
     refresh: 10s
 ```
@@ -253,7 +253,7 @@ ota:
 logger:
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [nrf24l01]
     refresh: 10s
 
@@ -330,7 +330,7 @@ ota:
 logger:
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [nrf24l01]
     refresh: 10s
 

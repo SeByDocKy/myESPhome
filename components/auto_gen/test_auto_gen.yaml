@@ -20,7 +20,7 @@ ota:
   - platform: esphome
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [auto_gen, api_resync]
     refresh: 10s
 

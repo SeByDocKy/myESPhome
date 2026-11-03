@@ -22,7 +22,7 @@ ota:
   - platform: esphome  
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [dmtcp]
     refresh: 0s
     

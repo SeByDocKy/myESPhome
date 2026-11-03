@@ -5,13 +5,13 @@ substitutions:
   # modbus_adress_2: '2'
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [sx1509]
     refresh: 0s
   - source: github://KinDR007/VictronSmartShunt-ESPHOME@main
     components: [victron_smart_shunt]
     refresh: 0s
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [solarpid]
     refresh: 0s
 

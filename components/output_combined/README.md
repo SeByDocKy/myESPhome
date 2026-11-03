@@ -62,7 +62,7 @@ Or straight from GitHub:
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [output_combined]
     refresh: 10s
 ```

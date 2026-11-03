@@ -42,7 +42,7 @@ uart:
 
 # Composant externe
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [modbus_sniffer]
     refresh: 0s
 

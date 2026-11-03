@@ -17,7 +17,7 @@ implements the Hoymiles protocol on top of it, in a dedicated mode).
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [cmt2300a]
     refresh: 10s
 ```
@@ -281,7 +281,7 @@ ota:
 logger:
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [cmt2300a]
     refresh: 10s
 
@@ -351,7 +351,7 @@ ota:
 logger:
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [cmt2300a]
     refresh: 10s
 

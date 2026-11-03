@@ -64,7 +64,7 @@ external_components:
       # path: components   # adjust to wherever you placed the usbuvc folder
     # components: [usbuvc]
     
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [usbuvc]
     refresh: 0s   
     

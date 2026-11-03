@@ -43,7 +43,7 @@ logger:
   # level: none
     
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [rylr998]
     refresh: 10s
     

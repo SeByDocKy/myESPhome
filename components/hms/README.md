@@ -56,7 +56,7 @@ Checked line by line against OpenDTU's real source, not from memory:
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [cmt2300a, hms]
     refresh: 10s
 ```

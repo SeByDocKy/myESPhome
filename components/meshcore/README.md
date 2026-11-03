@@ -58,7 +58,7 @@ targets.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [meshcore]
     refresh: 0s
 ```

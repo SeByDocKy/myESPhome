@@ -112,7 +112,7 @@ components/mcp2518fd/
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [mcp2518fd]
     refresh: 0s
 
@@ -149,7 +149,7 @@ canbus:
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [mcp2518fd]
     refresh: 0s
 
@@ -199,7 +199,7 @@ The sniffer displays the 6 most recently active CAN IDs in Home Assistant.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [mcp2518fd]
     refresh: 0s
 
@@ -246,7 +246,7 @@ content: |
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [mcp2518fd]
     refresh: 0s
 
@@ -279,7 +279,7 @@ reducing SPI traffic when the bus is idle.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [mcp2518fd]
     refresh: 0s
 

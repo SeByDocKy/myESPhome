@@ -254,7 +254,7 @@ See [`test_jackerysv3.yaml`](test_jackerysv3.yaml) for a complete configuration 
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [jackerysv3, mqtt_broker]
 
 time:

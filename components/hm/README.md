@@ -38,7 +38,7 @@ DTU-serial generation from the ESP32's MAC.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [nrf24l01, hm]
     refresh: 10s
 ```

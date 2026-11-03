@@ -30,7 +30,7 @@ external_components:
     components: [ble_nus, tcp_uart, uart, usb_cdc_acm, usb_uart]
     refresh: 1h
 
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [sunspec_client]
     refresh: 10s
 
