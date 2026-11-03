@@ -20,7 +20,7 @@ esp32:
     # platform_version: 53.3.13
    
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [hm_inverter]
     refresh: 0s
             

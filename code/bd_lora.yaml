@@ -69,7 +69,7 @@ logger:
   level: none
     
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [hms_inverter]
     refresh: 10s
      

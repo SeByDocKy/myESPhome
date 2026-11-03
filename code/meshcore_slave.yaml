@@ -31,7 +31,7 @@ external_components:
     # components: [meshcore]
     
     
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [meshcore]
     refresh: 0s
 

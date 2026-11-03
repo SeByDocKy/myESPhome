@@ -34,7 +34,7 @@ time:
 
 # external_components:
   
-  # - source: "github://SeByDocKy/myESPhome/"
+  # - source: "github://SeByDocKy/myESPhome@main"
     # components: [hmsw]
     # refresh: 10s
 

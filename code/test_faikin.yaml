@@ -26,7 +26,7 @@ wifi:
   password: !secret wifi_password
 
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [faikin]
     refresh: 10s
 

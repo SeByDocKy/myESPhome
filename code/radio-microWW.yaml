@@ -96,7 +96,7 @@ external_components:
   - source: github://RASPIAUDIO/esphomeRadio@main
     components: [es8388]
     refresh: 0s
-  # - source: "github://SeByDocKy/myESPhome/"
+  # - source: "github://SeByDocKy/myESPhome@main"
     # components: [psram]
     # refresh: 0s  
 

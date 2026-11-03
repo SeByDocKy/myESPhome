@@ -1,9 +1,9 @@
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [emerson_r48]
     refresh: 0s
     
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [mcp2518fd]
     refresh: 0s    
 

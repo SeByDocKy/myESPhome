@@ -39,7 +39,7 @@ time:
     id: my_time
         
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [output_combined, sensor_combined]
     refresh: 10s 
             

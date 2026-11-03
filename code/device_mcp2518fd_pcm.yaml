@@ -6,7 +6,7 @@ substitutions:
   
   
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [mcp2518fd]
     refresh: 0s  
   

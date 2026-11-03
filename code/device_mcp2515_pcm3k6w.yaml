@@ -11,7 +11,7 @@ external_components:
       # path: components
     # components: [pcm3k6w]
     
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [pcm3k6w]
     refresh: 0s
 

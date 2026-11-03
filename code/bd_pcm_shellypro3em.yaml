@@ -83,7 +83,7 @@ external_components:
     # # components: [modbustcp, modbustcp_controller]
     # refresh: 0s 
     
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [modbustcp, modbustcp_controller]
     refresh: 10s  
   

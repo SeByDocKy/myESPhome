@@ -1,5 +1,5 @@
 external_components:
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome@main"
     components: [jackerysv3, mqtt_broker]
     refresh: 10s 
 
