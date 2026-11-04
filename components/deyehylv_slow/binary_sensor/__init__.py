@@ -1,10 +1,12 @@
-from esphome.components.deyehylv import p_binary_sensor
+from esphome.components.deyehylv import binary_sensor as shared
 
+# The shared schema and the C++ of the platform live in deyehylv/binary_sensor; auto-loading it builds that C++
+AUTO_LOAD = ["binary_sensor.deyehylv"]
 DEPENDENCIES = ["deyehylv"]
 
-CONFIG_SCHEMA = p_binary_sensor.CONFIG_SCHEMA
-FINAL_VALIDATE_SCHEMA = p_binary_sensor.FINAL_VALIDATE_SCHEMA
+CONFIG_SCHEMA = shared.ENTITY_SCHEMA
+FINAL_VALIDATE_SCHEMA = shared.ENTITY_FINAL_VALIDATE_SCHEMA
 
 
 async def to_code(config):
-    await p_binary_sensor.to_code(config, slow=True)
+    await shared.build_entities(config, slow=True)

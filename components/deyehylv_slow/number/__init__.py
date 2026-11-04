@@ -1,10 +1,12 @@
-from esphome.components.deyehylv import p_number
+from esphome.components.deyehylv import number as shared
 
+# The shared schema and the C++ of the platform live in deyehylv/number; auto-loading it builds that C++
+AUTO_LOAD = ["number.deyehylv"]
 DEPENDENCIES = ["deyehylv"]
 
-CONFIG_SCHEMA = p_number.CONFIG_SCHEMA
-FINAL_VALIDATE_SCHEMA = p_number.FINAL_VALIDATE_SCHEMA
+CONFIG_SCHEMA = shared.ENTITY_SCHEMA
+FINAL_VALIDATE_SCHEMA = shared.ENTITY_FINAL_VALIDATE_SCHEMA
 
 
 async def to_code(config):
-    await p_number.to_code(config, slow=True)
+    await shared.build_entities(config, slow=True)

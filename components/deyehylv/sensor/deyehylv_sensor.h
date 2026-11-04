@@ -6,7 +6,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
-#include "deyehylv.h"
+#include "esphome/components/deyehylv/deyehylv.h"
 
 #include <array>
 

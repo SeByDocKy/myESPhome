@@ -19,9 +19,13 @@ globals they use) is **not** part of the component: it stays in ESPHome YAML (se
 
 | Directory | Content |
 |---|---|
-| `deyehylv/` | The hub, the register tables (`registers.py`) and the code of every platform (`p_<platform>.py`, `deyehylv_<platform>.h/.cpp`) |
-| `deyehylv_fast/` | The six platforms polled by the fast controller (declarations only) |
-| `deyehylv_slow/` | The same six platforms, polled by the slow controller |
+| `deyehylv/` | The hub (`deyehylv.h/.cpp`, `__init__.py`) and the register tables (`registers.py`) |
+| `deyehylv/<platform>/` | One sub-directory per platform (`sensor`, `binary_sensor`, `switch`, `number`, `select`, `text_sensor`): the schema and code generation (`__init__.py`) and the C++ (`deyehylv_<platform>.h/.cpp`), shared by both speeds |
+| `deyehylv_fast/<platform>/` | The platform `deyehylv_fast`, polled by the fast controller (it reuses the shared code of `deyehylv/<platform>`) |
+| `deyehylv_slow/<platform>/` | The platform `deyehylv_slow`, polled by the slow controller |
+
+A `deyehylv_fast` / `deyehylv_slow` platform auto-loads the shared `deyehylv/<platform>` one (as a stub `platform: deyehylv`
+with no entity) so that its C++ is built once, whichever speeds are used. You never write `platform: deyehylv` yourself.
 
 Declare the three in `external_components`: `components: [deyehylv, deyehylv_fast, deyehylv_slow]`.
 

@@ -5,7 +5,7 @@ from esphome.components import number
 import esphome.config_validation as cv
 from esphome.const import CONF_MODE
 
-from . import (
+from esphome.components.deyehylv import (
     CONF_DEYEHYLV_ID,
     DEYEHYLV_PLATFORM_SCHEMA,
     add_register_item,
@@ -18,7 +18,7 @@ from . import (
 
 DeyeHyLvNumber = deyehylv_ns.class_("DeyeHyLvNumber", number.Number, cg.Component)
 
-CONFIG_SCHEMA = DEYEHYLV_PLATFORM_SCHEMA.extend(
+ENTITY_SCHEMA = DEYEHYLV_PLATFORM_SCHEMA.extend(
     {
         cv.Optional(key): number.number_schema(
             DeyeHyLvNumber, **entity_kwargs(spec, "unit_of_measurement", "icon", "entity_category")
@@ -26,10 +26,19 @@ CONFIG_SCHEMA = DEYEHYLV_PLATFORM_SCHEMA.extend(
         for key, spec in union_specs("number").items()
     }
 )
-FINAL_VALIDATE_SCHEMA = final_validate_platform("number")
+ENTITY_FINAL_VALIDATE_SCHEMA = final_validate_platform("number")
 
 
-async def to_code(config, slow):
+# `platform: deyehylv` is never written in a YAML: the speed platforms (deyehylv_fast / deyehylv_slow) auto-load it so
+# that the C++ of this platform is built once, whichever speed(s) are used. It carries no entity itself.
+CONFIG_SCHEMA = cv.Schema({})
+
+
+async def to_code(config):
+    pass
+
+
+async def build_entities(config, slow):
     hub = await cg.get_variable(config[CONF_DEYEHYLV_ID])
     specs, _ = hub_phase_specs(config[CONF_DEYEHYLV_ID], "number")
 

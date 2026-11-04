@@ -6,7 +6,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/select/select.h"
-#include "deyehylv.h"
+#include "esphome/components/deyehylv/deyehylv.h"
 
 #include <vector>
 

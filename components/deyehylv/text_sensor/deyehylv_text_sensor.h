@@ -6,7 +6,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/text_sensor/text_sensor.h"
-#include "deyehylv.h"
+#include "esphome/components/deyehylv/deyehylv.h"
 
 #include <string>
 

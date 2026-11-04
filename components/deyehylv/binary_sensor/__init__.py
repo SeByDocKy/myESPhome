@@ -4,7 +4,7 @@ import esphome.codegen as cg
 from esphome.components import binary_sensor
 import esphome.config_validation as cv
 
-from . import (
+from esphome.components.deyehylv import (
     CONF_DEYEHYLV_ID,
     DEYEHYLV_PLATFORM_SCHEMA,
     add_register_item,
@@ -17,7 +17,7 @@ from . import (
 
 DeyeHyLvBinarySensor = deyehylv_ns.class_("DeyeHyLvBinarySensor", binary_sensor.BinarySensor, cg.Component)
 
-CONFIG_SCHEMA = DEYEHYLV_PLATFORM_SCHEMA.extend(
+ENTITY_SCHEMA = DEYEHYLV_PLATFORM_SCHEMA.extend(
     {
         cv.Optional(key): binary_sensor.binary_sensor_schema(
             DeyeHyLvBinarySensor, **entity_kwargs(spec, "icon", "entity_category", "device_class")
@@ -25,10 +25,19 @@ CONFIG_SCHEMA = DEYEHYLV_PLATFORM_SCHEMA.extend(
         for key, spec in union_specs("binary_sensor").items()
     }
 )
-FINAL_VALIDATE_SCHEMA = final_validate_platform("binary_sensor")
+ENTITY_FINAL_VALIDATE_SCHEMA = final_validate_platform("binary_sensor")
 
 
-async def to_code(config, slow):
+# `platform: deyehylv` is never written in a YAML: the speed platforms (deyehylv_fast / deyehylv_slow) auto-load it so
+# that the C++ of this platform is built once, whichever speed(s) are used. It carries no entity itself.
+CONFIG_SCHEMA = cv.Schema({})
+
+
+async def to_code(config):
+    pass
+
+
+async def build_entities(config, slow):
     hub = await cg.get_variable(config[CONF_DEYEHYLV_ID])
     specs, _ = hub_phase_specs(config[CONF_DEYEHYLV_ID], "binary_sensor")
 
