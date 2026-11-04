@@ -14,8 +14,9 @@ The hub adds to the plain `modbus_controller` entities:
   - the calculated sensors (battery charge / discharge, essential / non-essential load...), which read their own
     registers and are computed in C++ instead of by polling template sensors.
 
-The code of the platforms is in this directory (p_<platform>.py for the Python side, deyehylv_<platform>.* for the C++
-side); `deyehylv_fast/` and `deyehylv_slow/` only declare the platforms and say which controller they use.
+The code of each platform is in its own sub-directory of this one (deyehylv/<platform>/: `__init__.py` for the Python side,
+deyehylv_<platform>.* for the C++ side); `deyehylv_fast/<platform>/` and `deyehylv_slow/<platform>/` only declare the
+platforms and say which controller they use.
 """
 
 from __future__ import annotations
