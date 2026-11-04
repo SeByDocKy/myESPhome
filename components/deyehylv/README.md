@@ -13,7 +13,7 @@ and the offline detection. Because of that:
 - two controllers (same inverter, same address) give two speeds: a **fast** one and an optional **slow** one.
 
 Written for ESPHome 2026.9.0. The total-energy part (`total_daily_energy` sensors, the "yesterday" values and the
-globals they use) is **not** part of the component: it stays in ESPHome YAML (see `test_deyehylv.yaml`).
+globals they use) is **not** part of the component: it stays in ESPHome YAML (see `test_deyehylv_1p.yaml`).
 
 ## Directory layout
 
@@ -91,7 +91,7 @@ switch:
 ```
 
 Only the entities you list are created, and **only their registers are read**: each controller builds its read ranges
-from its own entities. A key that the selected `phase` does not have is refused at validation time. `test_deyehylv.yaml`
+from its own entities. A key that the selected `phase` does not have is refused at validation time. `test_deyehylv_1p.yaml`
 lists every single-phase entity, `test_deyehylv_3p.yaml` every three-phase one.
 
 ## Read frames
@@ -101,7 +101,7 @@ read with 9 frames, 193 registers per cycle (measured against a simulated invert
 registers after the previous one is joined to that range on purpose (`bridge` in `registers.py`, the former
 `reuse_previous_range: true`), but only when the previous register is polled by the **same** controller and is less than
 16 registers away: with a fast/slow split the bridge would otherwise make one controller read registers that the other
-one reads. In `test_deyehylv.yaml` the fast controller reads 6 frames (57 registers) every 5 s, the slow one 9 frames
+one reads. In `test_deyehylv_1p.yaml` the fast controller reads 6 frames (57 registers) every 5 s, the slow one 9 frames
 (146 registers) every 60 s.
 
 ## Writes

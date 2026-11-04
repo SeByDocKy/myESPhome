@@ -29,7 +29,7 @@ ota:
 
 external_components:
 
-  - source: "github://SeByDocKy/myESPhome/"
+  - source: "github://SeByDocKy/myESPhome"
     components: [deyehylv, deyehylv_fast, deyehylv_slow]
     refresh: 10s
 
