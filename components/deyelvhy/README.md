@@ -2,7 +2,7 @@
 
 Native ESPHome component for the **Deye low-voltage hybrid inverters** (single-phase SUN-xK-SG0x-LP1 family and their
 rebrands, and the three-phase models), over Modbus RTU / RS485. It is a native C++ transposition of a set of `modbus_controller`
-YAML files (a "nominal" and an "advanced" one): same registers, same conversions, **167 entities** for `phase: 1p` and **157** for `phase: 3p`
+YAML files (a "nominal" and an "advanced" one): same registers, same conversions, **167 entities** for `phase: 1p` and **167** for `phase: 3p`
 in six platforms (sensor, binary_sensor, switch, number, select, text_sensor), each offered at **two refresh speeds**.
 
 The component does not carry its own Modbus engine: it sits on top of the ESPHome **`modbus`** bus and
@@ -344,10 +344,14 @@ value = raw x scale; written as `round(value / scale)`.
 
 Same keys as the single-phase ones where the entity exists on both; the register addresses are those of the
 three-phase inverters. The three-phase files apply no `inverter_factor` to the powers (only to the time-of-use
-powers), have per-phase grid / load voltages, per-phase grid powers and AC output currents, and have no auxiliary /
-generator port, PV3, limiter, or low-power / low-noise / MPPT-scan settings.
+powers). They have per-phase grid / load / inverter output voltages, per-phase grid powers and AC output currents, and
+no PV3, limiter, grid connexion, low-power / low-noise / MPPT-scan settings or essential / non-essential calculated
+powers. A few entities come from the Deye Modbus RTU document (V105.4) rather than from the YAML files:
+`gen_energy_today` (536), `battery_restart_voltage` (119), `grid_external_power` (625), `aux_output_power` (667, generator
+port), `ac_output_phase{A,B,C}_voltage` (627-629), `island_protection_mode` (83, binary sensor and switch) and the
+`grid_peak_shaving` select (178, bits 4-5).
 
-### Sensors (81)
+### Sensors (88)
 
 | Key | Register | Unit | Conversion |
 |---|---|---|---|
@@ -432,6 +436,13 @@ generator port, PV3, limiter, or low-power / low-noise / MPPT-scan settings.
 | `setting_soc_timezone4` | 169 (U_WORD) | % | - |
 | `setting_soc_timezone5` | 170 (U_WORD) | % | - |
 | `setting_soc_timezone6` | 171 (U_WORD) | % | - |
+| `gen_energy_today` | 536 (U_WORD) | kWh | x0.1 |
+| `battery_restart_voltage` | 119 (U_WORD) | V | x0.01 |
+| `grid_external_power` | 625 (S_WORD) | W | - |
+| `aux_output_power` | 667 (S_WORD) | W | - |
+| `ac_output_phaseA_voltage` | 627 (U_WORD) | V | x0.1 |
+| `ac_output_phaseB_voltage` | 628 (U_WORD) | V | x0.1 |
+| `ac_output_phaseC_voltage` | 629 (U_WORD) | V | x0.1 |
 
 ### Calculated sensors (5)
 
@@ -443,7 +454,7 @@ generator port, PV3, limiter, or low-power / low-noise / MPPT-scan settings.
 | `battery_discharging_power` | W | battery voltage x discharging current |
 | `pv_power_total` | W | PV1 + PV2 power |
 
-### Binary sensors (15)
+### Binary sensors (16)
 
 | Key | Register | Mask |
 |---|---|---|
@@ -462,14 +473,16 @@ generator port, PV3, limiter, or low-power / low-noise / MPPT-scan settings.
 | `setting_gen_charge_timezone4` | 175 | 0x0002 |
 | `setting_gen_charge_timezone5` | 176 | 0x0002 |
 | `setting_gen_charge_timezone6` | 177 | 0x0002 |
+| `island_protection_mode` | 83 | 0x0001 |
 
-### Switches (3)
+### Switches (4)
 
 | Key | Register | Mask |
 |---|---|---|
 | `toggle_solar_sell` | 145 | 0x0001 |
 | `toggle_force_generator` | 132 | 0x0001 |
 | `toggle_system_timer` | 146 | 0x0001 |
+| `island_protection_mode` | 83 | 0x0001 |
 
 ### Numbers (35)
 
@@ -511,7 +524,7 @@ generator port, PV3, limiter, or low-power / low-noise / MPPT-scan settings.
 | `set_soc_timezone5` | 170 | 0 .. 100 | 5 | % | 1 |
 | `set_soc_timezone6` | 171 | 0 .. 100 | 5 | % | 1 |
 
-### Selects (11)
+### Selects (12)
 
 | Key | Register | Mask | Options |
 |---|---|---|---|
@@ -526,6 +539,7 @@ generator port, PV3, limiter, or low-power / low-noise / MPPT-scan settings.
 | `select_charge_timezone4` | 175 | 0x000F | 16 options (Grid off, Gen off, GM off, BU off, CH off = 0 ... Grid on, Gen on, GM off, BU off, CH on = 15) |
 | `select_charge_timezone5` | 176 | 0x000F | 16 options (Grid off, Gen off, GM off, BU off, CH off = 0 ... Grid on, Gen on, GM off, BU off, CH on = 15) |
 | `select_charge_timezone6` | 177 | 0x000F | 16 options (Grid off, Gen off, GM off, BU off, CH off = 0 ... Grid on, Gen on, GM off, BU off, CH on = 15) |
+| `grid_peak_shaving` | 178 | 0x0030 | Disabled = 32, Enabled = 48 |
 
 ### Text sensors (7)
 

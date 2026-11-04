@@ -205,6 +205,16 @@ sensor:
     pv_power_total:
       name: ${name}_pv_power_total
       id: pv_power_total
+    grid_external_power:
+      name: ${name}_grid_external_power
+    aux_output_power:
+      name: ${name}_aux_output_power
+    ac_output_phaseA_voltage:
+      name: ${name}_ac_output_phaseA_voltage
+    ac_output_phaseB_voltage:
+      name: ${name}_ac_output_phaseB_voltage
+    ac_output_phaseC_voltage:
+      name: ${name}_ac_output_phaseC_voltage
 
   - platform: deyelvhy_slow
     deyelvhy_id: deye
@@ -316,6 +326,10 @@ sensor:
       name: ${name}_setting_soc_timezone5
     setting_soc_timezone6:
       name: ${name}_setting_soc_timezone6
+    gen_energy_today:
+      name: ${name}_gen_energy_today
+    battery_restart_voltage:
+      name: ${name}_battery_restart_voltage
 
   # ---- Total energy part (unchanged, stays in YAML) ----
   - platform: total_daily_energy
@@ -379,6 +393,8 @@ binary_sensor:
       name: ${name}_switch_on_off
     grid_connected_status:
       name: ${name}_grid_connected_status
+    island_protection_mode:
+      name: ${name}_island_protection_mode
 
   - platform: deyelvhy_slow
     deyelvhy_id: deye
@@ -418,6 +434,8 @@ switch:
       name: ${name}_toggle_force_generator
     toggle_system_timer:
       name: ${name}_toggle_system_timer
+    island_protection_mode:
+      name: ${name}_island_protection_mode
 
 number:
   - platform: deyelvhy_slow
@@ -518,6 +536,8 @@ select:
       name: ${name}_select_charge_timezone5
     select_charge_timezone6:
       name: ${name}_select_charge_timezone6
+    grid_peak_shaving:
+      name: ${name}_grid_peak_shaving
 
 text_sensor:
   - platform: deyelvhy_fast

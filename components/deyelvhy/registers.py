@@ -1,7 +1,7 @@
 """Register tables of the Deye low-voltage hybrid inverters: 1p (single-phase, SUN-xK-SG0x-LP1 family) and 3p.
 
-The 1p tables were generated once from two modbus_controller YAML files (nominal + advanced) and are meant to be
-edited by hand. The 3p tables are still empty: fill them the same way (same fields), nothing else has to change.
+Both were generated from modbus_controller YAML files (nominal + advanced, one pair per family) and completed with the
+registers of the Deye Modbus RTU document (V105.4); they are meant to be edited by hand.
 Every entity is one entry of one of the tables below; the key is the name of the entity in the YAML of the platform
 (`sensor: - platform: deyelvhy_fast  <key>: {name: ...}`). There is no fixed speed: the platform block
 (`deyelvhy_fast` or `deyelvhy_slow`) that holds the key decides which controller polls it.
@@ -309,6 +309,13 @@ SENSORS_3P = {
     'battery_charging_power': {'kind': 'calc', 'op': 'charge_power', 'inputs': [{'register': 587, 'vtype': 'U_WORD', 'scale': 0.01, 'bridge': True}, {'register': 591, 'vtype': 'S_WORD', 'scale': 0.01, 'negate': True, 'bridge': True}], 'unit': 'W', 'icon': 'mdi:power', 'precision': 2},
     'battery_discharging_power': {'kind': 'calc', 'op': 'discharge_power', 'inputs': [{'register': 587, 'vtype': 'U_WORD', 'scale': 0.01, 'bridge': True}, {'register': 591, 'vtype': 'S_WORD', 'scale': 0.01, 'negate': True, 'bridge': True}], 'unit': 'W', 'icon': 'mdi:power', 'precision': 2},
     'pv_power_total': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 672, 'vtype': 'U_WORD', 'bridge': True}, {'register': 673, 'vtype': 'U_WORD', 'bridge': True}], 'coefs': [1, 1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
+    'gen_energy_today': {'register': 536, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'kWh', 'icon': 'mdi:counter', 'device_class': 'energy', 'state_class': 'total_increasing', 'precision': 2, 'bridge': True},
+    'battery_restart_voltage': {'register': 119, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'device_class': 'voltage', 'state_class': 'measurement', 'precision': 1, 'bridge': True},
+    'grid_external_power': {'register': 625, 'vtype': 'S_WORD', 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
+    'aux_output_power': {'register': 667, 'vtype': 'S_WORD', 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
+    'ac_output_phaseA_voltage': {'register': 627, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'V', 'icon': 'mdi:sine-wave', 'device_class': 'voltage', 'state_class': 'measurement', 'precision': 1, 'bridge': True},
+    'ac_output_phaseB_voltage': {'register': 628, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'V', 'icon': 'mdi:sine-wave', 'device_class': 'voltage', 'state_class': 'measurement', 'precision': 1, 'bridge': True},
+    'ac_output_phaseC_voltage': {'register': 629, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'V', 'icon': 'mdi:sine-wave', 'device_class': 'voltage', 'state_class': 'measurement', 'precision': 1, 'bridge': True},
 }
 BINARY_SENSORS_3P = {
     'switch_on_off': {'register': 80, 'mask': 65535},
@@ -326,11 +333,13 @@ BINARY_SENSORS_3P = {
     'setting_gen_charge_timezone4': {'register': 175, 'mask': 2},
     'setting_gen_charge_timezone5': {'register': 176, 'mask': 2},
     'setting_gen_charge_timezone6': {'register': 177, 'mask': 2},
+    'island_protection_mode': {'register': 83, 'mask': 1, 'bridge': True},
 }
 SWITCHES_3P = {
     'toggle_solar_sell': {'register': 145, 'mask': 1, 'icon': 'mdi:toggle-switch', 'category': 'config', 'bridge': True},
     'toggle_force_generator': {'register': 132, 'mask': 1, 'icon': 'mdi:toggle-switch', 'bridge': True},
     'toggle_system_timer': {'register': 146, 'mask': 1, 'icon': 'mdi:toggle-switch', 'category': 'config'},
+    'island_protection_mode': {'register': 83, 'mask': 1, 'icon': 'mdi:toggle-switch', 'category': 'config', 'bridge': True},
 }
 NUMBERS_3P = {
     'battery_equalization_voltage': {'register': 99, 'vtype': 'U_WORD', 'scale': 0.01, 'min': 50.0, 'max': 61.0, 'step': 0.1, 'mode': 'slider', 'unit': 'V', 'icon': 'mdi:sine-wave', 'bridge': True},
@@ -381,6 +390,7 @@ SELECTS_3P = {
     'select_charge_timezone4': {'register': 175, 'mask': 15, 'options': [['Grid off, Gen off, GM off, BU off, CH off', 0], ['Grid on, Gen off, GM off, BU off, CH off', 1], ['Grid off, Gen on, GM off, BU off, CH off', 2], ['Grid on, Gen on, GM off, BU off, CH off', 3], ['Grid off, Gen off, GM on, BU off, CH off', 4], ['Grid on, Gen off, GM on, BU off, CH off', 5], ['Grid off, Gen on, GM on, BU off, CH off', 6], ['Grid on, Gen on, GM on, BU off, CH off', 7], ['Grid off, Gen off, GM off, BU on, CH off', 8], ['Grid on, Gen off, GM off, BU on, CH off', 9], ['Grid off, Gen on, GM off, BU on, CH off', 10], ['Grid on, Gen on, GM off, BU on, CH off', 11], ['Grid off, Gen off, GM off, BU off, CH on', 12], ['Grid on, Gen off, GM off, BU off, CH on', 13], ['Grid off, Gen on, GM off, BU off, CH on', 14], ['Grid on, Gen on, GM off, BU off, CH on', 15]], 'icon': 'mdi:numeric', 'category': 'config'},
     'select_charge_timezone5': {'register': 176, 'mask': 15, 'options': [['Grid off, Gen off, GM off, BU off, CH off', 0], ['Grid on, Gen off, GM off, BU off, CH off', 1], ['Grid off, Gen on, GM off, BU off, CH off', 2], ['Grid on, Gen on, GM off, BU off, CH off', 3], ['Grid off, Gen off, GM on, BU off, CH off', 4], ['Grid on, Gen off, GM on, BU off, CH off', 5], ['Grid off, Gen on, GM on, BU off, CH off', 6], ['Grid on, Gen on, GM on, BU off, CH off', 7], ['Grid off, Gen off, GM off, BU on, CH off', 8], ['Grid on, Gen off, GM off, BU on, CH off', 9], ['Grid off, Gen on, GM off, BU on, CH off', 10], ['Grid on, Gen on, GM off, BU on, CH off', 11], ['Grid off, Gen off, GM off, BU off, CH on', 12], ['Grid on, Gen off, GM off, BU off, CH on', 13], ['Grid off, Gen on, GM off, BU off, CH on', 14], ['Grid on, Gen on, GM off, BU off, CH on', 15]], 'icon': 'mdi:numeric', 'category': 'config'},
     'select_charge_timezone6': {'register': 177, 'mask': 15, 'options': [['Grid off, Gen off, GM off, BU off, CH off', 0], ['Grid on, Gen off, GM off, BU off, CH off', 1], ['Grid off, Gen on, GM off, BU off, CH off', 2], ['Grid on, Gen on, GM off, BU off, CH off', 3], ['Grid off, Gen off, GM on, BU off, CH off', 4], ['Grid on, Gen off, GM on, BU off, CH off', 5], ['Grid off, Gen on, GM on, BU off, CH off', 6], ['Grid on, Gen on, GM on, BU off, CH off', 7], ['Grid off, Gen off, GM off, BU on, CH off', 8], ['Grid on, Gen off, GM off, BU on, CH off', 9], ['Grid off, Gen on, GM off, BU on, CH off', 10], ['Grid on, Gen on, GM off, BU on, CH off', 11], ['Grid off, Gen off, GM off, BU off, CH on', 12], ['Grid on, Gen off, GM off, BU off, CH on', 13], ['Grid off, Gen on, GM off, BU off, CH on', 14], ['Grid on, Gen on, GM off, BU off, CH on', 15]], 'icon': 'mdi:numeric', 'category': 'config'},
+    'grid_peak_shaving': {'register': 178, 'mask': 48, 'options': [['Disabled', 32], ['Enabled', 48]], 'bridge': True},
 }
 TEXT_SENSORS_3P = {
     'overall_state': {'kind': 'state', 'register': 500, 'bridge': True},
