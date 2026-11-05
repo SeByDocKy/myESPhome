@@ -17,7 +17,9 @@ void DeyeLvHySensor::dump_config() {
 void DeyeLvHySensor::parse_and_publish(std::span<const uint8_t> data) {
   if (!this->has_data_(data))
     return;
-  const float value = static_cast<float>(this->transform_.apply(this->raw_(data)));
+  if (!this->ratio_ready_())
+    return;
+  const float value = static_cast<float>(this->transform_.apply(this->raw_(data)) * this->ratio_());
   // Nothing new to tell (force_update: true publishes anyway)
   if (this->has_state() && value == this->state && !this->get_force_update())
     return;

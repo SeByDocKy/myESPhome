@@ -14,6 +14,7 @@ from esphome.components.deyelvhy import (
     hub_phase_specs,
     transform_args,
     union_specs,
+    use_ratio,
     vtype_of,
 )
 
@@ -74,7 +75,7 @@ async def build_entities(config, slow):
 
         if spec.get("kind") == "calc":
             # Computed from registers it reads itself: the source sensors do not have to be declared
-            out_scale = (factor if spec.get("factor") else 1.0) * (-1.0 if spec.get("negate") else 1.0)
+            out_scale = -1.0 if spec.get("negate") else 1.0
             cg.add(var.set_op(CALC_OPS[spec["op"]], out_scale))
             coefs = spec.get("coefs", [1] * len(spec["inputs"]))
             for index, inp in enumerate(spec["inputs"]):
@@ -90,9 +91,13 @@ async def build_entities(config, slow):
                         coefs[index],
                     )
                 )
+                if inp.get("factor") and factor == "auto":
+                    cg.add(var.set_input_ratio(index, hub))
+                    cg.add(hub.need_ratio())
                 cg.add(hub.add_item(var.get_input(index), slow))
             continue
 
         add, scale, wrap = transform_args(spec, factor)
         cg.add(var.set_transform(add, scale, wrap))
+        use_ratio(hub, var, spec, factor)
         add_register_item(hub, var, spec, slow)

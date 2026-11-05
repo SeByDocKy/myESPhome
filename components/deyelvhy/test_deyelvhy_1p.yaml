@@ -120,7 +120,7 @@ deyelvhy:
     phase: 1p                       # 1p single-phase, 3p three-phase
     fast_modbus_controller_id: fast_id
     slow_modbus_controller_id: slow_id     # optional: without it everything is polled by the fast one
-    inverter_factor: 1.0            # multiplier of every power value
+    inverter_factor: auto           # auto: read the power ratio (register 54); or a number to force it
     # use_write_multiple: true      # write with function 0x10 (default) or 0x06
     # write_hold: 5s                # values read back are ignored this long after a write
 

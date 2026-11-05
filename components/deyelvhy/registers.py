@@ -13,11 +13,13 @@ Common fields
              (RangeReuse.ALWAYS, the former `reuse_previous_range: true`): keeps the number of read frames low
   unit, icon, device_class, state_class, precision, category   usual ESPHome entity attributes
 
-sensor      value = (raw + add) * scale [* inverter_factor] [* -1]
+sensor      value = (raw + add) * scale [* power ratio] [* -1]
+            factor: the register is in 10 W units when the inverter says so (register 54, 'AC power ratio');
+            only the registers the Deye document lists for it carry the flag (167-172, 176-178, 190)
             wrap: raw > 32767 -> raw - 65535 (the time-of-use start times)
             kind "calc": computed from registers it reads itself (`inputs`, same transform as a sensor); op is
             linear (sum of coefs[i] * input[i]), charge_current, discharge_current, charge_power, discharge_power;
-            factor / negate apply to the result of the charge_power / discharge_power ops.
+            negate applies to the result of the charge_power / discharge_power ops; the inputs carry their own factor.
 binary      state = (register & mask) != 0
 switch      same state; a write changes only the bits of `mask` (the other bits keep the value last read)
 number      value = raw * scale; written as round(value / scale)
@@ -27,7 +29,7 @@ text        kind "state" (inverter overall state, text of the value) or "time" (
 
 SENSORS_1P = {
     'modbus_address': {'register': 37, 'vtype': 'U_WORD', 'add': 1, 'bridge': True},
-    'limiter': {'register': 55, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'device_class': 'power', 'precision': 2},
+    'limiter': {'register': 55, 'vtype': 'U_WORD', 'unit': 'W', 'device_class': 'power', 'precision': 2},
     'gen_energy_today': {'register': 62, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'kWh', 'icon': 'mdi:counter', 'device_class': 'energy', 'state_class': 'total_increasing', 'precision': 2, 'bridge': True},
     'battery_charging_energy_today': {'register': 70, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'kWh', 'device_class': 'energy', 'state_class': 'total_increasing', 'precision': 1},
     'battery_discharging_energy_today': {'register': 71, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'kWh', 'icon': 'mdi:counter', 'device_class': 'energy', 'state_class': 'total_increasing', 'precision': 1},
@@ -53,7 +55,7 @@ SENSORS_1P = {
     'grid_voltage': {'register': 150, 'vtype': 'S_WORD', 'scale': 0.1, 'unit': 'V', 'icon': 'mdi:sine-wave', 'device_class': 'voltage', 'state_class': 'measurement', 'precision': 1},
     'ac_output_voltage': {'register': 154, 'vtype': 'U_WORD', 'scale': 0.1, 'unit': 'V', 'icon': 'mdi:sine-wave', 'device_class': 'voltage', 'state_class': 'measurement', 'precision': 1, 'bridge': True},
     'ac_output_current': {'register': 164, 'vtype': 'S_WORD', 'scale': 0.01, 'unit': 'A', 'icon': 'mdi:current-dc', 'device_class': 'current', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
-    'aux_output_power': {'register': 166, 'vtype': 'S_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
+    'aux_output_power': {'register': 166, 'vtype': 'S_WORD', 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
     'grid_power_167': {'register': 167, 'vtype': 'S_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
     'grid_power': {'register': 169, 'vtype': 'S_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
     'grid_external_power': {'register': 172, 'vtype': 'S_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
@@ -62,11 +64,11 @@ SENSORS_1P = {
     'battery_temperature': {'register': 182, 'vtype': 'U_WORD', 'add': -1000, 'scale': 0.1, 'unit': '°C', 'icon': 'mdi:thermometer', 'device_class': 'temperature', 'state_class': 'measurement', 'precision': 1, 'bridge': True},
     'battery_voltage': {'register': 183, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'device_class': 'voltage', 'state_class': 'measurement', 'precision': 1},
     'battery_soc': {'register': 184, 'vtype': 'U_WORD', 'unit': '%', 'icon': 'mdi:percent', 'device_class': 'battery', 'precision': 0},
-    'pv1_power': {'register': 186, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
-    'pv2_power': {'register': 187, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
-    'pv3_power': {'register': 188, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
+    'pv1_power': {'register': 186, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2, 'bridge': True},
+    'pv2_power': {'register': 187, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
+    'pv3_power': {'register': 188, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
     'battery_power': {'register': 190, 'vtype': 'S_WORD', 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'precision': 2, 'bridge': True},
-    'battery_current': {'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'factor': True, 'negate': True, 'unit': 'A', 'icon': 'mdi:current-dc', 'device_class': 'current', 'state_class': 'measurement', 'precision': 2},
+    'battery_current': {'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'negate': True, 'unit': 'A', 'icon': 'mdi:current-dc', 'device_class': 'current', 'state_class': 'measurement', 'precision': 2},
     'load_frequency': {'register': 192, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'Hz', 'icon': 'mdi:sine-wave', 'state_class': 'measurement', 'precision': 2},
     'ac_output_frequency': {'register': 193, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'Hz', 'icon': 'mdi:alpha-Hz-circle-outline', 'state_class': 'measurement', 'precision': 2},
     'grid_connexion': {'register': 194, 'vtype': 'U_WORD', 'state_class': 'measurement', 'precision': 0},
@@ -89,12 +91,12 @@ SENSORS_1P = {
     'setting_timezone4': {'register': 253, 'vtype': 'U_WORD', 'icon': 'mdi:clock'},
     'setting_timezone5': {'register': 254, 'vtype': 'U_WORD', 'wrap': True, 'icon': 'mdi:clock'},
     'setting_timezone6': {'register': 255, 'vtype': 'U_WORD', 'wrap': True, 'icon': 'mdi:clock'},
-    'power_timezone1': {'register': 256, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone2': {'register': 257, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone3': {'register': 258, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone4': {'register': 259, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone5': {'register': 260, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone6': {'register': 261, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone1': {'register': 256, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone2': {'register': 257, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone3': {'register': 258, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone4': {'register': 259, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone5': {'register': 260, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone6': {'register': 261, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
     'battery_voltage_timezone1': {'register': 262, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'precision': 1},
     'battery_voltage_timezone2': {'register': 263, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'precision': 1},
     'battery_voltage_timezone3': {'register': 264, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'precision': 1},
@@ -107,13 +109,13 @@ SENSORS_1P = {
     'setting_soc_timezone4': {'register': 271, 'vtype': 'U_WORD', 'unit': '%', 'icon': 'mdi:percent'},
     'setting_soc_timezone5': {'register': 272, 'vtype': 'U_WORD', 'unit': '%', 'icon': 'mdi:percent'},
     'setting_soc_timezone6': {'register': 273, 'vtype': 'U_WORD', 'unit': '%', 'icon': 'mdi:percent'},
-    'battery_charging_current': {'kind': 'calc', 'op': 'charge_current', 'inputs': [{'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'factor': True, 'negate': True}], 'unit': 'A', 'icon': 'mdi:current-dc', 'precision': 2},
-    'battery_discharging_current': {'kind': 'calc', 'op': 'discharge_current', 'inputs': [{'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'factor': True, 'negate': True}], 'unit': 'A', 'icon': 'mdi:current-dc', 'precision': 2},
-    'battery_charging_power': {'kind': 'calc', 'op': 'charge_power', 'inputs': [{'register': 183, 'vtype': 'U_WORD', 'scale': 0.01}, {'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'factor': True, 'negate': True}], 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 2},
-    'battery_discharging_power': {'kind': 'calc', 'op': 'discharge_power', 'inputs': [{'register': 183, 'vtype': 'U_WORD', 'scale': 0.01}, {'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'factor': True, 'negate': True}], 'factor': True, 'negate': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 2},
-    'pv_power_total': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 186, 'vtype': 'U_WORD', 'factor': True, 'bridge': True}, {'register': 187, 'vtype': 'U_WORD', 'factor': True}, {'register': 188, 'vtype': 'U_WORD', 'factor': True}], 'coefs': [1, 1, 1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
-    'essential_power': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 175, 'vtype': 'S_WORD', 'bridge': True}, {'register': 167, 'vtype': 'S_WORD', 'factor': True}, {'register': 166, 'vtype': 'S_WORD', 'factor': True, 'bridge': True}], 'coefs': [1, 1, -1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
-    'essential_power_1': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 175, 'vtype': 'S_WORD', 'bridge': True}, {'register': 169, 'vtype': 'S_WORD', 'factor': True, 'bridge': True}, {'register': 166, 'vtype': 'S_WORD', 'factor': True, 'bridge': True}], 'coefs': [1, 1, -1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
+    'battery_charging_current': {'kind': 'calc', 'op': 'charge_current', 'inputs': [{'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'negate': True}], 'unit': 'A', 'icon': 'mdi:current-dc', 'precision': 2},
+    'battery_discharging_current': {'kind': 'calc', 'op': 'discharge_current', 'inputs': [{'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'negate': True}], 'unit': 'A', 'icon': 'mdi:current-dc', 'precision': 2},
+    'battery_charging_power': {'kind': 'calc', 'op': 'charge_power', 'inputs': [{'register': 183, 'vtype': 'U_WORD', 'scale': 0.01}, {'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'negate': True}], 'unit': 'W', 'icon': 'mdi:power', 'precision': 2},
+    'battery_discharging_power': {'kind': 'calc', 'op': 'discharge_power', 'inputs': [{'register': 183, 'vtype': 'U_WORD', 'scale': 0.01}, {'register': 191, 'vtype': 'S_WORD', 'scale': 0.01, 'negate': True}], 'negate': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 2},
+    'pv_power_total': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 186, 'vtype': 'U_WORD', 'bridge': True}, {'register': 187, 'vtype': 'U_WORD'}, {'register': 188, 'vtype': 'U_WORD'}], 'coefs': [1, 1, 1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
+    'essential_power': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 175, 'vtype': 'S_WORD', 'bridge': True}, {'register': 167, 'vtype': 'S_WORD', 'factor': True}, {'register': 166, 'vtype': 'S_WORD', 'bridge': True}], 'coefs': [1, 1, -1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
+    'essential_power_1': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 175, 'vtype': 'S_WORD', 'bridge': True}, {'register': 169, 'vtype': 'S_WORD', 'factor': True, 'bridge': True}, {'register': 166, 'vtype': 'S_WORD', 'bridge': True}], 'coefs': [1, 1, -1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
     'nonessential_power': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 172, 'vtype': 'S_WORD', 'factor': True, 'bridge': True}, {'register': 167, 'vtype': 'S_WORD', 'factor': True}], 'coefs': [1, -1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
     'nonessential_power_1': {'kind': 'calc', 'op': 'linear', 'inputs': [{'register': 172, 'vtype': 'S_WORD', 'factor': True, 'bridge': True}, {'register': 169, 'vtype': 'S_WORD', 'factor': True, 'bridge': True}], 'coefs': [1, -1], 'unit': 'W', 'icon': 'mdi:power', 'device_class': 'power', 'state_class': 'measurement', 'precision': 2},
 }
@@ -286,12 +288,12 @@ SENSORS_3P = {
     'setting_timezone4': {'register': 151, 'vtype': 'U_WORD', 'wrap': True, 'icon': 'mdi:clock'},
     'setting_timezone5': {'register': 152, 'vtype': 'U_WORD', 'wrap': True, 'icon': 'mdi:clock'},
     'setting_timezone6': {'register': 153, 'vtype': 'U_WORD', 'wrap': True, 'icon': 'mdi:clock'},
-    'power_timezone1': {'register': 154, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone2': {'register': 155, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone3': {'register': 156, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone4': {'register': 157, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone5': {'register': 158, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
-    'power_timezone6': {'register': 159, 'vtype': 'U_WORD', 'factor': True, 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone1': {'register': 154, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone2': {'register': 155, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone3': {'register': 156, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone4': {'register': 157, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone5': {'register': 158, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
+    'power_timezone6': {'register': 159, 'vtype': 'U_WORD', 'unit': 'W', 'icon': 'mdi:power', 'precision': 0},
     'battery_voltage_timezone1': {'register': 160, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'precision': 1},
     'battery_voltage_timezone2': {'register': 161, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'precision': 1},
     'battery_voltage_timezone3': {'register': 162, 'vtype': 'U_WORD', 'scale': 0.01, 'unit': 'V', 'icon': 'mdi:sine-wave', 'precision': 1},

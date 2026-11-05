@@ -63,9 +63,15 @@ class DeyeLvHyItem : public SensorItem {
   void set_bridge(bool bridge) { this->bridge_ = bridge; }
   bool bridge() const { return this->bridge_; }
   uint8_t count() const { return this->count_; }
+  /// The value of this register is in units of the inverter's power ratio (register 54): the hub holds the ratio
+  void set_ratio(DeyeLvHyHub *hub) { this->ratio_hub_ = hub; }
   void apply_bridge(bool join) { this->reuse_previous_range = join ? RangeReuse::ALWAYS : RangeReuse::AUTO; }
 
  protected:
+  /// False while the power ratio of the inverter is not known yet (the value cannot be converted)
+  bool ratio_ready_() const;
+  /// Multiplier of the converted value: the inverter's power ratio, or 1 for a register that does not depend on it
+  double ratio_() const;
   /// True when the payload holds all the registers of this item
   bool has_data_(std::span<const uint8_t> data) const {
     return data.size() >= static_cast<size_t>(this->offset) + static_cast<size_t>(this->count_) * 2u;
@@ -83,6 +89,7 @@ class DeyeLvHyItem : public SensorItem {
   uint16_t reg_{0};
   uint8_t count_{1};
   bool bridge_{false};
+  DeyeLvHyHub *ratio_hub_{nullptr};
 };
 
 /** Reads a register on behalf of a calculated sensor, so that it does not require the source sensors to be declared
@@ -96,7 +103,9 @@ class DeyeLvHyDepReader : public DeyeLvHyItem {
   void parse_and_publish(std::span<const uint8_t> data) override {
     if (!this->has_data_(data))
       return;
-    this->value_ = this->transform_.apply(this->raw_(data));
+    if (!this->ratio_ready_())
+      return;
+    this->value_ = this->transform_.apply(this->raw_(data)) * this->ratio_();
     this->valid_ = true;
     if (this->callback_)
       this->callback_();
@@ -145,7 +154,18 @@ class DeyeLvHyHub : public Component {
   /// Optional second controller (same inverter, slower update_interval) for the slow entities
   void set_slow_controller(ModbusController *controller) { this->slow_controller_ = controller; }
   void set_phase(const char *phase) { this->phase_ = phase; }
-  void set_inverter_factor(float factor) { this->inverter_factor_ = factor; }
+  /// A fixed multiplier for the registers that depend on the power ratio (instead of reading register 54)
+  void set_inverter_factor(float factor) {
+    this->inverter_factor_ = factor;
+    this->ratio_ = factor;
+    this->auto_factor_ = false;
+  }
+  /// Read the power ratio from register 54 (the default)
+  void set_inverter_factor_auto() { this->auto_factor_ = true; }
+  /// An entity depends on the power ratio: in `auto` mode the hub starts reading register 54
+  void need_ratio();
+  bool ratio_known() const { return this->ratio_known_; }
+  float ratio() const { return this->ratio_; }
   void set_use_write_multiple(bool use) { this->use_write_multiple_ = use; }
   void set_write_hold(uint32_t ms) { this->write_hold_ms_ = ms; }
 
@@ -186,6 +206,11 @@ class DeyeLvHyHub : public Component {
   const char *phase_{""};
   DeyeLvHyWriter writer_;
   float inverter_factor_{1.0f};
+  bool auto_factor_{true};
+  bool ratio_needed_{false};
+  bool ratio_known_{false};
+  float ratio_{1.0f};
+  DeyeLvHyDepReader ratio_reader_;
   bool use_write_multiple_{true};
   uint32_t write_hold_ms_{5000};
   std::vector<RegisterState> registers_;

@@ -6,12 +6,44 @@ namespace esphome::deyelvhy {
 
 static const char *const TAG = "deyelvhy";
 
+bool DeyeLvHyItem::ratio_ready_() const { return this->ratio_hub_ == nullptr || this->ratio_hub_->ratio_known(); }
+double DeyeLvHyItem::ratio_() const {
+  return this->ratio_hub_ == nullptr ? 1.0 : static_cast<double>(this->ratio_hub_->ratio());
+}
+
+// Register 54, "AC power ratio": 10 when the power registers (grid, load...) are in units of 10 W, otherwise (1, or 0)
+// in W
+static constexpr uint16_t RATIO_REGISTER = 54;
+
+void DeyeLvHyHub::need_ratio() {
+  if (this->ratio_needed_ || !this->auto_factor_)
+    return;
+  this->ratio_needed_ = true;
+  this->ratio_reader_.configure(RATIO_REGISTER, SensorValueType::U_WORD);
+  this->ratio_reader_.set_callback([this]() {
+    const auto raw = static_cast<uint16_t>(this->ratio_reader_.value());
+    float ratio = 1.0f;
+    if (raw == 10) {
+      ratio = 10.0f;
+    } else if (raw > 1) {
+      ESP_LOGW(TAG, "Unexpected power ratio %u in register %u, assuming 1", raw, RATIO_REGISTER);
+    }
+    if (!this->ratio_known_ || ratio != this->ratio_)
+      ESP_LOGI(TAG, "Power ratio: x%g (register %u = %u)", static_cast<double>(ratio), RATIO_REGISTER, raw);
+    this->ratio_ = ratio;
+    this->ratio_known_ = true;
+  });
+  this->add_item(&this->ratio_reader_, false);
+}
+
 void DeyeLvHyHub::setup() {
   if (this->fast_controller_ == nullptr) {
     ESP_LOGE(TAG, "No modbus_controller: nothing to talk to the inverter with");
     this->mark_failed();
     return;
   }
+  // A fixed inverter_factor is known from the start; in auto mode the ratio is known after the first read of register 54
+  this->ratio_known_ = !this->auto_factor_;
   if (this->slow_controller_ == nullptr)
     this->slow_controller_ = this->fast_controller_;
   this->writer_.init(this->fast_controller_);
@@ -30,14 +62,15 @@ void DeyeLvHyHub::dump_config() {
   ESP_LOGCONFIG(TAG,
                 "Deye low-voltage hybrid inverter:\n"
                 "  Phase: %s\n"
-                "  Inverter factor: %g\n"
+                "  Inverter factor: %s\n"
                 "  Write function: %s\n"
                 "  Write hold: %u ms\n"
                 "  Tracked registers: %u\n"
+                "  Power ratio: x%g\n"
                 "  Slow controller: %s",
-                this->phase_, static_cast<double>(this->inverter_factor_),
+                this->phase_, this->auto_factor_ ? "auto (register 54)" : "fixed",
                 this->use_write_multiple_ ? "0x10 (write multiple registers)" : "0x06 (write single register)",
-                static_cast<unsigned>(this->write_hold_ms_), static_cast<unsigned>(this->registers_.size()),
+                static_cast<unsigned>(this->write_hold_ms_), static_cast<unsigned>(this->registers_.size()), static_cast<double>(this->ratio_),
                 YESNO(this->slow_controller_ != this->fast_controller_));
 }
 

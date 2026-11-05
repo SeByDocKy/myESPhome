@@ -53,6 +53,13 @@ PHASES = tuple(REGISTERS)  # 1p, 3p
 
 ModbusController = modbus_controller.ModbusController
 
+def inverter_factor(value):
+    """`auto`, or a positive number."""
+    if isinstance(value, str) and value.strip().lower() == "auto":
+        return "auto"
+    return cv.positive_float(value)
+
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(DeyeLvHyHub),
@@ -64,9 +71,9 @@ CONFIG_SCHEMA = cv.Schema(
         # Optional second modbus_controller (same inverter, slower update_interval) for the slow entities. Without
         # it the slow entities are polled by the fast one.
         cv.Optional(CONF_SLOW_MODBUS_CONTROLLER_ID): cv.use_id(ModbusController),
-        # Multiplier of every power value (1 for a single inverter, N for N inverters in parallel on the same CT
-        # clamp...). It was `${inverter_factor}` in the YAML.
-        cv.Optional(CONF_INVERTER_FACTOR, default=1.0): cv.positive_float,
+        # Unit of the power registers that depend on the inverter's "AC power ratio" (register 54: 1 W or 10 W, grid,
+        # load...). `auto` (default) reads that register; a number forces the multiplier instead.
+        cv.Optional(CONF_INVERTER_FACTOR, default="auto"): inverter_factor,
         # Write with the "write multiple registers" function (0x10, one register) instead of 0x06
         cv.Optional(CONF_USE_WRITE_MULTIPLE, default=True): cv.boolean,
         # After a write, the values read for that register are ignored for this long
@@ -85,7 +92,10 @@ async def to_code(config):
         slow = await cg.get_variable(config[CONF_SLOW_MODBUS_CONTROLLER_ID])
         cg.add(var.set_slow_controller(slow))
     cg.add(var.set_phase(config[CONF_PHASE]))
-    cg.add(var.set_inverter_factor(config[CONF_INVERTER_FACTOR]))
+    if config[CONF_INVERTER_FACTOR] == "auto":
+        cg.add(var.set_inverter_factor_auto())
+    else:
+        cg.add(var.set_inverter_factor(config[CONF_INVERTER_FACTOR]))
     cg.add(var.set_use_write_multiple(config[CONF_USE_WRITE_MULTIPLE]))
     cg.add(var.set_write_hold(config[CONF_WRITE_HOLD]))
 
@@ -167,7 +177,7 @@ def vtype_of(spec):
 def transform_args(spec, factor):
     """(add, scale, wrap) of a register -> value conversion; the hub's inverter_factor is folded into `scale`."""
     scale = spec.get("scale", 1.0)
-    if spec.get("factor"):
+    if spec.get("factor") and factor != "auto":
         scale *= factor
     if spec.get("negate"):
         scale = -scale
@@ -180,6 +190,13 @@ def add_register_item(hub, var, spec, slow):
     if spec.get("bridge"):
         cg.add(var.set_bridge(True))
     cg.add(hub.add_item(var, slow))
+
+
+def use_ratio(hub, item, spec, factor):
+    """In `auto` mode, a register that depends on the power ratio (register 54) is converted with the ratio the hub reads."""
+    if spec.get("factor") and factor == "auto":
+        cg.add(item.set_ratio(hub))
+        cg.add(hub.need_ratio())
 
 
 def hub_phase_specs(hub_id, platform):

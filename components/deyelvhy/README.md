@@ -64,7 +64,7 @@ deyelvhy:
 | `phase` | required | `1p` single-phase or `3p` three-phase: selects the register table |
 | `fast_modbus_controller_id` | required | The controller that polls the `deyelvhy_fast` entities, and sends every write |
 | `slow_modbus_controller_id` | none | The controller that polls the `deyelvhy_slow` entities (without it they use the fast one) |
-| `inverter_factor` | `1.0` | Multiplier of every power value (the former `${inverter_factor}`), folded into the conversion at code generation |
+| `inverter_factor` | `auto` | `auto`: the hub reads register 54 ("AC power ratio") and multiplies by 10 the registers that the Deye document lists for it when it is 10 (1 or 0: they are in W). A number forces the multiplier instead (the register is not read). 1p only: the 3p tables have no such register |
 | `use_write_multiple` | `true` | Write with function 0x10 (one register) instead of 0x06 |
 | `write_hold` | `5s` | After a write, the value read for that register is ignored for this long (see *Writes*) |
 
@@ -130,7 +130,7 @@ changed (add `force_update: true` to publish every cycle). They replace the form
 ## Entities
 
 Keys are the names of the entities of the former YAML (minus the `${name}_${inverter_name}_` prefix), typos included
-(`battery_shuntdown_voltage`). The conversion column is applied in this order: wrap, add, scale, `inverter_factor`.
+(`battery_shuntdown_voltage`). The conversion column is applied in this order: wrap, add, scale, power ratio (`x ratio`).
 
 ## Single-phase entities (`phase: 1p`)
 
@@ -139,7 +139,7 @@ Keys are the names of the entities of the former YAML (minus the `${name}_${inve
 | Key | Register | Unit | Conversion |
 |---|---|---|---|
 | `modbus_address` | 37 (U_WORD) |  | +1 |
-| `limiter` | 55 (U_WORD) | W | x inverter_factor |
+| `limiter` | 55 (U_WORD) | W | - |
 | `gen_energy_today` | 62 (U_WORD) | kWh | x0.1 |
 | `battery_charging_energy_today` | 70 (U_WORD) | kWh | x0.1 |
 | `battery_discharging_energy_today` | 71 (U_WORD) | kWh | x0.1 |
@@ -165,20 +165,20 @@ Keys are the names of the entities of the former YAML (minus the `${name}_${inve
 | `grid_voltage` | 150 (S_WORD) | V | x0.1 |
 | `ac_output_voltage` | 154 (U_WORD) | V | x0.1 |
 | `ac_output_current` | 164 (S_WORD) | A | x0.01 |
-| `aux_output_power` | 166 (S_WORD) | W | x inverter_factor |
-| `grid_power_167` | 167 (S_WORD) | W | x inverter_factor |
-| `grid_power` | 169 (S_WORD) | W | x inverter_factor |
-| `grid_external_power` | 172 (S_WORD) | W | x inverter_factor |
+| `aux_output_power` | 166 (S_WORD) | W | - |
+| `grid_power_167` | 167 (S_WORD) | W | x ratio |
+| `grid_power` | 169 (S_WORD) | W | x ratio |
+| `grid_external_power` | 172 (S_WORD) | W | x ratio |
 | `ac_output_power` | 175 (S_WORD) | W | - |
-| `load_power` | 178 (S_WORD) | W | x inverter_factor |
+| `load_power` | 178 (S_WORD) | W | x ratio |
 | `battery_temperature` | 182 (U_WORD) | °C | -1000 x0.1 |
 | `battery_voltage` | 183 (U_WORD) | V | x0.01 |
 | `battery_soc` | 184 (U_WORD) | % | - |
-| `pv1_power` | 186 (U_WORD) | W | x inverter_factor |
-| `pv2_power` | 187 (U_WORD) | W | x inverter_factor |
-| `pv3_power` | 188 (U_WORD) | W | x inverter_factor |
+| `pv1_power` | 186 (U_WORD) | W | - |
+| `pv2_power` | 187 (U_WORD) | W | - |
+| `pv3_power` | 188 (U_WORD) | W | - |
 | `battery_power` | 190 (S_WORD) | W | - |
-| `battery_current` | 191 (S_WORD) | A | x0.01 x inverter_factor negated |
+| `battery_current` | 191 (S_WORD) | A | x0.01 negated |
 | `load_frequency` | 192 (U_WORD) | Hz | x0.01 |
 | `ac_output_frequency` | 193 (U_WORD) | Hz | x0.01 |
 | `grid_connexion` | 194 (U_WORD) |  | - |
@@ -201,12 +201,12 @@ Keys are the names of the entities of the former YAML (minus the `${name}_${inve
 | `setting_timezone4` | 253 (U_WORD) |  | - |
 | `setting_timezone5` | 254 (U_WORD) |  | wrap |
 | `setting_timezone6` | 255 (U_WORD) |  | wrap |
-| `power_timezone1` | 256 (U_WORD) | W | x inverter_factor |
-| `power_timezone2` | 257 (U_WORD) | W | x inverter_factor |
-| `power_timezone3` | 258 (U_WORD) | W | x inverter_factor |
-| `power_timezone4` | 259 (U_WORD) | W | x inverter_factor |
-| `power_timezone5` | 260 (U_WORD) | W | x inverter_factor |
-| `power_timezone6` | 261 (U_WORD) | W | x inverter_factor |
+| `power_timezone1` | 256 (U_WORD) | W | - |
+| `power_timezone2` | 257 (U_WORD) | W | - |
+| `power_timezone3` | 258 (U_WORD) | W | - |
+| `power_timezone4` | 259 (U_WORD) | W | - |
+| `power_timezone5` | 260 (U_WORD) | W | - |
+| `power_timezone6` | 261 (U_WORD) | W | - |
 | `battery_voltage_timezone1` | 262 (U_WORD) | V | x0.01 |
 | `battery_voltage_timezone2` | 263 (U_WORD) | V | x0.01 |
 | `battery_voltage_timezone3` | 264 (U_WORD) | V | x0.01 |
@@ -226,8 +226,8 @@ Keys are the names of the entities of the former YAML (minus the `${name}_${inve
 |---|---|---|
 | `battery_charging_current` | A | battery current when positive, else 0 |
 | `battery_discharging_current` | A | battery current when negative (sign inverted), else 0 |
-| `battery_charging_power` | W | battery voltage x charging current x `inverter_factor` |
-| `battery_discharging_power` | W | -(battery voltage x discharging current x `inverter_factor`) |
+| `battery_charging_power` | W | battery voltage x charging current |
+| `battery_discharging_power` | W | -(battery voltage x discharging current) |
 | `pv_power_total` | W | PV1 + PV2 + PV3 power |
 | `essential_power` | W | AC output power + grid power (reg. 167) - aux output power |
 | `essential_power_1` | W | AC output power + grid power (reg. 169) - aux output power |
@@ -343,8 +343,7 @@ value = raw x scale; written as `round(value / scale)`.
 ## Three-phase entities (`phase: 3p`)
 
 Same keys as the single-phase ones where the entity exists on both; the register addresses are those of the
-three-phase inverters. The three-phase files apply no `inverter_factor` to the powers (only to the time-of-use
-powers). They have per-phase grid / load / inverter output voltages, per-phase grid powers and AC output currents, and
+three-phase inverters. The three-phase tables have no power ratio (register 54 is not used). They have per-phase grid / load / inverter output voltages, per-phase grid powers and AC output currents, and
 no PV3, limiter, grid connexion, low-power / low-noise / MPPT-scan settings or essential / non-essential calculated
 powers. A few entities come from the Deye Modbus RTU document (V105.4) rather than from the YAML files:
 `gen_energy_today` (536), `battery_restart_voltage` (119), `grid_external_power` (625), `aux_output_power` (667, generator
@@ -418,12 +417,12 @@ port), `ac_output_phase{A,B,C}_voltage` (627-629), `island_protection_mode` (83,
 | `setting_timezone4` | 151 (U_WORD) |  | wrap |
 | `setting_timezone5` | 152 (U_WORD) |  | wrap |
 | `setting_timezone6` | 153 (U_WORD) |  | wrap |
-| `power_timezone1` | 154 (U_WORD) | W | x inverter_factor |
-| `power_timezone2` | 155 (U_WORD) | W | x inverter_factor |
-| `power_timezone3` | 156 (U_WORD) | W | x inverter_factor |
-| `power_timezone4` | 157 (U_WORD) | W | x inverter_factor |
-| `power_timezone5` | 158 (U_WORD) | W | x inverter_factor |
-| `power_timezone6` | 159 (U_WORD) | W | x inverter_factor |
+| `power_timezone1` | 154 (U_WORD) | W | - |
+| `power_timezone2` | 155 (U_WORD) | W | - |
+| `power_timezone3` | 156 (U_WORD) | W | - |
+| `power_timezone4` | 157 (U_WORD) | W | - |
+| `power_timezone5` | 158 (U_WORD) | W | - |
+| `power_timezone6` | 159 (U_WORD) | W | - |
 | `battery_voltage_timezone1` | 160 (U_WORD) | V | x0.01 |
 | `battery_voltage_timezone2` | 161 (U_WORD) | V | x0.01 |
 | `battery_voltage_timezone3` | 162 (U_WORD) | V | x0.01 |
@@ -560,9 +559,12 @@ port), `ac_output_phase{A,B,C}_voltage` (627-629), `island_protection_mode` (83,
 - **Voltage numbers.** The native `modbus_controller` numbers of the former YAML needed a `multiply` whose meaning
   depends on the ESPHome version (`multiply: 100` or `0.01` for the same register). Here the scale is simply 0.01 V per
   unit, whatever the version.
-- **Battery power.** `battery_charging_power` and `battery_discharging_power` apply `inverter_factor` twice (once through
-  the current, once through the power filter). This is kept as it was; with `inverter_factor: 1.0` it makes no
-  difference. Edit `registers.py` (`BI` input) if you want it applied once.
+- **Power ratio.** The former `${inverter_factor}` multiplied many power values by hand. The Deye document gives its
+  origin: register 54 ("AC power ratio") tells whether registers 167-172, 176-178 and 190 are in W or in units of 10 W. Only
+  those registers (`x ratio` in the tables: `grid_power_167`, `grid_power`, `grid_external_power`, `load_power`, and the
+  essential / non-essential calculated powers) are multiplied now. `limiter`, `aux_output_power`, the PV powers, the battery
+  current and the time-of-use powers are not (they were in the YAML). Until register 54 has been read, the entities that
+  depend on it do not publish. The calculated battery powers no longer apply the factor.
 - **Time-of-use registers 248-279** are bridged to the read range of 243-247 (in the former YAML the
   bridge flag of register 250 did not take effect: an unflagged entity of the register opened a range of its own).
 - **`grid_peak_shaving_raw`** (an internal sensor of register 280 used for the select write) is gone: the hub keeps the

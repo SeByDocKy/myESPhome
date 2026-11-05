@@ -48,6 +48,7 @@ class DeyeLvHyCalcSensor : public sensor::Sensor, public Component {
   }
   void add_input(uint16_t reg, SensorValueType vtype, float add, float scale, bool wrap, bool bridge, float coef);
   DeyeLvHyItem *get_input(uint8_t index) { return &this->inputs_[index].reader; }
+  void set_input_ratio(uint8_t index, DeyeLvHyHub *hub) { this->inputs_[index].reader.set_ratio(hub); }
 
  protected:
   struct Input {
