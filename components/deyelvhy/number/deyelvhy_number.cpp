@@ -29,7 +29,7 @@ void DeyeLvHyNumber::parse_and_publish(std::span<const uint8_t> data) {
 void DeyeLvHyNumber::control(float value) {
   const float raw = std::round(value / this->scale_);
   if (!(raw >= 0.0f && raw <= 65535.0f)) {
-    ESP_LOGW(TAG, "'%s' = %g does not fit the register", this->get_name().c_str(), static_cast<double>(value));
+    ESP_LOGW(TAG, "Register %u: %g does not fit", this->reg(), static_cast<double>(value));
     return;
   }
   if (!this->parent_->write_register(this->reg_, static_cast<uint16_t>(raw))) {

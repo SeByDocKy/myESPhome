@@ -28,8 +28,7 @@ void DeyeLvHySelect::parse_and_publish(std::span<const uint8_t> data) {
       return;
     }
   }
-  ESP_LOGD(TAG, "Register %u holds %u, which is not one of the options of '%s'", this->reg_, value,
-           this->get_name().c_str());
+  ESP_LOGD(TAG, "Register %u holds %u, which is not one of the options of its select", this->reg_, value);
 }
 
 void DeyeLvHySelect::control(size_t index) {
