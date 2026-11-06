@@ -1,15 +1,21 @@
 #pragma once
 
+#include "esphome/core/defines.h"
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
+#include <string>
 #include <vector>
 
 namespace esphome {
 namespace modbus_sniffer {
 
-// Forward declaration
+// Forward declarations, only for the platforms that are really used
+#ifdef USE_SENSOR
 class ModbusSnifferSensor;
+#endif
+#ifdef USE_BINARY_SENSOR
 class ModbusSnifferBinarySensor;
+#endif
 
 enum ModbusFunction {
   READ_COILS = 0x01,
@@ -44,10 +50,14 @@ class ModbusSnifferHub : public Component, public uart::UARTDevice {
   // Configuration
   void set_slave_address(uint8_t address) { slave_address_ = address; }
   
-  // Enregistrement des sensors
+  // Platform registration (only compiled when the platform is used)
+#ifdef USE_SENSOR
   void register_sensor(ModbusSnifferSensor *sensor);
+#endif
+#ifdef USE_BINARY_SENSOR
   void register_binary_sensor(ModbusSnifferBinarySensor *sensor);
-  
+#endif
+
   // Méthode pour permettre aux sensors de récupérer les données
   bool get_register_data(uint16_t address, uint8_t count, RegisterType type, std::vector<uint8_t> &out_data);
 
@@ -59,9 +69,13 @@ class ModbusSnifferHub : public Component, public uart::UARTDevice {
   // Configuration
   uint8_t slave_address_{0};
   
-  // Liste des sensors enregistrés
+  // Registered entities
+#ifdef USE_SENSOR
   std::vector<ModbusSnifferSensor*> sensors_;
+#endif
+#ifdef USE_BINARY_SENSOR
   std::vector<ModbusSnifferBinarySensor*> binary_sensors_;
+#endif
   
   // Dernière requête capturée
   uint8_t last_request_slave_{0};

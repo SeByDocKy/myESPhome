@@ -3,8 +3,10 @@ import esphome.config_validation as cv
 from esphome.components import uart
 from esphome.const import CONF_ID, CONF_ADDRESS
 
+# No AUTO_LOAD on purpose: the sensor / binary_sensor domains are only loaded
+# when the YAML really declares such a platform. This keeps the USE_SENSOR /
+# USE_BINARY_SENSOR defines accurate, which the C++ guards rely on.
 DEPENDENCIES = ['uart']
-AUTO_LOAD = ['sensor', 'binary_sensor']
 CODEOWNERS = ['@yourusername']
 MULTI_CONF = True
 

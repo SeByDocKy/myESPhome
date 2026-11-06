@@ -1,7 +1,13 @@
 #include "modbus_sniffer.h"
-#include "sensor/modbus_sniffer_sensor.h"
-#include "binary_sensor/modbus_sniffer_binary_sensor.h"
 #include "esphome/core/log.h"
+
+// Platform headers are only included when the platform is used in the YAML
+#ifdef USE_SENSOR
+#include "sensor/modbus_sniffer_sensor.h"
+#endif
+#ifdef USE_BINARY_SENSOR
+#include "binary_sensor/modbus_sniffer_binary_sensor.h"
+#endif
 
 namespace esphome {
 namespace modbus_sniffer {
@@ -17,20 +23,28 @@ void ModbusSnifferHub::dump_config() {
   if (slave_address_ > 0) {
     ESP_LOGCONFIG(TAG, "  Slave Address Filter: 0x%02X", slave_address_);
   }
-  ESP_LOGCONFIG(TAG, "  Registered Sensors: %d", sensors_.size());
-  ESP_LOGCONFIG(TAG, "  Registered Binary Sensors: %d", binary_sensors_.size());
+#ifdef USE_SENSOR
+  ESP_LOGCONFIG(TAG, "  Registered Sensors: %d", (int) sensors_.size());
+#endif
+#ifdef USE_BINARY_SENSOR
+  ESP_LOGCONFIG(TAG, "  Registered Binary Sensors: %d", (int) binary_sensors_.size());
+#endif
 }
 
+#ifdef USE_SENSOR
 void ModbusSnifferHub::register_sensor(ModbusSnifferSensor *sensor) {
   sensors_.push_back(sensor);
   ESP_LOGD(TAG, "Registered sensor at address 0x%04X", sensor->get_register_address());
 }
+#endif
 
+#ifdef USE_BINARY_SENSOR
 void ModbusSnifferHub::register_binary_sensor(ModbusSnifferBinarySensor *sensor) {
   binary_sensors_.push_back(sensor);
-  ESP_LOGD(TAG, "Registered binary sensor at address 0x%04X with bitmask 0x%04X", 
+  ESP_LOGD(TAG, "Registered binary sensor at address 0x%04X with bitmask 0x%04X",
            sensor->get_register_address(), sensor->get_bitmask());
 }
+#endif
 
 void ModbusSnifferHub::loop() {
   const uint32_t now = millis();
@@ -223,7 +237,13 @@ void ModbusSnifferHub::process_read_response(uint8_t slave, uint8_t function,
 void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8_t> &data, 
                                       RegisterType type) {
   uint16_t reg_count = data.size() / 2; // Nombre de registres 16-bit
-  
+
+  // Avoid unused warnings when no platform is compiled in
+  (void) reg_addr;
+  (void) reg_count;
+  (void) type;
+
+#ifdef USE_SENSOR
   // Notifier les sensors normaux
   for (auto *sensor : sensors_) {
     if (sensor->get_register_type() != type) {
@@ -245,7 +265,9 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
       }
     }
   }
-  
+#endif
+
+#ifdef USE_BINARY_SENSOR
   // Notifier les binary sensors
   for (auto *binary_sensor : binary_sensors_) {
     if (binary_sensor->get_register_type() != type) {
@@ -266,6 +288,7 @@ void ModbusSnifferHub::notify_sensors(uint16_t reg_addr, const std::vector<uint8
       }
     }
   }
+#endif
 }
 
 bool ModbusSnifferHub::get_register_data(uint16_t address, uint8_t count, 
