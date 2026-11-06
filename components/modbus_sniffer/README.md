@@ -31,21 +31,26 @@ Consequences worth knowing:
 
 ## Hardware
 
-The ESP32 only needs to *receive*. With a MAX485 / MAX3485 transceiver, keep it in permanent receive mode:
+The ESP32 only needs to *receive*. Use a **3.3 V RS485 to TTL module with automatic direction control** (4 pins on the
+TTL side: `3V3`, `GND`, `RX`, `TX`; no `DE`/`RE` pin to drive):
 
 ```
-MAX485          ESP32
-  VCC  ───────  3.3V
-  GND  ───────  GND
-  RO   ───────  RX pin (uart rx_pin)
-  DI   ───────  not connected (or TX pin, unused)
-  RE   ───────  GND
-  DE   ───────  GND
-  A    ───────  bus A
-  B    ───────  bus B
+RS485 module        ESP32
+  3V3  ───────────  3V3
+  GND  ───────────  GND
+  TX   ───────────  RX pin (uart rx_pin)
+  RX   ───────────  TX pin (uart tx_pin, never used by the sniffer)
+  A    ───────────  bus A
+  B    ───────────  bus B
 ```
 
-Set the baud rate, parity and stop bits of the `uart:` block to the ones of the bus.
+The TTL pins are crossed: the **TX of the module** (data coming from the bus) goes to the **RX of the ESP32**. If
+nothing is received, check the labelling of your module (some name the pins from the ESP32 side) and swap the two
+signal wires.
+
+Connect `GND` to the ground of the bus only if the bus has a common reference and the installation allows it; otherwise
+rely on the module's isolation, if it has one. Set the baud rate, parity and stop bits of the `uart:` block to the ones
+of the bus.
 
 > Do not enable the `uart:` `debug:` option with `dummy_receiver: true` on the same UART: the dummy receiver consumes
 > the bytes and the hub then never sees anything in the receive buffer.
@@ -139,8 +144,8 @@ Several binary sensors can share the same register with different bitmasks.
 
 ## Troubleshooting
 
-- **Nothing is received**: check A/B polarity, the baud rate / parity / stop bits, and that `RE` and `DE` are tied to
-  GND. Make sure the UART has no `debug:` block with `dummy_receiver: true`.
+- **Nothing is received**: check A/B polarity, the baud rate / parity / stop bits, and the TX/RX wiring (module `TX`
+  to ESP32 RX). Make sure the UART has no `debug:` block with `dummy_receiver: true`.
 - **`Invalid CRC` warnings**: almost always a wrong parity or stop-bit setting.
 - **An entity never updates**: the address or `register_type` does not match what the master reads, or the master never
   reads that register. Set `logger: level: DEBUG` to see the requests and responses the hub pairs.
