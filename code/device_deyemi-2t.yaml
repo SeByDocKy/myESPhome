@@ -68,6 +68,12 @@ sensor:
         name: ${name}_${deyemi_name}_temperature
       rated_power:
         name: ${name}_${deyemi_name}_rated_power
+      power_persistent:
+        name: ${name}_${deyemi_name}_power_persistent_state
+      power_non_persistent:
+        name: ${name}_${deyemi_name}_power_non_persistent_state
+      register_0x37_persistent:
+        name: ${name}_${deyemi_name}_register_0x37_persistent_state  
 
   - platform: total_daily_energy
     name: ${name}_${deyemi_name}_energy_today
