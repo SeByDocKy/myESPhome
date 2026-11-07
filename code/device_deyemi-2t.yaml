@@ -128,9 +128,9 @@ number:
 output:
   - platform: deyemi
     deyemi_id: deye1
-    power_${deyemi_name}_persistent:
+    power_persistent:
       id: ${name}_power_persistent_output
-    power_${deyemi_name}_non_persistent:
+    power_non_persistent:
       id: ${name}_power_non_persistent_output
       
 
