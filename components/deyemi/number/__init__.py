@@ -9,7 +9,7 @@ DEPENDENCIES = ["deyemi"]
 
 CONF_POWER_PERSISTENT = "power_persistent"
 CONF_POWER_NON_PERSISTENT = "power_non_persistent"
-CONF_REGISTER_0X37_PERMANENT = "register_0x37_permanent"
+CONF_REGISTER_0X37_PERSISTENT = "register_0x37_persistent"
 
 # power_persistent: register 0x0028, stored in the inverter's non-volatile memory.
 DeyeMiPowerPersistentNumber = deyemi_ns.class_(
@@ -19,10 +19,10 @@ DeyeMiPowerPersistentNumber = deyemi_ns.class_(
 DeyeMiPowerNonPersistentNumber = deyemi_ns.class_(
     "DeyeMiPowerNonPersistentNumber", number.Number, cg.Parented.template(DeyeMiComponent)
 )
-# register_0x37_permanent: RAW value of register 0x0037 (permanent; default
+# register_0x37_persistent: RAW value of register 0x0037 (persistent; default
 # 10000, effective range 8000-12000).
-DeyeMiRegister0x37PermanentNumber = deyemi_ns.class_(
-    "DeyeMiRegister0x37PermanentNumber", number.Number, cg.Parented.template(DeyeMiComponent)
+DeyeMiRegister0x37PersistentNumber = deyemi_ns.class_(
+    "DeyeMiRegister0x37PersistentNumber", number.Number, cg.Parented.template(DeyeMiComponent)
 )
 
 
@@ -40,8 +40,8 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_DEYEMI_ID): cv.use_id(DeyeMiComponent),
         cv.Optional(CONF_POWER_PERSISTENT): _schema(DeyeMiPowerPersistentNumber, "mdi:percent"),
         cv.Optional(CONF_POWER_NON_PERSISTENT): _schema(DeyeMiPowerNonPersistentNumber, "mdi:percent-outline"),
-        cv.Optional(CONF_REGISTER_0X37_PERMANENT): number.number_schema(
-            DeyeMiRegister0x37PermanentNumber,
+        cv.Optional(CONF_REGISTER_0X37_PERSISTENT): number.number_schema(
+            DeyeMiRegister0x37PersistentNumber,
             icon="mdi:tune",
             entity_category=ENTITY_CATEGORY_CONFIG,
         ),
@@ -58,9 +58,9 @@ async def to_code(config):
     if CONF_POWER_NON_PERSISTENT in config:
         var = await number.new_number(config[CONF_POWER_NON_PERSISTENT], min_value=0.0, max_value=120.0, step=1.0)
         await cg.register_parented(var, hub)
-    if CONF_REGISTER_0X37_PERMANENT in config:
+    if CONF_REGISTER_0X37_PERSISTENT in config:
         var = await number.new_number(
-            config[CONF_REGISTER_0X37_PERMANENT], min_value=8000.0, max_value=12000.0, step=1.0
+            config[CONF_REGISTER_0X37_PERSISTENT], min_value=8000.0, max_value=12000.0, step=1.0
         )
         await cg.register_parented(var, hub)
         cg.add(hub.set_register_0x37_number(var))

@@ -115,14 +115,14 @@ static const uint16_t REG_PV4_CURRENT = 0x0074;
 // `power_persistent` (number/output), 0x0035 as `power_non_persistent`.
 static const uint16_t REG_POWER_NON_PERSISTENT = 0x0035;
 
-// Register 0x0037 (decimal 55), PERMANENT (stored in the inverter's
+// Register 0x0037 (decimal 55), PERSISTENT (stored in the inverter's
 // non-volatile memory). Per the author's firmware analysis (done with Claude
 // Code): factory default 10000, effective range 8000-12000 (centred on
 // 10000, NOT 0-10000): at boot, any stored value outside [8000;12000] is reset
 // to 10000. Written/shown as the RAW register value; its meaning/unit (e.g.
 // 0.01 % per unit, 10000 = 100.00 %) is NOT confirmed. Deye's older public
 // Modbus doc (V118) lists address 55 as "Factory only".
-static const uint16_t REG_0X37_PERMANENT = 0x0037;
+static const uint16_t REG_0X37_PERSISTENT = 0x0037;
 static const uint16_t REG_0X37_MIN = 8000;
 static const uint16_t REG_0X37_MAX = 12000;
 
@@ -170,9 +170,9 @@ class DeyeMiComponent : public PollingComponent {
   // Same, but targets REG_POWER_NON_PERSISTENT (0x0035): RAM-only, no flash
   // wear, so no redundant-write filtering is applied to it.
   void set_power_non_persistent(float percent);
-  // Writes the RAW value of REG_0X37_PERMANENT (clamped to 8000-12000).
-  // PERMANENT: skipped when the register already holds that value.
-  void set_register_0x37_permanent(float raw_value);
+  // Writes the RAW value of REG_0X37_PERSISTENT (clamped to 8000-12000).
+  // PERSISTENT: skipped when the register already holds that value.
+  void set_register_0x37_persistent(float raw_value);
 
 #ifdef USE_SENSOR
   void set_ac_voltage_sensor(sensor::Sensor *s) { this->ac_voltage_sensor_ = s; }
@@ -314,7 +314,7 @@ class DeyeMiComponent : public PollingComponent {
   // every successful write); -1 = unknown yet. Used to skip redundant
   // (EEPROM-wearing) writes.
   int32_t last_power_reg_{-1};
-  // Same for REG_0X37_PERMANENT.
+  // Same for REG_0X37_PERSISTENT.
   int32_t last_reg37_{-1};
 
   void write_power_(float percent, uint16_t reg);
@@ -344,13 +344,13 @@ class DeyeMiPowerNonPersistentNumber : public number::Number, public Parented<De
   }
 };
 
-// register_0x37_permanent: raw value of register 0x0037 (permanent, 8000-12000,
+// register_0x37_persistent: raw value of register 0x0037 (persistent, 8000-12000,
 // default 10000). Optimistic; the hub also republishes the register's real
 // value on every poll (so it is correct after an ESP reboot).
-class DeyeMiRegister0x37PermanentNumber : public number::Number, public Parented<DeyeMiComponent> {
+class DeyeMiRegister0x37PersistentNumber : public number::Number, public Parented<DeyeMiComponent> {
  protected:
   void control(float value) override {
-    this->parent_->set_register_0x37_permanent(value);
+    this->parent_->set_register_0x37_persistent(value);
     this->publish_state(value);
   }
 };

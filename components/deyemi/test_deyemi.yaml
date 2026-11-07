@@ -126,8 +126,8 @@ number:
       name: ${name}_power_persistent
     power_non_persistent:
       name: ${name}_power_non_persistent
-    register_0x37_permanent:
-      name: ${name}_register_0x37_permanent
+    register_0x37_persistent:
+      name: ${name}_register_0x37_persistent
 
 
 output:

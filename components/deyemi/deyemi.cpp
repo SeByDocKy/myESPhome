@@ -516,7 +516,7 @@ void DeyeMiComponent::process_result_(JobResult *result) {
       break;
     }
     case JobType::WRITE_POWER_PERCENT: {
-      const bool is_raw = result->reg == REG_0X37_PERMANENT;  // raw register value, not a percent
+      const bool is_raw = result->reg == REG_0X37_PERSISTENT;  // raw register value, not a percent
       if (!result->success) {
         ESP_LOGW(TAG, "Failed to write %u%s to register 0x%04X of %s:%u", result->reg_value, is_raw ? "" : "%",
                  result->reg, this->host_.c_str(), this->port_);
@@ -524,7 +524,7 @@ void DeyeMiComponent::process_result_(JobResult *result) {
       }
       if (result->reg == REG_ACTIVE_POWER_REGULATION)
         this->last_power_reg_ = (int32_t) result->reg_value;
-      else if (result->reg == REG_0X37_PERMANENT)
+      else if (result->reg == REG_0X37_PERSISTENT)
         this->last_reg37_ = (int32_t) result->reg_value;
       ESP_LOGI(TAG, "register 0x%04X set to %u%s (%s)", result->reg, result->reg_value, is_raw ? "" : "%",
                result->reg == REG_POWER_NON_PERSISTENT ? "non-persistent" : "persistent");
@@ -590,7 +590,7 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
   // Track the register's real value (used to skip redundant, EEPROM-wearing
   // writes in set_power_percent()).
   this->last_power_reg_ = (int32_t) get_u16_(regs, REG_ACTIVE_POWER_REGULATION, start_reg);
-  this->last_reg37_ = (int32_t) get_u16_(regs, REG_0X37_PERMANENT, start_reg);
+  this->last_reg37_ = (int32_t) get_u16_(regs, REG_0X37_PERSISTENT, start_reg);
 
 #ifdef USE_TEXT_SENSOR
   if (this->inverter_status_text_sensor_ != nullptr) {
@@ -655,7 +655,7 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
   if (this->power_percent_number_ != nullptr)
     this->power_percent_number_->publish_state(get_u16_(regs, REG_ACTIVE_POWER_REGULATION, start_reg));
   if (this->register_0x37_number_ != nullptr)
-    this->register_0x37_number_->publish_state(get_u16_(regs, REG_0X37_PERMANENT, start_reg));
+    this->register_0x37_number_->publish_state(get_u16_(regs, REG_0X37_PERSISTENT, start_reg));
 #endif
 }
 
@@ -680,7 +680,7 @@ void DeyeMiComponent::set_power_non_persistent(float percent) {
   this->write_power_(percent, REG_POWER_NON_PERSISTENT);
 }
 
-void DeyeMiComponent::set_register_0x37_permanent(float raw_value) {
+void DeyeMiComponent::set_register_0x37_persistent(float raw_value) {
   // Effective range 8000-12000 (anything outside is reset to 10000 by the
   // firmware at boot, so never write it). Raw value, no scaling.
   if (raw_value < (float) REG_0X37_MIN)
@@ -689,13 +689,13 @@ void DeyeMiComponent::set_register_0x37_permanent(float raw_value) {
     raw_value = (float) REG_0X37_MAX;
   uint16_t reg_value = (uint16_t) lroundf(raw_value);
 
-  // Permanent register: skip a write that would change nothing (flash wear).
+  // Persistent register: skip a write that would change nothing (flash wear).
   if (this->last_reg37_ == (int32_t) reg_value) {
     ESP_LOGD(TAG, "register 0x0037 already %u, write skipped (EEPROM wear)", reg_value);
     return;
   }
 
-  Job job{JobType::WRITE_POWER_PERCENT, reg_value, REG_0X37_PERMANENT};
+  Job job{JobType::WRITE_POWER_PERCENT, reg_value, REG_0X37_PERSISTENT};
   if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
     ESP_LOGW(TAG, "Background task busy, dropped register 0x0037 write (%u)", reg_value);
   }

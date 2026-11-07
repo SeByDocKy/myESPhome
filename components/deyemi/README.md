@@ -119,7 +119,7 @@ References:
   |---|---|---|---|
   | `power_persistent` | `number` | `0x0028` | **Yes** (flash/EEPROM) |
   | `power_non_persistent` | `number` | `0x0035` | **No** (RAM only) |
-  | `register_0x37_permanent` | `number` | `0x0037` | **Yes** (flash/EEPROM), raw value |
+  | `register_0x37_persistent` | `number` | `0x0037` | **Yes** (flash/EEPROM), raw value |
   | `power_persistent` | `output` | `0x0028` | **Yes** (flash/EEPROM) |
   | `power_non_persistent` | `output` | `0x0035` | **No** (RAM only) |
 
@@ -167,9 +167,9 @@ References:
     restart. The two registers are independent: no information is available
     on how the inverter combines them when both are set, so prefer using one.
     The `power_non_persistent` number is optimistic only (no readback of `0x0035`): it shows its default after an ESP reboot until set again.
-  - **`register_0x37_permanent` (`0x0037`, number only)**: writes the **raw
+  - **`register_0x37_persistent` (`0x0037`, number only)**: writes the **raw
     value** of register 55. From the component author's firmware analysis (done
-    with Claude Code): it is **permanent** (stored in the inverter's
+    with Claude Code): it is **persistent** (stored in the inverter's
     non-volatile memory), its factory default is **10000**, and its effective
     range is **8000-12000** (centred on 10000, *not* 0-10000): at boot, any
     stored value outside `[8000; 12000]` is reset to `10000`. The number is
@@ -360,8 +360,8 @@ number:
       name: "Deye1 Power Persistent"
     power_non_persistent:       # register 0x0035, RAM only
       name: "Deye1 Power Non Persistent"
-    register_0x37_permanent:    # register 0x0037, raw value 8000-12000, permanent
-      name: "Deye1 Register 0x37 Permanent"
+    register_0x37_persistent:    # register 0x0037, raw value 8000-12000, persistent
+      name: "Deye1 Register 0x37 Persistent"
 
 output:
   - platform: deyemi
