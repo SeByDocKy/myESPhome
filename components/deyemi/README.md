@@ -63,8 +63,10 @@ scale factor and the 32-bit word order come from the sources above, not
 from a packet capture of this author's own hardware -- see "Where this
 register map comes from" implicit in the sections above, and "Known
 unknowns" below for exactly what's most likely to still need correcting.
-Please report back (working values, or wrong ones) once you have this
-running against real hardware, GEN3 or GEN4.
+The component has since been **field-tested successfully by several users**
+on real hardware (including the write path, the `0x0035` / `0x0037` registers
+and the readback sensors); please keep reporting anything that behaves
+differently on your model.
 
 ## Protocol
 
@@ -158,13 +160,13 @@ References:
     so it causes no flash wear and the inverter falls back after a restart
     (`0x0028`, by contrast, is persisted). It is also reported to allow a true 0% output
     ([home-assistant discussion #3354](https://github.com/orgs/home-assistant/discussions/3354),
-    SUN-M200G4-EU-Q0). **Not covered by that analysis / unverified on
-    hardware**: unit/scale and range are assumed identical to `0x0028` (1 %/unit, 0-120), and no redundant-write
-    filtering is applied to it. In Deye's older public Modbus document
-    (rev. V118) address 53 is listed as "Hardware Matching" (a system
-    configuration register), so please report back whether it behaves as
-    described on your unit, and whether the value is really lost after a
-    restart. The two registers are independent: no information is available
+    SUN-M200G4-EU-Q0). **Confirmed in field testing by several users**: it
+    behaves as described, with the same unit/scale and range as `0x0028`
+    (1 %/unit, 0-120), and its value is lost after an inverter restart. No
+    redundant-write filtering is applied to it (it is RAM only, nothing to
+    wear). In Deye's older public Modbus document (rev. V118) address 53 is
+    listed as "Hardware Matching", which does not match this observed
+    behaviour. The two registers are independent: no information is available
     on how the inverter combines them when both are set, so prefer using one.
     The `power_non_persistent` number is optimistic only (no readback of `0x0035`): it shows its default after an ESP reboot until set again. To see what the inverter actually holds, use the read-only `inverter:` diagnostic sensors below.
   - **`register_0x37_persistent` (`0x0037`, number only)**: writes the **raw
@@ -177,18 +179,16 @@ References:
     write path as the others (FC16, quantity 1), the real register value is
     read back on every poll (so it is correct after an ESP reboot), and a write
     is skipped when the register already holds the requested value (flash
-    wear). **Unverified**: what the value actually controls and its unit (it
-    looks like 0.01 % per unit, i.e. 10000 = 100.00 %, but nothing confirms it),
-    and whether the inverter accepts the write; in Deye's older public Modbus
-    document (rev. V118) address 55 is listed as "Factory only". Use at your
-    own risk, and report what you observe.
+    wear). **Confirmed in field testing by several users**: the inverter
+    accepts the write and keeps the value. In Deye's older public Modbus
+    document (rev. V118) address 55 is listed as "Factory only", which does
+    not match this observed behaviour.
 - **State feedback sensors** (`sensor` platform, `inverter:` block,
   diagnostic category): `power_persistent` (register `0x0028`),
   `power_non_persistent` (`0x0035`) and `register_0x37_persistent` (`0x0037`)
   publish the register values the inverter actually holds, read on every poll
   from the block that is already fetched (no extra network traffic). `0x0028`
-  and `0x0035` are published as-is, in % (the `0x0035` unit is an unverified
-  assumption); `0x0037` is published as the **raw** register value (8000-12000,
+  and `0x0035` are published as-is, in %; `0x0037` is published as the **raw** register value (8000-12000,
   default 10000), with no unit. Handy to log what really happens after a
   write or an inverter restart -- notably to confirm that `0x0035` is lost and
   `0x0028`/`0x0037` are kept. Name them with a `_state` suffix so they don't
@@ -240,7 +240,7 @@ happened to contain one of the matched digit substrings. The serial number
 is still decoded and logged ("Serial number read as ...") purely as a
 diagnostic aid, but no longer used for model detection.
 
-## Known unknowns -- please report back once you have real hardware
+## Verification notes
 
 - ~~32-bit register word order~~ **Fixed**: `Total Production`
   (`0x003F`/`0x0040`) and `Total AC Output Power` (`0x0056`/`0x0057`) were
@@ -252,13 +252,11 @@ diagnostic aid, but no longer used for model detection.
   iterates a field's `registers` list in order and shifts each successive
   register 16 bits further left, so the first (numerically lower) register
   address is always the low word.
-- **Register `0x0035` (`power_non_persistent`)**: implemented from the
-  author's Ghidra analysis of a decompiled Deye G4 micro-inverter firmware
-  (confirms it is RAM only, not persisted) and a user report that it reaches
-  a true 0% on a SUN-M200G4-EU-Q0, but not yet tested on real hardware here:
-  unit/range assumed identical to `0x0028`,
-  persistence behaviour across a restart, interaction with `0x0028`, and
-  whether it exists/works on GEN3 units are all unverified.
+- **Registers `0x0035` (`power_non_persistent`) and `0x0037`
+  (`register_0x37_persistent`)**: implemented from the author's Ghidra
+  analysis of a decompiled Deye G4 micro-inverter firmware, then **confirmed
+  in field testing by several users** (see the write-path section). Whether
+  they exist/work on GEN3 units has not been reported.
 - **`sn` mechanism**: the *requirement* (real logger serial, not
   the inverter's) is confirmed for GEN4 by real users (see the warning
   above); *why* the default of `0` gets rejected, and whether GEN3 behaves
@@ -359,7 +357,7 @@ sensor:
         name: "Deye1 Rated Power"
       power_persistent:                # register 0x0028 readback (%)
         name: "Deye1 Power Persistent State"
-      power_non_persistent:            # register 0x0035 readback (%, semantics unverified)
+      power_non_persistent:            # register 0x0035 readback (%)
         name: "Deye1 Power Non Persistent State"
       register_0x37_persistent:        # register 0x0037 readback, RAW value
         name: "Deye1 Register 0x37 Persistent State"

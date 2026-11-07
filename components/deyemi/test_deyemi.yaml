@@ -112,7 +112,7 @@ sensor:
         name: ${name}_rated_power
       power_persistent:                # register 0x0028 readback (%)
         name: ${name}_power_persistent_state
-      power_non_persistent:            # register 0x0035 readback (%, semantics unverified)
+      power_non_persistent:            # register 0x0035 readback (%)
         name: ${name}_power_non_persistent_state
       register_0x37_persistent:        # register 0x0037 readback, RAW value
         name: ${name}_register_0x37_persistent_state

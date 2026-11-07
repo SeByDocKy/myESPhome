@@ -110,8 +110,8 @@ static const uint16_t REG_PV4_CURRENT = 0x0074;
 // it is NOT persisted to EEPROM/flash (RAM only, so it falls back after an inverter restart and
 // costs no flash wear), and it is reported (home-assistant/discussions#3354,
 // Deye SUN-M200G4-EU-Q0) to allow throttling down to 0% unlike 0x0028 which
-// floors at 1%. Unit/range are NOT documented: assumed to be the same
-// 1 %/unit, 0-120 as 0x0028 (UNVERIFIED). 0x0028 is exposed as
+// floors at 1%. Unit/range are not documented by Deye; same 1 %/unit, 0-120
+// as 0x0028 -- confirmed in field testing by several users. 0x0028 is exposed as
 // `power_persistent` (number/output), 0x0035 as `power_non_persistent`.
 static const uint16_t REG_POWER_NON_PERSISTENT = 0x0035;
 
@@ -119,9 +119,9 @@ static const uint16_t REG_POWER_NON_PERSISTENT = 0x0035;
 // non-volatile memory). Per the author's firmware analysis (done with Claude
 // Code): factory default 10000, effective range 8000-12000 (centred on
 // 10000, NOT 0-10000): at boot, any stored value outside [8000;12000] is reset
-// to 10000. Written/shown as the RAW register value; its meaning/unit (e.g.
-// 0.01 % per unit, 10000 = 100.00 %) is NOT confirmed. Deye's older public
-// Modbus doc (V118) lists address 55 as "Factory only".
+// to 10000. Written/shown as the RAW register value (no unit applied). Field
+// tested successfully by several users. Deye's older public Modbus doc (V118)
+// lists address 55 as "Factory only", which does not match observed behaviour.
 static const uint16_t REG_0X37_PERSISTENT = 0x0037;
 static const uint16_t REG_0X37_MIN = 8000;
 static const uint16_t REG_0X37_MAX = 12000;

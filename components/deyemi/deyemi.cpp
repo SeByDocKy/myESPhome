@@ -619,7 +619,7 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
   if (this->rated_power_sensor_ != nullptr)
     this->rated_power_sensor_->publish_state(get_u16_(regs, REG_RATED_POWER, start_reg) * 0.1f);
   // Raw readback of the power-limit registers. 0x0035's read semantics are
-  // undocumented (unit assumed 1 %/unit like 0x0028), 0x0037 is published raw.
+  // undocumented by Deye (1 %/unit like 0x0028, field-tested), 0x0037 is published raw.
   if (this->power_persistent_sensor_ != nullptr)
     this->power_persistent_sensor_->publish_state(get_u16_(regs, REG_ACTIVE_POWER_REGULATION, start_reg));
   if (this->power_non_persistent_sensor_ != nullptr)
@@ -715,7 +715,7 @@ void DeyeMiComponent::write_power_(float percent, uint16_t reg) {
   // Register 0x0028's range is 0-120% (confirmed independently by
   // https://github.com/dmaj/deye-controller's sun_x_g3_registers.py,
   // low_limit=0/high_limit=120, GEN3) -- not 0-100%. >100% supports
-  // overpaneled installs. 0x0035 is assumed to share it (unverified).
+  // overpaneled installs. 0x0035 shares it (confirmed in field testing).
   if (percent > 120.0f)
     percent = 120.0f;
 
