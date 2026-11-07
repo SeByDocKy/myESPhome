@@ -121,7 +121,7 @@ number:
       name: ${name}_${deyemi_name}_power_persistent
     power_non_persistent:
       name: ${name}_${deyemi_name}_power_non_persistent
-    register_0x37_permanent:
+    register_0x37_persistent:
       name: ${name}_${deyemi_name}register_0x37_persistent
  
  
