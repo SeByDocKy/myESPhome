@@ -119,6 +119,7 @@ References:
   |---|---|---|---|
   | `power_persistent` | `number` | `0x0028` | **Yes** (flash/EEPROM) |
   | `power_non_persistent` | `number` | `0x0035` | **No** (RAM only) |
+  | `register_0x37_permanent` | `number` | `0x0037` | **Yes** (flash/EEPROM), raw value |
   | `power_persistent` | `output` | `0x0028` | **Yes** (flash/EEPROM) |
   | `power_non_persistent` | `output` | `0x0035` | **No** (RAM only) |
 
@@ -166,8 +167,21 @@ References:
     restart. The two registers are independent: no information is available
     on how the inverter combines them when both are set, so prefer using one.
     The `power_non_persistent` number is optimistic only (no readback of `0x0035`): it shows its default after an ESP reboot until set again.
-  - Register 55 (`0x0037`), reported by one user as "immediate" control, is
-    not used.
+  - **`register_0x37_permanent` (`0x0037`, number only)**: writes the **raw
+    value** of register 55. From the component author's firmware analysis (done
+    with Claude Code): it is **permanent** (stored in the inverter's
+    non-volatile memory), its factory default is **10000**, and its effective
+    range is **8000-12000** (centred on 10000, *not* 0-10000): at boot, any
+    stored value outside `[8000; 12000]` is reset to `10000`. The number is
+    therefore bounded to 8000-12000 (step 1) and never writes outside it. Same
+    write path as the others (FC16, quantity 1), the real register value is
+    read back on every poll (so it is correct after an ESP reboot), and a write
+    is skipped when the register already holds the requested value (flash
+    wear). **Unverified**: what the value actually controls and its unit (it
+    looks like 0.01 % per unit, i.e. 10000 = 100.00 %, but nothing confirms it),
+    and whether the inverter accepts the write; in Deye's older public Modbus
+    document (rev. V118) address 55 is listed as "Factory only". Use at your
+    own risk, and report what you observe.
 - No reset/AT+ equivalent is known for this protocol -- no `button`
   platform.
 - All blocking network I/O runs on a dedicated FreeRTOS background task --
@@ -255,7 +269,7 @@ diagnostic aid, but no longer used for model detection.
 
 ```yaml
 external_components:
-  - source: "github://SeByDocKy/myESPhome@main"
+  - source: "github://SeByDocKy/myESPhome"
     components: [deyemi]
     refresh: 10s
 
@@ -346,6 +360,8 @@ number:
       name: "Deye1 Power Persistent"
     power_non_persistent:       # register 0x0035, RAM only
       name: "Deye1 Power Non Persistent"
+    register_0x37_permanent:    # register 0x0037, raw value 8000-12000, permanent
+      name: "Deye1 Register 0x37 Permanent"
 
 output:
   - platform: deyemi

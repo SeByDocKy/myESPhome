@@ -25,7 +25,7 @@ ota:
 
 external_components:
 
-  - source: "github://SeByDocKy/myESPhome@main"
+  - source: "github://SeByDocKy/myESPhome"
     components: [deyemi]
     refresh: 10s
 
@@ -126,6 +126,8 @@ number:
       name: ${name}_power_persistent
     power_non_persistent:
       name: ${name}_power_non_persistent
+    register_0x37_permanent:
+      name: ${name}_register_0x37_permanent
 
 
 output:
