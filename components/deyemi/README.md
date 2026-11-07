@@ -166,7 +166,7 @@ References:
     described on your unit, and whether the value is really lost after a
     restart. The two registers are independent: no information is available
     on how the inverter combines them when both are set, so prefer using one.
-    The `power_non_persistent` number is optimistic only (no readback of `0x0035`): it shows its default after an ESP reboot until set again.
+    The `power_non_persistent` number is optimistic only (no readback of `0x0035`): it shows its default after an ESP reboot until set again. To see what the inverter actually holds, use the read-only `inverter:` diagnostic sensors below.
   - **`register_0x37_persistent` (`0x0037`, number only)**: writes the **raw
     value** of register 55. From the component author's firmware analysis (done
     with Claude Code): it is **persistent** (stored in the inverter's
@@ -182,6 +182,17 @@ References:
     and whether the inverter accepts the write; in Deye's older public Modbus
     document (rev. V118) address 55 is listed as "Factory only". Use at your
     own risk, and report what you observe.
+- **State feedback sensors** (`sensor` platform, `inverter:` block,
+  diagnostic category): `power_persistent` (register `0x0028`),
+  `power_non_persistent` (`0x0035`) and `register_0x37_persistent` (`0x0037`)
+  publish the register values the inverter actually holds, read on every poll
+  from the block that is already fetched (no extra network traffic). `0x0028`
+  and `0x0035` are published as-is, in % (the `0x0035` unit is an unverified
+  assumption); `0x0037` is published as the **raw** register value (8000-12000,
+  default 10000), with no unit. Handy to log what really happens after a
+  write or an inverter restart -- notably to confirm that `0x0035` is lost and
+  `0x0028`/`0x0037` are kept. Name them with a `_state` suffix so they don't
+  clash with the number of the same name.
 - No reset/AT+ equivalent is known for this protocol -- no `button`
   platform.
 - All blocking network I/O runs on a dedicated FreeRTOS background task --
@@ -346,6 +357,12 @@ sensor:
         name: "Deye1 Temperature"
       rated_power:
         name: "Deye1 Rated Power"
+      power_persistent:                # register 0x0028 readback (%)
+        name: "Deye1 Power Persistent State"
+      power_non_persistent:            # register 0x0035 readback (%, semantics unverified)
+        name: "Deye1 Power Non Persistent State"
+      register_0x37_persistent:        # register 0x0037 readback, RAW value
+        name: "Deye1 Register 0x37 Persistent State"
 
 text_sensor:
   - platform: deyemi

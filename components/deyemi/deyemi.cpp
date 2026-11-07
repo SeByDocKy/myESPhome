@@ -618,6 +618,14 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
                                               0.01f);
   if (this->rated_power_sensor_ != nullptr)
     this->rated_power_sensor_->publish_state(get_u16_(regs, REG_RATED_POWER, start_reg) * 0.1f);
+  // Raw readback of the power-limit registers. 0x0035's read semantics are
+  // undocumented (unit assumed 1 %/unit like 0x0028), 0x0037 is published raw.
+  if (this->power_persistent_sensor_ != nullptr)
+    this->power_persistent_sensor_->publish_state(get_u16_(regs, REG_ACTIVE_POWER_REGULATION, start_reg));
+  if (this->power_non_persistent_sensor_ != nullptr)
+    this->power_non_persistent_sensor_->publish_state(get_u16_(regs, REG_POWER_NON_PERSISTENT, start_reg));
+  if (this->register_0x37_persistent_sensor_ != nullptr)
+    this->register_0x37_persistent_sensor_->publish_state(get_u16_(regs, REG_0X37_PERSISTENT, start_reg));
   if (this->ac_power_sensor_ != nullptr)
     this->ac_power_sensor_->publish_state(
         get_u32_lo_first_(regs, REG_TOTAL_AC_POWER, REG_TOTAL_AC_POWER + 1, start_reg) * 0.1f);

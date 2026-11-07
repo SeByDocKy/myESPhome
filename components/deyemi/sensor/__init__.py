@@ -7,6 +7,7 @@ from esphome.const import (
     CONF_POWER,
     CONF_TEMPERATURE,
     CONF_VOLTAGE,
+    ENTITY_CATEGORY_DIAGNOSTIC,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_FREQUENCY,
@@ -36,6 +37,9 @@ CONF_INVERTER = "inverter"
 CONF_ENERGY_TODAY = "energy_today"
 CONF_ENERGY_TOTAL = "energy_total"
 CONF_RATED_POWER = "rated_power"
+CONF_POWER_PERSISTENT = "power_persistent"
+CONF_POWER_NON_PERSISTENT = "power_non_persistent"
+CONF_REGISTER_0X37_PERSISTENT = "register_0x37_persistent"
 
 # Icon/accuracy conventions match this author's tsungen3/hms components
 # (same schemas, same icon strings and accuracy_decimals values) for
@@ -90,6 +94,23 @@ _TEMPERATURE_SCHEMA = sensor.sensor_schema(
     icon="mdi:thermometer",
 )
 
+# Read-only feedback of the power-limit registers (diagnostic).
+# 0x0028 (persistent) / 0x0035 (non-persistent): percent of rated power.
+_POWER_LIMIT_SCHEMA = sensor.sensor_schema(
+    unit_of_measurement="%",
+    state_class=STATE_CLASS_MEASUREMENT,
+    accuracy_decimals=0,
+    icon="mdi:percent",
+    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+)
+# 0x0037: RAW register value (8000-12000, default 10000), no unit.
+_REGISTER_RAW_SCHEMA = sensor.sensor_schema(
+    state_class=STATE_CLASS_MEASUREMENT,
+    accuracy_decimals=0,
+    icon="mdi:tune",
+    entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+)
+
 DC_CHANNEL_SCHEMA = cv.Schema(
     {
         cv.Optional(CONF_VOLTAGE): _VOLTAGE_SCHEMA,
@@ -113,6 +134,9 @@ INVERTER_SCHEMA = cv.Schema(
     {
         cv.Optional(CONF_TEMPERATURE): _TEMPERATURE_SCHEMA,
         cv.Optional(CONF_RATED_POWER): _POWER_SCHEMA,
+        cv.Optional(CONF_POWER_PERSISTENT): _POWER_LIMIT_SCHEMA,
+        cv.Optional(CONF_POWER_NON_PERSISTENT): _POWER_LIMIT_SCHEMA,
+        cv.Optional(CONF_REGISTER_0X37_PERSISTENT): _REGISTER_RAW_SCHEMA,
     }
 )
 
@@ -206,3 +230,12 @@ async def to_code(config):
         if CONF_RATED_POWER in inv:
             s = await sensor.new_sensor(inv[CONF_RATED_POWER])
             cg.add(hub.set_rated_power_sensor(s))
+        if CONF_POWER_PERSISTENT in inv:
+            s = await sensor.new_sensor(inv[CONF_POWER_PERSISTENT])
+            cg.add(hub.set_power_persistent_sensor(s))
+        if CONF_POWER_NON_PERSISTENT in inv:
+            s = await sensor.new_sensor(inv[CONF_POWER_NON_PERSISTENT])
+            cg.add(hub.set_power_non_persistent_sensor(s))
+        if CONF_REGISTER_0X37_PERSISTENT in inv:
+            s = await sensor.new_sensor(inv[CONF_REGISTER_0X37_PERSISTENT])
+            cg.add(hub.set_register_0x37_persistent_sensor(s))

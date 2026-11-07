@@ -183,6 +183,12 @@ class DeyeMiComponent : public PollingComponent {
   void set_ac_energy_total_sensor(sensor::Sensor *s) { this->ac_energy_total_sensor_ = s; }
   void set_temperature_sensor(sensor::Sensor *s) { this->temperature_sensor_ = s; }
   void set_rated_power_sensor(sensor::Sensor *s) { this->rated_power_sensor_ = s; }
+  // Read-only state feedback of the three power-limit registers (all inside
+  // the polled block, so no extra network traffic): 0x0028 and 0x0035 as
+  // published as-is (percent), 0x0037 as the RAW register value.
+  void set_power_persistent_sensor(sensor::Sensor *s) { this->power_persistent_sensor_ = s; }
+  void set_power_non_persistent_sensor(sensor::Sensor *s) { this->power_non_persistent_sensor_ = s; }
+  void set_register_0x37_persistent_sensor(sensor::Sensor *s) { this->register_0x37_persistent_sensor_ = s; }
 
   // Generic, index-based (0-3) DC/PV-channel setters -- index maps 1:1 to
   // the `dc_channels` YAML list position (pv0 = index 0, ...). Replaces the
@@ -294,6 +300,9 @@ class DeyeMiComponent : public PollingComponent {
   sensor::Sensor *ac_power_sensor_{nullptr};
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *rated_power_sensor_{nullptr};
+  sensor::Sensor *power_persistent_sensor_{nullptr};
+  sensor::Sensor *power_non_persistent_sensor_{nullptr};
+  sensor::Sensor *register_0x37_persistent_sensor_{nullptr};
   sensor::Sensor *ac_energy_today_sensor_{nullptr};
   sensor::Sensor *ac_energy_total_sensor_{nullptr};
   sensor::Sensor *pv_voltage_sensor_[4]{nullptr, nullptr, nullptr, nullptr};
