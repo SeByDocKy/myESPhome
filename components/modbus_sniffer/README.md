@@ -93,7 +93,7 @@ sensor:
     name: ${name}_power
     address: 0x0008
     value_type: S_WORD
-    register_type: read
+    register_type: input
     unit_of_measurement: W
     device_class: power
     state_class: measurement
@@ -104,7 +104,7 @@ sensor:
 | `modbus_sniffer_id` | ID      |           | The hub (optional if there is a single one).                     |
 | `address`           | hex int |           | Register address (0x0000 - 0xFFFF). Required.                    |
 | `value_type`        | enum    |           | How to decode the register(s), see below. Required.              |
-| `register_type`     | enum    | `holding` | `holding` for function `0x03`, `read` for function `0x04`.       |
+| `register_type`     | enum    | `holding` | `holding` for function `0x03`, `input` for function `0x04` (`read` is an alias). |
 
 plus all the usual ESPHome sensor options (`unit_of_measurement`, `device_class`, `filters`, ...).
 
@@ -138,7 +138,7 @@ binary_sensor:
 | `modbus_sniffer_id` | ID      |           | The hub (optional if there is a single one).                         |
 | `address`           | hex int |           | Register address. Required.                                          |
 | `bitmask`           | hex int |           | Mask applied to the 16 bit register. Required. ON if `(value & bitmask) != 0`. |
-| `register_type`     | enum    | `holding` | `holding` (`0x03`) or `read` (`0x04`).                               |
+| `register_type`     | enum    | `holding` | `holding` (`0x03`) or `input` (`0x04`, `read` is an alias).         |
 
 Several binary sensors can share the same register with different bitmasks.
 

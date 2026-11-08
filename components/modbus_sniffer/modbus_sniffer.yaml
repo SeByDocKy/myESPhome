@@ -61,7 +61,7 @@ sensor:
     id: power
     address: 0x0008
     value_type: S_WORD
-    register_type: read
+    register_type: input
     unit_of_measurement: "W"
     accuracy_decimals: 0
     device_class: power
@@ -75,7 +75,7 @@ sensor:
     # id: temperature
     # address: 0x0200
     # value_type: S_WORD
-    # register_type: read
+    # register_type: input
     # unit_of_measurement: "°C"
     # accuracy_decimals: 1
     # device_class: temperature

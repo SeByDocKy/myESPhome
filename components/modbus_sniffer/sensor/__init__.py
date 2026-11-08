@@ -31,7 +31,8 @@ VALUE_TYPES = {
 RegisterType = modbus_sniffer_ns.enum('RegisterType')
 REGISTER_TYPES = {
     'holding': RegisterType.HOLDING,
-    'input': RegisterType.INPUT,
+    'input': RegisterType.INPUT_REGISTER,
+    'read': RegisterType.INPUT_REGISTER,  # alias of 'input'
 }
 
 CONFIG_SCHEMA = sensor.sensor_schema(

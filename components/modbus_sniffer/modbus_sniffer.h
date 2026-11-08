@@ -30,7 +30,7 @@ enum ModbusFunction {
 
 enum RegisterType {
   HOLDING = 0,
-  INPUT = 1,
+  INPUT_REGISTER = 1,  // not INPUT: Arduino.h defines INPUT as a macro
 };
 
 // Structure pour stocker les données capturées

@@ -205,7 +205,7 @@ void ModbusSnifferHub::process_read_response(uint8_t slave, uint8_t function,
     return;
   }
   
-  RegisterType reg_type = (function == READ_HOLDING_REGISTERS) ? HOLDING : INPUT;
+  RegisterType reg_type = (function == READ_HOLDING_REGISTERS) ? HOLDING : INPUT_REGISTER;
   
   ESP_LOGD(TAG, "RESPONSE - Slave: 0x%02X, Type: %s, Start: 0x%04X, Bytes: %d",
            slave, reg_type == HOLDING ? "Holding" : "Input",
