@@ -12,6 +12,23 @@ namespace deyemi {
 static const char *const TAG = "deyemi";
 static const uint32_t SOCKET_TIMEOUT_MS = 3000;
 
+// Hex dump for debug logs ("A5:10:..."). Local on purpose: ESPHome's
+// format_hex_pretty() heap-allocates and, from 2026.11, is no longer reachable
+// through helpers.h (it moved to alloc_helpers.h), while format_hex_pretty_to()
+// doesn't exist in older releases. A tiny helper works with every version.
+static std::string hex_dump(const std::vector<uint8_t> &data) {
+  static const char HEX[] = "0123456789ABCDEF";
+  std::string out;
+  out.reserve(data.size() * 3);
+  for (size_t i = 0; i < data.size(); i++) {
+    if (i != 0)
+      out += ':';
+    out += HEX[data[i] >> 4];
+    out += HEX[data[i] & 0x0F];
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // CRC / checksum helpers -- identical to tsungen3 (generic
 // Modbus/V5 math, no brand/generation-specific behavior here).
@@ -484,7 +501,7 @@ void DeyeMiComponent::run_task_() {
         std::vector<uint8_t> response;
         if (this->connect_and_transact_(request, response)) {
           ESP_LOGD(TAG, "Write response raw (%u bytes): %s", (unsigned) response.size(),
-                   format_hex_pretty(response).c_str());
+                   hex_dump(response).c_str());
           if (this->parse_write_response_(response, job.reg)) {
             result->success = true;
           }
