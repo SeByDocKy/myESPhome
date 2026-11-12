@@ -1,0 +1,306 @@
+# Package for one Indevolt plug & play battery (native "indevolt" component, local HTTP API).
+#
+# Variables (vars:) expected from the including file:
+#   indevolt_name                   short name used in the entity names (e.g. 'sf')
+#   indevolt_id                     id of the hub (e.g. 'sf')
+#   indevolt_ip_address             fixed IP of the battery (DHCP reservation)
+#   indevolt_ip_port                local HTTP API port ('8080')
+#   indevolt_model                  SF2000 / PF2000 (Gen2) or BK1600 / BK1600_ULTRA (Gen1)
+#   indevolt_fast_poll_interval     power, SOC, state, work mode ...       (e.g. '5s')
+#   indevolt_normal_poll_interval   voltages, temperatures, energies, packs (e.g. '20s')
+#   indevolt_slow_poll_interval     serial numbers, firmwares, settings     (e.g. '60s')
+# Substitutions expected from the main file: name, my_hours, my_minute, my_second and a `time:` with id: my_time.
+#
+# The entities below are the ones of the SolidFlex / PowerFlex 2000 (Gen2). On a BK1600 / BK1600_ULTRA (Gen1)
+# remove the entities marked "Gen2 only" (the component refuses them at compile time) and, if you want it,
+# uncomment `total_production` (Gen1 only).
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome@main"
+    components: [indevolt]
+    refresh: 10s
+
+globals:
+  - id: ${indevolt_name}_energy_yesterday_global
+    type: float
+    restore_value: yes
+
+time:
+  - platform: sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:
+          - globals.set:
+              id: ${indevolt_name}_energy_yesterday_global
+              value: !lambda return ( id(${indevolt_name}_energy_yesterday_global) =  float( id(${indevolt_name}_energy_today).state) );
+
+indevolt:
+  - id: ${indevolt_id}
+    ip_address: ${indevolt_ip_address}
+    ip_port: ${indevolt_ip_port}
+    model: ${indevolt_model}
+    # Three polling loops, each entity can be moved to another one with `poll: fast | normal | slow`
+    fast_poll_interval: ${indevolt_fast_poll_interval}
+    normal_poll_interval: ${indevolt_normal_poll_interval}
+    slow_poll_interval: ${indevolt_slow_poll_interval}
+    # timeout: 8s                 # total time budget of one HTTP transaction
+    # batch_size: 8               # points requested per GetData call
+    # max_charge_power: 2400      # optional overrides of the model limits (W), up to 10800 W for a cluster
+    # max_discharge_power: 2400
+    # min_power: 50               # requests below this power are sent as standby
+    # charge_target_soc: 100      # third value of the real-time command while charging (%)
+    # discharge_target_soc: 5     # ... while discharging / standby (%)
+    # auto_realtime_mode: true    # switch to Real-Time Control (mode 4) before a power command
+
+sensor:
+  - platform: indevolt
+    indevolt_id: ${indevolt_id}
+    rated_capacity:             # Gen2 only
+      name: ${name}_${indevolt_name}_rated_capacity
+    dc_output_power:
+      name: ${name}_${indevolt_name}_dc_output_power
+    daily_production:
+      name: ${name}_${indevolt_name}_daily_production
+    # total_production:         # Gen1 only
+    #   name: ${name}_${indevolt_name}_total_production
+    meter_power:
+      name: ${name}_${indevolt_name}_meter_power
+    emergency_power_supply:
+      name: ${name}_${indevolt_name}_emergency_power_supply
+    bypass_power:               # Gen2 only
+      name: ${name}_${indevolt_name}_bypass_power
+    bypass_input_energy:        # Gen2 only
+      name: ${name}_${indevolt_name}_bypass_input_energy
+
+    # One entry per PV input, 0-indexed (pv0, pv1, ...). Gen1: pv0 and pv1, power only.
+    dc_channels:
+      - pv0:
+          power:
+            name: ${name}_${indevolt_name}_pv0_power
+          voltage:              # Gen2 only
+            name: ${name}_${indevolt_name}_pv0_voltage
+          current:              # Gen2 only
+            name: ${name}_${indevolt_name}_pv0_current
+      - pv1:
+          power:
+            name: ${name}_${indevolt_name}_pv1_power
+          voltage:              # Gen2 only
+            name: ${name}_${indevolt_name}_pv1_voltage
+          current:              # Gen2 only
+            name: ${name}_${indevolt_name}_pv1_current
+      - pv2:                    # Gen2 only
+          power:
+            name: ${name}_${indevolt_name}_pv2_power
+          voltage:
+            name: ${name}_${indevolt_name}_pv2_voltage
+          current:
+            name: ${name}_${indevolt_name}_pv2_current
+      - pv3:                    # Gen2 only
+          power:
+            name: ${name}_${indevolt_name}_pv3_power
+          voltage:
+            name: ${name}_${indevolt_name}_pv3_voltage
+          current:
+            name: ${name}_${indevolt_name}_pv3_current
+
+    ac:
+      input_power:
+        name: ${name}_${indevolt_name}_ac_input_power
+      output_power:
+        name: ${name}_${indevolt_name}_ac_output_power
+        id: ${indevolt_name}_ac_output_power
+      input_energy:
+        name: ${name}_${indevolt_name}_ac_input_energy
+      output_energy:          # Gen2 only
+        name: ${name}_${indevolt_name}_ac_output_energy
+      offgrid_output_energy:  # Gen2 only
+        name: ${name}_${indevolt_name}_offgrid_output_energy
+      voltage:                # Gen2 only
+        name: ${name}_${indevolt_name}_grid_voltage
+      frequency:              # Gen2 only
+        name: ${name}_${indevolt_name}_grid_frequency
+
+    battery:
+      soc:
+        name: ${name}_${indevolt_name}_battery_soc
+      power:
+        name: ${name}_${indevolt_name}_battery_power
+      daily_charge_energy:
+        name: ${name}_${indevolt_name}_battery_daily_charge_energy
+      daily_discharge_energy:
+        name: ${name}_${indevolt_name}_battery_daily_discharge_energy
+      total_charge_energy:
+        name: ${name}_${indevolt_name}_battery_total_charge_energy
+      total_discharge_energy:
+        name: ${name}_${indevolt_name}_battery_total_discharge_energy
+      # Power-module main board readings (Gen2 only)
+      mb_soc:
+        name: ${name}_${indevolt_name}_battery_mb_soc
+      mb_voltage:
+        name: ${name}_${indevolt_name}_battery_mb_voltage
+      mb_current:
+        name: ${name}_${indevolt_name}_battery_mb_current
+      mb_temperature:
+        name: ${name}_${indevolt_name}_battery_mb_temperature
+      mb_cell1_voltage:
+        name: ${name}_${indevolt_name}_battery_mb_cell1_voltage
+      mb_cell2_voltage:
+        name: ${name}_${indevolt_name}_battery_mb_cell2_voltage
+      # One entry per SFA/PFA battery pack, 0-indexed (pack0, pack1, ...), up to 5 (Gen2 only).
+      packs:
+        - pack0:
+            soc:
+              name: ${name}_${indevolt_name}_pack0_soc
+            voltage:
+              name: ${name}_${indevolt_name}_pack0_voltage
+            current:
+              name: ${name}_${indevolt_name}_pack0_current
+            temperature:
+              name: ${name}_${indevolt_name}_pack0_temperature
+            cell1_voltage:
+              name: ${name}_${indevolt_name}_pack0_cell1_voltage
+            cell2_voltage:
+              name: ${name}_${indevolt_name}_pack0_cell2_voltage
+        - pack1:
+            soc:
+              name: ${name}_${indevolt_name}_pack1_soc
+            voltage:
+              name: ${name}_${indevolt_name}_pack1_voltage
+            current:
+              name: ${name}_${indevolt_name}_pack1_current
+            temperature:
+              name: ${name}_${indevolt_name}_pack1_temperature
+            cell1_voltage:
+              name: ${name}_${indevolt_name}_pack1_cell1_voltage
+            cell2_voltage:
+              name: ${name}_${indevolt_name}_pack1_cell2_voltage
+
+  - platform: total_daily_energy
+    name: ${name}_${indevolt_name}_energy_today
+    id: ${indevolt_name}_energy_today
+    power_id: ${indevolt_name}_ac_output_power
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    method: right
+    restore: true
+    filters:
+        # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+    icon: mdi:counter
+
+  - platform: template
+    name: ${name}_${indevolt_name}_energy_yesterday
+    id: ${indevolt_name}_energy_yesterday
+    unit_of_measurement: 'kWh'
+    accuracy_decimals: 1
+    icon: mdi:counter
+    lambda: |-
+      return (id(${indevolt_name}_energy_yesterday).state = id(${indevolt_name}_energy_yesterday_global));
+
+binary_sensor:
+  - platform: indevolt
+    indevolt_id: ${indevolt_id}
+    online:
+      name: ${name}_${indevolt_name}_online
+    meter_connected:
+      name: ${name}_${indevolt_name}_meter_connected
+    bypass_active:              # Gen2 only
+      name: ${name}_${indevolt_name}_bypass_active
+
+text_sensor:
+  - platform: indevolt
+    indevolt_id: ${indevolt_id}
+    # Identification read once from Sys.GetConfig
+    device_type:
+      name: ${name}_${indevolt_name}_device_type
+    serial_number:
+      name: ${name}_${indevolt_name}_serial_number
+    device_firmware:
+      name: ${name}_${indevolt_name}_device_firmware
+    working_mode:
+      name: ${name}_${indevolt_name}_working_mode
+    state:
+      name: ${name}_${indevolt_name}_state
+    role:
+      name: ${name}_${indevolt_name}_role
+    ems_firmware:
+      name: ${name}_${indevolt_name}_ems_firmware
+    bms_mb_firmware:            # Gen2 only
+      name: ${name}_${indevolt_name}_bms_mb_firmware
+    pcs_firmware:
+      name: ${name}_${indevolt_name}_pcs_firmware
+    dcdc_firmware:
+      name: ${name}_${indevolt_name}_dcdc_firmware
+    battery:
+      mb_sn:                    # Gen2 only
+        name: ${name}_${indevolt_name}_battery_mb_sn
+      # One entry per SFA/PFA battery pack, 0-indexed, same order as the sensor platform's battery.packs.
+      packs:
+        - pack0:
+            sn:
+              name: ${name}_${indevolt_name}_pack0_sn
+            dcdc_firmware:
+              name: ${name}_${indevolt_name}_pack0_dcdc_firmware
+            bms_firmware:
+              name: ${name}_${indevolt_name}_pack0_bms_firmware
+        - pack1:
+            sn:
+              name: ${name}_${indevolt_name}_pack1_sn
+            dcdc_firmware:
+              name: ${name}_${indevolt_name}_pack1_dcdc_firmware
+            bms_firmware:
+              name: ${name}_${indevolt_name}_pack1_bms_firmware
+
+number:
+  - platform: indevolt
+    indevolt_id: ${indevolt_id}
+    power_setpoint:             # signed W: > 0 discharge, < 0 charge, 0 standby (full real-time command)
+      name: ${name}_${indevolt_name}_power_setpoint
+    charging_power:             # W >= 0: charge at this power (full real-time command)
+      name: ${name}_${indevolt_name}_charging_power
+    discharging_power:          # W >= 0: discharge at this power (full real-time command)
+      name: ${name}_${indevolt_name}_discharging_power
+    backup_soc:
+      name: ${name}_${indevolt_name}_backup_soc
+    inverter_input_limit:
+      name: ${name}_${indevolt_name}_inverter_input_limit
+    max_output_power:
+      name: ${name}_${indevolt_name}_max_output_power
+    feed_in_power_limit:
+      name: ${name}_${indevolt_name}_feed_in_power_limit
+    power_setting:              # raw real-time power (point 47016)
+      name: ${name}_${indevolt_name}_power_setting
+    soc_setting:                # raw real-time target SOC (point 47017)
+      name: ${name}_${indevolt_name}_soc_setting
+
+select:
+  - platform: indevolt
+    indevolt_id: ${indevolt_id}
+    work_mode:
+      name: ${name}_${indevolt_name}_work_mode
+    realtime_state:
+      name: ${name}_${indevolt_name}_realtime_state
+    load_setting:
+      name: ${name}_${indevolt_name}_load_setting
+
+switch:
+  - platform: indevolt
+    indevolt_id: ${indevolt_id}
+    light:
+      name: ${name}_${indevolt_name}_light
+    grid_charging:
+      name: ${name}_${indevolt_name}_grid_charging
+    bypass:
+      name: ${name}_${indevolt_name}_bypass
+
+# For control loops (PID, zero injection ...): float output 0.0 .. 1.0 mapped on the range of the setting
+output:
+  - platform: indevolt
+    indevolt_id: ${indevolt_id}
+    charge_power:               # 0.0 .. 1.0 -> 0 .. max charge power
+      id: ${indevolt_name}_charge_power_output
+    discharge_power:            # 0.0 .. 1.0 -> 0 .. max discharge power
+      id: ${indevolt_name}_discharge_power_output
