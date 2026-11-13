@@ -83,6 +83,14 @@ sensor:
 
   - platform: indevolt
     indevolt_id: sf2000
+    cycle_count:
+      name: ${name}_cycle_count
+    transformer_temperature:
+      name: ${name}_transformer_temperature
+    remaining_charge_time:
+      name: ${name}_remaining_charge_time
+    remaining_discharge_time:
+      name: ${name}_remaining_discharge_time
     rated_capacity:
       name: ${name}_rated_capacity
       # poll: slow                 # optional per-entity override of the polling loop: fast / normal / slow
@@ -174,6 +182,10 @@ sensor:
         name: ${name}_battery_mb_cell1_voltage
       mb_cell2_voltage:
         name: ${name}_battery_mb_cell2_voltage
+      mb_cycles:
+        name: ${name}_battery_mb_cycles
+      mb_mos_temperature:
+        name: ${name}_battery_mb_mos_temperature
       # One entry per SFA/PFA battery pack, 0-indexed (pack0, pack1, ...), up to 5.
       packs:
         - pack0:
@@ -189,6 +201,10 @@ sensor:
               name: ${name}_pack0_cell1_voltage
             cell2_voltage:
               name: ${name}_pack0_cell2_voltage
+            cycles:
+              name: ${name}_pack0_cycles
+            mos_temperature:
+              name: ${name}_pack0_mos_temperature
         - pack1:
             soc:
               name: ${name}_pack1_soc
@@ -212,6 +228,10 @@ binary_sensor:
       name: ${name}_meter_connected
     bypass_active:
       name: ${name}_bypass_active
+    mb_heating:
+      name: ${name}_mb_heating
+    pack1_heating:
+      name: ${name}_pack1_heating
 
 text_sensor:
   - platform: indevolt

@@ -3,6 +3,8 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
     DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_DURATION,
+    ENTITY_CATEGORY_DIAGNOSTIC,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_ENERGY_STORAGE,
@@ -16,6 +18,7 @@ from esphome.const import (
     UNIT_CELSIUS,
     UNIT_HERTZ,
     UNIT_KILOWATT_HOURS,
+    UNIT_MINUTE,
     UNIT_PERCENT,
     UNIT_VOLT,
     UNIT_WATT,
@@ -117,6 +120,36 @@ def _soc(icon="mdi:battery"):
     )
 
 
+def _diag_temperature():
+    return sensor.sensor_schema(
+        unit_of_measurement=UNIT_CELSIUS,
+        device_class=DEVICE_CLASS_TEMPERATURE,
+        state_class=STATE_CLASS_MEASUREMENT,
+        accuracy_decimals=1,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        icon="mdi:thermometer",
+    )
+
+
+def _cycles():
+    return sensor.sensor_schema(
+        state_class=STATE_CLASS_TOTAL_INCREASING,
+        accuracy_decimals=0,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        icon="mdi:battery-sync",
+    )
+
+
+def _duration(icon):
+    return sensor.sensor_schema(
+        unit_of_measurement=UNIT_MINUTE,
+        device_class=DEVICE_CLASS_DURATION,
+        state_class=STATE_CLASS_MEASUREMENT,
+        accuracy_decimals=0,
+        icon=icon,
+    )
+
+
 def _energy(icon="mdi:counter", unit=UNIT_KILOWATT_HOURS, accuracy=3):
     return sensor.sensor_schema(
         unit_of_measurement=unit,
@@ -150,6 +183,18 @@ ROOT_SENSORS = [
     ("meter_power", {GEN1: 21028, GEN2: 11016}, _power("mdi:meter-electric"), 1.0),
     # "Emergency power supply" (Gen1) / backup SOC read-back (Gen2), in %.
     ("emergency_power_supply", both(6105), _soc("mdi:battery-heart-variant"), 1.0),
+    # Gen2: equivalent full cycles, transformer temperature, remaining time (minutes) while charging / discharging.
+    ("cycle_count", g2(8646), _cycles(), 1.0),
+    ("transformer_temperature", g2(11005), _diag_temperature(), 1.0),
+    ("remaining_charge_time", g2(11019), _duration("mdi:battery-clock"), 1.0),
+    ("remaining_discharge_time", g2(11020), _duration("mdi:battery-clock-outline"), 1.0),
+    # Gen1 (BK1600) temperatures.
+    ("inverter_temperature", g1(7600), _diag_temperature(), 1.0),
+    ("mos_charge_temperature", g1(7638), _diag_temperature(), 1.0),
+    ("mos_discharge_temperature", g1(7639), _diag_temperature(), 1.0),
+    ("pack1_temperature", g1(7605), _diag_temperature(), 1.0),
+    ("pack2_temperature", g1(7620), _diag_temperature(), 1.0),
+    ("pack3_temperature", g1(7621), _diag_temperature(), 1.0),
     ("bypass_power", g2(667), _power("mdi:electric-switch"), 1.0),
     ("bypass_input_energy", g2(11034), _energy("mdi:electric-switch", unit=UNIT_WATT_HOURS, accuracy=0), 1.0),
 ]
@@ -193,6 +238,8 @@ BATTERY_FIELDS = [
     ("mb_temperature", g2(9012), _temperature()),
     ("mb_cell1_voltage", g2(9009), _voltage(accuracy=3)),
     ("mb_cell2_voltage", g2(9011), _voltage(accuracy=3)),
+    ("mb_cycles", g2(9003), _cycles()),
+    ("mb_mos_temperature", g2(11042), _diag_temperature()),
 ]
 
 # ... and `battery.packs:` -- one entry per SFA/PFA battery pack, list position (0-based) i -> pack i+1.
@@ -204,6 +251,8 @@ PACK_FIELDS = [
     ("temperature", [9030, 9049, 9068, 9163, 9216], _temperature()),
     ("cell1_voltage", [9021, 9040, 9059, 9154, 9219], _voltage(accuracy=3)),
     ("cell2_voltage", [9023, 9042, 9061, 9156, 9222], _voltage(accuracy=3)),
+    ("cycles", [9019, 9038, 9057, 9152, 9205], _cycles()),
+    ("mos_temperature", [9085, 9101, 9117, 9133, 9270], _diag_temperature()),
 ]
 PACK_SCHEMA = cv.Schema({cv.Optional(key): with_poll(schema) for key, _points, schema in PACK_FIELDS})
 

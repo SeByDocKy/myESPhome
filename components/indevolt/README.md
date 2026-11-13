@@ -138,6 +138,13 @@ match (for example `rated_capacity` on a `BK1600`).
 | `battery: packs: packN: current` | 19173 .. 19177 | 2 |
 | `battery: packs: packN: temperature` | 9030, 9049, 9068, 9163, 9216 | 2 |
 | `battery: packs: packN: cell1_voltage` / `cell2_voltage` | 9021 / 9023, 9040 / 9042, 9059 / 9061, 9154 / 9156, 9219 / 9222 | 2 |
+| `battery: mb_cycles` / `mb_mos_temperature` | 9003 / 11042 | 2 |
+| `battery: packs: packN: cycles` | 9019, 9038, 9057, 9152, 9205 | 2 |
+| `battery: packs: packN: mos_temperature` | 9085, 9101, 9117, 9133, 9270 | 2 |
+| `cycle_count` / `transformer_temperature` | 8646 / 11005 | 2 |
+| `remaining_charge_time` / `remaining_discharge_time` (minutes) | 11019 / 11020 | 2 |
+| `inverter_temperature` / `mos_charge_temperature` / `mos_discharge_temperature` | 7600 / 7638 / 7639 | 1 |
+| `pack1_temperature` / `pack2_temperature` / `pack3_temperature` (BK1600 packs) | 7605 / 7620 / 7621 | 1 |
 
 Values are published **as the device sends them**, like the official integration does (units: W, V, A, Hz, kWh, %, degC).
 
@@ -158,7 +165,7 @@ Firmware numbers are formatted like the official integration (`10203` -> `1.02.0
 
 ### Binary sensors
 
-`online` (polling succeeds), `meter_connected` (point 7120 == 1000, Gen1/2), `bypass_active` (point 680, Gen2).
+`online` (polling succeeds), `meter_connected` (point 7120 == 1000, Gen1/2), `bypass_active` (point 680, Gen2), `heating` (point 7121 == 1000, Gen1), `mb_heating` / `pack1_heating` .. `pack5_heating` (points 9080 / 9096, 9112, 9128, 9144, 9279 == 1000, Gen2). The heating sensors, cycle counts, MOS / transformer temperatures and remaining times were added from the newer official integration.
 
 ### Controls
 

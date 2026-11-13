@@ -74,6 +74,21 @@ sensor:
       name: ${name}_${indevolt_name}_bypass_power
     bypass_input_energy:        # Gen2 only
       name: ${name}_${indevolt_name}_bypass_input_energy
+    cycle_count:                # Gen2 only
+      name: ${name}_${indevolt_name}_cycle_count
+    transformer_temperature:    # Gen2 only
+      name: ${name}_${indevolt_name}_transformer_temperature
+    remaining_charge_time:      # Gen2 only, minutes (meaningful while charging)
+      name: ${name}_${indevolt_name}_remaining_charge_time
+    remaining_discharge_time:   # Gen2 only, minutes (meaningful while discharging)
+      name: ${name}_${indevolt_name}_remaining_discharge_time
+    # Gen1 (BK1600) only: uncomment on a BK1600 / BK1600_ULTRA.
+    # inverter_temperature:
+    #   name: ${name}_${indevolt_name}_inverter_temperature
+    # mos_charge_temperature:
+    #   name: ${name}_${indevolt_name}_mos_charge_temperature
+    # mos_discharge_temperature:
+    #   name: ${name}_${indevolt_name}_mos_discharge_temperature
 
     # One entry per PV input, 0-indexed (pv0, pv1, ...). Gen1: pv0 and pv1, power only.
     dc_channels:
@@ -149,6 +164,10 @@ sensor:
         name: ${name}_${indevolt_name}_battery_mb_cell1_voltage
       mb_cell2_voltage:
         name: ${name}_${indevolt_name}_battery_mb_cell2_voltage
+      mb_cycles:
+        name: ${name}_${indevolt_name}_battery_mb_cycles
+      mb_mos_temperature:
+        name: ${name}_${indevolt_name}_battery_mb_mos_temperature
       # One entry per SFA/PFA battery pack, 0-indexed (pack0, pack1, ...), up to 5 (Gen2 only).
       packs:
         - pack0:
@@ -164,6 +183,10 @@ sensor:
               name: ${name}_${indevolt_name}_pack0_cell1_voltage
             cell2_voltage:
               name: ${name}_${indevolt_name}_pack0_cell2_voltage
+            cycles:
+              name: ${name}_${indevolt_name}_pack0_cycles
+            mos_temperature:
+              name: ${name}_${indevolt_name}_pack0_mos_temperature
         - pack1:
             soc:
               name: ${name}_${indevolt_name}_pack1_soc
@@ -177,6 +200,10 @@ sensor:
               name: ${name}_${indevolt_name}_pack1_cell1_voltage
             cell2_voltage:
               name: ${name}_${indevolt_name}_pack1_cell2_voltage
+            cycles:
+              name: ${name}_${indevolt_name}_pack1_cycles
+            mos_temperature:
+              name: ${name}_${indevolt_name}_pack1_mos_temperature
 
   - platform: total_daily_energy
     name: ${name}_${indevolt_name}_energy_today
@@ -209,6 +236,14 @@ binary_sensor:
       name: ${name}_${indevolt_name}_meter_connected
     bypass_active:              # Gen2 only
       name: ${name}_${indevolt_name}_bypass_active
+    mb_heating:                 # Gen2 only
+      name: ${name}_${indevolt_name}_mb_heating
+    pack1_heating:              # Gen2 only (pack1 .. pack5 = first .. fifth battery pack)
+      name: ${name}_${indevolt_name}_pack1_heating
+    pack2_heating:              # Gen2 only
+      name: ${name}_${indevolt_name}_pack2_heating
+    # heating:                  # Gen1 (BK1600) only
+    #   name: ${name}_${indevolt_name}_heating
 
 text_sensor:
   - platform: indevolt

@@ -1,13 +1,14 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import binary_sensor
-from esphome.const import DEVICE_CLASS_CONNECTIVITY, ENTITY_CATEGORY_DIAGNOSTIC
+from esphome.const import DEVICE_CLASS_CONNECTIVITY, DEVICE_CLASS_HEAT, ENTITY_CATEGORY_DIAGNOSTIC
 
 from .. import (
     CONF_INDEVOLT_ID,
     IndevoltComponent,
     apply_poll,
     both,
+    g1,
     g2,
     hub_generation,
     make_final_validate,
@@ -24,6 +25,14 @@ BINARY_SENSORS = [
     ("meter_connected", both(7120), 1000, dict(device_class=DEVICE_CLASS_CONNECTIVITY, icon="mdi:meter-electric")),
     # 680: bypass active (1). Gen2 only; the `bypass` switch reads the same point.
     ("bypass_active", g2(680), 1, dict(icon="mdi:electric-switch")),
+    # Electric heating: 1000 = heating on in the official integration (Gen1: 7121 for the unit, Gen2: one point per pack).
+    ("heating", g1(7121), 1000, dict(device_class=DEVICE_CLASS_HEAT, entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:radiator")),
+    ("mb_heating", g2(9080), 1000, dict(device_class=DEVICE_CLASS_HEAT, entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:radiator")),
+    ("pack1_heating", g2(9096), 1000, dict(device_class=DEVICE_CLASS_HEAT, entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:radiator")),
+    ("pack2_heating", g2(9112), 1000, dict(device_class=DEVICE_CLASS_HEAT, entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:radiator")),
+    ("pack3_heating", g2(9128), 1000, dict(device_class=DEVICE_CLASS_HEAT, entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:radiator")),
+    ("pack4_heating", g2(9144), 1000, dict(device_class=DEVICE_CLASS_HEAT, entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:radiator")),
+    ("pack5_heating", g2(9279), 1000, dict(device_class=DEVICE_CLASS_HEAT, entity_category=ENTITY_CATEGORY_DIAGNOSTIC, icon="mdi:radiator")),
 ]
 
 CONFIG_SCHEMA = cv.Schema(
