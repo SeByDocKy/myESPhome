@@ -5,7 +5,7 @@
 #   indevolt_id                     id of the hub (e.g. 'sf')
 #   indevolt_ip_address             fixed IP of the battery (DHCP reservation)
 #   indevolt_ip_port                local HTTP API port ('8080')
-#   indevolt_model                  SF2000 / PF2000 (Gen2) or BK1600 / BK1600_ULTRA (Gen1)
+#   indevolt_model                  SF2000 / PF2000 / SF3000 / PF3000 / SF1200 (Gen2) or BK1600 / BK1600_ULTRA (Gen1)
 #   indevolt_fast_poll_interval     power, SOC, state, work mode ...       (e.g. '5s')
 #   indevolt_normal_poll_interval   voltages, temperatures, energies, packs (e.g. '20s')
 #   indevolt_slow_poll_interval     serial numbers, firmwares, settings     (e.g. '60s')

@@ -280,7 +280,7 @@ bool IndevoltComponent::http_request_(bool post, const std::string &path, int &s
 // ---------------------------------------------------------------------------
 
 void IndevoltComponent::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up INDEVOLT %s (%s)...", this->gen1_ ? "BK1600" : "SolidFlex/PowerFlex 2000",
+  ESP_LOGCONFIG(TAG, "Setting up INDEVOLT %s (%s)...", this->gen1_ ? "BK1600" : "SolidFlex/PowerFlex",
                 this->host_.c_str());
 
   // The control logic needs the work mode, so it is always polled when auto_realtime_mode is on.
@@ -327,7 +327,7 @@ void IndevoltComponent::setup() {
 void IndevoltComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "INDEVOLT local HTTP API:");
   ESP_LOGCONFIG(TAG, "  Host: %s:%u", this->host_.c_str(), this->port_);
-  ESP_LOGCONFIG(TAG, "  Model generation: %s", this->gen1_ ? "Gen1 (BK1600 / BK1600 Ultra)" : "Gen2 (SolidFlex / PowerFlex 2000)");
+  ESP_LOGCONFIG(TAG, "  Model generation: %s", this->gen1_ ? "Gen1 (BK1600 / BK1600 Ultra)" : "Gen2 (SolidFlex / PowerFlex 2000, 3000, SolidFlex 1200)");
   for (uint8_t t = 0; t < TIERS; t++) {
     ESP_LOGCONFIG(TAG, "  %s points (every %u s): %u in %u request(s) of up to %u", TIER_NAMES[t],
                   (unsigned) (t == 0 ? this->get_update_interval() : this->tier_interval_ms_[t]) / 1000,
@@ -767,10 +767,13 @@ void IndevoltComponent::parse_info_(const std::string &body) {
 
     // The generation drives which points are polled: warn when the configured model does not fit.
     bool device_is_gen1 = type.find("BK1600") != std::string::npos;
-    bool device_is_gen2 = type.find("SF2000") != std::string::npos || type.find("PF2000") != std::string::npos;
+    // Gen2 device types (same list as the official integration): CMS-SF2000, CMS-SP2000, CMS-SF3000, CMS-SP3000, CMS-SF1200
+    bool device_is_gen2 = false;
+    for (const char *t : {"SF2000", "SP2000", "PF2000", "SF3000", "SP3000", "PF3000", "SF1200"})
+      device_is_gen2 = device_is_gen2 || type.find(t) != std::string::npos;
     if ((device_is_gen1 && !this->gen1_) || (device_is_gen2 && this->gen1_))
       ESP_LOGW(TAG, "[%s] The device reports '%s' but the configured `model` is %s: check your YAML", this->host_.c_str(),
-               type.c_str(), this->gen1_ ? "BK1600" : "SF2000");
+               type.c_str(), this->gen1_ ? "BK1600" : "SF2000/SF3000/...");
 
 #ifdef USE_TEXT_SENSOR
     for (auto &b : this->info_sensors_) {

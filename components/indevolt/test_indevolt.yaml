@@ -45,7 +45,7 @@ indevolt:
   - id: sf2000
     ip_address: 192.168.1.70      # fixed IP of the battery (DHCP reservation), see the INDEVOLT app or your router
     ip_port: 8080                 # local HTTP "OpenData" API (must be enabled in the INDEVOLT app)
-    model: SF2000                 # SF2000 / PF2000 (SolidFlex / PowerFlex 2000) or BK1600 / BK1600_ULTRA
+    model: SF2000                 # SF2000 / PF2000 / SF3000 / PF3000 / SF1200 or BK1600 / BK1600_ULTRA
     fast_poll_interval: 10s       # power, SOC, state, work mode, PV / AC / meter power
     normal_poll_interval: 30s     # voltages, currents, temperatures, energy counters, packs
     slow_poll_interval: 120s      # identification, firmware, settings read-back

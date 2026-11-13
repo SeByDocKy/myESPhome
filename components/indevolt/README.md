@@ -7,6 +7,7 @@ official Home Assistant integration <https://github.com/INDEVOLT/homeassistant-i
 | Model (`model:`) | Generation | Notes |
 | --- | --- | --- |
 | `SF2000`, `PF2000` | Gen2 | SolidFlex 2000 / PowerFlex 2000 (power module + up to 5 SFA/PFA battery packs) |
+| `SF3000`, `PF3000`, `SF1200` | Gen2 | SolidFlex 3000 (`CMS-SF3000`) / PowerFlex 3000 (`CMS-SP3000`) / SolidFlex 1200 (`CMS-SF1200`) -- same point map as the 2000 in the official integration (untested on real hardware) |
 | `BK1600`, `BK1600_ULTRA` | Gen1 | BK1600 / BK1600 Ultra (reduced point set) |
 
 > **Status: written without access to a real device.** The protocol, the points and the command sequences were taken
@@ -78,7 +79,7 @@ external_components:
 indevolt:
   - id: sf2000
     ip_address: 192.168.1.70
-    model: SF2000              # SF2000 / PF2000 / BK1600 / BK1600_ULTRA
+    model: SF2000              # SF2000 / PF2000 / SF3000 / PF3000 / SF1200 / BK1600 / BK1600_ULTRA
     fast_poll_interval: 10s     # power, SOC, state, work mode
     normal_poll_interval: 30s   # voltages, temperatures, counters, packs
     slow_poll_interval: 120s    # identification, firmware, settings read-back
@@ -91,7 +92,7 @@ Several batteries on one ESP: add one `indevolt:` block per device and set `inde
 | --- | --- | --- |
 | `ip_address` | required | IP of the battery |
 | `ip_port` | `8080` | Port of the local API |
-| `model` | required | `SF2000`, `PF2000`, `BK1600`, `BK1600_ULTRA` -- selects the point set (Gen1 / Gen2) |
+| `model` | required | `SF2000`, `PF2000`, `SF3000`, `PF3000`, `SF1200`, `BK1600`, `BK1600_ULTRA` -- selects the point set (Gen1 / Gen2) |
 | `fast_poll_interval` | `30s` | Time between two *fast* polling cycles (power, SOC, state, work mode; min 1 s; 30 s is the official integration's default) |
 | `normal_poll_interval` | `60s` | Time between two *normal* polling cycles (voltages, currents, temperatures, counters, packs; min 1 s) |
 | `slow_poll_interval` | `300s` | Time between two *slow* polling cycles (identification, firmware, settings read-back; min 1 s) |
@@ -241,7 +242,7 @@ See `test_indevolt.yaml` for a complete example.
 - **Target SOC.** The third value of the real-time command is described only as "Target SOC" (5..100 %) in the official
   integration. `charge_target_soc: 100` / `discharge_target_soc: 5` are an interpretation (stop charging at 100 %, stop
   discharging at 5 %); tune them if the device behaves otherwise.
-- **Power limits.** 2400 W per SolidFlex/PowerFlex 2000 unit, 1200 W charge / 800 W discharge on the BK1600, are taken
+- **Power limits.** 2400 W per SolidFlex/PowerFlex unit (default for all Gen2 models, including the 3000 / 1200: override with `max_charge_power` / `max_discharge_power`), 1200 W charge / 800 W discharge on the BK1600, are taken
   from the official integration's UI limits. The official integration accepts up to 10800 W on Gen2 (it notes that this
   is only an input limit, not a guaranteed output).
 - **Request size.** The official integration requests 8 points per call; whether the device accepts more is unknown --

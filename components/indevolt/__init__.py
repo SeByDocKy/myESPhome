@@ -1,6 +1,6 @@
 """Native ESPHome component for INDEVOLT plug & play batteries over their local HTTP "OpenData" API.
 
-Models: SolidFlex 2000 / PowerFlex 2000 ("Gen2") and BK1600 / BK1600 Ultra ("Gen1").
+Models: SolidFlex / PowerFlex 2000, 3000 and SolidFlex 1200 ("Gen2") and BK1600 / BK1600 Ultra ("Gen1").
 
 Protocol reference: the official Home Assistant integration https://github.com/INDEVOLT/homeassistant-indevolt
 (indevolt_api.py). The device exposes a small JSON-RPC-like API on its own IP, port 8080:
@@ -67,6 +67,9 @@ GEN2 = "gen2"
 MODELS = {
     "SF2000": GEN2,
     "PF2000": GEN2,
+    "SF3000": GEN2,  # SolidFlex 3000 (CMS-SF3000)
+    "PF3000": GEN2,  # PowerFlex 3000 (CMS-SP3000)
+    "SF1200": GEN2,  # SolidFlex 1200 (CMS-SF1200)
     "BK1600": GEN1,
     "BK1600_ULTRA": GEN1,
 }
@@ -139,7 +142,7 @@ def make_final_validate(entries_fn):
         for entry in entries_fn(config):
             label, points = entry[0], entry[1]
             if gen not in points:
-                other = "SolidFlex/PowerFlex 2000 (model SF2000/PF2000)" if gen == GEN1 else "BK1600 / BK1600 Ultra"
+                other = "SolidFlex/PowerFlex (model SF2000/PF2000/SF3000/PF3000/SF1200)" if gen == GEN1 else "BK1600 / BK1600 Ultra"
                 raise cv.Invalid(f"'{label}' is not available on model {model}; it only exists on {other}.")
         return config
 
