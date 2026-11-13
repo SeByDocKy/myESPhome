@@ -249,7 +249,7 @@ See `test_indevolt.yaml` for a complete example.
 - **Target SOC.** The third value of the real-time command is described only as "Target SOC" (5..100 %) in the official
   integration. `charge_target_soc: 100` / `discharge_target_soc: 5` are an interpretation (stop charging at 100 %, stop
   discharging at 5 %); tune them if the device behaves otherwise.
-- **Power limits.** 2400 W per SolidFlex/PowerFlex unit (default for all Gen2 models, including the 3000 / 1200: override with `max_charge_power` / `max_discharge_power`), 1200 W charge / 800 W discharge on the BK1600, are taken
+- **Power limits.** 2400 W per SolidFlex/PowerFlex 2000 / SolidFlex 1200 unit, 3000 W for the SF3000 / PF3000 (up to 3000 W AC only with expansion modules, 1000 W alone; the SF1200 value is not verified: override with `max_charge_power` / `max_discharge_power`), 1200 W charge / 800 W discharge on the BK1600, are taken
   from the official integration's UI limits. The official integration accepts up to 10800 W on Gen2 (it notes that this
   is only an input limit, not a guaranteed output).
 - **Request size.** The official integration requests 8 points per call; whether the device accepts more is unknown --

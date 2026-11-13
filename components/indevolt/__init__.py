@@ -85,6 +85,13 @@ GEN_DEFAULTS = {
     GEN1: (1200, 800, 0),
 }
 
+# Per-model overrides of the (max charge, max discharge, min power) defaults above.
+# SolidFlex 3000: up to 3000 W AC with expansion modules (1000 W alone), charging up to 3000 W (Indevolt datasheet).
+MODEL_DEFAULTS = {
+    "SF3000": (3000, 3000, 50),
+    "PF3000": (3000, 3000, 50),
+}
+
 
 # ---------------------------------------------------------------------------
 # Point tables helpers: a "points" dict maps a generation to the device point number.
@@ -195,7 +202,9 @@ def named_list(item_schema, max_items, noun, example):
 # ---------------------------------------------------------------------------
 def _apply_model_defaults(config):
     config = dict(config)
-    charge, discharge, min_power = GEN_DEFAULTS[model_generation(config[CONF_MODEL])]
+    charge, discharge, min_power = MODEL_DEFAULTS.get(
+        config[CONF_MODEL], GEN_DEFAULTS[model_generation(config[CONF_MODEL])]
+    )
     config.setdefault(CONF_MAX_CHARGE_POWER, charge)
     config.setdefault(CONF_MAX_DISCHARGE_POWER, discharge)
     config.setdefault(CONF_MIN_POWER, min_power)
