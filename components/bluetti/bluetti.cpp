@@ -10,6 +10,10 @@ void BluettiHub::setup() {
     this->mark_failed();
     return;
   }
+  this->switch_writer_.init(this->controller_);
+  this->soc_writer_.init(this->controller_);
+  this->mode_writer_.init(this->controller_);
+
   const bool has_slow = this->slow_controller_ != nullptr && this->slow_controller_ != this->controller_;
   if (!has_slow) {
     // One controller polls everything
@@ -82,6 +86,20 @@ void BluettiHub::register_items_(std::vector<SensorItem *> &items, ModbusControl
     controller->add_sensor_item(item);
   }
   (controller == this->controller_ ? this->fast_ranges_ : this->slow_ranges_) = ranges;
+}
+
+void BluettiHub::write_register(uint16_t reg, uint16_t value) {
+  ESP_LOGD(TAG, "Write register %u = %u (0x%04X)", reg, value, value);
+  if (!this->writer_for_(reg).write_single_register(reg, value))
+    ESP_LOGW(TAG, "Write of register %u refused by the Modbus bus (queue full?)", reg);
+}
+
+BluettiWriter &BluettiHub::writer_for_(uint16_t reg) {
+  if (reg == 57016 || reg == 57017)  // state of charge limits
+    return this->soc_writer_;
+  if (reg == 57020)  // working mode
+    return this->mode_writer_;
+  return this->switch_writer_;
 }
 
 void BluettiHub::dump_config() {

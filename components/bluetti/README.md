@@ -2,7 +2,7 @@
 
 Native ESPHome component for **BLUETTI plug & play batteries** (Balco 260, Balco 500) over **local Modbus TCP** (real MBAP header) — no cloud, no Home Assistant add-on.
 
-> Status: **read-only** first version (sensor, text_sensor, binary_sensor). Write platforms (switch / number / select) will follow.
+> Status: sensor, text_sensor, binary_sensor, plus **switch, number and select** to control the battery. Nothing has been tested on real hardware yet.
 > The register maps come from the community library [bluetti-modbus](https://github.com/Patrick762/bluetti-modbus) (MIT, see `LICENSE.bluetti-modbus`).
 
 ## Supported models
@@ -94,6 +94,44 @@ Entities are grouped as `ac:`, `dc_channels:` and `battery:` (indexed from 0, e.
 The complete list of entities per model is in `code/device_bluetti_balco260.yaml` and `code/device_bluetti_balco500.yaml` (generated from `registers.py`).
 
 `binary_sensor` additionally accepts `modbus_connection` (connectivity of the Modbus link).
+
+## Controls (switch, number, select)
+
+The writable registers of the library are exposed as controls. They are read back from the device, so their state follows the battery; a command writes the register with function code 06, and the values read back are ignored for 10 s so that the entity does not jump back while the device applies it.
+
+| Platform | Key | Register | Models |
+|----------|-----|----------|--------|
+| `switch` | `ac_output` | 57001 | Balco 260 |
+| `switch` | `system_power` | 57001 | Balco 500 — **switches the whole system on/off** |
+| `switch` | `grid_charging` | 57009 | Balco 260 (read-only `binary_sensor` on the Balco 500) |
+| `switch` | `grid_feed_in` | 57010 | both |
+| `number` | `battery: soc_low_limit`, `soc_high_limit` | 57016 / 57017 | both, 5–100 % |
+| `select` | `working_mode` | 57020 | both: Custom, Self Consumption, Backup |
+
+Switches default to `restore_mode: DISABLED`, so nothing is written at boot. There is no `output` platform: the Balco register maps have no power setpoint to drive.
+
+The device confirms a write with an internal register address in the echo (for example 57001 → 2011). The ESPHome Modbus client does not compare that address with the request, but this still has to be confirmed on a real device.
+
+```yaml
+switch:
+  - platform: bluetti
+    bluetti_id: bluetti_hub
+    grid_feed_in:
+      name: ${name}_grid_feed_in
+
+number:
+  - platform: bluetti
+    bluetti_id: bluetti_hub
+    battery:
+      soc_low_limit:
+        name: ${name}_battery_soc_low_limit
+
+select:
+  - platform: bluetti
+    bluetti_id: bluetti_hub
+    working_mode:
+      name: ${name}_working_mode
+```
 
 ## Regenerating the register map
 

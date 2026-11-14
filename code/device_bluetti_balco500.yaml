@@ -205,10 +205,6 @@ sensor:
             name: ${name}_${bluetti_name}_battery_pack0_time_to_full
           time_to_empty:
             name: ${name}_${bluetti_name}_battery_pack0_time_to_empty
-      soc_low_limit:
-        name: ${name}_${bluetti_name}_battery_soc_low_limit
-      soc_high_limit:
-        name: ${name}_${bluetti_name}_battery_soc_high_limit
 
 text_sensor:
   - platform: bluetti
@@ -265,17 +261,34 @@ text_sensor:
       name: ${name}_${bluetti_name}_iot_serial
     iot_version:
       name: ${name}_${bluetti_name}_iot_version
-    working_mode:
-      name: ${name}_${bluetti_name}_working_mode
 
 binary_sensor:
   - platform: bluetti
     bluetti_id: ${bluetti_id}
-    system_power:
-      name: ${name}_${bluetti_name}_system_power
     grid_charging:
       name: ${name}_${bluetti_name}_grid_charging
-    grid_feed_in:
-      name: ${name}_${bluetti_name}_grid_feed_in
     modbus_connection:
       name: ${name}_${bluetti_name}_modbus_connection
+
+switch:
+  - platform: bluetti
+    bluetti_id: ${bluetti_id}
+    system_power:
+      name: ${name}_${bluetti_name}_system_power
+    grid_feed_in:
+      name: ${name}_${bluetti_name}_grid_feed_in
+
+number:
+  - platform: bluetti
+    bluetti_id: ${bluetti_id}
+    battery:
+      soc_low_limit:
+        name: ${name}_${bluetti_name}_battery_soc_low_limit
+      soc_high_limit:
+        name: ${name}_${bluetti_name}_battery_soc_high_limit
+
+select:
+  - platform: bluetti
+    bluetti_id: ${bluetti_id}
+    working_mode:
+      name: ${name}_${bluetti_name}_working_mode

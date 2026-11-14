@@ -1,6 +1,6 @@
 """BLUETTI Balco series (Balco 260, Balco 500) over Modbus TCP (or RTU).
 
-Native ESPHome component: a hub (`bluetti:`) plus the sensor / text_sensor / binary_sensor platforms. It sits on top of
+Native ESPHome component: a hub (`bluetti:`) plus the sensor / text_sensor / binary_sensor and switch / number / select platforms. It sits on top of
 the ESPHome `modbus` bus and `modbus_controller` (declared in the YAML), which poll the device; the entities come from
 the register table in registers.py, generated from the register library of hassio-bluetti-modbus; every platform
 rejects, at validation time, a key that the selected model does not have.

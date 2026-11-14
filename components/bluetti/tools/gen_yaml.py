@@ -13,7 +13,7 @@ registers = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(registers)
 
 OUT = HERE.parent.parent.parent / "code"
-PLATFORMS = ("sensor", "text_sensor", "binary_sensor")
+PLATFORMS = ("sensor", "text_sensor", "binary_sensor", "switch", "number", "select")
 
 
 def entity_name(path):

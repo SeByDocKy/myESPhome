@@ -21,7 +21,10 @@ Mapping rules (library field -> ESPHome platform):
   field(ENUM, Enum)                                -> text_sensor         (kind "states")
   field(ENUM, IntFlag)                             -> text_sensor         (kind "flags",   comma separated E codes)
   UINT16 / UINT32 bit masks without a flag enum    -> text_sensor         (kind "hex")
-  writable switch registers                        -> binary_sensor       (kind "bool"; write platforms come later)
+  field(UINT16, switch name) not writable          -> binary_sensor       (kind "bool")
+  field(UINT16, switch name), writable             -> switch              (kind "bool", written 1 / 0, FC 06)
+  field(UINT16, ...), writable=Range(min, max)     -> number              (kind "value", min / max / step 1)
+  field(ENUM, Enum), writable                      -> select              (kind "select", options = enum members)
 
 The BLUETTI registers are read with function code 03 (holding registers) and written with 06. Words of a 32 / 64 bit
 value come LOW WORD FIRST (the library says word_order="little"): ESPHome's U_DWORD_R / S_DWORD_R / U_QWORD_R.
@@ -316,7 +319,7 @@ def parse_enums(enum_dir):
 # Building the specs
 # ---------------------------------------------------------------------------
 def build_model(model, info, enums):
-    specs = {"sensor": {}, "text_sensor": {}, "binary_sensor": {}}
+    specs = {"sensor": {}, "text_sensor": {}, "binary_sensor": {}, "switch": {}, "number": {}, "select": {}}
     problems = []
     blocks = info["ranges"]
 
@@ -365,9 +368,18 @@ def build_model(model, info, enums):
                 continue
             if path[-1] in ("ac_output", "system_power", "grid_charging", "grid_feed_in"):
                 spec = dict(register=address, count=1, vtype="U_WORD", kind="bool", icon="mdi:toggle-switch-outline")
-                if writable:
-                    spec["writable"] = True
-                add("binary_sensor", path, spec)
+                add("switch" if writable else "binary_sensor", path, spec)
+                continue
+            if writable:
+                bounds = kw.get("writable")
+                if bounds != "validated" or count != 1 or width != 1:
+                    raise SystemExit(f"{model}.{name}: only 1-register numbers with a Range can be written")
+                spec = dict(register=address, count=1, vtype=vtype, kind="value", min=5, max=100, step=1,
+                            precision=0)
+                spec.update(presentation(kw.get("unit"), path))
+                spec.pop("state_class", None)
+                spec["icon"] = "mdi:battery-arrow-up" if path[-1].endswith("high_limit") else "mdi:battery-arrow-down"
+                add("number", path, spec)
                 continue
             spec = dict(register=address, count=count, vtype=vtype, kind="value", precision=precision_of(scale))
             if scale != 1.0:
@@ -376,8 +388,6 @@ def build_model(model, info, enums):
                 spec["offset"] = offset
                 spec["precision"] = max(spec["precision"], 0)
             spec.update(presentation(kw.get("unit"), path))
-            if writable:
-                spec["writable"] = {"min": 5, "max": 100} if kw.get("writable") == "validated" else True
             add("sensor", path, spec)
         elif t == "UINT64":
             add("text_sensor", path, dict(register=address, count=kw.get("count", 4), vtype="U_QWORD_R",
@@ -397,11 +407,13 @@ def build_model(model, info, enums):
                                               icon="mdi:alert-outline"))
             else:
                 states = {v: re.sub(r"(?<!^)(?=[A-Z])", " ", k) for k, v in enum["members"].items()}
-                spec = dict(register=address, count=1, vtype="U_WORD", kind="states", states=states,
-                            icon="mdi:information-outline")
                 if writable:
-                    spec["writable"] = True
-                add("text_sensor", path, spec)
+                    add("select", path, dict(register=address, count=1, vtype="U_WORD", kind="select",
+                                             options={label: v for v, label in sorted(states.items())},
+                                             icon="mdi:tune-variant"))
+                    continue
+                add("text_sensor", path, dict(register=address, count=1, vtype="U_WORD", kind="states",
+                                              states=states, icon="mdi:information-outline"))
         else:
             raise SystemExit(f"{model}.{name}: unsupported type {t}")
     return {"blocks": blocks, "max_span": info["max_span"], "specs": specs}, problems
