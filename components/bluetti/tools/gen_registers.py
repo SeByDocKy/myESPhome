@@ -41,7 +41,7 @@ MODELS = {
 }
 MODEL_NOTES = {
     "balco260": "validated on real hardware by the users of hassio-bluetti-modbus (Balco 260)",
-    "balco500": "captured on a real Balco 500 by a user of hassio-bluetti-modbus; not validated by me",
+    "balco500": "reported as confirmed on real hardware by the users of hassio-bluetti-modbus (3.6.0 and later)",
 }
 
 NUMERIC = {

@@ -10,13 +10,19 @@ Native ESPHome component for **BLUETTI plug & play batteries** (Balco 260, Balco
 | `model`   | Device     | Notes |
 |-----------|------------|-------|
 | `balco260`| Balco 260  | Register map validated by the community |
-| `balco500`| Balco 500  | Register map captured by the community; register 57001 is "System ON/OFF" |
+| `balco500`| Balco 500  | Register map reported as confirmed on real hardware by the community; register 57001 is "System ON/OFF" |
 
 Expansion packs are not supported yet.
 
 ## Device prerequisites
 
 Enable Modbus TCP on the device web page (admin login: the Bluetooth password, or blank) → *Settings → Modbus TCP*, port `502`.
+
+## Good practice
+
+- The device accepts **only one Modbus client at a time**: stop any other client (Home Assistant integration, another ESP) before connecting the ESP.
+- Never scan the register range: the firmware only answers reads inside its register blocks (the hub already stays inside them).
+- The official Home Assistant integration polls every 15 s; the 5 s / 60 s intervals used in the examples are the author's choice, not a value from BLUETTI.
 
 ## Architecture
 

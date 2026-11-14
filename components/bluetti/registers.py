@@ -17,8 +17,8 @@ MODEL_NAMES = {'balco260': 'Balco 260', 'balco500': 'Balco 500'}
 
 MODEL_NOTES = {'balco260': 'validated on real hardware by the users of hassio-bluetti-modbus '
              '(Balco 260)',
- 'balco500': 'captured on a real Balco 500 by a user of hassio-bluetti-modbus; '
-             'not validated by me'}
+ 'balco500': 'reported as confirmed on real hardware by the users of '
+             'hassio-bluetti-modbus (3.6.0 and later)'}
 
 REGISTERS = {'balco260': {'blocks': [(50001, 50019),
                          (50020, 50031),
