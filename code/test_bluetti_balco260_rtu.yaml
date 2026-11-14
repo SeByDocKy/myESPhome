@@ -1,0 +1,31 @@
+substitutions:
+  name: bluetti
+  bluetti_name: balco260
+  bluetti_id: bluetti_hub
+  bluetti_modbus_controller: modbus_bus
+  bluetti_modbus_address: "1"
+  bluetti_fast_update_interval: 5s
+  bluetti_slow_update_interval: 60s
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 9600
+
+modbus:
+  id: modbus_bus
+  uart_id: uart_bus
+
+packages:
+  bluetti: !include device_bluetti_balco260.yaml
