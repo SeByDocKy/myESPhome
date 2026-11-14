@@ -27,6 +27,48 @@ tcp_uart → modbus_tcp_uart → modbus_controller (fast) ─┐
 
 The hub knows, per model, which register blocks the device answers (reads must stay inside a block and below a maximum span), and splits the read ranges accordingly. Slow-changing entities (versions, serial numbers, energy counters, settings) are polled by the optional slow controller.
 
+## Modbus TCP wiring
+
+Real Modbus TCP (MBAP header) is provided by `modbus_tcp_uart` on top of `tcp_uart`. Both are still ESPHome pull requests, so they are pulled in with `external_components`:
+
+```yaml
+external_components:
+  - source: github://pr#20061
+    components: [modbus_tcp_uart]
+    refresh: 1h
+  - source: github://pr#20198
+    components: [ble_nus, tcp_uart, uart, usb_cdc_acm, usb_uart]
+    refresh: 1h
+  - source: github://SeByDocKy/myESPhome
+    components: [bluetti]
+
+tcp_uart:
+  - id: bluetti_link
+    host: 192.168.1.50      # IP address of the Bluetti battery
+    port: 502
+
+modbus_tcp_uart:
+  - id: bluetti_uart
+    tcp_uart_id: bluetti_link
+
+modbus:
+  - id: modbus_bluetti
+    uart_id: bluetti_uart
+    turnaround_time: 100ms
+
+modbus_controller:
+  - id: fast_modbus_controller
+    address: 1
+    modbus_id: modbus_bluetti
+    update_interval: 5s
+  - id: slow_modbus_controller
+    address: 1
+    modbus_id: modbus_bluetti
+    update_interval: 60s
+```
+
+Then add the `bluetti:` hub and the platforms as shown below. The same hub also works on a plain RS485 `uart` + `modbus` bus if a model exposes one.
+
 ## Configuration
 
 ```yaml
