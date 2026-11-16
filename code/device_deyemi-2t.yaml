@@ -135,9 +135,9 @@ output:
   - platform: deyemi
     deyemi_id: deye1
     power_persistent:
-      id: ${name}_power_persistent_output
+      id: ${deyemi_name}_power_persistent_output
     power_non_persistent:
-      id: ${name}_power_non_persistent_output
+      id: ${deyemi_name}_power_non_persistent_output
       
 
 # button:
