@@ -1,0 +1,407 @@
+# deyemi
+
+Native ESPHome component for **DEYE microinverters, GEN3 and GEN4 alike**,
+read and controlled over their local TCP interface (Solarman V5 framing).
+"deyemi" = "Deye MIcroinverter" -- named without a generation number on
+purpose, because both generations turn out to share the same register map
+(see "Why one component for two generations" below).
+
+## Compatible models
+
+- **2 MPPT** (`model: deye_2mppt`):
+  - GEN3: SUN600G3-EU-230, SUN800G3-EU-230, SUN1000G3-EU-230
+  - GEN4: SUN-M60G4-EU-Q0, SUN-M80G4-EU-Q0, SUN-M100G4-EU-Q0
+- **4 MPPT** (`model: deye_4mppt`):
+  - GEN3: SUN1300G3-EU-230, SUN1600G3-EU-230, SUN2000G3-EU-230
+  - GEN4: SUN-M130G4-EU-Q0, SUN-M160G4-EU-Q0, SUN-M180G4-EU-Q0,
+    SUN-M200G4-EU-Q0, SUN-M220G4-EU-Q0
+
+This does **not** cover TSUN/TSOL microinverters -- those have a genuinely
+different register map and are handled by this author's separate
+[`tsungen3`](../tsungen3) component (GEN3 PLUS only).
+
+## Why one component for two generations
+
+Deye's GEN3 and GEN4 microinverters are marketed and documented as distinct
+product lines, so a first instinct (and this author's original plan) was to
+split them into `deyegen3`/`deyegen4` components, mirroring how `tsungen3`
+is scoped to TSUN's GEN3 PLUS specifically. That plan changed once the
+research for GEN4 turned up direct evidence it wasn't warranted here:
+
+In [StephanJoubert/home_assistant_solarman discussion #549](https://github.com/StephanJoubert/home_assistant_solarman/discussions/549),
+user `flosch-dev` got a SUN-M160G4-EU-Q0 (GEN4) fully working by taking the
+**GEN3** `deye_2mppt.yaml` template and adapting it to 4 trackers -- posting
+the complete working register list, which matches the GEN3 lookup file's
+addresses field-for-field (PV1-4 at `0x006D`-`0x0074`, Running Status at
+`0x003B`, Total AC Power at `0x0056`/`0x0057`, Active Power Regulations at
+`0x0028`, etc.). User `hellafritz` separately confirmed the same GEN3
+template working on a SUN-M80G4-EU-Q0. Two independent real-hardware reports
+saying "the GEN3 register map works unmodified on my GEN4 unit" was enough
+to treat GEN3 and GEN4 as one protocol rather than two -- hence a single
+`deyemi` component instead of a pair. The only thing that actually varies
+between individual models is the MPPT count (2 or 4), which this component
+already had to handle per-generation anyway (`model:` / auto-detection).
+
+## ⚠️ Requires the data logger's own serial number, not the inverter's
+
+Confirmed independently on **both** generations, not just by analogy: on
+this author's TSUN hardware (different brand, same V5 transport), the
+default `sn` of `0` got no response at all in client_mode. For
+Deye GEN4 specifically, multiple users hit and solved the exact same issue:
+*"User Serial Number from the Logger, not from the Inverter!"* (confirmed
+working, SUN-M80G4-EU-Q0), and *"I used the inverter serial number instead
+of the device serial number from the web interface..."* (SUN-M160G4-EU-Q0,
+fixed by switching to the correct one). Set `sn` to the **data
+logger's own serial number** -- found on the logger/WiFi module itself,
+readable from the inverter's local web/AP interface -- not the serial number
+printed on the inverter's own nameplate.
+
+## ⚠️ Blind implementation -- not tested by this author's own hardware
+
+This author has no Deye unit of either generation. Every register address,
+scale factor and the 32-bit word order come from the sources above, not
+from a packet capture of this author's own hardware -- see "Where this
+register map comes from" implicit in the sections above, and "Known
+unknowns" below for exactly what's most likely to still need correcting.
+The component has since been **field-tested successfully by several users**
+on real hardware (including the write path, the `0x0035` / `0x0037` registers
+and the readback sensors); please keep reporting anything that behaves
+differently on your model.
+
+## Protocol
+
+Same transport as `tsungen3`: **Solarman V5** framing (start byte, length,
+control code, sequence, 4-byte logger serial, checksum, end byte) wrapping a
+standard **Modbus RTU** frame, over plain TCP port 8899 ("client_mode" --
+the ESP connects directly to the inverter's own IP, no cloud/DNS
+redirection involved). Solarman is a third-party WiFi data-logger module
+used in white-label form across brands (Deye, TSUN, Sofar, Solis, ZCS
+Azzurro, ...) and, as it turns out for Deye, across generations too -- the
+*transport* is identical everywhere; the *register map* usually differs by
+brand but not, here, by Deye generation.
+
+Each poll cycle issues a single Modbus "Read Holding Registers" (function
+`0x03`) request covering `0x0001`-`0x007D` (125 registers) in one shot.
+
+References:
+- Register map, scaling (GEN3 source): [StephanJoubert/home_assistant_solarman](https://github.com/StephanJoubert/home_assistant_solarman)
+  (`custom_components/solarman/inverter_definitions/deye_2mppt.yaml` and
+  `deye_4mppt.yaml`)
+- 32-bit word order: the same project's `custom_components/solarman/parser.py`
+  (`try_parse_unsigned`, used for "rule 3"/"rule 1" fields) -- confirms
+  low-word-first by showing the actual register-combining code, not just the
+  YAML field labels
+- GEN4 confirmation of the same register list: [home_assistant_solarman discussion #549](https://github.com/StephanJoubert/home_assistant_solarman/discussions/549)
+  (comments by `flosch-dev` and `hellafritz`, Aug 2024)
+- Model datasheets: [SUN-M60/80/100G4-EU-Q0](https://www.deyeinverter.com/deyeinverter/2025/04/29/datasheet_sun-m60-80-100g4-eu-q0_250427_en.pdf),
+  [SUN-M130/160/180/200/220G4-EU-Q0](https://www.deyeinverter.com/deyeinverter/2024/05/15/datasheet_sun-m130-160-180-200-220g4-eu-q0_240513_en.pdf)
+- Frame structure: <https://pysolarmanv5.readthedocs.io/en/stable/solarmanv5_protocol.html>
+
+## Scope
+
+- Read-only telemetry: grid voltage/current/frequency, radiator temperature,
+  rated power, current AC output power, PV1-4 voltage/current (power is
+  *computed* as voltage × current -- no PV per-string power register exists
+  in the register map, unlike `tsungen3`), daily/total AC energy.
+- `inverter_status` (`text_sensor`) publishes a decoded string --
+  `Stand-by`/`Self-check`/`Normal`/`Warning`/`Fault` -- rather than raw hex.
+  No separate alarm/fault bitmask register is known to exist for this
+  protocol, so there's no `event_alarms`/`event_faults` equivalent here
+  (unlike `tsungen3`).
+- **Write path**: four entities (a `number` and an `output` for each register) write the inverter's power limit, always
+  with Modbus function `0x10` (Write Multiple Registers, quantity 1) --
+  **not** `0x06` (Write Single Register). Confirmed by field testing on a
+  real M100-G4-EU-Q0: `0x06` gets rejected at the V5 envelope level (status
+  `0x05`, "inverter did not answer"), never reaching the inverter's Modbus
+  stack. This matches an independently documented Deye/Sunsynk quirk
+  (https://github.com/SunReye/SunReye pull #253): these inverters ignore
+  `0x06` on settings registers.
+
+  | Entity | Platform | Register | Persisted in the inverter? |
+  |---|---|---|---|
+  | `power_persistent` | `number` | `0x0028` | **Yes** (flash/EEPROM) |
+  | `power_non_persistent` | `number` | `0x0035` | **No** (RAM only) |
+  | `register_0x37_persistent` | `number` | `0x0037` | **Yes** (flash/EEPROM), raw value |
+  | `power_persistent` | `output` | `0x0028` | **Yes** (flash/EEPROM) |
+  | `power_non_persistent` | `output` | `0x0035` | **No** (RAM only) |
+
+  - **Range / scaling**: percent of rated power, 0-120% (`output`'s `0.0-1.0`
+    maps to `0-120%`, so `1.0` = `120%`, not `100%`). For `0x0028`, a
+    GEN3-specific register table
+    (https://github.com/dmaj/deye-controller's `sun_x_g3_registers.py`)
+    independently confirms the register, the FC16-quantity-1 write pattern
+    and the **0-120%** range. The >100% headroom is consistent with overpaneled
+    installs (DC array rated above the inverter's AC nameplate). At least one
+    GEN4 model (SUN-M200G4-EU-Q0) is documented to floor `0x0028` at 1%
+    rather than reaching a true 0% output.
+  - ⚠️ **`power_persistent` (`0x0028`, number and output) is PERSISTENT.**
+    Confirmed in the field: after the microinverter restarts (e.g. at
+    sunrise), it comes back up with the last value written, not with 100%.
+    Third-party projects state the same (e.g.
+    [SchulteDev/deye-microinverter-power-limit](https://github.com/SchulteDev/deye-microinverter-power-limit):
+    *"Register 40 writes are persisted to EEPROM"*, with a wear warning for
+    anything that writes continuously). Consequences:
+    - Do **not** drive them from a fast control loop (zero-injection PID,
+      etc.) that rewrites them every second -- EEPROM/flash endurance is
+      finite (typically 100k-1M cycles, not documented by Deye for this
+      register). Prefer coarse steps (e.g. 5%), writes only on change, and
+      several tens of seconds between writes.
+    - The component skips a `0x0028` write when the register is known to
+      already hold the requested value (it is read on every poll), so
+      re-sending an unchanged setpoint costs nothing -- but every *distinct*
+      value is a real write.
+    - After a restart the inverter keeps the last limit, so remember to raise
+      it again if you throttled it (the `power_persistent` number shows the
+      real register value after the first poll).
+  - **`power_non_persistent` (`0x0035`) is the one to use for automatic /
+    frequent regulation**: its non-persistence was **confirmed by the
+    component author's analysis of a Deye G4 micro-inverter firmware,
+    decompiled with Ghidra** -- this register is not written to EEPROM/flash,
+    so it causes no flash wear and the inverter falls back after a restart
+    (`0x0028`, by contrast, is persisted). It is also reported to allow a true 0% output
+    ([home-assistant discussion #3354](https://github.com/orgs/home-assistant/discussions/3354),
+    SUN-M200G4-EU-Q0). **Confirmed in field testing by several users**: it
+    behaves as described, with the same 0-120 % range as `0x0028` but a
+    **different unit: 0.01 %/unit** (raw 10000 = 100 %, raw 12000 = 120 %;
+    `0x0028` is 1 %/unit). The component multiplies the percentage by 100
+    before writing it. Its value is lost after an inverter restart. No
+    redundant-write filtering is applied to it (it is RAM only, nothing to
+    wear). In Deye's older public Modbus document (rev. V118) address 53 is
+    listed as "Hardware Matching", which does not match this observed
+    behaviour. The two registers are independent: no information is available
+    on how the inverter combines them when both are set, so prefer using one.
+    The `power_non_persistent` number is optimistic only (no readback of `0x0035`): it shows its default after an ESP reboot until set again. To see what the inverter actually holds, use the read-only `inverter:` diagnostic sensors below.
+  - **`register_0x37_persistent` (`0x0037`, number only)**: writes the **raw
+    value** of register 55. From the component author's firmware analysis (done
+    with Claude Code): it is **persistent** (stored in the inverter's
+    non-volatile memory), its factory default is **10000**, and its effective
+    range is **8000-12000** (centred on 10000, *not* 0-10000): at boot, any
+    stored value outside `[8000; 12000]` is reset to `10000`. The number is
+    therefore bounded to 8000-12000 (step 1) and never writes outside it. Same
+    write path as the others (FC16, quantity 1), the real register value is
+    read back on every poll (so it is correct after an ESP reboot), and a write
+    is skipped when the register already holds the requested value (flash
+    wear). **Confirmed in field testing by several users**: the inverter
+    accepts the write and keeps the value. In Deye's older public Modbus
+    document (rev. V118) address 55 is listed as "Factory only", which does
+    not match this observed behaviour.
+- **State feedback sensors** (`sensor` platform, `inverter:` block,
+  diagnostic category): `power_persistent` (register `0x0028`),
+  `power_non_persistent` (`0x0035`) and `register_0x37_persistent` (`0x0037`)
+  publish the register values the inverter actually holds, read on every poll
+  from the block that is already fetched (no extra network traffic). `0x0028`
+  is published as-is, in %, `0x0035` is converted from its 0.01 % unit to %; `0x0037` is published as the **raw** register value (8000-12000,
+  default 10000), with no unit. Handy to log what really happens after a
+  write or an inverter restart -- notably to confirm that `0x0035` is lost and
+  `0x0028`/`0x0037` are kept. Name them with a `_state` suffix so they don't
+  clash with the number of the same name.
+- No reset/AT+ equivalent is known for this protocol -- no `button`
+  platform.
+- All blocking network I/O runs on a dedicated FreeRTOS background task --
+  `update()`/`set_power_percent()`/`set_power_non_persistent()` only enqueue a job and return almost
+  instantly; `loop()` drains the result queue on the main thread, which is
+  the only place `publish_state()`/`ESP_LOGx` are called for poll/write
+  outcomes. See `tsungen3`'s README for the full rationale and the
+  real-hardware `loop_time` measurements that motivated this pattern.
+- `MULTI_CONF` is supported: several `deyemi:` blocks (one per inverter,
+  each with its own IP, GEN3 or GEN4 or a mix) can coexist on the same ESP.
+
+### 2-MPPT vs 4-MPPT: auto-detection
+
+A `model:` option (`auto` / `deye_2mppt` / `deye_4mppt`, default `auto`)
+controls whether a `dc_channels` entry for `pv2` or `pv3` (the 4-MPPT
+variant's 3rd/4th strings) ever publishes. Note there is deliberately no
+separate "GEN3" vs "GEN4" choice here -- the register map doesn't change
+between them, so the MPPT count is the only thing that actually matters.
+
+With `model: auto` (the default), the hub reads register `0x0012` ("MPPT
+number and phases") on the first successful poll: this register is
+documented by Deye's own Modbus protocol spec as read-only, high byte = MPPT
+count (1-8), low byte = phase count (1-3) -- e.g. `0x0503` means 5 MPPTs, 3
+phases. A decoded count of 3 or more is treated as the 4-MPPT variant,
+anything else (1-2, or a register the unit doesn't populate) as 2-MPPT, the
+conservative default -- worst case you're just missing the `pv2`/`pv3`
+`dc_channels` entries rather than publishing garbage values read from
+registers a 2-MPPT unit doesn't implement. The startup log line "MPPT count
+register (0x0012) read as N -- detected as ..." tells you what it saw and
+decided; if it ever picks the wrong variant on your unit, set `model:`
+explicitly to override it. Note this is a runtime check only: since
+`model: auto` isn't resolved until the first successful poll, YAML
+validation does **not** cross-check the number of `dc_channels` entries
+against it -- declaring `pv2`/`pv3` on what turns out to be 2-MPPT hardware
+isn't rejected, those channels just never publish.
+
+An earlier version of this detection instead substring-matched a guessed
+model number inside the field at `0x0003`-`0x0007`. That field is actually
+documented by Deye's protocol spec as the unit's 10-character **serial
+number** ("SN byte 01".."SN byte 10"), not a model-name string -- an
+arbitrary alphanumeric string with no guaranteed relationship to the model.
+That mismatch caused a real misdetection in the field: a genuinely 2-MPPT
+Deye SUN-M100G4-EU-Q0 was classified as 4-MPPT because its serial number
+happened to contain one of the matched digit substrings. The serial number
+is still decoded and logged ("Serial number read as ...") purely as a
+diagnostic aid, but no longer used for model detection.
+
+## Verification notes
+
+- ~~32-bit register word order~~ **Fixed**: `Total Production`
+  (`0x003F`/`0x0040`) and `Total AC Output Power` (`0x0056`/`0x0057`) were
+  previously decoded high-word-first, an unconfirmed guess. That guess was
+  wrong -- it produced a real bogus `ac.power` reading in the field (over 5
+  million watts). Fixed to low-word-first, confirmed against
+  [StephanJoubert/home_assistant_solarman](https://github.com/StephanJoubert/home_assistant_solarman)'s
+  actual `parser.py` (not just its YAML field labels): `try_parse_unsigned`
+  iterates a field's `registers` list in order and shifts each successive
+  register 16 bits further left, so the first (numerically lower) register
+  address is always the low word.
+- **Registers `0x0035` (`power_non_persistent`) and `0x0037`
+  (`register_0x37_persistent`)**: implemented from the author's Ghidra
+  analysis of a decompiled Deye G4 micro-inverter firmware, then **confirmed
+  in field testing by several users** (see the write-path section). Whether
+  they exist/work on GEN3 units has not been reported.
+- **`sn` mechanism**: the *requirement* (real logger serial, not
+  the inverter's) is confirmed for GEN4 by real users (see the warning
+  above); *why* the default of `0` gets rejected, and whether GEN3 behaves
+  identically, was never explained by anyone, just worked around.
+- **`modbus_address`**: defaulted to `1`, matching every other
+  Solarman-based device seen so far (TSUN included) -- not explicitly
+  confirmed for either Deye generation in the sources this component is
+  based on.
+- **Temperature offset**: implemented as `(raw - 1000) * 0.01 °C`, a common
+  Deye convention per the source lookup file -- not verified against a real
+  reading on either generation.
+- **Coverage across the full model lineup**: GEN4 confirmations exist only
+  for SUN-M160G4 (4-MPPT) and SUN-M80G4 (2-MPPT) specifically; the rest of
+  the GEN4 lineup (M60G4/M100G4, M130G4/M180G4/M200G4/M220G4) and the entire
+  GEN3 lineup are expected to share the same firmware family but weren't
+  each individually confirmed.
+
+## Example configuration
+
+```yaml
+external_components:
+  - source: "github://SeByDocKy/myESPhome"
+    components: [deyemi]
+    refresh: 10s
+
+  # Local checkout instead (e.g. while developing the component itself):
+  # - source:
+  #     type: local
+  #     path: components
+  #   components: [deyemi]
+
+deyemi:
+  - id: deye1
+    ip_address: 192.168.1.60   # fixed IP of the inverter
+    ip_port: 8899               # client-mode plain-TCP port
+    modbus_address: 1
+    sn: 2408xxxxx   # the DATA LOGGER's own serial number -- not the inverter's, see warning above
+    model: auto                 # or "deye_2mppt" / "deye_4mppt" to override -- works for GEN3 and GEN4 alike
+    poll_interval: 30s
+
+  # Second Deye microinverter on the same ESP, GEN3 or GEN4 (MULTI_CONF):
+  # - id: deye2
+  #   ip_address: 192.168.1.61
+  #   poll_interval: 30s
+
+sensor:
+  - platform: deyemi
+    deyemi_id: deye1
+    # One entry per MPPT string, 0-indexed (pv0, pv1, ...) -- matches this
+    # author's hms/hmsw components. 2-MPPT hardware only needs pv0/pv1; the
+    # 4-MPPT entries below are ignored (never published) on 2-MPPT units.
+    dc_channels:
+      - pv0:
+          voltage:
+            name: "Deye1 PV0 Voltage"
+          current:
+            name: "Deye1 PV0 Current"
+          power:
+            name: "Deye1 PV0 Power"
+      - pv1:
+          voltage:
+            name: "Deye1 PV1 Voltage"
+          current:
+            name: "Deye1 PV1 Current"
+          power:
+            name: "Deye1 PV1 Power"
+      - pv2:
+          voltage:
+            name: "Deye1 PV2 Voltage"
+          current:
+            name: "Deye1 PV2 Current"
+          power:
+            name: "Deye1 PV2 Power"
+      - pv3:
+          voltage:
+            name: "Deye1 PV3 Voltage"
+          current:
+            name: "Deye1 PV3 Current"
+          power:
+            name: "Deye1 PV3 Power"
+    ac:
+      voltage:
+        name: "Deye1 Grid Voltage"
+      current:
+        name: "Deye1 Grid Current"
+      frequency:
+        name: "Deye1 Grid Frequency"
+      power:
+        name: "Deye1 Current Power"
+      energy_today:
+        name: "Deye1 AC Daily Energy"
+      energy_total:
+        name: "Deye1 AC Total Energy"
+    inverter:
+      temperature:
+        name: "Deye1 Temperature"
+      rated_power:
+        name: "Deye1 Rated Power"
+      power_persistent:                # register 0x0028 readback (%)
+        name: "Deye1 Power Persistent State"
+      power_non_persistent:            # register 0x0035 readback (%)
+        name: "Deye1 Power Non Persistent State"
+      register_0x37_persistent:        # register 0x0037 readback, RAW value
+        name: "Deye1 Register 0x37 Persistent State"
+
+text_sensor:
+  - platform: deyemi
+    deyemi_id: deye1
+    inverter_status:
+      name: "Deye1 Inverter Status"
+
+number:
+  - platform: deyemi
+    deyemi_id: deye1
+    power_persistent:           # register 0x0028, persisted (flash wear!)
+      name: "Deye1 Power Persistent"
+    power_non_persistent:       # register 0x0035, RAM only
+      name: "Deye1 Power Non Persistent"
+    register_0x37_persistent:    # register 0x0037, raw value 8000-12000, persistent
+      name: "Deye1 Register 0x37 Persistent"
+
+output:
+  - platform: deyemi
+    deyemi_id: deye1
+    power_persistent:           # register 0x0028, persisted (flash wear!)
+      id: deye1_power_persistent_output
+    power_non_persistent:       # register 0x0035, RAM only
+      id: deye1_power_non_persistent_output
+```
+
+## Directory layout
+
+```
+deyemi/
+├── __init__.py          # hub config schema + codegen
+├── deyemi.h/.cpp         # hub: TCP client, Solarman V5 framing, Modbus CRC/parsing
+├── sensor/
+│   └── __init__.py
+├── text_sensor/
+│   └── __init__.py
+├── number/
+│   └── __init__.py      # power_persistent (0x0028) + power_non_persistent (0x0035), numbers
+├── output/
+│   └── __init__.py      # power_persistent (0x0028) + power_non_persistent (0x0035), FloatOutputs
+└── README.md
+```
