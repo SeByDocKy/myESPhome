@@ -110,8 +110,9 @@ static const uint16_t REG_PV4_CURRENT = 0x0074;
 // it is NOT persisted to EEPROM/flash (RAM only, so it falls back after an inverter restart and
 // costs no flash wear), and it is reported (home-assistant/discussions#3354,
 // Deye SUN-M200G4-EU-Q0) to allow throttling down to 0% unlike 0x0028 which
-// floors at 1%. Unit/range are not documented by Deye; same 1 %/unit, 0-120
-// as 0x0028 -- confirmed in field testing by several users. 0x0028 is exposed as
+// floors at 1%. Unit: 0.01 %/unit (raw 10000 = 100 %, raw 12000 = 120 %),
+// unlike 0x0028 which is 1 %/unit -- reported in field testing (writing 1 %/unit
+// values lowered the power but could never raise it back). 0x0028 is exposed as
 // `power_persistent` (number/output), 0x0035 as `power_non_persistent`.
 static const uint16_t REG_POWER_NON_PERSISTENT = 0x0035;
 

@@ -161,8 +161,10 @@ References:
     (`0x0028`, by contrast, is persisted). It is also reported to allow a true 0% output
     ([home-assistant discussion #3354](https://github.com/orgs/home-assistant/discussions/3354),
     SUN-M200G4-EU-Q0). **Confirmed in field testing by several users**: it
-    behaves as described, with the same unit/scale and range as `0x0028`
-    (1 %/unit, 0-120), and its value is lost after an inverter restart. No
+    behaves as described, with the same 0-120 % range as `0x0028` but a
+    **different unit: 0.01 %/unit** (raw 10000 = 100 %, raw 12000 = 120 %;
+    `0x0028` is 1 %/unit). The component multiplies the percentage by 100
+    before writing it. Its value is lost after an inverter restart. No
     redundant-write filtering is applied to it (it is RAM only, nothing to
     wear). In Deye's older public Modbus document (rev. V118) address 53 is
     listed as "Hardware Matching", which does not match this observed
@@ -188,7 +190,7 @@ References:
   `power_non_persistent` (`0x0035`) and `register_0x37_persistent` (`0x0037`)
   publish the register values the inverter actually holds, read on every poll
   from the block that is already fetched (no extra network traffic). `0x0028`
-  and `0x0035` are published as-is, in %; `0x0037` is published as the **raw** register value (8000-12000,
+  is published as-is, in %, `0x0035` is converted from its 0.01 % unit to %; `0x0037` is published as the **raw** register value (8000-12000,
   default 10000), with no unit. Handy to log what really happens after a
   write or an inverter restart -- notably to confirm that `0x0035` is lost and
   `0x0028`/`0x0037` are kept. Name them with a `_state` suffix so they don't

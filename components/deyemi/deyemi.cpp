@@ -635,12 +635,12 @@ void DeyeMiComponent::handle_live_block_(const std::vector<uint8_t> &regs, uint1
                                               0.01f);
   if (this->rated_power_sensor_ != nullptr)
     this->rated_power_sensor_->publish_state(get_u16_(regs, REG_RATED_POWER, start_reg) * 0.1f);
-  // Raw readback of the power-limit registers. 0x0035's read semantics are
-  // undocumented by Deye (1 %/unit like 0x0028, field-tested), 0x0037 is published raw.
+  // Raw readback of the power-limit registers. 0x0035 is in 0.01 %/unit
+  // (published here as %, i.e. raw / 100); 0x0028 in 1 %/unit, 0x0037 is published raw.
   if (this->power_persistent_sensor_ != nullptr)
     this->power_persistent_sensor_->publish_state(get_u16_(regs, REG_ACTIVE_POWER_REGULATION, start_reg));
   if (this->power_non_persistent_sensor_ != nullptr)
-    this->power_non_persistent_sensor_->publish_state(get_u16_(regs, REG_POWER_NON_PERSISTENT, start_reg));
+    this->power_non_persistent_sensor_->publish_state(get_u16_(regs, REG_POWER_NON_PERSISTENT, start_reg) * 0.01f);
   if (this->register_0x37_persistent_sensor_ != nullptr)
     this->register_0x37_persistent_sensor_->publish_state(get_u16_(regs, REG_0X37_PERSISTENT, start_reg));
   if (this->ac_power_sensor_ != nullptr)
@@ -702,6 +702,8 @@ void DeyeMiComponent::dump_config() {
 void DeyeMiComponent::set_power_percent(float percent) { this->write_power_(percent, REG_ACTIVE_POWER_REGULATION); }
 
 void DeyeMiComponent::set_power_non_persistent(float percent) {
+  // 0x0035 is in 0.01 %/unit (10000 = 100 %), unlike 0x0028 (1 %/unit):
+  // field-reported -- with 1 %/unit the power could be lowered but never raised.
   this->write_power_(percent, REG_POWER_NON_PERSISTENT);
 }
 
@@ -732,13 +734,15 @@ void DeyeMiComponent::write_power_(float percent, uint16_t reg) {
   // Register 0x0028's range is 0-120% (confirmed independently by
   // https://github.com/dmaj/deye-controller's sun_x_g3_registers.py,
   // low_limit=0/high_limit=120, GEN3) -- not 0-100%. >100% supports
-  // overpaneled installs. 0x0035 shares it (confirmed in field testing).
+  // overpaneled installs. 0x0035 shares the 0-120% range but is in 0.01 %/unit.
   if (percent > 120.0f)
     percent = 120.0f;
 
   // Direct 1%-per-unit value. 0x0028 is documented to floor at 1% on at least
   // the SUN-M200G4-EU-Q0 -- not something this component works around.
-  uint16_t reg_value = (uint16_t) lroundf(percent);
+  // 0x0035 uses 0.01 %/unit (percent * 100, 0-12000); 0x0028 uses 1 %/unit.
+  const float scale = (reg == REG_POWER_NON_PERSISTENT) ? 100.0f : 1.0f;
+  uint16_t reg_value = (uint16_t) lroundf(percent * scale);
 
   // 0x0028 is persistent (inverter non-volatile memory): skip the write if it
   // already holds this value, to avoid needless EEPROM wear (e.g. a PID
