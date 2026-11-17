@@ -328,6 +328,7 @@ class DeyeMiComponent : public PollingComponent {
   int32_t last_reg37_{-1};
 
   void write_power_(float percent, uint16_t reg);
+  bool ensure_queues_();
 };
 
 #ifdef USE_NUMBER

@@ -416,6 +416,20 @@ bool DeyeMiComponent::connect_and_transact_(const std::vector<uint8_t> &request,
 // Component lifecycle
 // ---------------------------------------------------------------------------
 
+// Creates the job/result queues once. Called from setup() AND from every
+// enqueue path: other components may drive our outputs/numbers during THEIR
+// OWN setup(), before ours has run (e.g. a `fan: speed` restoring its state
+// through output_combined -> power_non_persistent). xQueueSend() on a NULL
+// queue is an assert/abort -> boot loop. Jobs queued that early are simply
+// executed once the background task starts.
+bool DeyeMiComponent::ensure_queues_() {
+  if (this->job_queue_ == nullptr)
+    this->job_queue_ = xQueueCreate(4, sizeof(Job));
+  if (this->result_queue_ == nullptr)
+    this->result_queue_ = xQueueCreate(4, sizeof(JobResult *));
+  return this->job_queue_ != nullptr && this->result_queue_ != nullptr;
+}
+
 void DeyeMiComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up Deye GEN3/GEN4 microinverter component...");
   if (this->sn_ == 0) {
@@ -429,9 +443,7 @@ void DeyeMiComponent::setup() {
     this->model_resolved_ = true;
   }
 
-  this->job_queue_ = xQueueCreate(4, sizeof(Job));
-  this->result_queue_ = xQueueCreate(4, sizeof(JobResult *));
-  if (this->job_queue_ == nullptr || this->result_queue_ == nullptr) {
+  if (!this->ensure_queues_()) {
     ESP_LOGE(TAG, "Failed to create job/result queues");
     this->mark_failed();
     return;
@@ -446,12 +458,16 @@ void DeyeMiComponent::setup() {
 
 void DeyeMiComponent::update() {
   Job job{JobType::POLL_READ};
+  if (!this->ensure_queues_())
+    return;
   if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
     ESP_LOGW(TAG, "Background task busy, skipping this poll cycle");
   }
 }
 
 void DeyeMiComponent::loop() {
+  if (this->result_queue_ == nullptr)
+    return;
   JobResult *result = nullptr;
   while (xQueueReceive(this->result_queue_, &result, 0) == pdTRUE) {
     if (result != nullptr) {
@@ -723,6 +739,8 @@ void DeyeMiComponent::set_register_0x37_persistent(float raw_value) {
   }
 
   Job job{JobType::WRITE_POWER_PERCENT, reg_value, REG_0X37_PERSISTENT};
+  if (!this->ensure_queues_())
+    return;
   if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
     ESP_LOGW(TAG, "Background task busy, dropped register 0x0037 write (%u)", reg_value);
   }
@@ -755,6 +773,8 @@ void DeyeMiComponent::write_power_(float percent, uint16_t reg) {
   }
 
   Job job{JobType::WRITE_POWER_PERCENT, reg_value, reg};
+  if (!this->ensure_queues_())
+    return;
   if (xQueueSend(this->job_queue_, &job, 0) != pdTRUE) {
     ESP_LOGW(TAG, "Background task busy, dropped power write to 0x%04X (%.1f%%)", reg, percent);
   }
