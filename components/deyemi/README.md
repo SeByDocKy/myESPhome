@@ -256,9 +256,18 @@ diagnostic aid, but no longer used for model detection.
   address is always the low word.
 - **Registers `0x0035` (`power_non_persistent`) and `0x0037`
   (`register_0x37_persistent`)**: implemented from the author's Ghidra
-  analysis of a decompiled Deye G4 micro-inverter firmware, then **confirmed
-  in field testing by several users** (see the write-path section). Whether
-  they exist/work on GEN3 units has not been reported.
+  analysis of a decompiled Deye G4 micro-inverter firmware, then **fully
+  validated in field testing by a user with six inverters**: `number` and
+  `output` entities for both power registers behave correctly, including
+  raising the power back up after lowering it (this is what exposed the
+  `0x0035` unit, **0.01 %/unit**, see the write-path section). Whether they
+  exist/work on GEN3 units has not been reported.
+- **Boot-time writes**: a `fan: speed` restoring its state through
+  `output_combined` drives the deyemi outputs during *its own* `setup()`,
+  possibly before the deyemi hub has been set up. The hub's job queues are
+  created on demand, so such an early write is queued and sent once the
+  background task starts (previously this crashed in a boot loop with
+  `xQueueGenericSend` assert). Field-validated: no more crashes.
 - **`sn` mechanism**: the *requirement* (real logger serial, not
   the inverter's) is confirmed for GEN4 by real users (see the warning
   above); *why* the default of `0` gets rejected, and whether GEN3 behaves
