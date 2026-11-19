@@ -7,6 +7,7 @@ substitutions:
   my_second: '59'
   baud_rate_0: 115200
   baud_rate_1: 9600
+  pzem_address: '1'
   
   
 globals:
@@ -17,11 +18,12 @@ globals:
 esphome:
   name: ${name}
   comment: ${device_description}
-  min_version: 2026.1.0
+  min_version: 2026.10.0
 
 esp32:
   board: esp32dev
   cpu_frequency: 240Mhz
+  # toolchain: platformio
   framework:
     type: esp-idf
     version: 'dev'
@@ -53,7 +55,7 @@ ota:
   
 logger:
   # hardware_uart: USB_SERIAL_JTAG
-  level: verbose
+  level: debug
   # level: none
     
 external_components:
@@ -79,11 +81,12 @@ uart:
     tx_pin: GPIO33
     rx_pin: GPIO32
     baud_rate: ${baud_rate_1}
-    stop_bits: 2
+    stop_bits: 2  #stop_bits: 2 for an ESP32, comment for an ESP32 S3
     
 modbus:
   - id: modbus_1
     uart_id: uart_1
+    turnaround_time: 100ms
   
 i2c:
   id: i2c_bus
@@ -147,6 +150,7 @@ sensor:
   - platform: pzemac
     modbus_id: modbus_1
     update_interval: '1500ms'
+    address: ${pzem_address}
     power:
       name: ${name}_power
       id: power
@@ -189,10 +193,20 @@ sensor:
     accuracy_decimals: 2
     on_value:
       then:
-        - output.set_level:
-            id: gp8413_output
-            level: !lambda |-
-               return x;
+        - if:
+            condition:
+              fan.is_off: command
+            then:
+              - output.set_level:
+                  id: gp8413_output
+                  level: !lambda |-
+                    return x;
+    # on_value:
+      # then:
+        # - output.set_level:
+            # id: gp8413_output
+            # level: !lambda |-
+               # return x;
                
                
   - platform: total_daily_energy
