@@ -51,4 +51,10 @@ template<typename... Ts> class RYLR998SendPacketAction : public Action<Ts...> {
   std::function<std::vector<uint8_t>(const Ts &...)> data_func_{};
 };
 
+// rylr998.reset action: restarts the module (AT+RESET), non-blocking.
+template<typename... Ts> class RYLR998ResetAction : public Action<Ts...>, public Parented<RYLR998Component> {
+ public:
+  void play(const Ts &...x) override { this->parent_->request_reset(); }
+};
+
 }  // namespace esphome::rylr998

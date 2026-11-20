@@ -18,9 +18,11 @@ Provides full AT command management, bidirectional packet exchange, RSSI/SNR dia
   - [Main component](#main-component)
   - [Sensor sub-component](#sensor-sub-component)
   - [Number sub-component](#number-sub-component)
+  - [Button sub-component](#button-sub-component)
   - [Packet transport sub-component](#packet-transport-sub-component)
 - [Automation](#automation)
   - [Action — rylr998.send_packet](#action--rylr998send_packet)
+  - [Action — rylr998.reset](#action--rylr998reset)
   - [Trigger — on_packet](#trigger--on_packet)
 - [YAML examples](#yaml-examples)
   - [Example 1 — Minimal transmitter](#example-1--minimal-transmitter)
@@ -187,6 +189,33 @@ number:
 
 ---
 
+### Button sub-component
+
+Adds a **Reset** button that restarts the radio module (`AT+RESET`). The component then waits for
+the module's `+READY` and re-applies the whole configuration, exactly as after an unexpected
+restart. Nothing blocks the main loop. `ADDRESS` and `NETWORKID` are stored in the module's flash
+and are not affected.
+
+```yaml
+button:
+  - platform: rylr998
+    rylr998_id: lora
+    reset:
+      name: "LoRa reset"
+```
+
+Packets already waiting in the TX queue are kept and sent once the module is configured again.
+The same operation is available from automations with the `rylr998.reset` action:
+
+```yaml
+interval:
+  - interval: 1h
+    then:
+      - rylr998.reset: lora
+```
+
+---
+
 ### Packet transport sub-component
 
 Shares ESPHome sensors between two devices over LoRa, using ESPHome's generic
@@ -256,6 +285,18 @@ on_...:
 | `id` | component ID | yes | The `rylr998` component to use. |
 | `destination` | int (0–65535) | yes | Target address. `0` sends to all nodes on the same network. |
 | `data` | list of uint8 or lambda | yes | Payload bytes, 1 – 120. A larger or empty payload is refused with a warning. See [Behaviour and reliability](#behaviour-and-reliability). |
+
+---
+
+### Action — `rylr998.reset`
+
+Restarts the radio module (same as the [Reset button](#button-sub-component)). Non-blocking.
+
+```yaml
+on_...:
+  then:
+    - rylr998.reset: lora
+```
 
 ---
 
@@ -827,6 +868,7 @@ Any other `+ERR` answer to an `AT+SEND` drops that packet (logged as a warning).
   configuration. After 3 consecutive missing answers it re-initialises the module as well. While the
   module does not answer, the ESPHome status shows a warning and `AT` is retried every second, then
   every 10 s.
+- **Manual reset.** The `reset` button and the `rylr998.reset` action send `AT+RESET`; the configuration is re-applied when the module reports `+READY`.
 - **Health check.** After 60 s without any traffic an `AT` is sent to verify that the module is alive.
 - **Reception while a command is pending.** `+RCV` frames are parsed independently of the command in
   flight, so a packet arriving between an `AT+SEND` and its `+OK` is neither lost nor mistaken for the answer.

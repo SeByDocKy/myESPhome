@@ -324,11 +324,17 @@ void RYLR998Component::dispatch_next_(uint32_t now) {
     return;
   }
   if (this->state_ == State::CONFIG) {
-    this->send_config_step_(now);
+    if (this->reset_requested_) {
+      this->send_reset_(now);
+    } else {
+      this->send_config_step_(now);
+    }
     return;
   }
   // State::READY
-  if (this->tx_power_dirty_) {
+  if (this->reset_requested_) {
+    this->send_reset_(now);
+  } else if (this->tx_power_dirty_) {
     this->send_tx_power_(now);
   } else if (this->tx_count_ > 0 && !this->tx_busy_) {
     this->send_next_packet_(now);
@@ -383,6 +389,15 @@ void RYLR998Component::send_tx_power_(uint32_t now) {
   const int n = snprintf(this->cmd_buf_, CMD_BUF_SIZE - 3, "AT+CRFOP=%u", (unsigned) this->tx_power_);
   ESP_LOGD(TAG, "Setting TX power to %u dBm", (unsigned) this->tx_power_);
   this->start_command_(CmdKind::TXPOWER, static_cast<size_t>(n), now, CMD_TIMEOUT_MS);
+}
+
+void RYLR998Component::send_reset_(uint32_t now) {
+  this->reset_requested_ = false;
+  this->reset_expected_ = true;
+  const int n = snprintf(this->cmd_buf_, CMD_BUF_SIZE - 3, "AT+RESET");
+  ESP_LOGI(TAG, "Resetting the module");
+  // The module answers "+RESET" then "+READY" (no +OK); see on_module_ready_().
+  this->start_command_(CmdKind::RESET, static_cast<size_t>(n), now, CMD_TIMEOUT_MS);
 }
 
 void RYLR998Component::send_ping_(uint32_t now) {
@@ -470,6 +485,7 @@ void RYLR998Component::on_ok_(uint32_t now) {
       ESP_LOGV(TAG, "Unsolicited +OK");
       return;
     case CmdKind::PING:
+    case CmdKind::RESET:  // some firmwares answer +OK before +RESET
       this->finish_command_(now, 0);
       return;
     case CmdKind::SEND:
@@ -510,6 +526,11 @@ void RYLR998Component::on_error_(int code, uint32_t now) {
     case CmdKind::PING:
       this->finish_command_(now, 0);
       return;
+    case CmdKind::RESET:
+      ESP_LOGW(TAG, "AT+RESET refused, +ERR=%d: %s", code, err_text_(code));
+      this->reset_expected_ = false;
+      this->finish_command_(now, CONFIG_GAP_MS);
+      return;
     case CmdKind::SEND: {
       TxPacket &pk = this->tx_queue_[this->tx_head_];
       if (code == 17 && pk.retries < MAX_TX_RETRIES) {
@@ -547,6 +568,11 @@ void RYLR998Component::on_timeout_(uint32_t now) {
     case CmdKind::SEND:
       ESP_LOGW(TAG, "No answer to AT+SEND, packet dropped");
       this->pop_packet_();
+      this->finish_command_(now, CONFIG_GAP_MS);
+      break;
+    case CmdKind::RESET:
+      ESP_LOGW(TAG, "No answer to AT+RESET");
+      this->reset_expected_ = false;
       this->finish_command_(now, CONFIG_GAP_MS);
       break;
     case CmdKind::PING:
@@ -591,14 +617,25 @@ void RYLR998Component::on_module_ready_(uint32_t now) {
     this->boot_deadline_ = now + 100;
     return;
   }
-  if (this->state_ == State::READY) {
-    // We never send AT+RESET: the module restarted on its own (supply dip, brown-out...) and lost
-    // every setting that is not stored in its flash (frequency, RF parameters, power).
+  if (this->reset_expected_) {
+    // Answer to our AT+RESET: "+RESET" arrives first (state READY/CONFIG), then "+READY" once the
+    // module has booted. Settings not stored in its flash are lost, so the configuration is re-sent.
+    if (this->state_ == State::READY) {
+      ESP_LOGI(TAG, "Module reset (+RESET), re-applying the configuration");
+    } else {
+      ESP_LOGD(TAG, "Module booted after reset (+READY)");
+      this->reset_expected_ = false;
+    }
+  } else if (this->state_ == State::READY) {
+    // The module restarted on its own (supply dip, brown-out...) and lost every setting that is
+    // not stored in its flash (frequency, RF parameters, power).
     ESP_LOGW(TAG, "Module restarted unexpectedly (+READY), re-applying the configuration");
   } else {
     ESP_LOGD(TAG, "+READY during configuration, restarting it");
   }
-  this->restart_config_(now, 100);
+  // After our own AT+RESET the module is still booting when "+RESET" arrives: wait for "+READY"
+  // (which shortens this delay) instead of sending commands it would ignore.
+  this->restart_config_(now, this->reset_expected_ ? 3000 : 100);
 }
 
 // ---------------------------------------------------------------------------------------------

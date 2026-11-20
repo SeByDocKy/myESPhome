@@ -80,6 +80,10 @@ RYLR998SendPacketAction = rylr998_ns.class_(
     "RYLR998SendPacketAction", automation.Action
 )
 
+RYLR998ResetAction = rylr998_ns.class_(
+    "RYLR998ResetAction", automation.Action, cg.Parented.template(RYLR998Component)
+)
+
 
 def validate_bandwidth(value):
     value = cv.frequency(value)
@@ -255,4 +259,20 @@ async def rylr998_send_packet_to_code(config, action_id, template_arg, args):
         cg.add(var.set_data_template(template_))
     else:
         cg.add(var.set_data_static(data))
+    return var
+
+
+@automation.register_action(
+    "rylr998.reset",
+    RYLR998ResetAction,
+    automation.maybe_simple_id(
+        {
+            cv.GenerateID(): cv.use_id(RYLR998Component),
+        }
+    ),
+    synchronous=True,
+)
+async def rylr998_reset_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
     return var

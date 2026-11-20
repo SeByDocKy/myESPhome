@@ -86,6 +86,10 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   void set_tx_power_number(number::Number *n) { this->tx_power_number_ = n; }
 #endif
 
+  /// Asks the module to restart (AT+RESET). Non-blocking: the command is sent as soon as the module
+  /// is idle, then the whole configuration is re-applied when the module reports +READY.
+  void request_reset() { this->reset_requested_ = true; }
+
   /// True once the module answered and was configured (false again while it is being re-initialised).
   bool is_ready() const { return this->state_ == State::READY; }
 
@@ -125,6 +129,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
     CONFIG,
     TXPOWER,
     SEND,
+    RESET,
   };
   struct TxPacket {
     uint16_t destination;
@@ -146,6 +151,7 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   void send_tx_power_(uint32_t now);
   void send_next_packet_(uint32_t now);
   void send_ping_(uint32_t now);
+  void send_reset_(uint32_t now);
   void start_command_(CmdKind kind, size_t len, uint32_t now, uint32_t timeout_ms);
   void on_ok_(uint32_t now);
   void on_error_(int code, uint32_t now);
@@ -184,6 +190,8 @@ class RYLR998Component : public Component, public uart::UARTDevice {
   uint8_t consecutive_failures_{0};
   uint8_t tx_power_retries_{0};
   bool first_ready_{true};
+  bool reset_requested_{false};  // set by request_reset(), consumed by send_reset_()
+  bool reset_expected_{false};   // AT+RESET sent: the next +RESET/+READY is ours
   bool tx_busy_{false};    // radio busy transmitting (air time of the last AT+SEND not elapsed yet)
   bool gap_active_{false};  // inter-command pause running
 
