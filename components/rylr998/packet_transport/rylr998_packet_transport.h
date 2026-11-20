@@ -32,7 +32,8 @@ class RYLR998Transport : public packet_transport::PacketTransport {
 
   // PacketTransport interface
   void send_packet(const std::vector<uint8_t> &buf) const override;
-  size_t get_max_packet_size() override { return 240; }
+  // Binary bytes: the module accepts 240 hex characters, i.e. 120 bytes (see MAX_PAYLOAD_BYTES).
+  size_t get_max_packet_size() override { return MAX_PAYLOAD_BYTES; }
 
  private:
   // Static plain C callback - called by RYLR998Component when packet received.
