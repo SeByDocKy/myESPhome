@@ -59,7 +59,7 @@ logger:
   # level: none
     
 external_components:
-  - source: "github://SeByDocKy/myESPhome@main"
+  - source: github://SeByDocKy/myESPhome@rylr998 #main
     components: [rylr998]
     refresh: 10s
     
@@ -76,6 +76,7 @@ uart:
     tx_pin: GPIO25
     rx_pin: GPIO26
     baud_rate: ${baud_rate_0}
+    rx_buffer_size: 1024
     
   - id: uart_1
     tx_pin: GPIO33
@@ -118,17 +119,22 @@ rylr998:
   uart_id: uart_0
   address: 2
   frequency: 868MHz
-  spreading_factor: 11 #9
+  spreading_factor: 11
   signal_bandwidth: 125kHz
-  coding_rate: 2 #1
+  coding_rate: 2
   preamble_length: 12
   network_id: 10
   tx_power: 20
-  air_time: false
+  air_time: true #false
 
 button:
   - platform: restart
     name: ${name}_restart
+    
+  - platform: rylr998
+    rylr998_id: lora
+    reset:
+      name: ${name}_reset  
        
 packet_transport:
   platform: rylr998
@@ -143,6 +149,7 @@ packet_transport:
 
 number:
   - platform: rylr998
+    rylr998_id: lora
     tx_power:
       name: ${name}_tx_power
 
@@ -175,6 +182,7 @@ sensor:
       name: ${name}_loop_time    
 
   - platform: rylr998
+    rylr998_id: lora
     rssi:
       name: ${name}_rssi
     snr:
