@@ -1,46 +1,60 @@
 #pragma once
 
+#include <functional>
+#include <vector>
+
 #include "esphome/core/automation.h"
+#include "esphome/core/log.h"
 #include "rylr998.h"
 
-namespace esphome {
-namespace rylr998 {
+namespace esphome::rylr998 {
 
-// Trigger fired when a LoRa packet is received
-class RYLR998PacketTrigger : public Trigger<std::vector<uint8_t>, float, float> {
-  // No extra members needed - Trigger base class handles everything
-};
+// Trigger fired when a LoRa packet is received (one instance per `on_packet:` entry).
+class RYLR998PacketTrigger : public Trigger<std::vector<uint8_t>, float, float> {};
 
-// Automation action for sending packets
-template<typename... Ts>
-class RYLR998SendPacketAction : public Action<Ts...> {
+// rylr998.send_packet action. The packet is queued (see RYLR998Component::transmit_packet), so the
+// action never blocks the main loop.
+template<typename... Ts> class RYLR998SendPacketAction : public Action<Ts...> {
  public:
   explicit RYLR998SendPacketAction(RYLR998Component *parent) : parent_(parent) {}
 
   TEMPLATABLE_VALUE(uint16_t, destination)
-  
-  void set_data_template(std::function<std::vector<uint8_t>(Ts...)> func) {
-    this->data_func_ = func;
+
+  void set_data_template(std::function<std::vector<uint8_t>(const Ts &...)> func) {
+    this->data_func_ = std::move(func);
     this->static_ = false;
   }
-  
+
   void set_data_static(const std::vector<uint8_t> &data) {
     this->data_static_ = data;
     this->static_ = true;
   }
 
-  void play(Ts... x) override {
-    auto dest = this->destination_.value(x...);
-    auto data = this->static_ ? this->data_static_ : this->data_func_(x...);
-    this->parent_->transmit_packet(dest, data);
+  // Signature must match Action<Ts...>::play(const Ts &...)
+  void play(const Ts &...x) override {
+    const uint16_t dest = this->destination_.value(x...);
+    bool ok;
+    if (this->static_) {
+      ok = this->parent_->transmit_packet(dest, this->data_static_);  // no copy
+    } else {
+      ok = this->parent_->transmit_packet(dest, this->data_func_(x...));
+    }
+    if (!ok) {
+      ESP_LOGW("rylr998", "rylr998.send_packet: packet refused");
+    }
   }
 
  protected:
   RYLR998Component *parent_;
   bool static_{true};
   std::vector<uint8_t> data_static_{};
-  std::function<std::vector<uint8_t>(Ts...)> data_func_{};
+  std::function<std::vector<uint8_t>(const Ts &...)> data_func_{};
 };
 
-}  // namespace rylr998
-}  // namespace esphome
+// rylr998.reset action: restarts the module (AT+RESET), non-blocking.
+template<typename... Ts> class RYLR998ResetAction : public Action<Ts...>, public Parented<RYLR998Component> {
+ public:
+  void play(const Ts &...x) override { this->parent_->request_reset(); }
+};
+
+}  // namespace esphome::rylr998

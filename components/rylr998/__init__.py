@@ -1,12 +1,18 @@
+import logging
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
+import esphome.final_validate as fv
 from esphome import automation
 from esphome.components import uart
 from esphome.const import (
     CONF_ID,
     CONF_FREQUENCY,
     CONF_TRIGGER_ID,
+    CONF_UART_ID,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@SeByDocKy,@claude"]
@@ -33,6 +39,17 @@ CONF_VARIANT = "variant"
 VARIANT_RYLR998 = "rylr998"
 VARIANT_RYLR999 = "rylr999"
 VARIANTS = [VARIANT_RYLR998, VARIANT_RYLR999]
+
+# Spreading factors documented by REYAX for each bandwidth (AT+PARAMETER)
+SF_RANGE_BY_BANDWIDTH = {
+    125000: (7, 9),
+    250000: (7, 10),
+    500000: (7, 11),
+}
+
+# Longest line of the module is a ~270 byte +RCV; at 115200 baud the default 256 byte UART buffer
+# fills in 22 ms, so a burst (+RCV followed by other lines) can overflow it if loop() is delayed.
+RECOMMENDED_RX_BUFFER = 512
 
 # AT+CRFOP : 0-22dBm sur RYLR998 (SX1262), 0-30dBm sur RYLR999
 TX_POWER_MAX_BY_VARIANT = {
@@ -61,6 +78,10 @@ RYLR998PacketTrigger = rylr998_ns.class_(
 
 RYLR998SendPacketAction = rylr998_ns.class_(
     "RYLR998SendPacketAction", automation.Action
+)
+
+RYLR998ResetAction = rylr998_ns.class_(
+    "RYLR998ResetAction", automation.Action, cg.Parented.template(RYLR998Component)
 )
 
 
@@ -98,22 +119,59 @@ def _validate_variant_constraints(config):
     max_power = TX_POWER_MAX_BY_VARIANT[variant]
     if config[CONF_TX_POWER] > max_power:
         raise cv.Invalid(
-            f"tx_power maximum pour variant '{variant}' est {max_power}dBm "
-            f"(valeur donnée : {config[CONF_TX_POWER]}dBm)"
+            f"tx_power maximum for variant '{variant}' is {max_power} dBm "
+            f"(got {config[CONF_TX_POWER]} dBm)"
         )
 
-    # Doc RYLR999 : le préambule n'est réglable (4-24) que si network_id: 18,
-    # sinon il doit rester à 12 (comportement non documenté/imposé sur le RYLR998).
-    if variant == VARIANT_RYLR999:
-        preamble = config[CONF_PREAMBLE_LENGTH]
-        network_id = config[CONF_NETWORK_ID]
-        if network_id != 18 and preamble != 12:
-            raise cv.Invalid(
-                "Sur le RYLR999, preamble_length n'est réglable (4-24) que si "
-                "network_id: 18. Pour toute autre valeur de network_id, "
-                "preamble_length doit rester à 12 (valeur par défaut)."
-            )
+    # REYAX AT guide (AT+NETWORKID, preamble note): the preamble length can only be changed
+    # (4-24) when NETWORKID is 18; for any other network id the module refuses it (+ERR=18).
+    # Documented for the RYLR998 (p.5) as well as for the RYLR999.
+    preamble = config[CONF_PREAMBLE_LENGTH]
+    network_id = config[CONF_NETWORK_ID]
+    if network_id != 18 and preamble != 12:
+        raise cv.Invalid(
+            "preamble_length can only be changed (4-24) when network_id is 18. "
+            "For any other network_id it must stay at 12 (the module answers +ERR=18 otherwise)."
+        )
+
+    # Not an error (the module may accept it), but outside the documented combinations.
+    bandwidth = config[CONF_SIGNAL_BANDWIDTH]
+    sf = config[CONF_SPREADING_FACTOR]
+    low, high = SF_RANGE_BY_BANDWIDTH[int(bandwidth)]
+    if not low <= sf <= high:
+        _LOGGER.warning(
+            "rylr998: spreading_factor %s is outside the range documented by REYAX for a "
+            "%s kHz bandwidth (SF%s-SF%s); the module may refuse it",
+            sf,
+            int(bandwidth) // 1000,
+            low,
+            high,
+        )
     return config
+
+
+def _final_validate(config):
+    full = fv.full_config.get()
+    uarts = full.get("uart") or []
+    if isinstance(uarts, dict):
+        uarts = [uarts]
+    for u in uarts:
+        if u.get(CONF_ID) == config[CONF_UART_ID]:
+            size = u.get("rx_buffer_size", 256)
+            if size < RECOMMENDED_RX_BUFFER:
+                _LOGGER.warning(
+                    "rylr998: the uart '%s' has rx_buffer_size: %s; at least %s is recommended "
+                    "(a +RCV line can reach ~270 bytes and a full 256-byte buffer is filled in "
+                    "22 ms at 115200 baud)",
+                    config[CONF_UART_ID],
+                    size,
+                    RECOMMENDED_RX_BUFFER,
+                )
+            break
+    return config
+
+
+FINAL_VALIDATE_SCHEMA = _final_validate
 
 
 CONFIG_SCHEMA = cv.All(
@@ -134,7 +192,7 @@ CONFIG_SCHEMA = cv.All(
             #           variante (22 ou 30) est vérifiée dans _validate_variant_constraints
             #           ci-dessous, et re-vérifiée au runtime côté C++ (clamp défensif).
             cv.Optional(CONF_TX_POWER, default=22): cv.int_range(min=0, max=30),
-            cv.Optional(CONF_AIR_TIME, default=False): cv.boolean,
+            cv.Optional(CONF_AIR_TIME, default=True): cv.boolean,
             cv.Optional(CONF_ON_PACKET): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(RYLR998PacketTrigger),
@@ -166,7 +224,7 @@ async def to_code(config):
 
     for conf in config.get(CONF_ON_PACKET, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID])
-        cg.add(var.set_packet_trigger(trigger))
+        cg.add(var.add_packet_trigger(trigger))
         await automation.build_automation(
             trigger,
             [
@@ -188,7 +246,7 @@ async def to_code(config):
             cv.Required(CONF_DATA): cv.templatable(cv.ensure_list(cv.uint8_t)),
         }
     ),
-    synchronous=False,
+    synchronous=True,
 )
 async def rylr998_send_packet_to_code(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
@@ -201,4 +259,20 @@ async def rylr998_send_packet_to_code(config, action_id, template_arg, args):
         cg.add(var.set_data_template(template_))
     else:
         cg.add(var.set_data_static(data))
+    return var
+
+
+@automation.register_action(
+    "rylr998.reset",
+    RYLR998ResetAction,
+    automation.maybe_simple_id(
+        {
+            cv.GenerateID(): cv.use_id(RYLR998Component),
+        }
+    ),
+    synchronous=True,
+)
+async def rylr998_reset_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
     return var

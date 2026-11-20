@@ -18,8 +18,11 @@ Provides full AT command management, bidirectional packet exchange, RSSI/SNR dia
   - [Main component](#main-component)
   - [Sensor sub-component](#sensor-sub-component)
   - [Number sub-component](#number-sub-component)
+  - [Button sub-component](#button-sub-component)
+  - [Packet transport sub-component](#packet-transport-sub-component)
 - [Automation](#automation)
   - [Action — rylr998.send_packet](#action--rylr998send_packet)
+  - [Action — rylr998.reset](#action--rylr998reset)
   - [Trigger — on_packet](#trigger--on_packet)
 - [YAML examples](#yaml-examples)
   - [Example 1 — Minimal transmitter](#example-1--minimal-transmitter)
@@ -30,19 +33,20 @@ Provides full AT command management, bidirectional packet exchange, RSSI/SNR dia
 - [LoRa RF parameter guide](#lora-rf-parameter-guide)
 - [Duty cycle and regulatory notes](#duty-cycle-and-regulatory-notes)
 - [Error codes reference](#error-codes-reference)
+- [Behaviour and reliability](#behaviour-and-reliability)
 - [Known limitations](#known-limitations)
 
 ---
 
 ## Overview
 
-The RYLR998 / RYLR498 are compact LoRa modules built around the Semtech SX1276 chip, controlled via a simple UART AT command interface. This component translates that AT protocol into native ESPHome entities:
+The RYLR998 is a compact LoRa module built around a Semtech SX1262 transceiver (the RYLR498 shares the same AT command set), controlled via a simple UART AT command interface. This component translates that AT protocol into native ESPHome entities:
 
 | Feature | Details |
 |---|---|
 | Communication | UART, 115 200 baud, 8N1 |
 | Frequency bands | 868 MHz (RYLR498) / 915 MHz (RYLR998) — configurable |
-| Max payload | 240 bytes (raw ASCII per AT protocol) |
+| Max payload | 240 ASCII characters per AT protocol, i.e. **120 binary bytes** (the component hex-encodes binary data) |
 | Addressing | 0 – 65 535 per node |
 | Network isolation | NETWORKID (3–15 or 18) |
 | TX power range | 0 – 22 dBm (1 dBm steps) |
@@ -102,10 +106,12 @@ uart:
   tx_pin: GPIO17
   rx_pin: GPIO16
   baud_rate: 115200
+  rx_buffer_size: 1024            # recommended — see note below
 
 rylr998:
   id: lora                        # required — used by automations and sub-components
   uart_id: lora_uart              # required — must point to the uart block above
+  variant: rylr998                # optional, default: rylr998 (rylr998 / rylr999 — sets the max tx_power)
   address: 1                      # optional, default: 0     (0–65535)
   frequency: 868500000            # optional, default: 915000000 Hz
   spreading_factor: 9             # optional, default: 9     (5–11)
@@ -113,23 +119,30 @@ rylr998:
   coding_rate: 1                  # optional, default: 1     (1–4)
   preamble_length: 12             # optional, default: 12    (4–24, only 4–24 when network_id=18)
   network_id: 18                  # optional, default: 18    (3–15 or 18)
-  tx_power: 22                    # optional, default: 22    (0–22 dBm)
-  air_time: false                 # optional, default: false — enables TX rate limiting
+  tx_power: 22                    # optional, default: 22    (0–22 dBm, 0–30 on rylr999)
+  air_time: true                  # optional, default: true  — TX guard time computed from the size of each packet (false = fixed 600 ms)
 ```
+
+> **Why `rx_buffer_size: 1024`?** (a build-time warning is printed when it is below 512) The ESPHome default UART receive buffer is 256 bytes. At
+> 115 200 baud it fills in about 22 ms, and a long `+RCV=` line (up to ~270 bytes) does not even
+> fit in it. If another component blocks the main loop for more than ~22 ms, incoming bytes are
+> silently dropped and the packet is lost. 1024 bytes gives about 89 ms of margin, which matters
+> when Modbus, RS-232 or other components share the device.
 
 #### Parameter details
 
 | Key | Type | Default | Range | Description |
 |---|---|---|---|---|
+| `variant` | string | `rylr998` | `rylr998`, `rylr999` | Selects the maximum `tx_power` (22 dBm / 30 dBm). The AT command set is identical. |
 | `address` | int | `0` | 0 – 65535 | Node address. `0` also acts as broadcast destination. |
 | `frequency` | Hz | `915000000` | — | RF centre frequency in Hz. Must match all nodes. |
 | `spreading_factor` | int | `9` | 5 – 11 | Higher SF → better sensitivity, longer air time. See [RF guide](#lora-rf-parameter-guide). |
 | `signal_bandwidth` | Hz | `125kHz` | 125 / 250 / 500 kHz | Smaller bandwidth → better sensitivity, longer air time. |
 | `coding_rate` | int | `1` | 1 – 4 | `1` = 4/5 (fastest). `4` = 4/8 (most robust). |
-| `preamble_length` | int | `12` | 4 – 24 | Larger preamble → fewer missed packets. Values 4–24 only when `network_id: 18`. Other network IDs must use `12`. |
+| `preamble_length` | int | `12` | 4 – 24 | Larger preamble → fewer missed packets. Values other than `12` are accepted only when `network_id: 18` (otherwise the module answers `+ERR=18`); the configuration is rejected at validation time. |
 | `network_id` | int | `18` | 3–15, 18 | Group isolation — only nodes with the same ID can exchange packets. |
 | `tx_power` | int | `22` | 0 – 22 | RF output power in dBm. CE certification requires ≤ 14. |
-| `air_time` | bool | `false` | — | When `true`, the component computes LoRa air time on boot and enforces a TX rate limit to prevent channel flooding. |
+| `air_time` | bool | `true` | — | Selects the **TX guard time**: how long the component considers the radio busy after an `AT+SEND`, during which the next queued packet waits. `true` (default): the air time of **each packet** is computed from its real size and the configured SF / bandwidth / coding rate / preamble (e.g. 305 ms for 16 bytes at SF9 / 125 kHz). `false`: fixed 600 ms, which is too short for large packets at slow settings. It is **not** a duty-cycle limiter — see [Duty cycle](#duty-cycle-and-regulatory-notes). |
 
 ---
 
@@ -155,8 +168,9 @@ All three sensors are optional and independent. Use only the ones you need.
 
 ### Number sub-component
 
-Exposes TX power as an adjustable slider entity in Home Assistant (0 – 22 dBm, step 1).
-Writes `AT+CRFOP=<value>` to the module when the slider is moved.
+Exposes TX power as an adjustable slider entity in Home Assistant (0 – 22 dBm, step 1; 0 – 30 on `rylr999`).
+Moving the slider queues an `AT+CRFOP=<value>` command that is sent as soon as the module is idle.
+The call never blocks; the slider shows the value actually applied (clamped to the variant maximum).
 
 ```yaml
 number:
@@ -164,9 +178,74 @@ number:
     rylr998_id: lora
     tx_power:
       name: "LoRa TX power"
+      restore_value: false       # optional, default: false
 ```
 
-> **Warning:** Changing TX power at runtime is a blocking AT command (up to 1 s). Avoid triggering it at high frequency from an automation if other UART-based components (Modbus, RS-232…) are active on the same device.
+| Key | Default | Description |
+|---|---|---|
+| `restore_value` | `false` | `true`: the last value set from the slider is stored in flash and restored at boot, overriding `tx_power` from the YAML. `false`: the YAML value is always used at boot. |
+
+> **Upgrading:** earlier versions always restored the saved value and stored it under a different key. The old saved value is ignored; set `restore_value: true` if you want persistence.
+
+---
+
+### Button sub-component
+
+Adds a **Reset** button that restarts the radio module (`AT+RESET`). The component then waits for
+the module's `+READY` and re-applies the whole configuration, exactly as after an unexpected
+restart. Nothing blocks the main loop. `ADDRESS` and `NETWORKID` are stored in the module's flash
+and are not affected.
+
+```yaml
+button:
+  - platform: rylr998
+    rylr998_id: lora
+    reset:
+      name: "LoRa reset"
+```
+
+Packets already waiting in the TX queue are kept and sent once the module is configured again.
+The same operation is available from automations with the `rylr998.reset` action:
+
+```yaml
+interval:
+  - interval: 1h
+    then:
+      - rylr998.reset: lora
+```
+
+---
+
+### Packet transport sub-component
+
+Shares ESPHome sensors between two devices over LoRa, using ESPHome's generic
+[`packet_transport`](https://esphome.io/components/packet_transport/) framework (the same
+mechanism as the `udp` and `espnow` transports). The values are packed, optionally encrypted,
+and sent as ordinary LoRa packets.
+
+```yaml
+packet_transport:
+  platform: rylr998
+  rylr998_id: lora
+  update_interval: 2500ms
+  encryption: "loralora"          # optional
+  sensors:
+    - a_temperature               # local sensors to publish
+  providers:
+    - name: rylr998b              # name of the remote device
+      encryption: "loralora"
+
+sensor:
+  - platform: packet_transport
+    provider: rylr998b
+    name: ${name}_temperature_received
+    remote_id: b_temperature      # id of the sensor on the remote device
+```
+
+> A packet-transport frame must fit in **120 bytes** (the component reports this as its maximum
+> packet size). Keep the number of shared sensors small and the `update_interval` above the
+> frame air time (see [Duty cycle](#duty-cycle-and-regulatory-notes)).
+> `rylr998a.yaml` / `rylr998b.yaml` in this folder are a complete working pair.
 
 ---
 
@@ -205,7 +284,19 @@ on_...:
 |---|---|---|---|
 | `id` | component ID | yes | The `rylr998` component to use. |
 | `destination` | int (0–65535) | yes | Target address. `0` sends to all nodes on the same network. |
-| `data` | list of uint8 or lambda | yes | Payload bytes. Maximum 120 bytes (recommended) — see [Known limitations](#known-limitations). |
+| `data` | list of uint8 or lambda | yes | Payload bytes, 1 – 120. A larger or empty payload is refused with a warning. See [Behaviour and reliability](#behaviour-and-reliability). |
+
+---
+
+### Action — `rylr998.reset`
+
+Restarts the radio module (same as the [Reset button](#button-sub-component)). Non-blocking.
+
+```yaml
+on_...:
+  then:
+    - rylr998.reset: lora
+```
 
 ---
 
@@ -230,7 +321,7 @@ rylr998:
           args: ["data.size()", rssi, snr]
 ```
 
-> **Known limitation:** Only one `on_packet` trigger is active per component instance. If two automations are declared, only the last one fires. Use a single `on_packet` block with multiple actions, or use `add_on_packet_callback()` in C++ custom code.
+> `on_packet` can be declared several times on the same component: every automation fires for every packet. Payloads sent by this component are hex-encoded and decoded automatically; a payload from another firmware that is not valid hex is delivered as raw ASCII bytes.
 
 ---
 
@@ -380,7 +471,7 @@ rylr998:
   preamble_length: 12
   network_id: 18
   tx_power: 14
-  air_time: true                 # enables automatic TX rate limiting
+  air_time: true                 # guard time computed from the RF settings (not a duty-cycle limiter)
   on_packet:
     then:
       - logger.log:
@@ -642,8 +733,8 @@ rylr998:
     frequency: 868500000
     network_id: 10
     tx_power: 10
-    spreading_factor: 11         # long range, slow air time
-    signal_bandwidth: 125kHz
+    spreading_factor: 10         # long range, slow air time (SF10 requires 250 kHz or 500 kHz)
+    signal_bandwidth: 250kHz
     on_packet:
       then:
         - logger.log:
@@ -684,12 +775,15 @@ communication failures — no error is reported by the module.
 
 ### Preset recommendations
 
-| Use case | `spreading_factor` | `signal_bandwidth` | `coding_rate` | `preamble_length` | Air time (16 B payload) |
+| Use case | `spreading_factor` | `signal_bandwidth` | `coding_rate` | `preamble_length` | Air time (16 binary bytes) |
 |---|---|---|---|---|---|
-| Short range, high throughput | `7` | `500kHz` | `1` | `12` | ~5 ms |
-| General purpose (**default**) | `9` | `125kHz` | `1` | `12` | ~370 ms |
-| Long range, robust | `11` | `125kHz` | `4` | `12` | ~3.5 s |
-| Max range (outdoor, static) | `11` | `125kHz` | `4` | `24` | ~4.5 s |
+| Short range, high throughput | `7` | `500kHz` | `1` | `12` | ~22 ms |
+| General purpose (**default**) | `9` | `125kHz` | `1` | `12` | ~304 ms |
+| Long range, robust | `10` | `250kHz` | `4` | `12` | ~394 ms |
+| Max range (outdoor, static) | `11` | `500kHz` | `4` | `24` | ~411 ms |
+
+Air times are computed with the Semtech formula for the frame actually sent on air:
+16 binary bytes = 32 hex characters + 8 bytes added by the module = 40 bytes (CRC on, explicit header).
 
 > **Tip from the datasheet:** For payloads larger than 100 bytes, use `spreading_factor: 8`
 > instead of `9` to keep air time reasonable.
@@ -710,15 +804,18 @@ communication failures — no error is reported by the module.
 In Europe (868 MHz band, ETSI EN 300 220), most sub-bands impose a **1 % duty cycle** limit.
 This means the module can only transmit for 1 % of the time in any one-hour window.
 
-With `air_time: true`, the component calculates LoRa air time at boot and enforces a minimum
-interval between transmissions. You should still size your `interval:` accordingly:
+**The component does not enforce the duty cycle.** Its TX guard time (see `air_time`) only makes
+queued packets wait until the previous one has left the air; it allows a new packet as soon as the
+previous one has *finished*, i.e. roughly 100 % duty cycle. Compliance is the
+responsibility of your own `interval:` / automation logic. The minimum interval at 1 % is
+99 × the air time of the frame actually sent:
 
-| `spreading_factor` | `signal_bandwidth` | Payload | Air time | Min interval @ 1 % |
+| `spreading_factor` | `signal_bandwidth` | Payload (binary) | Air time | Min interval @ 1 % |
 |---|---|---|---|---|
-| 7 | 500 kHz | 16 B | ~5 ms | 0.5 s |
-| 9 | 125 kHz | 16 B | ~370 ms | 37 s |
-| 9 | 125 kHz | 64 B | ~660 ms | 66 s |
-| 11 | 125 kHz | 16 B | ~3 500 ms | 350 s |
+| 7 | 500 kHz | 16 B | ~22 ms | 2.1 s |
+| 9 | 125 kHz | 16 B | ~304 ms | 30 s |
+| 9 | 125 kHz | 64 B | ~734 ms | 73 s |
+| 10 | 250 kHz | 16 B | ~284 ms | 28 s |
 
 > **CE certification:** RF output power must be ≤ 14 dBm (`tx_power: 14`) to comply with CE marking.
 > The default `tx_power: 22` exceeds this limit and should only be used for testing.
@@ -738,40 +835,60 @@ The `last_error` sensor and the logs report error codes from the module's `+ERR=
 | `5` | Length mismatch | Payload length does not match declared byte count |
 | `10` | TX timeout | Channel too busy, or module not ready |
 | `12` | CRC error | Radio interference during reception |
-| `13` | Data exceeds 240 bytes | Payload too large — reduce to ≤ 120 bytes when hex-encoding |
+| `13` | Data exceeds 240 bytes | Payload too large — the `<Data>` field is limited to 240 characters, so ≤ 120 binary bytes when hex-encoding |
 | `14` | Flash write failed | Module hardware issue |
 | `15` | Unknown failure | Try `AT+NOIDEA` diagnostic command |
-| `17` | Last TX not completed | Previous send still in progress — rate limiter will retry |
+| `17` | Last TX not completed | Previous send still in progress — packet is dropped by the module |
 | `18` | Preamble not allowed | `preamble_length` out of range for the configured `network_id` |
 | `19` | RX header error | Corrupted LoRa header — usually RF environment issue |
 | `20` | Smart mode time invalid | `AT+MODE=2` timing parameter out of range |
 
-`+ERR=17` ("last TX not completed") is the most common transient error at high send rates.
-The component handles it gracefully — it logs a `DEBUG` message and the rate limiter will
-schedule a retry. No action is required from user code.
+`+ERR=12` (CRC) and `+ERR=19` (header) are reported by the module for a *received* frame that was
+corrupted; they are not the answer to a command and are only logged at `DEBUG` level (they still
+update the `last_error` sensor).
+
+`+ERR=17` ("last TX not completed") means the module was still transmitting. The component keeps the
+packet and retries it up to 3 times with an increasing delay before giving up. With `air_time: true`
+(default) the guard time follows the real size of each packet, so this normally never occurs.
+Any other `+ERR` answer to an `AT+SEND` drops that packet (logged as a warning).
 
 ---
 
-## Known limitations
+## Behaviour and reliability
 
-**Single `on_packet` trigger per instance**
-Only one `on_packet` automation is active. If two `on_packet` blocks are declared in YAML,
-only the last one fires. Use a single block with multiple sequential actions as a workaround.
+- **Never blocks the main loop.** The module is configured step by step from `loop()`
+  (`AT`, `ADDRESS`, `BAND`, `PARAMETER`, `NETWORKID`, `CRFOP`); `setup()` returns immediately, so Modbus,
+  RS-232 and other components are never stalled.
+- **TX queue.** `rylr998.send_packet` / `transmit_packet()` store the packet in a fixed queue of
+  **4 packets** (no heap allocation). Packets are sent one at a time, each waiting for `+OK` and for the
+  air time of the previous one. When the queue is full, or the module is not ready, the packet is
+  refused with a warning (and `transmit_packet()` returns `false`).
+- **Module restarts.** If the module reboots by itself (`+READY`, brown-out, supply dip) the RF settings
+  that are not stored in its flash are lost; the component detects `+READY` and re-sends the whole
+  configuration. After 3 consecutive missing answers it re-initialises the module as well. While the
+  module does not answer, the ESPHome status shows a warning and `AT` is retried every second, then
+  every 10 s.
+- **Manual reset.** The `reset` button and the `rylr998.reset` action send `AT+RESET`; the configuration is re-applied when the module reports `+READY`.
+- **Health check.** After 60 s without any traffic an `AT` is sent to verify that the module is alive.
+- **Reception while a command is pending.** `+RCV` frames are parsed independently of the command in
+  flight, so a packet arriving between an `AT+SEND` and its `+OK` is neither lost nor mistaken for the answer.
+- **Malformed lines** (wrong declared length, truncated, longer than 300 bytes) are discarded with a warning.
+
+## Known limitations
 
 **Payload size and hex encoding**
 The component internally hex-encodes binary payloads before sending them over AT+SEND.
-One binary byte becomes two ASCII hex characters. The AT protocol documents a 240-character
-limit for the `<Data>` field. Depending on firmware version, this may mean:
-- **Firmware A (strict ASCII limit):** maximum binary payload = **120 bytes**. Payloads of 121–240 bytes will return `+ERR=13`.
-- **Firmware B (binary limit):** maximum binary payload = **240 bytes**.
+One binary byte becomes two ASCII hex characters, and the module transmits those characters
+as-is. The AT protocol limits the `<Data>` field to 240 characters, and a LoRa frame cannot
+carry more than 255 bytes (240 characters + 8 bytes added by the module = 248), so the
+maximum binary payload is **120 bytes**. Larger payloads are refused by the component.
 
-To determine which behaviour your module exhibits, send a test packet of exactly 121 bytes
-and check the logs for `+ERR=13`. When in doubt, keep payloads ≤ 120 bytes.
+**No duty-cycle limiter**
+Compliance with the 1 % duty cycle of the 868 MHz band is up to your automations.
 
-**`apply_tx_power()` / TX power slider is blocking**
-Changing TX power at runtime sends an AT command synchronously (up to 1 s wait). All other
-ESPHome components on the device are stalled during this time. Avoid changing TX power from
-a high-frequency automation when Modbus, RS-232 or other UART components are active.
+**Packets are not acknowledged**
+LoRa transmission by this module is fire-and-forget: `+OK` only means the module accepted the
+frame. Add an application-level acknowledgement if you need guaranteed delivery.
 
 **No encryption**
 The module supports an optional AES-style password (`AT+CPIN`) but this component does not
@@ -784,3 +901,29 @@ currently expose it as a configuration key. All packets are sent in plaintext.
 - Component author: [@SeByDocKy](https://github.com/SeByDocKy)
 - RYLR998 datasheet: [REYAX Technology](https://reyax.com/products/rylr998)
 - ESPHome external components documentation: [esphome.io](https://esphome.io/components/external_components.html)
+
+---
+
+## License
+
+MIT License
+
+Copyright (c) 2026 e-2-nomy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

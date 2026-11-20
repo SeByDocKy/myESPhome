@@ -52,6 +52,7 @@ uart:
   tx_pin: GPIO4
   rx_pin: GPIO5
   baud_rate: ${baud_rate}
+  rx_buffer_size: 1024
 
 rylr998:
   id: lora
