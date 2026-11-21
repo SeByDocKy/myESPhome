@@ -218,10 +218,13 @@ interval:
 
 ### Packet transport sub-component
 
-Shares ESPHome sensors between two devices over LoRa, using ESPHome's generic
-[`packet_transport`](https://esphome.io/components/packet_transport/) framework (the same
+Shares ESPHome **sensors** and **binary sensors** between two devices over LoRa, using ESPHome's
+generic [`packet_transport`](https://esphome.io/components/packet_transport/) framework (the same
 mechanism as the `udp` and `espnow` transports). The values are packed, optionally encrypted,
-and sent as ordinary LoRa packets.
+and sent as ordinary LoRa packets. Both entity types are handled by the framework: the
+`rylr998` platform only carries the frames.
+
+**Sending side** — list the local entities to publish:
 
 ```yaml
 packet_transport:
@@ -230,21 +233,40 @@ packet_transport:
   update_interval: 2500ms
   encryption: "loralora"          # optional
   sensors:
-    - a_temperature               # local sensors to publish
+    - a_temperature               # ids of local sensors to publish
+  binary_sensors:
+    - a_relay_state               # ids of local binary sensors to publish
   providers:
     - name: rylr998b              # name of the remote device
       encryption: "loralora"
-
-sensor:
-  - platform: packet_transport
-    provider: rylr998b
-    name: ${name}_temperature_received
-    remote_id: b_temperature      # id of the sensor on the remote device
 ```
 
+**Receiving side** — create one entity per remote value:
+
+```yaml
+sensor:
+  - platform: packet_transport
+    provider: rylr998b            # name declared in providers:
+    remote_id: b_temperature      # id of the sensor on the remote device
+    name: ${name}_temperature_received
+
+binary_sensor:
+  - platform: packet_transport
+    provider: rylr998b
+    remote_id: b_relay_state      # id of the binary sensor on the remote device
+    name: ${name}_relay_state_received
+```
+
+A received entity that is only used by local automations can be hidden from Home Assistant with
+`internal: true` (and an `id:`) instead of a `name:`.
+
 > A packet-transport frame must fit in **120 bytes** (the component reports this as its maximum
-> packet size). Keep the number of shared sensors small and the `update_interval` above the
-> frame air time (see [Duty cycle](#duty-cycle-and-regulatory-notes)).
+> packet size). Each shared value is sent with its **id as text**: a sensor costs about
+> `6 + len(id)` bytes and a binary sensor `3 + len(id)` bytes, plus a small header (and some
+> overhead when `encryption` is set). Short ids therefore keep the frame small. When the values do
+> not fit, the framework splits them into several packets sent back to back; the TX queue holds
+> **4 packets**, so share few enough values to stay within that, and keep `update_interval` above
+> the total air time (see [Duty cycle](#duty-cycle-and-regulatory-notes)).
 > `rylr998a.yaml` / `rylr998b.yaml` in this folder are a complete working pair.
 
 ---
