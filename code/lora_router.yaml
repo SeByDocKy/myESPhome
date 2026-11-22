@@ -139,7 +139,7 @@ button:
 packet_transport:
   platform: rylr998
   rylr998_id: lora
-  update_interval: '2000ms' #'2500ms' for battery v1 with HMS
+  update_interval: '1500ms' #'2500ms' for battery v1 with HMS
   encryption: !secret encryption_key
   sensors:
     - power
@@ -152,6 +152,15 @@ number:
     rylr998_id: lora
     tx_power:
       name: ${name}_tx_power
+
+
+binary_sensor:
+  - platform: packet_transport
+    provider: ${name_controller}
+    name: ${name}_manual_overrid  #from A
+    id: manual_override
+    internal: false
+    remote_id: lora_manual_override
 
 sensor:
   - platform: pzemac
@@ -200,15 +209,16 @@ sensor:
     state_class: measurement
     accuracy_decimals: 2
     # on_value:
-    #   then:
-    #     - if:
-    #         condition:
-    #           fan.is_off: command
-    #         then:
-    #           - output.set_level:
-    #               id: gp8413_output
-    #               level: !lambda |-
-    #                 return x;
+      # then:
+        # - if:
+            # condition:
+              # binary_sensor.is_off: manual_override
+              # # fan.is_off: command
+            # then:
+              # - output.set_level:
+                  # id: gp8413_output
+                  # level: !lambda |-
+                    # return x;
     on_value:
       then:
         - output.set_level:
