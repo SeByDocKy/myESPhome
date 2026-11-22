@@ -154,13 +154,13 @@ number:
       name: ${name}_tx_power
 
 
-binary_sensor:
-  - platform: packet_transport
-    provider: ${name_controller}
-    name: ${name}_manual_overrid  #from A
-    id: manual_override
-    internal: false
-    remote_id: lora_manual_override
+# binary_sensor:
+  # - platform: packet_transport
+    # provider: ${name_controller}
+    # name: ${name}_manual_overrid  #from A
+    # id: manual_override
+    # internal: false
+    # remote_id: lora_manual_override
 
 sensor:
   - platform: pzemac
