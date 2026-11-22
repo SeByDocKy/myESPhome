@@ -119,12 +119,12 @@ rylr998:
   uart_id: uart_0
   address: 2
   frequency: 868MHz
-  spreading_factor: 11
+  spreading_factor: 7
   signal_bandwidth: 125kHz
-  coding_rate: 2
+  coding_rate: 1
   preamble_length: 12
   network_id: 10
-  tx_power: 20
+  tx_power: 22
   air_time: true #false
 
 button:
@@ -139,7 +139,7 @@ button:
 packet_transport:
   platform: rylr998
   rylr998_id: lora
-  update_interval: '1500ms' #'2500ms' for battery v1 with HMS
+  update_interval: '2000ms' #'2500ms' for battery v1 with HMS
   encryption: !secret encryption_key
   sensors:
     - power
