@@ -199,22 +199,22 @@ sensor:
     icon: mdi:numeric
     state_class: measurement
     accuracy_decimals: 2
+    # on_value:
+    #   then:
+    #     - if:
+    #         condition:
+    #           fan.is_off: command
+    #         then:
+    #           - output.set_level:
+    #               id: gp8413_output
+    #               level: !lambda |-
+    #                 return x;
     on_value:
       then:
-        - if:
-            condition:
-              fan.is_off: command
-            then:
-              - output.set_level:
-                  id: gp8413_output
-                  level: !lambda |-
-                    return x;
-    # on_value:
-      # then:
-        # - output.set_level:
-            # id: gp8413_output
-            # level: !lambda |-
-               # return x;
+        - output.set_level:
+            id: gp8413_output
+            level: !lambda |-
+               return x;
                
                
   - platform: total_daily_energy
