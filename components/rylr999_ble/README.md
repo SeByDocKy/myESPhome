@@ -458,7 +458,8 @@ Notes:
   (for example a `binary_sensor` on `lora_ready` or a `script` with a delay) if the output must fall back
   to a safe state.
 - `on_state` fires on every update of the remote binary sensor, so the template switch is set each time;
-  this is harmless, `switch.turn_on` on a switch that is already on does nothing.
+  this is harmless: `switch.turn_on` on a switch that is already on simply runs `turn_on_action` again,
+  which sets the output to the level it already has.
 - On the receiving side `internal: false` is mandatory when an entity has a `name:`; use `internal: true`
   with an `id:` instead for a value that is only used by local automations.
 - `rylr999_ble_1.yaml` / `rylr999_ble_2.yaml` are a second, simpler pair (internal temperature one way, a
