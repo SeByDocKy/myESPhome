@@ -8,9 +8,9 @@ DEPENDENCIES = ["rylr999_ble"]
 
 CONF_LORA_READY = "lora_ready"
 
-# Schéma en "slots nommés" à l'intérieur d'une seule entrée de plateforme
-# (comme bme280/sen5x), pour pouvoir ajouter d'autres indicateurs binaires du
-# module plus tard sans casser la config existante.
+
+# Named "slots" inside a single platform entry (like bme280/sen5x), so that other binary
+# indicators of the module can be added later without breaking existing configs.
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_RYLR999_BLE_ID): cv.use_id(RYLR999BLEComponent),

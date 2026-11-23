@@ -8,10 +8,9 @@
 
 namespace esphome::rylr999_ble {
 
-// Relie packet_transport::PacketTransport au composant rylr999_ble : les
-// paquets sortants passent par send_payload() (hex-encodés puis envoyés en
-// BLE via AT+SEND), les paquets entrants arrivent via on_packet() lorsque le
-// composant parent a décodé une trame "+RCV=...". Même principe que
+// Bridges packet_transport::PacketTransport to the rylr999_ble component: outgoing frames go
+// through send_payload() (queued, hex-encoded, sent over BLE with AT+SEND), incoming frames arrive
+// through on_packet() when the parent has decoded a "+RCV=..." line. Same principle as
 // sx126x::SX126xTransport.
 class RYLR999BLETransport final : public packet_transport::PacketTransport,
                                    public Parented<RYLR999BLEComponent>,
@@ -23,9 +22,8 @@ class RYLR999BLETransport final : public packet_transport::PacketTransport,
 
  protected:
   void send_packet(const std::vector<uint8_t> &buf) const override;
-  // Pas d'intérêt à tenter un envoi tant que la configuration LoRa BLE n'est
-  // pas validée (AT+ADDRESS...AT+CRFOP) : le paquet serait de toute façon
-  // rejeté par send_payload().
+  // No point building frames before the radio is configured (AT+ADDRESS ... AT+CRFOP):
+  // send_payload() would refuse them anyway.
   bool should_send() override { return this->parent_->is_lora_ready(); }
   size_t get_max_packet_size() override { return this->parent_->get_max_packet_size(); }
 };

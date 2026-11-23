@@ -12,7 +12,8 @@ void RYLR999BLETransport::setup() {
 
 void RYLR999BLETransport::send_packet(const std::vector<uint8_t> &buf) const {
   if (!this->parent_->send_payload(buf)) {
-    ESP_LOGD(TAG, "Envoi du paquet packet_transport (%u octets) différé/échoué", (unsigned) buf.size());
+    // send_payload() already logged the reason (not ready, too large, queue full).
+    ESP_LOGW(TAG, "packet_transport frame (%u bytes) not sent", (unsigned) buf.size());
   }
 }
 

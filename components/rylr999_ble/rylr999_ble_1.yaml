@@ -64,8 +64,6 @@ rylr999_ble:
   preamble_length: 12
   network_id: 10
   tx_power: 20
-  air_time: false
-  min_tx_interval: 1s
 
 packet_transport:
   platform: rylr999_ble
@@ -80,6 +78,14 @@ packet_transport:
 
 
 sensor:
+
+  - platform: rylr999_ble
+    rssi:
+      name: ${name}_rssi
+    snr:
+      name: ${name}_snr
+    last_error:
+      name: ${name}_last_error
 
   - platform: internal_temperature
     name: ${name}_internal_temperature
@@ -111,3 +117,13 @@ binary_sensor:
   - platform: rylr999_ble
     lora_ready:
       name: ${name}_lora_ready
+
+number:
+  - platform: rylr999_ble
+    tx_power:
+      name: ${name}_tx_power
+
+button:
+  - platform: rylr999_ble
+    reset:
+      name: ${name}_reset

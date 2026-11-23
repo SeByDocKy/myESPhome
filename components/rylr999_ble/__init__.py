@@ -1,3 +1,5 @@
+import logging
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import ble_client, esp32_ble_tracker
@@ -8,16 +10,17 @@ from esphome.const import (
     CONF_CHARACTERISTIC_UUID,
 )
 
+_LOGGER = logging.getLogger(__name__)
+
 DEPENDENCIES = ["ble_client"]
 CODEOWNERS = ["@SeByDocKy", "@claude"]
 MULTI_CONF = True
 
-# Certains modules (dont le RYLR999 testé en pratique) exposent DEUX
-# caractéristiques séparées dans le même service - une en écriture
-# (READ | WRITE_NO_RESPONSE) et une autre en notification seule (NOTIFY) -
-# alors que la doc REYAX documente une unique caractéristique combinant les
-# deux. Ce champ est optionnel : s'il est omis, on réutilise
-# characteristic_uuid pour la notification (cas de la doc officielle).
+# Some modules (including the RYLR999 used in practice) expose TWO separate
+# characteristics in the same service - one for writing (READ | WRITE_NO_RESPONSE)
+# and one for notifications only (NOTIFY) - whereas the REYAX documentation
+# describes a single characteristic combining both. This field is optional: when
+# omitted, characteristic_uuid is also used for notifications.
 CONF_NOTIFY_CHARACTERISTIC_UUID = "notify_characteristic_uuid"
 CONF_RYLR999_BLE_ID = "rylr999_ble_id"
 CONF_ADDRESS = "address"
@@ -35,8 +38,8 @@ rylr999_ble_ns = cg.esphome_ns.namespace("rylr999_ble")
 RYLR999BLEComponent = rylr999_ble_ns.class_(
     "RYLR999BLEComponent", cg.Component, ble_client.BLEClientNode
 )
-# Interface observateur utilisée par la plateforme packet_transport pour
-# recevoir les paquets décodés depuis les trames "+RCV=..." (cf. rylr999_ble.h).
+# Observer interface used by the packet_transport platform to receive the decoded
+# packets from "+RCV=..." lines (see rylr999_ble.h).
 RYLR999BLEListener = rylr999_ble_ns.class_("RYLR999BLEListener")
 
 
@@ -54,6 +57,10 @@ def validate_spreading_factor(value):
     return value
 
 
+# Spreading factors accepted by AT+PARAMETER for each bandwidth (REYAX AT command guide).
+_SF_RANGE_BY_BANDWIDTH = {125000: (7, 9), 250000: (7, 10), 500000: (7, 11)}
+
+
 def validate_coding_rate(value):
     value = cv.int_(value)
     if value < 1 or value > 4:
@@ -69,15 +76,26 @@ def validate_network_id(value):
     return value
 
 
-def _validate_preamble_networkid(config):
-    # Doc RYLR999 : preamble_length n'est réglable (4-24) que si network_id: 18,
-    # sinon il doit rester à 12 (même contrainte que pour la variante rylr999 du
-    # composant UART rylr998 - cf. AT+PARAMETER dans le guide REYAX).
+def _validate_config(config):
+    # preamble_length can only be changed (4-24) with network_id: 18, otherwise it must stay at 12
+    # (same constraint as AT+PARAMETER in the REYAX guide).
     if config[CONF_NETWORK_ID] != 18 and config[CONF_PREAMBLE_LENGTH] != 12:
         raise cv.Invalid(
-            "preamble_length n'est réglable (4-24) que si network_id: 18. "
-            "Pour toute autre valeur de network_id, preamble_length doit "
-            "rester à 12 (valeur par défaut)."
+            "preamble_length can only be changed (4-24) when network_id: 18. "
+            "For any other network_id it must stay at 12 (default)."
+        )
+    # Spreading factor ranges listed in the guide for each bandwidth.
+    lo, hi = _SF_RANGE_BY_BANDWIDTH[config[CONF_SIGNAL_BANDWIDTH]]
+    sf = config[CONF_SPREADING_FACTOR]
+    if not lo <= sf <= hi:
+        # The guide is ambiguous about SF5/SF6, so this is a warning rather than an error.
+        _LOGGER.warning(
+            "rylr999_ble: spreading_factor %s is outside %s-%s, the range listed in the REYAX guide for "
+            "signal_bandwidth %skHz; the module may refuse AT+PARAMETER",
+            sf,
+            lo,
+            hi,
+            int(config[CONF_SIGNAL_BANDWIDTH]) // 1000,
         )
     return config
 
@@ -96,25 +114,22 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_CODING_RATE, default=1): validate_coding_rate,
             cv.Optional(CONF_PREAMBLE_LENGTH, default=12): cv.int_range(min=4, max=24),
             cv.Optional(CONF_NETWORK_ID, default=18): validate_network_id,
-            # RYLR999 : PA jusqu'à 30dBm (contre 22dBm max sur RYLR998/SX1262).
+            # RYLR999: power amplifier up to 30 dBm (22 dBm max on the RYLR998).
             cv.Optional(CONF_TX_POWER, default=22): cv.int_range(min=0, max=30),
-            cv.Optional(CONF_AIR_TIME, default=False): cv.boolean,
-            # Espacement mini forcé entre deux AT+SEND, quelle qu'en soit la
-            # cause (packet_transport déclenche un envoi à la fois sur son
-            # update_interval ET immédiatement à chaque changement de valeur
-            # d'un sensor suivi - cf. loop() de packet_transport - donc deux
-            # envois peuvent partir à quelques centaines de ms d'écart).
-            # Le RYLR999 rejette (+ERR=17 "Last TX was not completed") tout
-            # AT+SEND lancé avant la fin d'antenne du précédent ; le défaut
-            # 1s est une marge prudente pour SF9/125kHz sur ~80 octets -
-            # réduisez si votre SF/BW/payload est plus rapide, augmentez si
-            # vous voyez encore des +ERR=17.
-            cv.Optional(CONF_MIN_TX_INTERVAL, default="1s"): cv.positive_time_period_milliseconds,
+            # true (default): the guard time after each AT+SEND is the computed air time of that
+            # packet. false: fixed 600 ms (legacy behaviour).
+            cv.Optional(CONF_AIR_TIME, default=True): cv.boolean,
+            # Optional extra floor on the spacing between two AT+SEND. Normally not needed: the
+            # computed air time already spaces the packets. Packets wait in the TX queue, they are
+            # never dropped because of this setting.
+            cv.Optional(
+                CONF_MIN_TX_INTERVAL, default="0ms"
+            ): cv.positive_time_period_milliseconds,
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
     .extend(ble_client.BLE_CLIENT_SCHEMA),
-    _validate_preamble_networkid,
+    _validate_config,
 )
 
 
@@ -145,8 +160,8 @@ async def to_code(config):
             var.set_char_uuid128(esp32_ble_tracker.as_reversed_hex_array(char_uuid))
         )
 
-    # Caractéristique de notification : celle dédiée si fournie, sinon la
-    # même que l'écriture (cas d'une caractéristique combinée NOTIFY+WRITE).
+    # Notification characteristic: the dedicated one if given, otherwise the write one
+    # (combined NOTIFY+WRITE characteristic).
     notify_uuid = config.get(CONF_NOTIFY_CHARACTERISTIC_UUID, char_uuid)
     if len(notify_uuid) == len(esp32_ble_tracker.bt_uuid16_format):
         cg.add(var.set_notify_char_uuid16(esp32_ble_tracker.as_hex(notify_uuid)))
