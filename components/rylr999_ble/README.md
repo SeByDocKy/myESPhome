@@ -65,7 +65,7 @@ external_components:
 ```
 
 ESPHome pulls the component from GitHub at build time. The two examples in this folder
-(`rylr999_ble_1.yaml`, `rylr999_ble_2.yaml`) are a complete working pair.
+(`rylr999_ble_example_a.yaml`, `rylr999_ble_example_b.yaml`) are a complete working pair.
 
 The module must be **powered and advertising**, and you need its BLE MAC address and the UUIDs of
 its GATT service/characteristics (a BLE scanner app such as nRF Connect shows them).
@@ -233,9 +233,76 @@ sensor:
 
 ## YAML example
 
-`rylr999_ble_1.yaml` and `rylr999_ble_2.yaml` in this folder are a complete working pair (two ESP32-S3
-boards, each with its RYLR999): one shares its internal temperature, the other a BLE thermometer,
-and both show RSSI/SNR, the TX power and a reset button.
+### Two nodes exchanging a temperature and a relay state
+
+`rylr999_ble_example_a.yaml` and `rylr999_ble_example_b.yaml` are the same file with different
+substitutions (name, peer name, BLE MAC address, LoRa address). Each node:
+
+- shares its **internal temperature** (a sensor) and the **state of its relay** with the other one;
+- shows the other node's temperature and relay state as local entities;
+- exposes `lora_ready`, RSSI, SNR, last error, TX power and a reset button.
+
+`packet_transport` only carries **sensors and binary sensors**, so the relay (a `switch`) is mirrored
+into a template binary sensor whose state is published from the switch's `on_turn_on` /
+`on_turn_off`. That binary sensor is the entity listed in `binary_sensors:`:
+
+```yaml
+switch:
+  - platform: gpio
+    name: ${name}_relay
+    id: relay
+    pin: ${relay_pin}
+    on_turn_on:
+      - binary_sensor.template.publish:
+          id: relay_state
+          state: true
+    on_turn_off:
+      - binary_sensor.template.publish:
+          id: relay_state
+          state: false
+
+binary_sensor:
+  - platform: template              # local mirror, sent over LoRa
+    id: relay_state
+    internal: true
+  - platform: packet_transport       # relay state of the other node
+    provider: ${compagnon}
+    remote_id: relay_state
+    name: ${name}_remote_relay_state
+    internal: false
+
+sensor:
+  - platform: internal_temperature
+    id: itemp
+    internal: true
+    update_interval: 5s
+  - platform: packet_transport       # temperature of the other node
+    provider: ${compagnon}
+    remote_id: itemp
+    name: ${name}_remote_temperature
+    internal: false
+
+packet_transport:
+  platform: rylr999_ble
+  rylr999_ble_id: my_rylr999
+  update_interval: 10s
+  sensors:
+    - itemp
+  binary_sensors:
+    - relay_state
+  providers:
+    - name: ${compagnon}
+```
+
+Notes:
+
+- The ids (`itemp`, `relay_state`) travel as text in every frame: keep them short. This pair costs about
+  30 bytes per frame, i.e. roughly 130 ms on air at SF7 / 125 kHz.
+- A change of the relay is sent **immediately**, the whole set is re-sent every `update_interval`.
+- On the receiving side `internal: false` is mandatory when an entity has a `name:`; use `internal: true`
+  with an `id:` instead for a value that is only used by local automations.
+- `rylr999_ble_1.yaml` / `rylr999_ble_2.yaml` are a second, simpler pair (internal temperature one way, a
+  BLE thermometer the other way).
 
 ---
 

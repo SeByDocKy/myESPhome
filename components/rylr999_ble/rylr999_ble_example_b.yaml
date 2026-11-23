@@ -1,0 +1,142 @@
+# Two RYLR999 (BLE) nodes exchanging their internal temperature and the state of a relay.
+# Flash this file on node B and the twin file (rylr999_ble_example_a.yaml) on node B: only the
+# substitutions differ.
+#
+# packet_transport only shares sensors and binary sensors, so the relay (a switch) is mirrored
+# into a binary sensor (`relay_state`) which is the entity that is sent over LoRa.
+substitutions:
+  name: rylr999_ble_b
+  compagnon: rylr999_ble_a
+  ble_mac: "90:39:5E:3F:62:46"      # BLE MAC address of the RYLR999 wired to this node
+  lora_address: "2"
+  relay_pin: GPIO4
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+logger:
+  level: debug
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  platform: esphome
+
+external_components:
+  - source: "github://SeByDocKy/myESPhome@main"
+    components: [rylr999_ble]
+    refresh: 10s
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: true
+
+ble_client:
+  - mac_address: ${ble_mac}
+    id: my_ble
+
+rylr999_ble:
+  id: my_rylr999
+  ble_client_id: my_ble
+  service_uuid: "F000C0C0-0451-4000-B000-000000000000"
+  characteristic_uuid: "F000C0C1-0451-4000-B000-000000000000"
+  notify_characteristic_uuid: "F000C0C2-0451-4000-B000-000000000000"
+  address: ${lora_address}
+  frequency: 868MHz
+  # SF7 / 125 kHz keeps the air time short (about 130 ms for a 30-byte frame), which lowers the
+  # collision probability when both nodes transmit.
+  spreading_factor: 7
+  signal_bandwidth: 125kHz
+  coding_rate: 1
+  network_id: 10
+  tx_power: 20
+
+packet_transport:
+  platform: rylr999_ble
+  rylr999_ble_id: my_rylr999
+  update_interval: 10s       # whole set re-sent every 10 s, and immediately when a value changes
+  encryption: !secret encryption_key
+  sensors:
+    - itemp                  # short ids keep the frame small
+  binary_sensors:
+    - relay_state
+  providers:
+    - name: ${compagnon}
+      encryption: !secret encryption_key
+
+switch:
+  - platform: gpio
+    name: ${name}_relay
+    id: relay
+    pin: ${relay_pin}
+    restore_mode: RESTORE_DEFAULT_OFF
+    # Mirror the switch into the binary sensor that packet_transport sends.
+    on_turn_on:
+      - binary_sensor.template.publish:
+          id: relay_state
+          state: true
+    on_turn_off:
+      - binary_sensor.template.publish:
+          id: relay_state
+          state: false
+
+binary_sensor:
+  # Local mirror of the relay, shared with the other node.
+  - platform: template
+    id: relay_state
+    internal: true
+
+  # Relay state of the other node.
+  - platform: packet_transport
+    provider: ${compagnon}
+    remote_id: relay_state
+    name: ${name}_remote_relay_state
+    internal: false
+
+  - platform: rylr999_ble
+    lora_ready:
+      name: ${name}_lora_ready
+
+sensor:
+  - platform: internal_temperature
+    id: itemp
+    internal: true
+    update_interval: 5s
+
+  # Internal temperature of the other node.
+  - platform: packet_transport
+    provider: ${compagnon}
+    remote_id: itemp
+    name: ${name}_remote_temperature
+    internal: false
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+
+  - platform: rylr999_ble
+    rssi:
+      name: ${name}_rssi
+    snr:
+      name: ${name}_snr
+    last_error:
+      name: ${name}_last_error
+
+number:
+  - platform: rylr999_ble
+    tx_power:
+      name: ${name}_tx_power
+
+button:
+  - platform: rylr999_ble
+    reset:
+      name: ${name}_reset
