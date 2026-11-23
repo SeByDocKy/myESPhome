@@ -235,13 +235,24 @@ sensor:
 
 ### Two nodes exchanging a temperature and a relay state
 
-Each node shares its **internal temperature** (a sensor) and the **state of its relay** with the other
-one, and shows the other node's temperature and relay state as local entities. It also exposes
-`lora_ready`, RSSI, SNR, last error, TX power and a reset button.
+Each node:
 
-`packet_transport` only carries **sensors and binary sensors**, so the relay (a `switch`) is mirrored
-into a template binary sensor, updated from the switch's `on_turn_on` / `on_turn_off`. That binary
-sensor (`relay_state`) is the entity listed in `binary_sensors:`.
+- shares its **internal temperature** (a sensor) and the **state of its relay** with the other one;
+- shows the other node's temperature and relay state as local entities;
+- **follows the other node's relay**: the received binary sensor drives a local template switch
+  (`${name}_mirror`), which switches a local output;
+- exposes `lora_ready`, RSSI, SNR, last error, TX power and a reset button.
+
+`packet_transport` only carries **sensors and binary sensors**, so the data flows like this:
+
+```
+node A                                                    node B
+relay (gpio switch) --on_turn_on/off--> relay_state ──LoRa──> remote_relay_state --on_state--> mirror (template switch) --> mirror_out (gpio)
+                                      (template binary sensor)  (packet_transport binary sensor)
+```
+
+and the same in the opposite direction. There are two distinct switches per node, so there is no
+feedback loop: `relay` (what this node sends) and `mirror` (what the other node sends).
 
 The two nodes use the **same file**; only the `substitutions` block differs.
 Both files are provided in this folder: `rylr999_ble_example_a.yaml` and `rylr999_ble_example_b.yaml`.
@@ -255,12 +266,16 @@ Both files are provided in this folder: `rylr999_ble_example_a.yaml` and `rylr99
 #
 # packet_transport only shares sensors and binary sensors, so the relay (a switch) is mirrored
 # into a binary sensor (`relay_state`) which is the entity that is sent over LoRa.
+# In the other direction, the binary sensor received from the other node (`remote_relay_state`)
+# drives a template switch (`mirror`) that switches a local output: the other node's relay is
+# followed here.
 substitutions:
   name: rylr999_ble_a
   compagnon: rylr999_ble_b
   ble_mac: "90:39:5E:3F:6D:81"      # BLE MAC address of the RYLR999 wired to this node
   lora_address: "1"
-  relay_pin: GPIO4
+  relay_pin: GPIO4       # local relay, its state is sent to the other node
+  mirror_pin: GPIO5      # output that follows the relay of the other node
 
 esphome:
   name: ${name}
@@ -340,6 +355,24 @@ switch:
           id: relay_state
           state: false
 
+  # Physical output that follows the other node's relay (kept internal: only the template switch uses it).
+  - platform: gpio
+    id: mirror_out
+    pin: ${mirror_pin}
+    internal: true
+
+  # Template switch driven by the binary sensor received through packet_transport.
+  # turn_on / turn_off are called by the binary sensor's on_state below (or manually from the UI).
+  - platform: template
+    name: ${name}_mirror
+    id: mirror
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - switch.turn_on: mirror_out
+    turn_off_action:
+      - switch.turn_off: mirror_out
+
 binary_sensor:
   # Local mirror of the relay, shared with the other node.
   - platform: template
@@ -352,6 +385,15 @@ binary_sensor:
     remote_id: relay_state
     name: ${name}_remote_relay_state
     internal: false
+    # Each time a frame updates the remote relay state, apply it to the local template switch.
+    on_state:
+      - if:
+          condition:
+            lambda: 'return x;'
+          then:
+            - switch.turn_on: mirror
+          else:
+            - switch.turn_off: mirror
 
   - platform: rylr999_ble
     lora_ready:
@@ -401,14 +443,22 @@ substitutions:
   compagnon: rylr999_ble_a
   ble_mac: "90:39:5E:3F:62:46"      # BLE MAC address of the RYLR999 wired to this node
   lora_address: "2"
-  relay_pin: GPIO4
+  relay_pin: GPIO4       # local relay, its state is sent to the other node
+  mirror_pin: GPIO5      # output that follows the relay of the other node
 ```
 
 Notes:
 
 - The ids (`itemp`, `relay_state`) travel as text in every frame: keep them short. This pair costs about
   30 bytes per frame, i.e. roughly 130 ms on air at SF7 / 125 kHz.
-- A change of the relay is sent **immediately**, the whole set is re-sent every `update_interval`.
+- A change of the relay is sent **immediately**, the whole set is re-sent every `update_interval`. A frame
+  that is lost is therefore repaired by the next periodic one (at most `update_interval` later).
+- The mirror follows the last state received. After a reboot it starts `OFF` (`restore_mode: ALWAYS_OFF`)
+  until the first frame arrives, and it keeps its last state if the radio link is lost: add a timeout
+  (for example a `binary_sensor` on `lora_ready` or a `script` with a delay) if the output must fall back
+  to a safe state.
+- `on_state` fires on every update of the remote binary sensor, so the template switch is set each time;
+  this is harmless, `switch.turn_on` on a switch that is already on does nothing.
 - On the receiving side `internal: false` is mandatory when an entity has a `name:`; use `internal: true`
   with an `id:` instead for a value that is only used by local automations.
 - `rylr999_ble_1.yaml` / `rylr999_ble_2.yaml` are a second, simpler pair (internal temperature one way, a

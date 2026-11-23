@@ -4,12 +4,16 @@
 #
 # packet_transport only shares sensors and binary sensors, so the relay (a switch) is mirrored
 # into a binary sensor (`relay_state`) which is the entity that is sent over LoRa.
+# In the other direction, the binary sensor received from the other node (`remote_relay_state`)
+# drives a template switch (`mirror`) that switches a local output: the other node's relay is
+# followed here.
 substitutions:
   name: rylr999_ble_a
   compagnon: rylr999_ble_b
   ble_mac: "90:39:5E:3F:6D:81"      # BLE MAC address of the RYLR999 wired to this node
   lora_address: "1"
-  relay_pin: GPIO4
+  relay_pin: GPIO4       # local relay, its state is sent to the other node
+  mirror_pin: GPIO5      # output that follows the relay of the other node
 
 esphome:
   name: ${name}
@@ -89,6 +93,24 @@ switch:
           id: relay_state
           state: false
 
+  # Physical output that follows the other node's relay (kept internal: only the template switch uses it).
+  - platform: gpio
+    id: mirror_out
+    pin: ${mirror_pin}
+    internal: true
+
+  # Template switch driven by the binary sensor received through packet_transport.
+  # turn_on / turn_off are called by the binary sensor's on_state below (or manually from the UI).
+  - platform: template
+    name: ${name}_mirror
+    id: mirror
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - switch.turn_on: mirror_out
+    turn_off_action:
+      - switch.turn_off: mirror_out
+
 binary_sensor:
   # Local mirror of the relay, shared with the other node.
   - platform: template
@@ -101,6 +123,15 @@ binary_sensor:
     remote_id: relay_state
     name: ${name}_remote_relay_state
     internal: false
+    # Each time a frame updates the remote relay state, apply it to the local template switch.
+    on_state:
+      - if:
+          condition:
+            lambda: 'return x;'
+          then:
+            - switch.turn_on: mirror
+          else:
+            - switch.turn_off: mirror
 
   - platform: rylr999_ble
     lora_ready:
