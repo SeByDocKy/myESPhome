@@ -805,6 +805,10 @@ void HMSComponent::set_power_limit_percent_persistent(float percent) {
 
 void HMSComponent::reset_radio() {
   if (this->radio_ == nullptr) return;
+  if (this->fw_mode_) {
+    ESP_LOGW(TAG, "Radio reset ignored: firmware update in progress");
+    return;
+  }
   ESP_LOGW(TAG, "Manual radio reset (reset_radio)");
 
   if (this->radio_->is_owned_by_other(this)) {
@@ -838,6 +842,75 @@ void HMSComponent::reset_radio() {
   this->publish_reachable_();
   this->radio_->unlock_external(this);
   ESP_LOGI(TAG, "Radio reset and reconfigured (channel %u)", this->work_channel_);
+}
+
+// ---------------------------------------------------------------------------
+// Poll history (link quality) + maintenance mode for hms_fwupdate
+// ---------------------------------------------------------------------------
+void HMSComponent::record_poll_(bool ok) {
+  this->poll_history_ = (this->poll_history_ << 1) | (ok ? 1u : 0u);
+  if (this->poll_history_count_ < 32) this->poll_history_count_++;
+}
+
+uint8_t HMSComponent::get_link_quality(uint8_t window) const {
+  if (window == 0 || window > 32) window = 32;
+  uint8_t n = this->poll_history_count_ < window ? this->poll_history_count_ : window;
+  if (n == 0) return 0;
+  uint32_t mask = (n == 32) ? 0xFFFFFFFFu : ((1u << n) - 1u);
+  uint32_t ok = static_cast<uint32_t>(__builtin_popcount(this->poll_history_ & mask));
+  return static_cast<uint8_t>(ok * 100u / n);
+}
+
+bool HMSComponent::fw_enter(FwRxCallback cb) {
+  if (this->fw_mode_ || this->radio_ == nullptr || this->is_failed()) return false;
+  // Never interrupt an exchange in flight (telemetry or power limit): retry on a later tick.
+  if (this->op_state_ != OP_IDLE || this->tx_sending_) return false;
+  if (!this->radio_->try_lock_external(this)) return false;
+
+  this->fw_rx_cb_ = std::move(cb);
+  this->fw_mode_ = true;
+  this->cmt_start_listening_();
+  ESP_LOGW(TAG, "Maintenance mode ON (firmware update): polling and channel recovery suspended");
+  return true;
+}
+
+void HMSComponent::fw_leave() {
+  if (!this->fw_mode_) return;
+  this->fw_mode_ = false;
+  this->fw_rx_cb_ = nullptr;
+  this->op_state_ = OP_IDLE;
+  this->pending_cmd_ = CMD_NONE;
+  this->radio_->unlock_external(this);
+  this->last_poll_ = millis();  // restart the poll cadence from now
+  if (!this->tx_sending_) this->cmt_start_listening_();
+  ESP_LOGW(TAG, "Maintenance mode OFF: normal polling resumes");
+}
+
+bool HMSComponent::fw_send_frame(const uint8_t *frame, uint8_t len) {
+  if (!this->fw_mode_ || this->tx_sending_ || len == 0 || len > 32) return false;
+  return this->cmt_start_tx_(frame, len);
+}
+
+void HMSComponent::fw_loop_() {
+  // Tx in progress: the chip is in TX mode, nothing to read until process_tx_() resumes listening.
+  if (this->tx_sending_) {
+    this->process_tx_();
+    return;
+  }
+  if (!this->cmt_rx_packet_available_()) return;
+
+  uint8_t raw[33];
+  uint8_t len = this->cmt_read_dynamic_payload_(raw, sizeof(raw));
+  this->radio_->fifo_clear_rx();
+  if (len < 12 || len > 32) return;
+  if (crc8(raw, len - 1) != raw[len - 1]) return;
+
+  // Same address filter as the normal Rx path (the CMT2300A doesn't filter by address).
+  uint8_t dtu_id[4];
+  serial_to_packet_id(dtu_id, this->dtu_serial_);
+  if (memcmp(&raw[5], dtu_id, 4) != 0) return;
+
+  if (this->fw_rx_cb_) this->fw_rx_cb_(raw, len);
 }
 
 // ---------------------------------------------------------------------------
@@ -935,6 +1008,12 @@ void HMSComponent::loop() {
   // radio -- we don't touch any register until it releases ownership.
   if (this->radio_->is_owned_by_other(this)) return;
 
+  // Maintenance mode (firmware update): nothing but the update traffic runs.
+  if (this->fw_mode_) {
+    this->fw_loop_();
+    return;
+  }
+
   // 0. Tx transmission in progress: nothing else happens until it's
   // done (or times out) -- the chip is in TX mode, not RX, during this time.
   if (this->tx_sending_) {
@@ -999,6 +1078,7 @@ void HMSComponent::loop() {
              this->rx_fragment_last_id_, this->rx_fragment_max_id_);
 
     if (result == FRAGMENT_OK) {
+      if (this->pending_cmd_ == CMD_REALTIME_DATA) this->record_poll_(true);
       this->op_state_ = OP_IDLE;
       this->pending_cmd_ = CMD_NONE;
       this->radio_->unlock_external(this);
@@ -1014,6 +1094,7 @@ void HMSComponent::loop() {
     } else {
       // Definitive timeout or processing error
       this->rx_failure_count_++;
+      if (this->pending_cmd_ == CMD_REALTIME_DATA) this->record_poll_(false);
       ESP_LOGD(TAG, "Definitive command cycle failure (result=%u) -- rx_failure_count_=%u", result,
                static_cast<unsigned int>(this->rx_failure_count_));
       this->publish_reachable_();

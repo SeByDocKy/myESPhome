@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <functional>
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/cmt2300a/cmt2300a.h"
@@ -171,6 +172,36 @@ class HMSComponent : public Component {
   /// manual action, not a routine code path.
   void reset_radio();
 
+  // -------------------------------------------------------------------------
+  // Maintenance mode -- used by the hms_fwupdate component to drive the
+  // Hoymiles firmware download protocol over this hub's radio.
+  //
+  // While active, the hub holds the radio, stops its telemetry polling, stops
+  // pending power-limit writes and disables the ChannelChangeCommand recovery
+  // (the work frequency stays locked). Every valid frame addressed to this
+  // DTU (CRC8 and DTU address checked) is handed to the callback.
+  // -------------------------------------------------------------------------
+  using FwRxCallback = std::function<void(const uint8_t *frame, uint8_t len)>;
+
+  /// Enter maintenance mode. Returns false if the radio is busy right now (retry on a later tick).
+  bool fw_enter(FwRxCallback cb);
+  /// Leave maintenance mode: the radio is released and normal polling resumes.
+  void fw_leave();
+  bool fw_active() const { return this->fw_mode_; }
+  /// True while a frame is still being transmitted (non-blocking Tx).
+  bool fw_tx_busy() const { return this->tx_sending_; }
+  /// Start transmitting a raw frame (CRC/checksum already included). Non-blocking.
+  bool fw_send_frame(const uint8_t *frame, uint8_t len);
+
+  uint64_t get_inverter_serial() const { return this->inverter_serial_; }
+  uint64_t get_dtu_serial() const { return this->dtu_serial_; }
+  const std::string &get_type_name() const { return this->type_name_; }
+  bool is_reachable() const { return this->rx_failure_count_ <= REACHABLE_THRESHOLD; }
+  /// Share (0-100 %) of successful telemetry polls over the last `window` (1-32) polls.
+  uint8_t get_link_quality(uint8_t window) const;
+  /// Number of telemetry polls recorded so far (saturates at 32).
+  uint8_t get_link_samples() const { return this->poll_history_count_; }
+
   void setup() override;
   void loop() override;
   void dump_config() override;
@@ -268,6 +299,16 @@ class HMSComponent : public Component {
   // Link reliability (to trigger a ChannelChangeCommand)
   uint32_t rx_failure_count_{0};
   static const uint8_t REACHABLE_THRESHOLD = 3;
+
+  // Rolling history of the last 32 telemetry polls (bit 0 = most recent, 1 = success)
+  uint32_t poll_history_{0};
+  uint8_t poll_history_count_{0};
+  void record_poll_(bool ok);
+
+  // Maintenance mode (see fw_enter())
+  bool fw_mode_{false};
+  FwRxCallback fw_rx_cb_{};
+  void fw_loop_();
 
   // Pending power setting (sent as soon as the radio channel is free)
   bool power_limit_pending_{false};

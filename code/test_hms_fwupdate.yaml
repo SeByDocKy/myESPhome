@@ -1,0 +1,122 @@
+#################### Compile with ESPHome >= 2026.7.0 ####################
+# Firmware update of a Hoymiles HMS micro-inverter over the CMT2300A radio.
+# dry_run is ON: the file is downloaded and verified, the first frames are logged,
+# but NOTHING is transmitted. Set `dry_run: false` only when you accept the risk.
+
+substitutions:
+  name: test_hms_fwupdate
+  hms_sn: !secret hms_sn1                # 12 hex digits, e.g. 114174600001
+  fw_server: http://homeassistant.local:8123/local/hoymiles
+
+esphome:
+  name: ${name}
+  min_version: 2026.7.0
+
+esp32:
+  board: esp32dev
+  cpu_frequency: 240Mhz
+  framework:
+    type: esp-idf
+
+external_components:
+  - source: github://SeByDocKy/myESPhome
+    components: [ cmt2300a, hms, hms_fwupdate ]
+    refresh: 0s
+
+logger:
+  level: debug
+
+api:
+  batch_delay: 50ms
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+http_request:
+  timeout: 10s
+  buffer_size_rx: 2048        # the file is read as a stream, it is never stored
+
+cmt2300a:
+  id: cmt_radio
+  clk_pin: GPIO18
+  sdio_pin: GPIO19
+  cs_pin: GPIO21
+  fcs_pin: GPIO22
+  pa_level: 20
+
+hms:
+  - id: hms1
+    cmt2300a_id: cmt_radio
+    sn: ${hms_sn}
+    frequency_band: eu_860
+    poll_interval: 5s
+
+hms_fwupdate:
+  id: fw
+  hms_id: hms1
+  min_link_quality: 95%
+  link_quality_window: 20
+  require_armed: true
+  armed_timeout: 60s
+  max_row_attempts: 10
+  dry_run: true
+  firmwares:
+    - name: HMS_2T 1.0.8
+      url: ${fw_server}/HMS_2T_1_0_8.hex
+      sha256: "0000000000000000000000000000000000000000000000000000000000000000"   # replace with the logged hash
+    - name: HMS_2T 1.3.9
+      url: ${fw_server}/HMS_2T_1_3_9.hex
+  on_progress:
+    - logger.log:
+        format: "Update progress: %.0f%%"
+        args: [ 'x' ]
+  on_result:
+    - logger.log:
+        format: "Update result: %s"
+        args: [ 'x.c_str()' ]
+
+select:
+  - platform: hms_fwupdate
+    hms_fwupdate_id: fw
+    firmware:
+      name: ${name}_fw_file
+
+switch:
+  - platform: hms_fwupdate
+    hms_fwupdate_id: fw
+    armed:
+      name: ${name}_fw_armed
+
+button:
+  - platform: hms_fwupdate
+    hms_fwupdate_id: fw
+    start:
+      name: ${name}_fw_start
+    abort:
+      name: ${name}_fw_abort
+
+sensor:
+  - platform: hms_fwupdate
+    hms_fwupdate_id: fw
+    progress:
+      name: ${name}_fw_progress
+    link_quality:
+      name: ${name}_fw_link_quality
+
+text_sensor:
+  - platform: hms_fwupdate
+    hms_fwupdate_id: fw
+    state:
+      name: ${name}_fw_state
+    result:
+      name: ${name}_fw_result
+
+binary_sensor:
+  - platform: hms_fwupdate
+    hms_fwupdate_id: fw
+    running:
+      name: ${name}_fw_running
