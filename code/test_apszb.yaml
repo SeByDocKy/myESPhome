@@ -1,6 +1,9 @@
 substitutions:
   name: apsystems
   friendly_name: APsystems
+  my_hours: '23'
+  my_minute: '59'
+  my_second: '59
 
 esphome:
   name: ${name}
