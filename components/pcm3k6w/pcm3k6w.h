@@ -216,7 +216,7 @@ class PCM3K6WComponent : public Component {
   void enqueue_(uint8_t cmd_type, uint8_t reg, const std::vector<uint8_t> &payload);
   void enqueue_query_(uint8_t reg) { this->enqueue_(0x03, reg, {}); }
 
-  void on_frame_(uint32_t can_id, bool extended_id, bool rtr, const std::vector<uint8_t> &data);
+  void on_frame_(const canbus::CanFrame &frame);
   void poll_();
 
   sensor::Sensor *sensors_[SENS_COUNT] = {nullptr};

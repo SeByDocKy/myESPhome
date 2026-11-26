@@ -10,7 +10,7 @@ static const char *const TAG = "pcm3k6w";
 
 // Little-endian 16 bit value starting at data[i] (matches the PCM's
 // `(x[i+1] << 8) | x[i]` layout used throughout the original YAML).
-static inline uint16_t le16(const std::vector<uint8_t> &d, size_t i) {
+static inline uint16_t le16(const uint8_t *d, size_t i) {
   return (static_cast<uint16_t>(d[i + 1]) << 8) | d[i];
 }
 
@@ -27,9 +27,9 @@ static const char *running_mode_text(uint8_t mode) {
 }
 
 void PCM3K6WComponent::setup() {
-  this->canbus_->add_callback([this](uint32_t can_id, bool extended_id, bool rtr, const std::vector<uint8_t> &data) {
-    this->on_frame_(can_id, extended_id, rtr, data);
-  });
+  // add_frame_callback() hands over the frame by reference (no payload copy);
+  // add_callback() is deprecated since ESPHome 2026.11 and removed in 2027.5.
+  this->canbus_->add_frame_callback([this](const canbus::CanFrame &frame) { this->on_frame_(frame); });
 
   // Mirrors the original on_boot sequence: query version + SN once, then
   // after a 2s settle, force the charge/discharge current limits to a safe
@@ -92,8 +92,10 @@ void PCM3K6WComponent::poll_() {
   this->enqueue_query_(0x37);  // discharging current
 }
 
-void PCM3K6WComponent::on_frame_(uint32_t can_id, bool extended_id, bool rtr, const std::vector<uint8_t> &data) {
-  if (!extended_id || rtr || data.size() < 7) return;
+void PCM3K6WComponent::on_frame_(const canbus::CanFrame &frame) {
+  const uint8_t *data = frame.data;
+  const uint32_t can_id = frame.can_id;
+  if (!frame.use_extended_id || frame.remote_transmission_request || frame.payload_length() < 7) return;
 
   uint8_t rx_type = (can_id >> 24) & 0xFF;
   uint8_t rx_module = (can_id >> 16) & 0xFF;
