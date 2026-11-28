@@ -12,7 +12,9 @@ void EcoflowStreamSensor::dump_config() {
 void EcoflowStreamSensor::parse_and_publish(std::span<const uint8_t> data) {
   if (!this->has_data_(data))
     return;
-  this->publish_state(this->number_(data));
+  const float value = this->number_(data);
+  // no "-0" when the sign is inverted
+  this->publish_state(value == 0.0f ? 0.0f : value * this->sign_factor_());
 }
 
 }  // namespace esphome::ecoflow_stream

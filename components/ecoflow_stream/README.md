@@ -110,7 +110,8 @@ Every entity is listed in the [Entity reference](#entity-reference). Ready to us
 | `slow_modbus_controller_id` | - | controller of the slow entities |
 | `heartbeat_interval` | `20s` | keep-alive period (1 s to 50 s, `0ms` = never) |
 | `ignore_master_flag` | `false` | publish and write system values even on a unit that is not the master |
-| `charge_sign` | - | `negative` or `positive`, required by the `output` platform |
+| `charge_sign` | - | sign (`negative` or `positive`) of the device target which charges the battery. Required by the `output` platform |
+| `battery_power_charge_sign` | `positive` | sign (`negative` or `positive`) of the device battery power while charging |
 | `control_point` | `battery` | point driven by the outputs: `battery`, `inverter`, `grid_port` |
 | `auto_control_point` | `false` | write the control point before a setpoint when it differs |
 | `max_charge_power` / `max_discharge_power` | - | extra limits (W) of the outputs |
@@ -383,9 +384,16 @@ switch:
 
 `select.control_point` chooses which of the `targets.*_power` numbers the battery follows.
 
-> **The sign of the target powers is not documented** by the official sources, and neither is the sign of `battery.power` and `ac.grid_power`. Check it first: select *Battery point*, write a small value (for example `100`) to `targets.battery_power`, and see whether the battery charges or discharges. Then set `charge_sign` accordingly.
+### Sign convention
 
-The `output` platform is meant for a PID loop (zero injection). `0.0 … 1.0` maps to `0 … maximum power` reported by the device (further limited by `max_charge_power` / `max_discharge_power`); the setpoint sent is discharge minus charge.
+The component uses **positive = charge, negative = discharge** for `battery.power` and for `targets.battery_power`, `targets.inverter_power` and `targets.grid_port_power`. `targets.meter_power` and `ac.grid_power` are published as the device gives them.
+
+> **The signs used by the device are not documented** by the official sources. Check both before relying on them:
+>
+> 1. `charge_sign`: set it to `positive`, select *Battery point*, turn the heartbeat on and write `100` to `targets.battery_power`. If the battery charges, keep `positive`; if it discharges, use `negative`. Without `charge_sign` the targets are written as typed.
+> 2. `battery_power_charge_sign`: while the battery is charging, `battery.power` must read positive. If it reads negative, set `negative` (or flip the value you had).
+
+The `output` platform is meant for a PID loop (zero injection). `0.0 … 1.0` maps to `0 … maximum power` reported by the device (further limited by `max_charge_power` / `max_discharge_power`); the setpoint is charge minus discharge.
 
 ```yaml
 ecoflow_stream:

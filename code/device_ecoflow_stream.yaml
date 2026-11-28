@@ -7,6 +7,9 @@
 #   ecoflow_fast_update_interval, ecoflow_slow_update_interval
 #   ecoflow_charge_sign: negative or positive, sign of the target power which charges the battery.
 #     NOT documented by EcoFlow: check it with a small value before using the outputs.
+#   ecoflow_battery_power_charge_sign (optional, default positive): sign of the device battery power
+#     while charging.
+# Sign convention of this package: positive = charge, negative = discharge.
 #
 # The heartbeat switch starts OFF: turn it on to take control of the battery (needs "View and control" in
 # the EcoFlow app). Without a heartbeat for 60 s the battery returns to its own energy management.
@@ -15,6 +18,9 @@
 #   ${ecoflow_name}_heartbeat, ${ecoflow_name}_control_point, ${ecoflow_name}_battery_soc,
 #   ${ecoflow_name}_battery_power, ${ecoflow_name}_ac_grid_power, ${ecoflow_name}_ac_home_power,
 #   ${ecoflow_name}_system_master
+
+defaults:
+  ecoflow_battery_power_charge_sign: positive
 
 external_components:
   - source: github://SeByDocKy/myESPhome
@@ -38,6 +44,7 @@ ecoflow_stream:
   modbus_controller_id: ${ecoflow_name}_fast_modbus_controller
   slow_modbus_controller_id: ${ecoflow_name}_slow_modbus_controller
   charge_sign: ${ecoflow_charge_sign}
+  battery_power_charge_sign: ${ecoflow_battery_power_charge_sign}
   # Point driven by the outputs: battery, inverter or grid_port
   control_point: battery
   # false: select the control point yourself; true: written before a setpoint when it differs

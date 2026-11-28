@@ -14,7 +14,8 @@ void EcoflowStreamNumber::dump_config() {
 void EcoflowStreamNumber::parse_and_publish(std::span<const uint8_t> data) {
   if (!this->has_data_(data) || this->held_())
     return;
-  this->publish_state(this->number_(data));
+  const float value = this->number_(data);
+  this->publish_state(value == 0.0f ? 0.0f : value * this->sign_factor_());
 }
 
 void EcoflowStreamNumber::control(float value) {
@@ -26,14 +27,18 @@ void EcoflowStreamNumber::control(float value) {
   }
   const float limited = std::min(std::max(value, this->traits.get_min_value()), this->traits.get_max_value());
   const int32_t integer = static_cast<int32_t>(std::lround(limited));
-  ESP_LOGD(TAG, "Write register %u = %d", this->reg_, static_cast<int>(integer));
+  // `integer` is what the entity shows, `wire` what the device expects
+  int32_t wire = integer * this->sign_factor_();
+  if (this->sign_ != nullptr)
+    wire = std::min<int32_t>(std::max<int32_t>(wire, INT16_MIN), INT16_MAX);
+  ESP_LOGD(TAG, "Write register %u = %d", this->reg_, static_cast<int>(wire));
   bool queued;
   if (this->count_ == 2) {
-    const uint16_t words[2] = {static_cast<uint16_t>(static_cast<uint32_t>(integer) >> 16),
-                               static_cast<uint16_t>(static_cast<uint32_t>(integer) & 0xFFFF)};
+    const uint16_t words[2] = {static_cast<uint16_t>(static_cast<uint32_t>(wire) >> 16),
+                               static_cast<uint16_t>(static_cast<uint32_t>(wire) & 0xFFFF)};
     queued = this->writer_.write_multiple_registers(this->reg_, std::span<const uint16_t>(words));
   } else {
-    queued = this->writer_.write_single_register(this->reg_, static_cast<uint16_t>(integer));
+    queued = this->writer_.write_single_register(this->reg_, static_cast<uint16_t>(wire));
   }
   if (!queued) {
     ESP_LOGW(TAG, "Write of register %u refused by the Modbus bus (queue full?)", this->reg_);

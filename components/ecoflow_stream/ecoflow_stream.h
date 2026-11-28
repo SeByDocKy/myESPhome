@@ -72,6 +72,9 @@ class EcoflowStreamRegisterItem : public SensorItem {
   uint8_t count() const { return this->count_; }
   /// This item is a value of the whole system: it is only valid on the system master
   void set_system_value(EcoflowStreamHub *hub) { this->system_hub_ = hub; }
+  /// Signed battery power: `sign` points to the hub setting giving the sign the device uses while charging.
+  /// The entity always shows positive = charge, negative = discharge.
+  void set_power_sign(const int8_t *sign) { this->sign_ = sign; }
 
   /// Write protection: the values read back are ignored for `ms` after a write
   void hold_for(uint32_t ms) {
@@ -89,6 +92,8 @@ class EcoflowStreamRegisterItem : public SensorItem {
     }
     return true;
   }
+  /// -1 when the device counts charging as negative, else 1 (also when the setting is absent)
+  int sign_factor_() const { return this->sign_ != nullptr && *this->sign_ < 0 ? -1 : 1; }
   /// True when the payload holds all the registers of this item AND the item may be published by this unit
   bool has_data_(std::span<const uint8_t> data) const;
   int64_t raw_(std::span<const uint8_t> data) const {
@@ -111,6 +116,7 @@ class EcoflowStreamRegisterItem : public SensorItem {
   uint32_t hold_until_{0};
   bool hold_active_{false};
   EcoflowStreamHub *system_hub_{nullptr};
+  const int8_t *sign_{nullptr};
 };
 
 /// Reads a register for the hub itself, so that it does not require an entity to be declared in the YAML
@@ -155,6 +161,9 @@ class EcoflowStreamHub : public Component {
   void set_heartbeat_interval(uint32_t ms) { this->heartbeat_interval_ms_ = ms; }
   void set_ignore_master_flag(bool ignore) { this->ignore_master_flag_ = ignore; }
   void set_charge_sign(int8_t sign) { this->charge_sign_ = sign; }
+  void set_battery_power_charge_sign(int8_t sign) { this->battery_power_charge_sign_ = sign; }
+  const int8_t *target_sign() const { return &this->charge_sign_; }
+  const int8_t *measure_sign() const { return &this->battery_power_charge_sign_; }
   void set_control_point(ControlPoint point) { this->control_point_ = point; }
   void set_auto_control_point(bool enable) { this->auto_control_point_ = enable; }
   void set_max_charge_power(uint32_t watts) { this->max_charge_override_w_ = watts; }
@@ -197,6 +206,7 @@ class EcoflowStreamHub : public Component {
   uint32_t heartbeat_interval_ms_{20000};
   bool ignore_master_flag_{false};
   int8_t charge_sign_{0};
+  int8_t battery_power_charge_sign_{1};
   ControlPoint control_point_{ControlPoint::BATTERY};
   bool auto_control_point_{false};
   uint32_t max_charge_override_w_{0};

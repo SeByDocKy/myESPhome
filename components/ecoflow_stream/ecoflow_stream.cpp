@@ -115,8 +115,8 @@ void EcoflowStreamHub::set_power_fraction(bool charge, float fraction) {
     ESP_LOGW(TAG, "Maximum power not known yet (and not set in the YAML): setpoint not sent");
     return;
   }
-  this->setpoint_w_ = static_cast<int32_t>(std::lround(this->discharge_fraction_ * max_discharge -
-                                                       this->charge_fraction_ * max_charge));
+  this->setpoint_w_ = static_cast<int32_t>(std::lround(this->charge_fraction_ * max_charge -
+                                                       this->discharge_fraction_ * max_discharge));
   this->setpoint_valid_ = true;
   this->send_setpoint_();
 }
@@ -141,8 +141,8 @@ void EcoflowStreamHub::send_setpoint_() {
     }
   }
 
-  // setpoint_w_ is positive when discharging; the device charges with the sign `charge_sign_`
-  const int32_t value = this->setpoint_w_ * -this->charge_sign_;
+  // setpoint_w_ is positive when charging; the device charges with the sign `charge_sign_`
+  const int32_t value = this->setpoint_w_ * this->charge_sign_;
   const uint16_t reg = static_cast<uint16_t>(REG_TARGET_BASE + wanted);
   ESP_LOGD(TAG, "Write setpoint: register %u = %d W", reg, static_cast<int>(value));
   if (!this->setpoint_writer_.write_single_register(reg, static_cast<uint16_t>(static_cast<int16_t>(value))))

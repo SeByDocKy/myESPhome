@@ -39,6 +39,7 @@ CONF_SLOW_MODBUS_CONTROLLER_ID = "slow_modbus_controller_id"
 CONF_HEARTBEAT_INTERVAL = "heartbeat_interval"
 CONF_IGNORE_MASTER_FLAG = "ignore_master_flag"
 CONF_CHARGE_SIGN = "charge_sign"
+CONF_BATTERY_POWER_CHARGE_SIGN = "battery_power_charge_sign"
 CONF_CONTROL_POINT = "control_point"
 CONF_AUTO_CONTROL_POINT = "auto_control_point"
 CONF_MAX_CHARGE_POWER = "max_charge_power"
@@ -56,6 +57,8 @@ CONTROL_POINTS = {
 }
 # Sign of the target register that CHARGES the battery. The official sources do not document it.
 CHARGE_SIGNS = {"negative": -1, "positive": 1}
+# Target powers converted with `charge_sign` (the meter target is a grid power, not a battery power)
+SIGNED_TARGETS = ("targets.battery_power", "targets.inverter_power", "targets.grid_port_power")
 
 ModbusController = modbus_controller.ModbusController
 
@@ -81,6 +84,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_IGNORE_MASTER_FLAG, default=False): cv.boolean,
         # Needed by the output platform only
         cv.Optional(CONF_CHARGE_SIGN): cv.enum(CHARGE_SIGNS, lower=True),
+        cv.Optional(CONF_BATTERY_POWER_CHARGE_SIGN, default="positive"): cv.enum(CHARGE_SIGNS, lower=True),
         cv.Optional(CONF_CONTROL_POINT, default="battery"): cv.enum(CONTROL_POINTS, lower=True),
         cv.Optional(CONF_AUTO_CONTROL_POINT, default=False): cv.boolean,
         cv.Optional(CONF_MAX_CHARGE_POWER): cv.int_range(min=1, max=32767),
@@ -106,6 +110,7 @@ async def to_code(config):
     cg.add(var.set_ignore_master_flag(config[CONF_IGNORE_MASTER_FLAG]))
     if CONF_CHARGE_SIGN in config:
         cg.add(var.set_charge_sign(CHARGE_SIGNS[config[CONF_CHARGE_SIGN]]))
+    cg.add(var.set_battery_power_charge_sign(CHARGE_SIGNS[config[CONF_BATTERY_POWER_CHARGE_SIGN]]))
     cg.add(var.set_control_point(config[CONF_CONTROL_POINT]))
     cg.add(var.set_auto_control_point(config[CONF_AUTO_CONTROL_POINT]))
     if CONF_MAX_CHARGE_POWER in config:
@@ -127,6 +132,12 @@ def configure_item(var, hub, spec):
     )
     if spec["system"]:
         cg.add(var.set_system_value(hub))
+    # Signed battery powers are shown as positive = charge, whatever the device does
+    path = ".".join(spec["path"])
+    if path in SIGNED_TARGETS:
+        cg.add(var.set_power_sign(hub.target_sign()))
+    elif path == "battery.power":
+        cg.add(var.set_power_sign(hub.measure_sign()))
     cg.add(hub.add_item(var, is_slow(spec)))
 
 
