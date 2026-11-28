@@ -6,10 +6,36 @@
 # READ ONLY as shipped. The controls are in the commented block at the end: uncomment them once the readings
 # have been checked against the EcoFlow app (it needs "View and control" there).
 
+globals:
+  - id: ${ecoflow_name}_energy_yesterday_global
+    type: float
+    restore_value: yes
+    
+time:
+  - platform: sntp
+    id: !extend my_time
+    on_time:
+      - seconds: ${my_second}
+        minutes: ${my_minute}
+        hours: ${my_hours}
+        then:  
+          - globals.set:
+              id: ${ecoflow_name}_energy_yesterday_global
+              value: !lambda return ( id(${ecoflow_name}_energy_yesterday_global) =  float( id(${ecoflow_name}_energy_today).state) );
+
+
+
 external_components:
   - source: github://SeByDocKy/myESPhome
     components: [ecoflow_stream]
     refresh: 10s
+
+  - source: github://pr#20061
+    components: [modbus_tcp_uart]
+    refresh: 1h
+  - source: github://pr#20198
+    components: [ble_nus, tcp_uart, uart, usb_cdc_acm, usb_uart]
+    refresh: 1h  
 
 modbus_controller:
   - id: ${ecoflow_name}_fast_modbus_controller
@@ -20,6 +46,15 @@ modbus_controller:
     address: ${ecoflow_modbus_address}
     modbus_id: ${ecoflow_modbus_controller}
     update_interval: ${ecoflow_slow_update_interval}
+
+tcp_uart:
+  - id: ${ecoflow_name}_link
+    host: ${ecoflow_ip_address}
+    port: ${ecoflow_ip_port}
+
+modbus_tcp_uart:
+  - id: ${ecoflow_name}_uart
+    tcp_uart_id: ${ecoflow_name}_link    
 
 ecoflow_stream:
   id: ${ecoflow_id}
