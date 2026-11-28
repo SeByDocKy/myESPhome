@@ -436,7 +436,8 @@ void DUALPIDPCMComponent::pid_update() {
     // Ce bloc a été supprimé intentionnellement.
     // La machine d'état (case 1 / case 2 ci-dessous) gère ces cas avec
     // le drapeau pass_through_ correctement positionné :
-    //   - Vraie mise en veille (epsi reste dans la zone morte) → pass_through=false
+    //   - Vraie mise en veille (sortie au minimum, plus de raison d'être dans
+    //     la direction courante) → pass_through=false
     //   - Bascule directe vers l'autre mode (epsi franchit le seuil opposé) → pass_through=true
     // Forcer pass_through=false ici empêchait la bascule Charge↔Décharge sans coupure
     // et déclenchait inutilement le gel de 8 secondes (STARTUP_INHIBIT_MS) à chaque
@@ -577,9 +578,26 @@ void DUALPIDPCMComponent::pid_update() {
     // déconnecté des seuils physiques en W). olb_/oub_ restent utilisés
     // uniquement pour le clamp physique et le point d'atterrissage.
     //
-    // SORTIE (arrêt réel) continue d'utiliser le seuil d'ARRÊT (Pmin_*, via
-    // current_deadband_) — c'est la différence stop/start qui crée
-    // l'hystérésis voulue.
+    // SORTIE (arrêt réel) : seuil d'ARRÊT de la direction courante (Pmin_*),
+    // sans borne côté opposé. La CHARGE s'arrête dès que sa sortie est au
+    // minimum et qu'il n'y a plus de surplus à absorber (epsi > Pmin_charging),
+    // que epsi soit dans la zone morte ou en import franc ; la DÉCHARGE, en
+    // miroir, dès qu'il n'y a plus de besoin (epsi < Pmin_discharging).
+    // Auparavant la sortie passait par current_deadband_, borné des deux
+    // côtés : avec un import au-delà de la zone morte et la décharge interdite
+    // (switch ou lockout), ou epsi entre Pmin_discharging et Pstart_discharging,
+    // aucune sortie n'était possible et la charge restait figée au minimum
+    // (1 A) depuis le réseau. C'est toujours la différence stop/start qui crée
+    // l'hystérésis voulue (pas de cyclage IDLE <-> actif).
+    //
+    // Ordre des branches dans case 1 (CHARGE) / case 2 (DISCHARGE) :
+    //   1. verrou de la direction courante fermé -> IDLE immédiat ;
+    //   2. sortie défensive par olb_/oub_ vers l'autre sens ;
+    //   3. bascule directe vers l'autre sens (Pstart_* + verrou opposé ouvert),
+    //      testée AVANT l'arrêt pour conserver le passage sans coupure ;
+    //   4. arrêt réel (sortie au minimum, plus de raison d'être) confirmé
+    //      pendant DEADBAND_CONFIRM_MS -> IDLE ;
+    //   5. sinon, remise à zéro du timer de confirmation.
     //
     // current_allow_charging_/discharge_gate() verrouillent toujours
     // l'entrée/bascule vers le mode correspondant, priorité absolue en sortie
@@ -611,8 +629,30 @@ void DUALPIDPCMComponent::pid_update() {
              this->pass_through_ = true;
              this->deadband_start_time_ = 0;
            }
-           // Arrêt réel : deadband confirmée (seuil d'ARRÊT) + sortie déjà au minimum pendant DEADBAND_CONFIRM_MS
-           else if (this->current_deadband_ && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && !in_startup) {
+           // Bascule directe (seuil de REDÉMARRAGE) : erreur franchement positive
+           // + sortie déjà au minimum + décharge autorisée.
+           // Testée AVANT l'arrêt réel : quand la décharge est permise, on garde
+           // la bascule sans coupure (pass_through) plutôt que de passer par IDLE.
+           else if (!in_startup && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && (epsi > Pstart_discharging * DEADBAND_FACTOR) && this->discharge_gate()) {
+             this->current_mode_ = 2;   // → Bascule directe vers DISCHARGE sans passer par IDLE
+             this->pass_through_ = true;
+             this->deadband_start_time_ = 0;
+           }
+           // Arrêt réel (seuil d'ARRÊT, sans borne haute) : sortie déjà au minimum
+           // et plus aucun surplus à absorber (epsi au-dessus de Pmin_charging),
+           // confirmé pendant DEADBAND_CONFIRM_MS.
+           // Sans borne haute : un import franc doit aussi ramener en IDLE quand la
+           // décharge est interdite (switch ou lockout sous-tension) ou pas encore
+           // justifiée (epsi entre Pmin_discharging et Pstart_discharging). Sinon
+           // la CHARGE reste figée au minimum (1 A) et tire sur le réseau.
+           // Comparaison STRICTE au minimum (pas de tolérance +0.01 comme pour la
+           // bascule) : c'est exactement la condition que portait current_deadband_,
+           // donc comportement identique dans la zone morte. Une tolérance de 0.01
+           // (~0.7 A) couperait une charge qui suit un petit surplus réel
+           // (epsi ≈ 0, Oc juste au-dessus du minimum).
+           else if (!in_startup
+                    && (this->current_output_charging_ <= this->current_output_min_charging_)
+                    && (epsi > this->Pmin_charging * DEADBAND_FACTOR)) {
              if (this->deadband_start_time_ == 0) {
                this->deadband_start_time_ = now;
              }
@@ -620,15 +660,8 @@ void DUALPIDPCMComponent::pid_update() {
                this->current_mode_ = 0;
                this->pass_through_ = false;
                this->deadband_start_time_ = 0;
-               ESP_LOGI(TAG, "Deadband CHARGE confirmée (%d ms) -> Passage en IDLE", DEADBAND_CONFIRM_MS);
+               ESP_LOGI(TAG, "CHARGE au minimum sans surplus (epsi=%.1f W) confirmée (%d ms) -> Passage en IDLE", epsi, DEADBAND_CONFIRM_MS);
              }
-           }
-           // Bascule directe (seuil de REDÉMARRAGE) : erreur franchement positive
-           // + sortie déjà au minimum + décharge autorisée
-           else if (!in_startup && (this->current_output_charging_ <= this->current_output_min_charging_ + 0.01f) && (epsi > Pstart_discharging * DEADBAND_FACTOR) && this->discharge_gate()) {
-             this->current_mode_ = 2;   // → Bascule directe vers DISCHARGE sans passer par IDLE
-             this->pass_through_ = true;
-             this->deadband_start_time_ = 0;
            }
            else {
              this->deadband_start_time_ = 0;
@@ -641,13 +674,30 @@ void DUALPIDPCMComponent::pid_update() {
              this->pass_through_ = false;
              this->deadband_start_time_ = 0;
            }
+           // Sortie directe vers CHARGE si output franchit olb_ (rare, code défensif)
            else if (this->current_output_ < this->olb_ && this->current_allow_charging_) {
              this->current_mode_ = 1;
              this->pass_through_ = true;
              this->deadband_start_time_ = 0;
            }
-           // Arrêt réel : deadband confirmée (seuil d'ARRÊT) + sortie déjà au minimum pendant DEADBAND_CONFIRM_MS
-           else if (this->current_deadband_ && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && !in_startup) {
+           // Bascule directe (seuil de REDÉMARRAGE) : erreur franchement négative
+           // + sortie déjà au minimum + charge autorisée.
+           // Testée AVANT l'arrêt réel, en miroir de case 1.
+           else if (!in_startup && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (epsi < Pstart_charging * DEADBAND_FACTOR) && this->current_allow_charging_) {
+             this->current_mode_ = 1;   // → Bascule directe vers CHARGE sans passer par IDLE
+             this->pass_through_ = true;
+             this->deadband_start_time_ = 0;
+           }
+           // Arrêt réel (seuil d'ARRÊT, sans borne basse) : sortie déjà au minimum
+           // et plus aucun besoin à couvrir (epsi en dessous de Pmin_discharging),
+           // confirmé pendant DEADBAND_CONFIRM_MS. Miroir de case 1 : un export
+           // franc ramène aussi en IDLE quand la charge est interdite ou pas encore
+           // justifiée (epsi entre Pstart_charging et Pmin_charging), au lieu de
+           // rester en DÉCHARGE au minimum (1 A) vers le réseau.
+           // Comparaison stricte au minimum, comme en case 1.
+           else if (!in_startup
+                    && (this->current_output_discharging_ <= this->current_output_min_discharging_)
+                    && (epsi < this->Pmin_discharging * DEADBAND_FACTOR)) {
              if (this->deadband_start_time_ == 0) {
                this->deadband_start_time_ = now;
              }
@@ -655,13 +705,8 @@ void DUALPIDPCMComponent::pid_update() {
                this->current_mode_ = 0;
                this->pass_through_ = false;
                this->deadband_start_time_ = 0;
-               ESP_LOGI(TAG, "Deadband DÉCHARGE confirmée (%d ms) -> Passage en IDLE", DEADBAND_CONFIRM_MS);
+               ESP_LOGI(TAG, "DÉCHARGE au minimum sans besoin (epsi=%.1f W) confirmée (%d ms) -> Passage en IDLE", epsi, DEADBAND_CONFIRM_MS);
              }
-           }
-           else if (!in_startup && (this->current_output_discharging_ <= this->current_output_min_discharging_ + 0.01f) && (epsi < Pstart_charging * DEADBAND_FACTOR) && this->current_allow_charging_) {
-             this->current_mode_ = 1;   // → Bascule directe vers CHARGE sans passer par IDLE
-             this->pass_through_ = true;
-             this->deadband_start_time_ = 0;
            }
            else {
              this->deadband_start_time_ = 0;
