@@ -1,6 +1,5 @@
 # EcoFlow STREAM 5000 (Modbus TCP).
-# Start read-only: compare the readings with the EcoFlow app before uncommenting the controls of
-# code/device_ecoflow_stream5000.yaml.
+# Start read-only: leave the heartbeat switch off until the readings match the EcoFlow app.
 # Enable Modbus TCP in the EcoFlow app (device integration -> third-party control; "View only" is enough to read).
 # Modbus TCP goes through ESPHome PRs #20061 and #20198 (not merged yet). When written, they compiled with
 # ESPHome 2026.12.0-dev, NOT with 2026.11.1.
@@ -69,14 +68,16 @@ packages:
     ref: main
     refresh: 0s
     files:
-      - path: 'code/device_ecoflow_stream5000.yaml'
+      - path: 'code/device_ecoflow_stream.yaml'
         vars:
           ecoflow_name: 's5k'
           ecoflow_id: 's5k_hub'
+          ecoflow_model: 'stream5000'   # or stream_ac5000
           ecoflow_modbus_controller: 'modbus_0'
           ecoflow_modbus_address: '1'
           ecoflow_fast_update_interval: '5s'
           ecoflow_slow_update_interval: '60s'
+          ecoflow_charge_sign: 'positive'   # check it, see the README
 
 sensor:
   - platform: wifi_signal
